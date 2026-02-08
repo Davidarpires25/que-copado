@@ -34,6 +34,7 @@ function MapComponent({
     // Import dinámico de Leaflet para evitar errores de SSR
     const initMap = async () => {
       const L = (await import('leaflet')).default
+      // @ts-ignore
       await import('leaflet/dist/leaflet.css')
 
       // Fix para los iconos de Leaflet en Next.js
