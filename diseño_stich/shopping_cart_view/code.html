@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Shopping Cart - QueCopado</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#e33835",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#211211",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#2f1a1a",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display text-slate-900 dark:text-white selection:bg-primary/30">
+<!-- Header -->
+<header class="sticky top-0 z-50 w-full bg-surface-light/80 dark:bg-surface-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-white/10 px-6 py-4">
+<div class="max-w-7xl mx-auto flex items-center justify-between">
+<!-- Logo Area -->
+<a class="flex items-center gap-3 group" href="#">
+<div class="size-10 text-primary transition-transform group-hover:scale-110">
+<svg class="w-full h-full" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" fill="currentColor" fill-rule="evenodd"></path>
+<path clip-rule="evenodd" d="M24 8.18819L33.4123 11.574L24 15.2071L14.5877 11.574L24 8.18819ZM9 15.8487L21 20.4805V37.6263L9 32.9945V15.8487ZM27 37.6263V20.4805L39 15.8487V32.9945L27 37.6263ZM25.354 2.29885C24.4788 1.98402 23.5212 1.98402 22.646 2.29885L4.98454 8.65208C3.7939 9.08038 3 10.2097 3 11.475V34.3663C3 36.0196 4.01719 37.5026 5.55962 38.098L22.9197 44.7987C23.6149 45.0671 24.3851 45.0671 25.0803 44.7987L42.4404 38.098C43.9828 37.5026 45 36.0196 45 34.3663V11.475C45 10.2097 44.2061 9.08038 43.0155 8.65208L25.354 2.29885Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">QueCopado</h1>
+</a>
+<!-- Desktop Nav -->
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Menu</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Offers</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Locations</a>
+</nav>
+<!-- Actions -->
+<div class="flex items-center gap-3">
+<a class="hidden sm:block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-primary mr-2" href="#">Continue Shopping</a>
+<div class="relative group cursor-pointer">
+<span class="material-symbols-outlined text-3xl text-slate-800 dark:text-white group-hover:text-primary transition-colors">shopping_bag</span>
+<span class="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-background-light dark:border-background-dark">3</span>
+</div>
+<button class="md:hidden p-2 text-slate-800 dark:text-white">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow w-full max-w-7xl mx-auto px-6 py-8 md:py-12">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
+<!-- Left Column: Cart Items -->
+<section class="lg:col-span-8 flex flex-col gap-6">
+<div class="flex items-end justify-between border-b border-slate-200 dark:border-white/10 pb-4">
+<div>
+<h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-2">My Cart</h2>
+<p class="text-slate-500 dark:text-slate-400 font-medium">Ready to eat? Review your order below.</p>
+</div>
+<span class="text-slate-400 dark:text-slate-500 font-bold text-lg hidden sm:block">3 Items</span>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Item 1 -->
+<div class="group flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-transparent hover:border-primary/20 transition-all duration-300">
+<div class="shrink-0 relative">
+<div class="w-full sm:w-24 h-32 sm:h-24 rounded-lg bg-cover bg-center overflow-hidden" data-alt="Juicy double cheeseburger with fresh lettuce" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCi6dPPijm0qJ8FoVAqSdS8c8psNBK3a_BSIBPY-NnWfVm4HMIh4mciFwoPXv5QTX9rEPKpVSHXC5r0mAHd3nEHPtlNeyy3bM589GZaBnuI8t2unFSUxNRZOMMNF33P8vokvUP5_-mpPbK_Gitb_MMujt_81VBOd2JwL4EvBXdoAihH6qB-XH340B2lKO6FXWzEo6oMXw3p3egtJx1wa8G0YDy8RMxJ-E8tFCcmCCxbkQJggnqHhTEgv7GlraOBXAhqe7g62W2HxkpZ');">
+</div>
+</div>
+<div class="flex-1 flex flex-col justify-center min-w-0">
+<div class="flex justify-between items-start">
+<h3 class="text-lg font-bold truncate pr-4 text-slate-900 dark:text-white group-hover:text-primary transition-colors">Mega Cheesy Burger</h3>
+<button aria-label="Remove item" class="text-slate-400 hover:text-primary transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-3 line-clamp-1">No onions, Extra pickles</p>
+<div class="flex items-center justify-between mt-auto">
+<span class="text-lg font-bold text-slate-900 dark:text-white">$12.99</span>
+<!-- Stepper -->
+<div class="flex items-center bg-primary/5 dark:bg-white/5 rounded-full p-1 border border-primary/10">
+<button class="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-surface-dark shadow-sm text-primary hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm font-bold">remove</span>
+</button>
+<input class="w-8 p-0 text-center bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-900 dark:text-white [appearance:textfield] [&amp;::-webkit-inner-spin-button]:appearance-none" type="number" value="2"/>
+<button class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white shadow-sm hover:bg-primary/90 transition-colors">
+<span class="material-symbols-outlined text-sm font-bold">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="group flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-transparent hover:border-primary/20 transition-all duration-300">
+<div class="shrink-0 relative">
+<div class="w-full sm:w-24 h-32 sm:h-24 rounded-lg bg-cover bg-center overflow-hidden" data-alt="Golden crispy loaded french fries" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA7YJ9Pdpv2ZnOqwWpFuJ3LM_xHzLW3RVWzuJSVYX5QkS-Y4dogtZyoVHkbW-9HJKOtUkLOfObALDfLA832R9A_70JUgzKqVxwYOiJCpIuxt2cBBqIbrFw4dZfRMhTlbsQqxeE5EIrzinQ4PLtZ2Ub3J8IylCOXywr54QL7teW9jTzfzruD8JohQGEZ0pkrdfNrYAk723ABPF2XtiZTbxrC45FO4UeB8c27_VnqENN0bp1XqapakX3n0hCM7LkjmRdq8od-_QkExLvt');">
+</div>
+</div>
+<div class="flex-1 flex flex-col justify-center min-w-0">
+<div class="flex justify-between items-start">
+<h3 class="text-lg font-bold truncate pr-4 text-slate-900 dark:text-white group-hover:text-primary transition-colors">Loaded Fries</h3>
+<button aria-label="Remove item" class="text-slate-400 hover:text-primary transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-3 line-clamp-1">Extra spicy sauce</p>
+<div class="flex items-center justify-between mt-auto">
+<span class="text-lg font-bold text-slate-900 dark:text-white">$5.50</span>
+<!-- Stepper -->
+<div class="flex items-center bg-primary/5 dark:bg-white/5 rounded-full p-1 border border-primary/10">
+<button class="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-surface-dark shadow-sm text-primary hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm font-bold">remove</span>
+</button>
+<input class="w-8 p-0 text-center bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-900 dark:text-white [appearance:textfield] [&amp;::-webkit-inner-spin-button]:appearance-none" type="number" value="1"/>
+<button class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white shadow-sm hover:bg-primary/90 transition-colors">
+<span class="material-symbols-outlined text-sm font-bold">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="group flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-transparent hover:border-primary/20 transition-all duration-300">
+<div class="shrink-0 relative">
+<div class="w-full sm:w-24 h-32 sm:h-24 rounded-lg bg-cover bg-center overflow-hidden" data-alt="Classic vanilla milkshake with whipped cream" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCLjuHebxzdO-fV0Z3AhlQl75xB_NhzAILPqAm5wVXD93BgVxrcDHUoeoZzh4TDwpKgUDhiETkLkaqfdeEa9Sln-JodjlRoKNTt0jsR9pw3SuEolIuyxvt-1Dnb_WUFyGE6T_WkG0zrVnDqWU-qTZa6BP0HWwa9DqOodeRvvCqhSyUFcqDwdaJlHgi1wcqk-OhOiGq7gb-3wfLZ8ggtsi-GDRhOKc0bDHn1Z3LhckxbEHC9ZKTZfBbwaHLwmSvg4SeLrOGuqUQ5nep1');">
+</div>
+</div>
+<div class="flex-1 flex flex-col justify-center min-w-0">
+<div class="flex justify-between items-start">
+<h3 class="text-lg font-bold truncate pr-4 text-slate-900 dark:text-white group-hover:text-primary transition-colors">Vanilla Shake</h3>
+<button aria-label="Remove item" class="text-slate-400 hover:text-primary transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-3 line-clamp-1">Large size</p>
+<div class="flex items-center justify-between mt-auto">
+<span class="text-lg font-bold text-slate-900 dark:text-white">$4.00</span>
+<!-- Stepper -->
+<div class="flex items-center bg-primary/5 dark:bg-white/5 rounded-full p-1 border border-primary/10">
+<button class="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-surface-dark shadow-sm text-primary hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm font-bold">remove</span>
+</button>
+<input class="w-8 p-0 text-center bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-900 dark:text-white [appearance:textfield] [&amp;::-webkit-inner-spin-button]:appearance-none" type="number" value="1"/>
+<button class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white shadow-sm hover:bg-primary/90 transition-colors">
+<span class="material-symbols-outlined text-sm font-bold">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Column: Summary Sticky -->
+<section class="lg:col-span-4 h-full">
+<div class="sticky top-24 space-y-6">
+<!-- Order Summary Card -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-[2rem] p-6 shadow-xl shadow-black/5 dark:shadow-black/20 border border-slate-100 dark:border-white/5">
+<h3 class="text-xl font-extrabold text-slate-900 dark:text-white mb-6">Order Summary</h3>
+<!-- Details -->
+<div class="space-y-3 mb-6">
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span>Subtotal</span>
+<span class="font-bold text-slate-900 dark:text-white">$35.48</span>
+</div>
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span>Delivery Fee</span>
+<span class="font-bold text-slate-900 dark:text-white">$2.99</span>
+</div>
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span>Taxes (Estimated)</span>
+<span class="font-bold text-slate-900 dark:text-white">$2.84</span>
+</div>
+</div>
+<!-- Divider -->
+<div class="border-t border-dashed border-slate-300 dark:border-white/10 my-4"></div>
+<!-- Total -->
+<div class="flex justify-between items-center mb-8">
+<span class="text-lg font-bold text-slate-900 dark:text-white">Total</span>
+<span class="text-3xl font-black text-primary">$41.31</span>
+</div>
+<!-- Promo Code -->
+<div class="relative flex items-center mb-4 group">
+<span class="material-symbols-outlined absolute left-4 text-slate-400 group-focus-within:text-primary transition-colors">sell</span>
+<input class="w-full bg-background-light dark:bg-background-dark rounded-full py-3 pl-12 pr-24 border-none focus:ring-2 focus:ring-primary/20 text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400" placeholder="Promo Code" type="text"/>
+<button class="absolute right-1 top-1 bottom-1 bg-white dark:bg-surface-dark text-slate-900 dark:text-white hover:text-primary text-xs font-bold px-4 rounded-full shadow-sm transition-colors border border-slate-100 dark:border-white/5">
+                                Apply
+                            </button>
+</div>
+<!-- Checkout Button -->
+<button class="w-full bg-primary hover:bg-red-600 text-white font-bold py-4 rounded-full shadow-lg shadow-primary/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 group">
+<span>Proceed to Checkout</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+<!-- Trust Badges / Info -->
+<div class="flex items-center justify-center gap-6 text-slate-400 dark:text-slate-600 grayscale opacity-60">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-lg">lock</span>
+<span class="text-xs font-semibold">Secure Payment</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-lg">local_shipping</span>
+<span class="text-xs font-semibold">Fast Delivery</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</body></html>

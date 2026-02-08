@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Checkout - QueCopado</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#D80000", // Ketchup Red
+                        "primary-hover": "#b90000",
+                        "secondary": "#FFC107", // Mustard Yellow
+                        "background-light": "#ffffff", // Clean White
+                        "surface-light": "#ffffff",
+                        "surface-accent": "#f9f9f9",
+                        "text-main": "#1b0e0e",
+                        "text-muted": "#6b7280", // Neutral grey
+                        "border-subtle": "#e5e7eb",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #e5e5e5;
+            border-radius: 20px;
+        }
+        .form-input:focus {
+            --tw-ring-color: #D80000;
+        }
+    </style>
+</head>
+<body class="bg-background-light text-text-main font-display min-h-screen flex flex-col antialiased selection:bg-secondary selection:text-black">
+<header class="sticky top-0 z-50 w-full border-b border-gray-100 bg-surface-light/95 backdrop-blur-md px-6 py-4 shadow-sm">
+<div class="max-w-7xl mx-auto flex items-center justify-between">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-8 text-primary">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" fill="currentColor" fill-rule="evenodd"></path>
+<path clip-rule="evenodd" d="M24 8.18819L33.4123 11.574L24 15.2071L14.5877 11.574L24 8.18819ZM9 15.8487L21 20.4805V37.6263L9 32.9945V15.8487ZM27 37.6263V20.4805L39 15.8487V32.9945L27 37.6263ZM25.354 2.29885C24.4788 1.98402 23.5212 1.98402 22.646 2.29885L4.98454 8.65208C3.7939 9.08038 3 10.2097 3 11.475V34.3663C3 36.0196 4.01719 37.5026 5.55962 38.098L22.9197 44.7987C23.6149 45.0671 24.3851 45.0671 25.0803 44.7987L42.4404 38.098C43.9828 37.5026 45 36.0196 45 34.3663V11.475C45 10.2097 44.2061 9.08038 43.0155 8.65208L25.354 2.29885Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-text-main text-2xl font-black leading-tight tracking-tight">QueCopado</h2>
+</div>
+<a class="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-50 border border-gray-200 hover:border-primary/50 hover:bg-red-50 transition-all" href="#">
+<span class="material-symbols-outlined text-primary text-xl group-hover:-translate-x-1 transition-transform">arrow_back</span>
+<span class="text-sm font-bold text-text-main">Back to Menu</span>
+</a>
+</div>
+</header>
+<main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 lg:py-12">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
+<div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-10">
+<div class="space-y-2">
+<h1 class="text-4xl md:text-5xl font-black text-text-main tracking-tight">Almost time to eat! 🍔</h1>
+<p class="text-lg text-text-muted font-medium">Complete your details below to finalize your order.</p>
+</div>
+<section aria-labelledby="delivery-heading" class="bg-surface-light p-6 md:p-8 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
+<div class="absolute -top-20 -right-20 size-40 bg-secondary/20 rounded-full blur-3xl pointer-events-none"></div>
+<div class="flex items-center gap-3 mb-6 relative z-10">
+<div class="size-10 rounded-full bg-primary flex items-center justify-center text-white shadow-md shadow-red-200">
+<span class="material-symbols-outlined">location_on</span>
+</div>
+<h2 class="text-2xl font-bold text-text-main" id="delivery-heading">Delivery Details</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+<label class="flex flex-col gap-2">
+<span class="text-sm font-bold text-text-main ml-1">Full Name</span>
+<input class="w-full h-14 px-5 rounded-xl bg-gray-50 border border-gray-200 text-text-main placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all font-medium" placeholder="e.g. Juan Perez" type="text"/>
+</label>
+<label class="flex flex-col gap-2">
+<span class="text-sm font-bold text-text-main ml-1">Phone Number</span>
+<input class="w-full h-14 px-5 rounded-xl bg-gray-50 border border-gray-200 text-text-main placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all font-medium" placeholder="+54 9 11 ..." type="tel"/>
+</label>
+<div class="flex flex-col gap-2 md:col-span-2">
+<span class="text-sm font-bold text-text-main ml-1">Street Address</span>
+<div class="flex flex-col sm:flex-row gap-3">
+<div class="relative flex-grow">
+<input class="w-full h-14 pl-5 pr-12 rounded-xl bg-gray-50 border border-gray-200 text-text-main placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all font-medium" placeholder="123 Burger Lane" type="text"/>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-text-muted">home</span>
+</div>
+<button class="h-14 px-6 rounded-xl bg-white border border-primary/20 text-text-main hover:bg-red-50 hover:border-primary transition-all flex items-center justify-center gap-2 group whitespace-nowrap shadow-sm" type="button">
+<span class="text-primary group-hover:scale-110 transition-transform">
+<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zM7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 2.88-2.88 7.19-5 10.88C9.92 16.21 7 11.85 7 9z" fill-rule="evenodd"></path>
+<circle cx="12" cy="9" r="2.5"></circle>
+</svg>
+</span>
+<span class="font-bold text-primary">Select on Map</span>
+</button>
+</div>
+</div>
+<label class="flex flex-col gap-2">
+<span class="text-sm font-bold text-text-main ml-1">Floor / Apt</span>
+<input class="w-full h-14 px-5 rounded-xl bg-gray-50 border border-gray-200 text-text-main placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all font-medium" placeholder="4B (Optional)" type="text"/>
+</label>
+<label class="flex flex-col gap-2">
+<span class="text-sm font-bold text-text-main ml-1">City / Neighborhood</span>
+<input class="w-full h-14 px-5 rounded-xl bg-gray-50 border border-gray-200 text-text-main placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all font-medium" placeholder="Palermo" type="text"/>
+</label>
+</div>
+</section>
+<section aria-labelledby="payment-heading" class="bg-surface-light p-6 md:p-8 rounded-2xl border border-gray-200 shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<div class="size-10 rounded-full bg-secondary flex items-center justify-center text-black">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<h2 class="text-2xl font-bold text-text-main" id="payment-heading">Payment Method</h2>
+</div>
+<div class="flex flex-col gap-6">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<label class="relative cursor-pointer group">
+<input checked="" class="peer sr-only" name="payment_method" type="radio" value="cash"/>
+<div class="p-4 rounded-xl border-2 border-gray-100 bg-white hover:border-gray-200 peer-checked:border-primary peer-checked:bg-red-50/50 transition-all flex flex-col items-center justify-center gap-3 h-full text-center shadow-sm">
+<div class="size-12 rounded-full bg-green-100 text-green-700 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-2xl">attach_money</span>
+</div>
+<div class="flex flex-col">
+<span class="font-bold text-base text-text-main">Cash</span>
+<span class="text-xs text-text-muted">Pay upon delivery</span>
+</div>
+<div class="absolute top-3 right-3 size-5 rounded-full border-2 border-gray-300 peer-checked:border-primary peer-checked:bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[10px] opacity-0 peer-checked:opacity-100">check</span>
+</div>
+</div>
+</label>
+<label class="relative cursor-pointer group">
+<input class="peer sr-only" name="payment_method" type="radio" value="card"/>
+<div class="p-4 rounded-xl border-2 border-gray-100 bg-white hover:border-gray-200 peer-checked:border-primary peer-checked:bg-red-50/50 transition-all flex flex-col items-center justify-center gap-3 h-full text-center shadow-sm">
+<div class="size-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-2xl">credit_card</span>
+</div>
+<div class="flex flex-col">
+<span class="font-bold text-base text-text-main">Credit / Debit</span>
+<span class="text-xs text-text-muted">Portable POS</span>
+</div>
+<div class="absolute top-3 right-3 size-5 rounded-full border-2 border-gray-300 peer-checked:border-primary peer-checked:bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[10px] opacity-0 peer-checked:opacity-100">check</span>
+</div>
+</div>
+</label>
+<label class="relative cursor-pointer group">
+<input class="peer sr-only" name="payment_method" type="radio" value="transfer"/>
+<div class="p-4 rounded-xl border-2 border-gray-100 bg-white hover:border-gray-200 peer-checked:border-primary peer-checked:bg-red-50/50 transition-all flex flex-col items-center justify-center gap-3 h-full text-center shadow-sm">
+<div class="size-12 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-2xl">account_balance</span>
+</div>
+<div class="flex flex-col">
+<span class="font-bold text-base text-text-main">Bank Transfer</span>
+<span class="text-xs text-text-muted">CBU / Alias</span>
+</div>
+<div class="absolute top-3 right-3 size-5 rounded-full border-2 border-gray-300 peer-checked:border-primary peer-checked:bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[10px] opacity-0 peer-checked:opacity-100">check</span>
+</div>
+</div>
+</label>
+</div>
+<div class="bg-secondary/10 p-4 rounded-xl border border-secondary/30 flex items-start gap-3">
+<span class="material-symbols-outlined text-yellow-700 mt-1">info</span>
+<div class="flex-1">
+<p class="text-sm font-bold text-yellow-900 mb-2">Need change?</p>
+<label class="block">
+<span class="sr-only">How much change do you need?</span>
+<input class="w-full h-12 px-4 rounded-lg bg-white border border-secondary/50 text-text-main placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-secondary text-sm" placeholder="I'm paying with $20..." type="text"/>
+</label>
+</div>
+</div>
+</div>
+</section>
+</div>
+<div class="lg:col-span-5 xl:col-span-4">
+<div class="sticky top-28 flex flex-col gap-6">
+<div class="bg-surface-light rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+<div class="bg-primary p-5 flex items-center justify-between">
+<h2 class="text-xl font-bold text-white">Your Order</h2>
+<div class="px-3 py-1 bg-white/20 rounded-full backdrop-blur-sm">
+<span class="text-xs font-bold text-white tracking-wide uppercase">2 Items</span>
+</div>
+</div>
+<div class="p-5 flex flex-col gap-5 max-h-[400px] overflow-y-auto">
+<div class="flex gap-4 items-start">
+<div class="size-20 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-200">
+<img class="w-full h-full object-cover" data-alt="Juicy double smash burger with melting cheese" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmNG5GcLh_UfrAFUgF7-_xZeKzFc3pxe7HXdtxR2SDx5n6K-sFLCVYjB3f5FnjTOJNEX5yxQT0k0LXT5a6zZGaxxUbKBTuw9aoleudHm3w1g5LWGEwk3oiJZ0PCp9Z8AlL4OLdDF98jg8Ky20zEwkaDXOFqjUruvX-mfCStJje8FcC8a8uh54UBcUSREjhTkKcvEsLv5FNjmM-r2btulJwApvr2tTFA1pWIIexPOs5gPWAmGF_sCettdj3QVwgLXE0jyw7dCpOQYIQ"/>
+</div>
+<div class="flex-1 flex flex-col justify-between min-h-[80px]">
+<div>
+<h3 class="font-bold text-text-main leading-tight">Double Smash Burger</h3>
+<p class="text-xs text-text-muted mt-1">Extra cheese, No pickles</p>
+</div>
+<div class="flex items-center justify-between mt-2">
+<span class="font-black text-primary text-lg">$12.00</span>
+<div class="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-1 border border-gray-200">
+<button class="size-6 flex items-center justify-center text-text-muted hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">remove</span>
+</button>
+<span class="text-sm font-bold w-4 text-center text-text-main">1</span>
+<button class="size-6 flex items-center justify-center text-text-muted hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<hr class="border-dashed border-gray-200"/>
+<div class="flex gap-4 items-start">
+<div class="size-20 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-200">
+<img class="w-full h-full object-cover" data-alt="Crispy golden french fries loaded with toppings" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwQapFCjp79MIBD1pDCWRn_cdw2qP-FlqiwjdqNXy7bufoKK8yJp8WcK-HP9TKUAih_5tOYxsJ3dxBS3WMiYG_mPcpGxaLQ0iy7QV0KI7JgVGW-WupyWkwhHdjNwXMnMy9Oevv4Pgn7SF8mjW9tM8qZWEryPlZWLYnKHvP_vIJDoxoBstMCgAV33LlOH9BU8a4_USi_qnjqGSMDMJO4EQVK26YNG522uRL3MT5fkZ5iKKRSGVs-ueyaBkWcXDhLTMgdWig4ohHTR7L"/>
+</div>
+<div class="flex-1 flex flex-col justify-between min-h-[80px]">
+<div>
+<h3 class="font-bold text-text-main leading-tight">Loaded Fries</h3>
+<p class="text-xs text-text-muted mt-1">Bacon, Cheddar, Green Onion</p>
+</div>
+<div class="flex items-center justify-between mt-2">
+<span class="font-black text-primary text-lg">$5.50</span>
+<div class="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-1 border border-gray-200">
+<button class="size-6 flex items-center justify-center text-text-muted hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">remove</span>
+</button>
+<span class="text-sm font-bold w-4 text-center text-text-main">1</span>
+<button class="size-6 flex items-center justify-center text-text-muted hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-gray-50 p-5 space-y-3 border-t border-gray-200">
+<div class="flex justify-between text-sm text-text-muted">
+<span>Subtotal</span>
+<span class="font-bold text-text-main">$17.50</span>
+</div>
+<div class="flex justify-between text-sm text-text-muted">
+<span>Delivery Fee</span>
+<span class="font-bold text-text-main">$2.00</span>
+</div>
+<div class="flex justify-between items-end pt-3 mt-3 border-t border-dashed border-gray-200">
+<span class="text-base font-bold text-text-main">Total</span>
+<span class="text-3xl font-black text-primary">$19.50</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<button class="w-full group bg-primary hover:bg-primary-hover text-white rounded-xl py-4 px-6 shadow-xl shadow-red-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+<span class="bg-white/20 p-1.5 rounded-full backdrop-blur-sm group-hover:bg-white/30 transition-colors">
+<svg class="size-6 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12.001 2C6.47813 2 2.00098 6.47715 2.00098 12C2.00098 13.7876 2.44319 15.4648 3.23075 16.9472L2.09446 21.0963L6.36861 19.9754C7.79446 20.7042 9.40801 21.0963 11.0975 21.0963H11.1011C16.6224 21.0963 21.1011 16.6192 21.1011 11.0963C21.1011 5.57348 16.6239 2 12.001 2ZM16.8929 14.7735C16.6251 14.6396 15.3094 13.9928 15.0635 13.9038C14.8175 13.8148 14.6391 13.7704 14.4607 14.0378C14.2824 14.3052 13.7695 14.907 13.6134 15.0851C13.4574 15.2632 13.3013 15.2855 13.0335 15.1519C12.7657 15.0182 11.9029 14.7356 10.8804 13.8242C10.0768 13.1077 9.53429 12.223 9.37822 11.9557C9.22214 11.6883 9.36168 11.5439 9.4955 11.4107C9.61596 11.2907 9.76318 11.0984 9.89697 10.9425C10.0308 10.7866 10.0754 10.6752 10.1646 10.4971C10.2538 10.3189 10.2092 10.1631 10.1423 10.0294C10.0754 9.89578 9.53429 8.56689 9.31133 8.03248C9.09426 7.51221 8.87413 7.5828 8.70817 7.57503C8.55294 7.56778 8.37452 7.56725 8.19612 7.56725C8.01772 7.56725 7.72782 7.6341 7.48253 7.89812C7.23724 8.16214 6.5459 8.80829 6.5459 10.1229C6.5459 11.4375 7.50482 12.7075 7.63864 12.8856C7.77246 13.0638 9.51016 15.869 12.2709 16.9427C14.0782 17.6459 14.7801 17.5562 15.4045 17.4632C16.0965 17.3601 17.5396 16.5913 17.8407 15.7447C18.1419 14.8981 18.1419 14.1628 18.0527 14.0069C17.9635 13.851 17.7406 13.759 16.4746 13.126Z"></path></svg>
+</span>
+<span class="text-lg font-bold">Finalize via WhatsApp</span>
+</button>
+<p class="text-center text-xs text-text-muted max-w-[80%] mx-auto">Clicking this will open WhatsApp with your order pre-filled. No payment is taken here.</p>
+</div>
+<div class="flex items-center justify-center gap-2 text-text-muted/60 mt-2">
+<span class="material-symbols-outlined text-sm">lock</span>
+<span class="text-xs font-semibold uppercase tracking-wider">Secure Checkout</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="mt-auto border-t border-gray-100 py-8 bg-surface-light">
+<div class="max-w-7xl mx-auto px-6 text-center">
+<p class="text-sm text-text-muted font-medium">© 2024 QueCopado. Made with <span class="text-primary align-middle material-symbols-outlined text-sm">favorite</span> for burger lovers.</p>
+</div>
+</footer>
+</body></html>

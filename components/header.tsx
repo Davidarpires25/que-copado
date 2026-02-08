@@ -1,0 +1,107 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Menu, X, Home, UtensilsCrossed } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { CartDrawer } from './cart-drawer'
+
+export function Header() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  const navLinks = [
+    { href: '/', label: 'Inicio', icon: Home },
+    { href: '/#menu', label: 'Menú', icon: UtensilsCrossed },
+  ]
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-orange-200/50 bg-white/90 backdrop-blur-warm shadow-sm">
+      <div className="container mx-auto px-4 h-16 md:h-20 flex items-center justify-between gap-4">
+        {/* Logo */}
+        <Link href="/">
+          <motion.div
+            className="flex items-center gap-2 md:gap-3"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg">
+              <span className="text-xl md:text-2xl">🍔</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-lg md:text-xl font-black text-orange-600 leading-tight">
+                Que <span className="text-amber-500">Copado</span>
+              </span>
+              <span className="hidden sm:block text-[10px] md:text-xs text-orange-700/60 font-medium -mt-0.5">
+                Las mejores burgers
+              </span>
+            </div>
+          </motion.div>
+        </Link>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-1">
+          {navLinks.map((link) => (
+            <Link key={link.href} href={link.href}>
+              <Button
+                variant="ghost"
+                className="text-orange-800 hover:text-orange-600 hover:bg-orange-50 font-semibold"
+              >
+                <link.icon className="h-4 w-4 mr-2" />
+                {link.label}
+              </Button>
+            </Link>
+          ))}
+        </nav>
+
+        {/* Right Actions */}
+        <div className="flex items-center gap-2 ml-auto">
+          {/* Cart Drawer */}
+          <CartDrawer />
+
+          {/* Mobile Menu Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden text-orange-600 hover:bg-orange-50"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile Navigation Menu */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="md:hidden border-t border-orange-100 bg-white/95 overflow-hidden"
+          >
+            <nav className="container mx-auto px-4 py-4 space-y-2">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <motion.div
+                    whileTap={{ scale: 0.98 }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 transition-colors"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                      <link.icon className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <span className="font-semibold text-orange-800">{link.label}</span>
+                  </motion.div>
+                </Link>
+              ))}
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
+  )
+}
