@@ -21,7 +21,7 @@ export function AddressAutocomplete({
   value,
   onChange,
   onSelect,
-  placeholder = 'Ej: Av. Corrientes 1234, Buenos Aires',
+  placeholder = 'Calle y número, barrio o localidad',
   label = 'Dirección',
   required = false,
   disabled = false,
@@ -112,8 +112,8 @@ export function AddressAutocomplete({
         {required && <span className="text-red-500">*</span>}
       </Label>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-orange-400 pointer-events-none" />
+      <div className="relative flex items-center">
+        <Search className="absolute left-4 h-5 w-5 text-orange-400 pointer-events-none z-10" />
         <Input
           ref={inputRef}
           id="address-autocomplete"
@@ -124,13 +124,13 @@ export function AddressAutocomplete({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          className="input-large border-orange-200 focus:border-orange-400 pl-10 pr-10"
+          className="input-large border-orange-200 focus:border-orange-400 !pl-12 !pr-12"
           autoComplete="off"
         />
 
         {isLoading && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <Loader2 className="h-4 w-4 text-orange-500 animate-spin" />
+          <div className="absolute right-4 z-10">
+            <Loader2 className="h-5 w-5 text-orange-500 animate-spin" />
           </div>
         )}
       </div>

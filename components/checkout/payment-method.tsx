@@ -119,7 +119,7 @@ export function PaymentMethodSelector({
             <Input
               id="cashAmount"
               type="text"
-              placeholder="Ej: 10000"
+              placeholder="Monto con el que vas a pagar"
               value={cashAmount}
               onChange={(e) => onCashAmountChange(e.target.value)}
               className="input-large border-orange-200 focus:border-orange-400 bg-white"

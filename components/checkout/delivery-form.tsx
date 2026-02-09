@@ -106,7 +106,7 @@ export function DeliveryForm({ data, onChange }: DeliveryFormProps) {
             </Label>
             <Input
               id="name"
-              placeholder="Juan Pérez"
+              placeholder="Nombre y apellido"
               value={data.name}
               onChange={(e) => updateField('name', e.target.value)}
               className="input-large border-orange-200 focus:border-orange-400"
@@ -125,7 +125,7 @@ export function DeliveryForm({ data, onChange }: DeliveryFormProps) {
             <Input
               id="phone"
               type="tel"
-              placeholder="11 1234-5678"
+              placeholder="Ej: 11 2345-6789"
               value={data.phone}
               onChange={(e) => updateField('phone', e.target.value)}
               className="input-large border-orange-200 focus:border-orange-400"
@@ -139,7 +139,7 @@ export function DeliveryForm({ data, onChange }: DeliveryFormProps) {
           onChange={handleAddressChange}
           onSelect={handleAddressSelect}
           label="Dirección"
-          placeholder="Ej: Av. Corrientes 1234, Buenos Aires"
+          placeholder="Calle y número, barrio o localidad"
           required
         />
 
@@ -181,7 +181,7 @@ export function DeliveryForm({ data, onChange }: DeliveryFormProps) {
           </Label>
           <Input
             id="apartment"
-            placeholder="Ej: 3ro B"
+            placeholder="Piso y depto, timbre, torre..."
             value={data.apartment}
             onChange={(e) => updateField('apartment', e.target.value)}
             className="input-large border-orange-200 focus:border-orange-400"
@@ -199,7 +199,7 @@ export function DeliveryForm({ data, onChange }: DeliveryFormProps) {
           </Label>
           <Textarea
             id="notes"
-            placeholder="Ej: Timbre no funciona, llamar al llegar"
+            placeholder="Indicaciones para encontrarte, referencias, etc."
             value={data.notes}
             onChange={(e) => updateField('notes', e.target.value)}
             className="min-h-[80px] rounded-xl border-orange-200 focus:border-orange-400 resize-none"

@@ -1,9 +1,23 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
 import { MapPin, Navigation, Loader2 } from 'lucide-react'
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet'
+import L from 'leaflet'
 import { Button } from '@/components/ui/button'
 import { reverseGeocode } from '@/lib/services/geocoding'
+import 'leaflet/dist/leaflet.css'
+
+// Fix para los iconos de Leaflet en Next.js
+const customIcon = new L.Icon({
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+})
 
 interface Coordinates {
   lat: number
@@ -17,86 +31,61 @@ interface AddressMapPickerProps {
   disabled?: boolean
 }
 
-// Componente del mapa que se carga dinámicamente
-function MapComponent({
-  coordinates,
-  onCoordinatesChange,
-  height,
+// Componente para manejar clicks en el mapa
+function MapClickHandler({
+  onMapClick,
 }: {
-  coordinates: Coordinates
-  onCoordinatesChange: (coords: Coordinates) => void
-  height: string
+  onMapClick: (coords: Coordinates) => void
 }) {
-  const [map, setMap] = useState<L.Map | null>(null)
-  const [marker, setMarker] = useState<L.Marker | null>(null)
+  useMapEvents({
+    click: (e) => {
+      onMapClick({ lat: e.latlng.lat, lng: e.latlng.lng })
+    },
+  })
+  return null
+}
+
+// Componente para centrar el mapa cuando cambian las coordenadas externas
+function MapCenterUpdater({ coordinates }: { coordinates: Coordinates }) {
+  const map = useMap()
 
   useEffect(() => {
-    // Import dinámico de Leaflet para evitar errores de SSR
-    const initMap = async () => {
-      const L = (await import('leaflet')).default
-      // @ts-ignore
-      await import('leaflet/dist/leaflet.css')
+    map.setView([coordinates.lat, coordinates.lng], map.getZoom())
+  }, [coordinates.lat, coordinates.lng, map])
 
-      // Fix para los iconos de Leaflet en Next.js
-      delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-      })
+  return null
+}
 
-      const container = document.getElementById('map-container')
-      if (!container || map) return
+// Marcador arrastrable
+function DraggableMarker({
+  position,
+  onDragEnd,
+}: {
+  position: Coordinates
+  onDragEnd: (coords: Coordinates) => void
+}) {
+  const markerRef = useRef<L.Marker>(null)
 
-      const newMap = L.map(container).setView(
-        [coordinates.lat, coordinates.lng],
-        16
-      )
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      }).addTo(newMap)
-
-      const newMarker = L.marker([coordinates.lat, coordinates.lng], {
-        draggable: true,
-      }).addTo(newMap)
-
-      newMarker.on('dragend', () => {
-        const position = newMarker.getLatLng()
-        onCoordinatesChange({ lat: position.lat, lng: position.lng })
-      })
-
-      newMap.on('click', (e: L.LeafletMouseEvent) => {
-        newMarker.setLatLng(e.latlng)
-        onCoordinatesChange({ lat: e.latlng.lat, lng: e.latlng.lng })
-      })
-
-      setMap(newMap)
-      setMarker(newMarker)
-    }
-
-    initMap()
-
-    return () => {
-      if (map) {
-        map.remove()
-      }
-    }
-  }, [])
-
-  // Actualiza la posición del marcador cuando cambian las coordenadas
-  useEffect(() => {
-    if (map && marker && coordinates) {
-      marker.setLatLng([coordinates.lat, coordinates.lng])
-      map.setView([coordinates.lat, coordinates.lng], map.getZoom())
-    }
-  }, [coordinates, map, marker])
+  const eventHandlers = useMemo(
+    () => ({
+      dragend() {
+        const marker = markerRef.current
+        if (marker) {
+          const latlng = marker.getLatLng()
+          onDragEnd({ lat: latlng.lat, lng: latlng.lng })
+        }
+      },
+    }),
+    [onDragEnd]
+  )
 
   return (
-    <div
-      id="map-container"
-      style={{ height, width: '100%' }}
-      className="rounded-xl overflow-hidden"
+    <Marker
+      draggable
+      eventHandlers={eventHandlers}
+      position={[position.lat, position.lng]}
+      ref={markerRef}
+      icon={customIcon}
     />
   )
 }
@@ -108,22 +97,26 @@ export function AddressMapPicker({
   disabled = false,
 }: AddressMapPickerProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [isMapReady, setIsMapReady] = useState(false)
   const [isLocating, setIsLocating] = useState(false)
+  const [markerPosition, setMarkerPosition] = useState<Coordinates | null>(null)
 
   // Buenos Aires centro como ubicación por defecto
   const defaultCoords: Coordinates = { lat: -34.6037, lng: -58.3816 }
   const currentCoords = coordinates || defaultCoords
 
+  // Sincronizar posición del marcador con coordenadas externas
   useEffect(() => {
-    // Pequeño delay para asegurar que el DOM está listo
-    const timer = setTimeout(() => setIsMapReady(true), 100)
-    return () => clearTimeout(timer)
-  }, [])
+    if (coordinates) {
+      setMarkerPosition(coordinates)
+    }
+  }, [coordinates])
 
-  const handleCoordinatesChange = useCallback(
+  const handlePositionChange = useCallback(
     async (coords: Coordinates) => {
+      // Actualizar posición del marcador inmediatamente
+      setMarkerPosition(coords)
       setIsLoading(true)
+
       try {
         // Throttle: esperar 1 segundo para respetar límites de Nominatim
         await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -152,7 +145,7 @@ export function AddressMapPicker({
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         }
-        await handleCoordinatesChange(coords)
+        await handlePositionChange(coords)
         setIsLocating(false)
       },
       (error) => {
@@ -162,7 +155,7 @@ export function AddressMapPicker({
       },
       { enableHighAccuracy: true, timeout: 10000 }
     )
-  }, [handleCoordinatesChange])
+  }, [handlePositionChange])
 
   if (disabled) {
     return (
@@ -174,6 +167,8 @@ export function AddressMapPicker({
       </div>
     )
   }
+
+  const displayPosition = markerPosition || currentCoords
 
   return (
     <div className="space-y-3">
@@ -202,13 +197,23 @@ export function AddressMapPicker({
 
       {/* Mapa */}
       <div className="relative">
-        {isMapReady && (
-          <MapComponent
-            coordinates={currentCoords}
-            onCoordinatesChange={handleCoordinatesChange}
-            height={height}
+        <MapContainer
+          center={[currentCoords.lat, currentCoords.lng]}
+          zoom={16}
+          style={{ height, width: '100%' }}
+          className="rounded-xl overflow-hidden z-0"
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-        )}
+          <DraggableMarker
+            position={displayPosition}
+            onDragEnd={handlePositionChange}
+          />
+          <MapClickHandler onMapClick={handlePositionChange} />
+          <MapCenterUpdater coordinates={displayPosition} />
+        </MapContainer>
 
         {/* Overlay de carga */}
         {isLoading && (
@@ -222,9 +227,9 @@ export function AddressMapPicker({
       </div>
 
       {/* Coordenadas actuales */}
-      {coordinates && (
+      {markerPosition && (
         <p className="text-xs text-orange-600/50 text-center">
-          {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
+          {markerPosition.lat.toFixed(6)}, {markerPosition.lng.toFixed(6)}
         </p>
       )}
     </div>
