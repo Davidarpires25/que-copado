@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { MapPin } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -130,90 +131,113 @@ function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+    <form onSubmit={handleSubmit} className="space-y-5 mt-4">
       <div className="space-y-2">
-        <Label className="text-slate-300">Nombre de la zona</Label>
+        <Label className="text-slate-300 font-medium">Nombre de la zona</Label>
         <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Ej: Centro, Zona Norte..."
           maxLength={50}
-          className="bg-slate-900 border-slate-700 text-white"
+          className="bg-slate-900/50 border-slate-700 text-white h-11 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
         />
       </div>
 
       <div className="space-y-2">
-        <Label className="text-slate-300">Costo de envío (ARS)</Label>
-        <Input
-          type="number"
-          value={shippingCost}
-          onChange={(e) => setShippingCost(e.target.value)}
-          placeholder="1500"
-          min={0}
-          step={100}
-          className="bg-slate-900 border-slate-700 text-white"
-        />
-        <p className="text-xs text-slate-500">
+        <Label className="text-slate-300 font-medium">Costo de envío (ARS)</Label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">$</span>
+          <Input
+            type="number"
+            value={shippingCost}
+            onChange={(e) => setShippingCost(e.target.value)}
+            placeholder="1500"
+            min={0}
+            step={100}
+            className="bg-slate-900/50 border-slate-700 text-white h-11 pl-7 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
+          />
+        </div>
+        <p className="text-xs text-slate-500 flex items-center gap-1">
+          <span className="w-1 h-1 bg-slate-500 rounded-full" />
           Ingresa 0 para envío gratuito en esta zona
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label className="text-slate-300">Umbral de envío gratis (opcional)</Label>
-        <Input
-          type="number"
-          value={freeShippingThreshold}
-          onChange={(e) => setFreeShippingThreshold(e.target.value)}
-          placeholder="15000"
-          min={0}
-          step={1000}
-          className="bg-slate-900 border-slate-700 text-white"
-        />
-        <p className="text-xs text-slate-500">
+        <Label className="text-slate-300 font-medium">Umbral de envío gratis (opcional)</Label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">$</span>
+          <Input
+            type="number"
+            value={freeShippingThreshold}
+            onChange={(e) => setFreeShippingThreshold(e.target.value)}
+            placeholder="15000"
+            min={0}
+            step={1000}
+            className="bg-slate-900/50 border-slate-700 text-white h-11 pl-7 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
+          />
+        </div>
+        <p className="text-xs text-slate-500 flex items-center gap-1">
+          <span className="w-1 h-1 bg-slate-500 rounded-full" />
           Pedidos que superen este monto tendrán envío gratis
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label className="text-slate-300">Color de la zona</Label>
+        <Label className="text-slate-300 font-medium">Color de la zona</Label>
         <div className="flex flex-wrap gap-2">
           {PRESET_COLORS.map((presetColor) => (
             <button
               key={presetColor}
               type="button"
               onClick={() => setColor(presetColor)}
-              className={`w-8 h-8 rounded-full border-2 transition-all ${
+              className={`w-10 h-10 rounded-lg border-2 transition-all duration-200 hover:scale-110 ${
                 color === presetColor
-                  ? 'border-white scale-110'
-                  : 'border-transparent hover:border-slate-500'
+                  ? 'border-white scale-110 shadow-lg'
+                  : 'border-slate-700 hover:border-slate-500'
               }`}
-              style={{ backgroundColor: presetColor }}
+              style={{
+                backgroundColor: presetColor,
+                boxShadow: color === presetColor ? `0 4px 12px ${presetColor}60` : 'none'
+              }}
             />
           ))}
         </div>
-        <div className="flex items-center gap-2 mt-2">
-          <Input
-            type="color"
-            value={color}
-            onChange={(e) => setColor(e.target.value)}
-            className="w-12 h-8 p-0 border-0 bg-transparent cursor-pointer"
-          />
+        <div className="flex items-center gap-2 mt-3">
+          <div className="relative">
+            <Input
+              type="color"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              className="w-12 h-11 p-0 border-0 bg-transparent cursor-pointer rounded-lg"
+            />
+          </div>
           <Input
             type="text"
             value={color}
             onChange={(e) => setColor(e.target.value)}
             placeholder="#FF6B00"
             pattern="^#[0-9A-Fa-f]{6}$"
-            className="flex-1 bg-slate-900 border-slate-700 text-white font-mono"
+            className="flex-1 bg-slate-900/50 border-slate-700 text-white font-mono h-11 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
           />
         </div>
       </div>
 
       {!polygon && !zone?.polygon && (
-        <div className="rounded-lg border border-amber-600/50 bg-amber-900/20 p-3">
-          <p className="text-sm text-amber-400">
-            Dibuja un polígono en el mapa para definir el área de cobertura
-          </p>
+        <div className="rounded-xl border border-amber-600/50 bg-gradient-to-br from-amber-900/20 to-orange-900/20 p-4 backdrop-blur">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+              <MapPin className="h-4 w-4 text-amber-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-amber-300 mb-1">
+                Área de cobertura requerida
+              </p>
+              <p className="text-xs text-amber-400/80">
+                Dibuja un polígono en el mapa para definir el área de esta zona
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -222,14 +246,15 @@ function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose 
           type="button"
           variant="outline"
           onClick={onClose}
-          className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800"
+          disabled={isLoading}
+          className="flex-1 h-11 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white transition-all duration-200"
         >
           Cancelar
         </Button>
         <Button
           type="submit"
           disabled={isLoading || (!polygon && !zone?.polygon)}
-          className="flex-1 bg-[#FFAE00] hover:bg-[#E09D00] text-black font-semibold"
+          className="flex-1 h-11 bg-gradient-to-r from-[#FFAE00] to-orange-500 hover:from-[#E09D00] hover:to-orange-600 text-black font-semibold shadow-lg shadow-[#FFAE00]/25 hover:shadow-xl hover:shadow-[#FFAE00]/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading
             ? 'Guardando...'
@@ -254,11 +279,16 @@ export function ZoneFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-slate-950 border-slate-800 max-w-md">
+      <DialogContent className="bg-slate-950 border-slate-800 max-w-md shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-white">
+          <DialogTitle className="text-white text-xl">
             {zone?.id ? 'Editar Zona' : 'Nueva Zona de Envío'}
           </DialogTitle>
+          <p className="text-slate-400 text-sm mt-1">
+            {zone?.id
+              ? 'Modifica los datos de la zona de envío'
+              : 'Define el área de cobertura y el costo de envío'}
+          </p>
         </DialogHeader>
 
         {/* Use key to force remount when zone changes */}

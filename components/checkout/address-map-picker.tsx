@@ -123,7 +123,9 @@ export function AddressMapPicker({
         const result = await reverseGeocode(coords.lat, coords.lng)
         onCoordinatesChange(coords, result.address)
       } catch (error) {
-        console.error('Error reverse geocoding:', error)
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error reverse geocoding:', error)
+        }
         onCoordinatesChange(coords, '')
       } finally {
         setIsLoading(false)
@@ -149,7 +151,9 @@ export function AddressMapPicker({
         setIsLocating(false)
       },
       (error) => {
-        console.error('Error getting location:', error)
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error getting location:', error)
+        }
         alert('No pudimos obtener tu ubicación. Verificá los permisos del navegador.')
         setIsLocating(false)
       },

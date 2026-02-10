@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { Pencil, Trash2, MapPin, Truck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -68,27 +69,37 @@ export function ZoneList({
   }
 
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900">
-      <div className="p-4 border-b border-slate-800">
-        <h2 className="text-white font-medium">Zonas Configuradas</h2>
+    <div className="rounded-xl border border-slate-800 bg-slate-900/30 backdrop-blur shadow-xl">
+      <div className="p-5 border-b border-slate-800 bg-slate-900/50">
+        <h2 className="text-white font-semibold text-lg flex items-center gap-2">
+          <div className="w-8 h-8 bg-[#FFAE00]/10 rounded-lg flex items-center justify-center">
+            <MapPin className="h-4 w-4 text-[#FFAE00]" />
+          </div>
+          Zonas Configuradas
+        </h2>
       </div>
 
       {zones.length === 0 ? (
-        <div className="p-8 text-center">
-          <MapPin className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-          <p className="text-slate-400">No hay zonas configuradas</p>
-          <p className="text-sm text-slate-500 mt-1">
-            Dibuja un polígono en el mapa para crear una zona
+        <div className="p-10 text-center">
+          <div className="w-16 h-16 bg-slate-800/50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <MapPin className="h-8 w-8 text-slate-600" />
+          </div>
+          <h3 className="text-lg font-semibold text-white mb-2">No hay zonas configuradas</h3>
+          <p className="text-sm text-slate-400 max-w-xs mx-auto">
+            Dibuja un polígono en el mapa o haz clic en &quot;Nueva Zona&quot; para comenzar
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-slate-800">
-          {zones.map((zone) => (
-            <div
+        <div className="divide-y divide-slate-800/50">
+          {zones.map((zone, index) => (
+            <motion.div
               key={zone.id}
-              className={`p-4 transition-colors cursor-pointer ${
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className={`p-4 transition-all duration-200 cursor-pointer group ${
                 selectedZoneId === zone.id
-                  ? 'bg-slate-800/50'
+                  ? 'bg-slate-800/50 border-l-2 border-[#FFAE00]'
                   : 'hover:bg-slate-800/30'
               }`}
               onClick={() => onZoneSelect(zone.id)}
@@ -96,18 +107,23 @@ export function ZoneList({
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className="w-4 h-4 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: zone.color }}
+                    className="w-5 h-5 rounded-lg flex-shrink-0 shadow-lg transition-transform duration-200 group-hover:scale-110"
+                    style={{
+                      backgroundColor: zone.color,
+                      boxShadow: `0 4px 12px ${zone.color}40`
+                    }}
                   />
                   <div className="min-w-0">
-                    <p className={`font-medium truncate ${zone.is_active ? 'text-white' : 'text-slate-500'}`}>
+                    <p className={`font-semibold truncate transition-colors duration-200 ${
+                      zone.is_active ? 'text-white group-hover:text-[#FFAE00]' : 'text-slate-500'
+                    }`}>
                       {zone.name}
                     </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Truck className="h-3 w-3 text-slate-500" />
-                      <span className="text-sm text-[#FFAE00] font-medium">
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <Truck className="h-3.5 w-3.5 text-slate-500" />
+                      <span className="text-sm text-[#FFAE00] font-semibold">
                         {zone.shipping_cost === 0
-                          ? 'Gratis'
+                          ? 'Envío Gratis'
                           : formatPrice(zone.shipping_cost)}
                       </span>
                     </div>
@@ -124,7 +140,7 @@ export function ZoneList({
                     checked={zone.is_active}
                     onCheckedChange={() => handleToggleActive(zone)}
                     disabled={loadingIds.has(zone.id)}
-                    className="data-[state=checked]:bg-[#FFAE00]"
+                    className="data-[state=checked]:bg-[#FFAE00] data-[state=unchecked]:bg-slate-700"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>
@@ -132,7 +148,7 @@ export function ZoneList({
 
               <div className="flex items-center gap-2 mt-3">
                 {!zone.is_active && (
-                  <Badge variant="outline" className="border-slate-700 text-slate-500 text-xs">
+                  <Badge variant="outline" className="border-slate-700 text-slate-500 text-xs bg-slate-800/30">
                     Inactiva
                   </Badge>
                 )}
@@ -140,7 +156,7 @@ export function ZoneList({
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7 text-slate-400 hover:text-white"
+                  className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800 transition-all duration-200"
                   onClick={(e) => {
                     e.stopPropagation()
                     onZoneEdit(zone)
@@ -152,7 +168,7 @@ export function ZoneList({
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7 text-red-500 hover:text-red-400"
+                  className="h-8 w-8 text-red-500 hover:text-red-400 hover:bg-red-950/30 transition-all duration-200"
                   onClick={(e) => {
                     e.stopPropagation()
                     handleDelete(zone)
@@ -162,7 +178,7 @@ export function ZoneList({
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}

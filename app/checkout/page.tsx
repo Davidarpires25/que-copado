@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ShoppingCart, AlertTriangle, MessageCircle } from 'lucide-react'
+import { ArrowLeft, ShoppingCart, AlertTriangle, MessageCircle, Loader2 } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { DeliveryForm, type DeliveryFormData } from '@/components/checkout/delivery-form'
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/lib/store/cart-store'
 import { formatPrice } from '@/lib/utils'
 import { getActiveDeliveryZones } from '@/app/actions/delivery-zones'
+import { calculateShippingCost } from '@/app/actions/shipping'
 import { calculateShippingByZone } from '@/lib/services/shipping'
 import { toast } from 'sonner'
 import type { DeliveryZone, ShippingResult } from '@/lib/types/database'
@@ -37,44 +38,83 @@ export default function CheckoutPage() {
   // Delivery zones state
   const [zones, setZones] = useState<DeliveryZone[]>([])
   const [zonesLoaded, setZonesLoaded] = useState(false)
+  const [zonesError, setZonesError] = useState<string | null>(null)
+
+  // Shipping calculation state
+  const [shippingResult, setShippingResult] = useState<ShippingResult>({
+    zone: null,
+    shippingCost: 0,
+    isFreeShipping: false,
+    isOutOfCoverage: false,
+  })
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false)
 
   // Load delivery zones on mount
   useEffect(() => {
     async function loadZones() {
-      const { data } = await getActiveDeliveryZones()
-      if (data) {
-        setZones(data)
+      try {
+        setZonesError(null)
+        const { data, error } = await getActiveDeliveryZones()
+        if (error) {
+          setZonesError(error)
+          toast.error('Error al cargar zonas de delivery')
+        } else if (data) {
+          setZones(data)
+        }
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error loading zones:', error)
+        }
+        setZonesError('Error inesperado al cargar zonas')
+      } finally {
+        setZonesLoaded(true)
       }
-      setZonesLoaded(true)
     }
     loadZones()
   }, [])
 
-  // Calculate shipping result based on coordinates - useMemo for derived state
+  // Calculate shipping when coordinates or subtotal change
   const subtotal = getTotal()
-  const shippingResult: ShippingResult = useMemo(() => {
+  useEffect(() => {
     if (!deliveryData.coordinates || zones.length === 0) {
-      return {
+      // Reset to default if no coordinates or no zones
+      setShippingResult({
         zone: null,
         shippingCost: 0,
         isFreeShipping: false,
         isOutOfCoverage: !zonesLoaded || zones.length === 0,
-      }
+      })
+      setIsCalculatingShipping(false)
+      return
     }
 
-    return calculateShippingByZone(
+    // Show calculating state briefly for UX feedback
+    setIsCalculatingShipping(true)
+
+    // Calculate shipping - use client-side calculation for instant feedback
+    // Server validation happens on checkout
+    const result = calculateShippingByZone(
       deliveryData.coordinates.lat,
       deliveryData.coordinates.lng,
       subtotal,
       zones
     )
+
+    // Small delay to show the loading state
+    const timer = setTimeout(() => {
+      setShippingResult(result)
+      setIsCalculatingShipping(false)
+    }, 300)
+
+    return () => clearTimeout(timer)
   }, [deliveryData.coordinates, zones, zonesLoaded, subtotal])
 
   const handleDeliveryDataChange = (data: DeliveryFormData) => {
     setDeliveryData(data)
   }
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
+    // Validaciones de campos requeridos
     if (!deliveryData.name.trim()) {
       toast.error('Por favor ingresá tu nombre')
       return
@@ -96,66 +136,126 @@ export default function CheckoutPage() {
 
     setIsLoading(true)
 
-    const subtotal = getTotal()
-    const shipping = shippingResult.shippingCost
-    const total = subtotal + shipping
+    try {
+      const subtotal = getTotal()
+      let shipping = 0
+      let finalShippingResult = shippingResult
 
-    const orderItems = items
-      .map(
-        (item) =>
-          `• ${item.quantity}x ${item.product.name} - ${formatPrice(item.product.price * item.quantity)}`
+      // Si hay coordenadas y zonas configuradas, validar shipping en el servidor
+      if (deliveryData.coordinates && zones.length > 0) {
+        const { data: serverShippingResult, error: shippingError } = await calculateShippingCost({
+          lat: deliveryData.coordinates.lat,
+          lng: deliveryData.coordinates.lng,
+          subtotal,
+        })
+
+        if (shippingError) {
+          toast.error('Error al calcular el envío. Intenta nuevamente.')
+          setIsLoading(false)
+          return
+        }
+
+        if (!serverShippingResult) {
+          toast.error('No se pudo calcular el costo de envío')
+          setIsLoading(false)
+          return
+        }
+
+        // Verificar cobertura nuevamente en el servidor
+        if (serverShippingResult.isOutOfCoverage) {
+          toast.error('Tu ubicación está fuera de nuestra zona de cobertura')
+          setIsLoading(false)
+          return
+        }
+
+        finalShippingResult = serverShippingResult
+        shipping = serverShippingResult.shippingCost
+      } else {
+        // Sin zonas configuradas, usar costo de envío estándar
+        shipping = shippingResult.shippingCost
+      }
+
+      const total = subtotal + shipping
+
+      const orderItems = items
+        .map(
+          (item) =>
+            `• ${item.quantity}x ${item.product.name} - ${formatPrice(item.product.price * item.quantity)}`
+        )
+        .join('\n')
+
+      const paymentLabels = {
+        cash: 'Efectivo',
+        transfer: 'Transferencia',
+        mercadopago: 'Mercado Pago',
+      }
+
+      let paymentInfo = `*Método de pago:* ${paymentLabels[paymentMethod]}`
+      if (paymentMethod === 'cash' && cashAmount) {
+        paymentInfo += `\n*Paga con:* $${cashAmount}`
+      }
+
+      const fullAddress = deliveryData.apartment
+        ? `${deliveryData.address}, ${deliveryData.apartment}`
+        : deliveryData.address
+
+      // Generar link de Google Maps si hay coordenadas
+      const locationLink = deliveryData.coordinates
+        ? `https://www.google.com/maps?q=${deliveryData.coordinates.lat},${deliveryData.coordinates.lng}`
+        : ''
+
+      // Include zone name if available (use server-validated result)
+      const zoneInfo = finalShippingResult.zone
+        ? `\n*Zona:* ${finalShippingResult.zone.name}`
+        : ''
+
+      // Build shipping line with zone context
+      let shippingLine = `*Envío:* `
+      if (finalShippingResult.isFreeShipping) {
+        shippingLine += 'Gratis'
+        if (finalShippingResult.zone) {
+          shippingLine += ` (${finalShippingResult.zone.name})`
+        }
+      } else if (shipping === 0) {
+        shippingLine += 'Gratis'
+      } else {
+        shippingLine += formatPrice(shipping)
+        if (finalShippingResult.zone) {
+          shippingLine += ` (${finalShippingResult.zone.name})`
+        }
+      }
+
+      const message = encodeURIComponent(
+        `🍔 *NUEVO PEDIDO - QUE COPADO*\n\n` +
+          `*Cliente:* ${deliveryData.name}\n` +
+          `*Teléfono:* ${deliveryData.phone}\n` +
+          `*Dirección:* ${fullAddress}${zoneInfo}\n` +
+          (locationLink ? `*📍 Ubicación:* ${locationLink}\n` : '') +
+          (deliveryData.notes ? `*Notas:* ${deliveryData.notes}\n` : '') +
+          `\n` +
+          `*PEDIDO:*\n${orderItems}\n\n` +
+          `*Subtotal:* ${formatPrice(subtotal)}\n` +
+          `${shippingLine}\n` +
+          `*TOTAL: ${formatPrice(total)}*\n\n` +
+          `${paymentInfo}\n\n` +
+          `_Enviado desde queCopado.com_`
       )
-      .join('\n')
 
-    const paymentLabels = {
-      cash: 'Efectivo',
-      transfer: 'Transferencia',
-      mercadopago: 'Mercado Pago',
+      const whatsappNumber =
+        process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5491100000000'
+      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`
+
+      window.open(whatsappUrl, '_blank')
+      clearCart()
+      toast.success('Pedido enviado! Te redirigimos a WhatsApp')
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error en checkout:', error)
+      }
+      toast.error('Ocurrió un error al procesar tu pedido. Intenta nuevamente.')
+    } finally {
+      setIsLoading(false)
     }
-
-    let paymentInfo = `*Método de pago:* ${paymentLabels[paymentMethod]}`
-    if (paymentMethod === 'cash' && cashAmount) {
-      paymentInfo += `\n*Paga con:* $${cashAmount}`
-    }
-
-    const fullAddress = deliveryData.apartment
-      ? `${deliveryData.address}, ${deliveryData.apartment}`
-      : deliveryData.address
-
-    // Generar link de Google Maps si hay coordenadas
-    const locationLink = deliveryData.coordinates
-      ? `https://www.google.com/maps?q=${deliveryData.coordinates.lat},${deliveryData.coordinates.lng}`
-      : ''
-
-    // Include zone name if available
-    const zoneInfo = shippingResult.zone
-      ? `\n*Zona:* ${shippingResult.zone.name}`
-      : ''
-
-    const message = encodeURIComponent(
-      `🍔 *NUEVO PEDIDO - QUE COPADO*\n\n` +
-        `*Cliente:* ${deliveryData.name}\n` +
-        `*Teléfono:* ${deliveryData.phone}\n` +
-        `*Dirección:* ${fullAddress}${zoneInfo}\n` +
-        (locationLink ? `*📍 Ubicación:* ${locationLink}\n` : '') +
-        (deliveryData.notes ? `*Notas:* ${deliveryData.notes}\n` : '') +
-        `\n` +
-        `*PEDIDO:*\n${orderItems}\n\n` +
-        `*Subtotal:* ${formatPrice(subtotal)}\n` +
-        `*Envío:* ${shipping === 0 ? 'Gratis' : formatPrice(shipping)}\n` +
-        `*TOTAL: ${formatPrice(total)}*\n\n` +
-        `${paymentInfo}\n\n` +
-        `_Enviado desde queCopado.com_`
-    )
-
-    const whatsappNumber =
-      process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5491100000000'
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`
-
-    window.open(whatsappUrl, '_blank')
-    clearCart()
-    setIsLoading(false)
-    toast.success('Pedido enviado! Te redirigimos a WhatsApp')
   }
 
   if (items.length === 0) {
@@ -189,7 +289,10 @@ export default function CheckoutPage() {
     )
   }
 
-  const isOutOfCoverage = shippingResult.isOutOfCoverage && zones.length > 0 && deliveryData.coordinates
+  const isOutOfCoverage = useMemo(() =>
+    shippingResult.isOutOfCoverage && zones.length > 0 && !!deliveryData.coordinates,
+    [shippingResult.isOutOfCoverage, zones.length, deliveryData.coordinates]
+  )
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
@@ -241,6 +344,7 @@ export default function CheckoutPage() {
               onChange={handleDeliveryDataChange}
               shippingResult={shippingResult}
               hasZones={zones.length > 0}
+              isCalculatingShipping={isCalculatingShipping}
             />
             <PaymentMethodSelector
               selected={paymentMethod}
@@ -257,6 +361,7 @@ export default function CheckoutPage() {
               isLoading={isLoading}
               shippingResult={shippingResult}
               isBlocked={!!isOutOfCoverage}
+              isCalculatingShipping={isCalculatingShipping}
             />
           </div>
         </div>

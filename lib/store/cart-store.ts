@@ -1,8 +1,19 @@
 'use client'
 
+import { useSyncExternalStore } from 'react'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Product } from '@/lib/types/database'
+
+// Hook to check if component is hydrated (client-side)
+const emptySubscribe = () => () => {}
+export function useHydrated() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  )
+}
 
 export interface CartItem {
   product: Product

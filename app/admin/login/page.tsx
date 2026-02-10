@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
+  const [focusedInput, setFocusedInput] = useState<string | null>(null)
 
   async function handleSubmit(formData: FormData) {
     setLoading(true)
@@ -23,61 +24,92 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Decoración de fondo */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#FFAE00] rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-600 rounded-full blur-[120px]" />
+      </div>
+
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-10"
       >
-        <Card className="w-full max-w-md bg-slate-900 border-slate-800">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 text-4xl">🍔</div>
-            <CardTitle className="text-2xl text-white">
-              Que <span className="text-[#FFAE00]">Copado</span>
-            </CardTitle>
-            <p className="text-slate-400 text-sm">Panel de Administracion</p>
+        <Card className="w-full max-w-md bg-slate-900/80 backdrop-blur-xl border-slate-800/50 shadow-2xl">
+          <CardHeader className="text-center pb-6 space-y-4">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="mx-auto w-20 h-20 bg-gradient-to-br from-[#FFAE00] to-orange-600 rounded-2xl flex items-center justify-center text-4xl shadow-lg shadow-[#FFAE00]/25"
+            >
+              🍔
+            </motion.div>
+            <div>
+              <CardTitle className="text-3xl font-bold text-white mb-2">
+                Que <span className="text-[#FFAE00]">Copado</span>
+              </CardTitle>
+              <p className="text-slate-400">Panel de Administracion</p>
+            </div>
           </CardHeader>
-          <CardContent>
-            <form action={handleSubmit} className="space-y-4">
+          <CardContent className="pt-2 pb-6">
+            <form action={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-300">
+                <Label htmlFor="email" className="text-slate-300 text-sm font-medium">
                   Email
                 </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                <div className="relative group">
+                  <Mail
+                    className={`absolute left-3.5 top-3.5 h-4 w-4 transition-colors duration-200 ${
+                      focusedInput === 'email' ? 'text-[#FFAE00]' : 'text-slate-500'
+                    }`}
+                  />
                   <Input
                     id="email"
                     name="email"
                     type="email"
                     placeholder="admin@quecopado.com"
                     required
-                    className="pl-10 bg-slate-800 border-slate-700 text-white"
+                    onFocus={() => setFocusedInput('email')}
+                    onBlur={() => setFocusedInput(null)}
+                    className="pl-10 h-12 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all duration-200"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-slate-300">
+                <Label htmlFor="password" className="text-slate-300 text-sm font-medium">
                   Contrasena
                 </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                <div className="relative group">
+                  <Lock
+                    className={`absolute left-3.5 top-3.5 h-4 w-4 transition-colors duration-200 ${
+                      focusedInput === 'password' ? 'text-[#FFAE00]' : 'text-slate-500'
+                    }`}
+                  />
                   <Input
                     id="password"
                     name="password"
                     type="password"
                     placeholder="********"
                     required
-                    className="pl-10 bg-slate-800 border-slate-700 text-white"
+                    onFocus={() => setFocusedInput('password')}
+                    onBlur={() => setFocusedInput(null)}
+                    className="pl-10 h-12 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all duration-200"
                   />
                 </div>
               </div>
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#FFAE00] hover:bg-[#E09D00] text-black font-semibold"
+                className="w-full h-12 bg-gradient-to-r from-[#FFAE00] to-orange-500 hover:from-[#E09D00] hover:to-orange-600 text-black font-semibold shadow-lg shadow-[#FFAE00]/25 hover:shadow-xl hover:shadow-[#FFAE00]/30 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Iniciando sesion...</span>
+                  </div>
                 ) : (
                   'Iniciar Sesion'
                 )}

@@ -186,22 +186,29 @@ export function AdminDashboard({
     }
   }
 
+  const activeProducts = products.filter(p => p.is_active)
+  const outOfStock = products.filter(p => p.is_out_of_stock)
+
   return (
     <div className="min-h-screen bg-slate-950">
-      <header className="border-b border-slate-800 bg-slate-950/95 backdrop-blur">
+      <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/95 backdrop-blur-xl shadow-lg">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🍔</span>
-            <span className="text-xl font-bold text-white">
-              Que <span className="text-[#FFAE00]">Copado</span>
-            </span>
-            <Badge className="bg-slate-800 text-slate-300 ml-2">Admin</Badge>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#FFAE00] to-orange-600 rounded-xl flex items-center justify-center text-xl shadow-lg shadow-[#FFAE00]/20">
+              🍔
+            </div>
+            <div>
+              <span className="text-xl font-bold text-white">
+                Que <span className="text-[#FFAE00]">Copado</span>
+              </span>
+              <Badge className="bg-slate-800 text-slate-300 ml-2 text-xs">Admin</Badge>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/admin/delivery-zones">
               <Button
                 variant="ghost"
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all duration-200"
               >
                 <MapPin className="h-4 w-4 mr-2" />
                 Zonas de Envío
@@ -211,7 +218,7 @@ export function AdminDashboard({
               <Button
                 type="submit"
                 variant="ghost"
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-red-400 hover:bg-red-950/20 transition-all duration-200"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Salir
@@ -222,63 +229,126 @@ export function AdminDashboard({
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-slate-900/50 backdrop-blur border border-slate-800 rounded-xl p-6 hover:border-[#FFAE00]/30 transition-colors duration-200"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-400 text-sm font-medium">Total de Productos</p>
+                <p className="text-3xl font-bold text-white mt-1">{products.length}</p>
+              </div>
+              <div className="w-12 h-12 bg-[#FFAE00]/10 rounded-xl flex items-center justify-center">
+                <Package className="h-6 w-6 text-[#FFAE00]" />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-slate-900/50 backdrop-blur border border-slate-800 rounded-xl p-6 hover:border-green-500/30 transition-colors duration-200"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-400 text-sm font-medium">Productos Activos</p>
+                <p className="text-3xl font-bold text-white mt-1">{activeProducts.length}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
+                <Check className="h-6 w-6 text-green-500" />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-slate-900/50 backdrop-blur border border-slate-800 rounded-xl p-6 hover:border-red-500/30 transition-colors duration-200"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-400 text-sm font-medium">Sin Stock</p>
+                <p className="text-3xl font-bold text-white mt-1">{outOfStock.length}</p>
+              </div>
+              <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center">
+                <X className="h-6 w-6 text-red-500" />
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-white">
+            <h1 className="text-2xl font-bold text-white mb-1">
               Gestión de Productos
             </h1>
-            <p className="text-slate-400">
-              {products.length} productos en total
+            <p className="text-slate-400 text-sm">
+              Administra el catálogo de tu negocio
             </p>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#FFAE00] hover:bg-[#E09D00] text-black font-semibold">
+              <Button className="bg-gradient-to-r from-[#FFAE00] to-orange-500 hover:from-[#E09D00] hover:to-orange-600 text-black font-semibold shadow-lg shadow-[#FFAE00]/25 hover:shadow-xl hover:shadow-[#FFAE00]/30 transition-all duration-200 hover:scale-105 active:scale-95">
                 <Plus className="h-4 w-4 mr-2" />
                 Agregar Producto
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-slate-950 border-slate-800 max-w-md">
+            <DialogContent className="bg-slate-950 border-slate-800 max-w-md shadow-2xl">
               <DialogHeader>
-                <DialogTitle className="text-white">
+                <DialogTitle className="text-white text-xl">
                   Nuevo Producto
                 </DialogTitle>
+                <p className="text-slate-400 text-sm mt-1">
+                  Completa los datos para agregar un nuevo producto al catálogo
+                </p>
               </DialogHeader>
               <form action={handleAddProduct} className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Nombre</Label>
+                  <Label className="text-slate-300 font-medium">Nombre</Label>
                   <Input
                     name="name"
                     required
-                    className="bg-slate-900 border-slate-700 text-white"
+                    placeholder="Ej: Hamburguesa Completa"
+                    className="bg-slate-900/50 border-slate-700 text-white h-11 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Descripcion</Label>
+                  <Label className="text-slate-300 font-medium">Descripcion</Label>
                   <Textarea
                     name="description"
-                    className="bg-slate-900 border-slate-700 text-white"
+                    placeholder="Describe el producto..."
+                    className="bg-slate-900/50 border-slate-700 text-white resize-none h-20 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Precio</Label>
-                  <Input
-                    name="price"
-                    type="number"
-                    step="1"
-                    required
-                    className="bg-slate-900 border-slate-700 text-white"
-                  />
+                  <Label className="text-slate-300 font-medium">Precio</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">$</span>
+                    <Input
+                      name="price"
+                      type="number"
+                      step="1"
+                      required
+                      placeholder="3500"
+                      className="bg-slate-900/50 border-slate-700 text-white h-11 pl-7 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Categoria</Label>
+                  <Label className="text-slate-300 font-medium">Categoria</Label>
                   <Select name="category_id" required>
-                    <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
-                      <SelectValue placeholder="Seleccionar..." />
+                    <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white h-11 focus:ring-2 focus:ring-[#FFAE00]/20">
+                      <SelectValue placeholder="Seleccionar categoria..." />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-900 border-slate-700">
                       {categories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
+                        <SelectItem key={cat.id} value={cat.id} className="focus:bg-slate-800 focus:text-white">
                           {cat.name}
                         </SelectItem>
                       ))}
@@ -286,17 +356,17 @@ export function AdminDashboard({
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">URL de imagen</Label>
+                  <Label className="text-slate-300 font-medium">URL de imagen (opcional)</Label>
                   <Input
                     name="image_url"
                     type="url"
                     placeholder="https://..."
-                    className="bg-slate-900 border-slate-700 text-white"
+                    className="bg-slate-900/50 border-slate-700 text-white h-11 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
                   />
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-[#FFAE00] hover:bg-[#E09D00] text-black font-semibold"
+                  className="w-full h-11 bg-gradient-to-r from-[#FFAE00] to-orange-500 hover:from-[#E09D00] hover:to-orange-600 text-black font-semibold shadow-lg shadow-[#FFAE00]/25 hover:shadow-xl hover:shadow-[#FFAE00]/30 transition-all duration-200"
                 >
                   Crear Producto
                 </Button>
@@ -305,49 +375,77 @@ export function AdminDashboard({
           </Dialog>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-lg border border-slate-800 overflow-hidden"
-        >
-          <Table>
-            <TableHeader>
-              <TableRow className="border-slate-800 hover:bg-slate-900/50">
-                <TableHead className="text-slate-400">Producto</TableHead>
-                <TableHead className="text-slate-400">Categoria</TableHead>
-                <TableHead className="text-slate-400">Precio</TableHead>
-                <TableHead className="text-slate-400 text-center">
-                  Stock
-                </TableHead>
-                <TableHead className="text-slate-400 text-center">
-                  Activo
-                </TableHead>
-                <TableHead className="text-slate-400 text-right">
-                  Acciones
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.map((product) => (
-                <TableRow
+        {products.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-xl border border-slate-800 bg-slate-900/30 overflow-hidden"
+          >
+            <div className="p-16 text-center">
+              <div className="w-20 h-20 bg-slate-800/50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Package className="h-10 w-10 text-slate-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">No hay productos todavía</h3>
+              <p className="text-slate-400 mb-6 max-w-sm mx-auto">
+                Comienza agregando tu primer producto al catálogo para que los clientes puedan hacer pedidos.
+              </p>
+              <Button
+                onClick={() => setIsAddDialogOpen(true)}
+                className="bg-gradient-to-r from-[#FFAE00] to-orange-500 hover:from-[#E09D00] hover:to-orange-600 text-black font-semibold shadow-lg shadow-[#FFAE00]/25"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Agregar Primer Producto
+              </Button>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="rounded-xl border border-slate-800 bg-slate-900/30 overflow-hidden backdrop-blur"
+          >
+            <Table>
+              <TableHeader>
+                <TableRow className="border-slate-800 hover:bg-slate-900/50">
+                  <TableHead className="text-slate-400 font-semibold">Producto</TableHead>
+                  <TableHead className="text-slate-400 font-semibold">Categoria</TableHead>
+                  <TableHead className="text-slate-400 font-semibold">Precio</TableHead>
+                  <TableHead className="text-slate-400 font-semibold text-center">
+                    Stock
+                  </TableHead>
+                  <TableHead className="text-slate-400 font-semibold text-center">
+                    Activo
+                  </TableHead>
+                  <TableHead className="text-slate-400 font-semibold text-right">
+                    Acciones
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {products.map((product, index) => (
+                <motion.tr
                   key={product.id}
-                  className="border-slate-800 hover:bg-slate-900/50"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="border-slate-800 hover:bg-slate-800/30 transition-colors duration-200 group"
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded bg-slate-800 flex items-center justify-center">
+                      <div className="h-12 w-12 rounded-lg bg-slate-800 flex items-center justify-center overflow-hidden group-hover:ring-2 group-hover:ring-[#FFAE00]/30 transition-all duration-200">
                         {product.image_url ? (
                           <img
                             src={product.image_url}
                             alt={product.name}
-                            className="h-10 w-10 rounded object-cover"
+                            className="h-12 w-12 object-cover group-hover:scale-110 transition-transform duration-200"
                           />
                         ) : (
                           <Package className="h-5 w-5 text-slate-500" />
                         )}
                       </div>
-                      <div>
-                        <p className="font-medium text-white">{product.name}</p>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-white group-hover:text-[#FFAE00] transition-colors duration-200">{product.name}</p>
                         {product.description && (
                           <p className="text-sm text-slate-500 truncate max-w-xs">
                             {product.description}
@@ -359,7 +457,7 @@ export function AdminDashboard({
                   <TableCell>
                     <Badge
                       variant="outline"
-                      className="border-slate-700 text-slate-300"
+                      className="border-slate-700 text-slate-300 bg-slate-800/30 font-medium"
                     >
                       {product.categories?.name || 'Sin categoria'}
                     </Badge>
@@ -370,14 +468,14 @@ export function AdminDashboard({
                         <Input
                           value={priceValue}
                           onChange={(e) => setPriceValue(e.target.value)}
-                          className="w-24 h-8 bg-slate-900 border-slate-700 text-white"
+                          className="w-28 h-9 bg-slate-900 border-slate-700 text-white focus:border-[#FFAE00] focus:ring-2 focus:ring-[#FFAE00]/20"
                           type="number"
                           autoFocus
                         />
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-8 w-8 text-green-500 hover:text-green-400"
+                          className="h-9 w-9 text-green-500 hover:text-green-400 hover:bg-green-950/30 transition-colors"
                           onClick={() => handlePriceSave(product.id)}
                         >
                           <Check className="h-4 w-4" />
@@ -385,7 +483,7 @@ export function AdminDashboard({
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-8 w-8 text-red-500 hover:text-red-400"
+                          className="h-9 w-9 text-red-500 hover:text-red-400 hover:bg-red-950/30 transition-colors"
                           onClick={() => setEditingPrice(null)}
                         >
                           <X className="h-4 w-4" />
@@ -394,33 +492,37 @@ export function AdminDashboard({
                     ) : (
                       <button
                         onClick={() => handlePriceEdit(product)}
-                        className="flex items-center gap-1 text-[#FFAE00] hover:text-[#E09D00] transition-colors font-medium"
+                        className="flex items-center gap-1.5 text-[#FFAE00] hover:text-[#E09D00] transition-all duration-200 font-semibold group/price px-2 py-1 rounded-lg hover:bg-[#FFAE00]/10"
                       >
                         {formatPrice(product.price)}
-                        <DollarSign className="h-3 w-3 opacity-50" />
+                        <DollarSign className="h-3.5 w-3.5 opacity-50 group-hover/price:opacity-100 transition-opacity" />
                       </button>
                     )}
                   </TableCell>
                   <TableCell className="text-center">
-                    <Switch
-                      checked={!product.is_out_of_stock}
-                      onCheckedChange={() => handleToggleStock(product)}
-                      className="data-[state=checked]:bg-green-600"
-                    />
+                    <div className="flex justify-center">
+                      <Switch
+                        checked={!product.is_out_of_stock}
+                        onCheckedChange={() => handleToggleStock(product)}
+                        className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-slate-700"
+                      />
+                    </div>
                   </TableCell>
                   <TableCell className="text-center">
-                    <Switch
-                      checked={product.is_active}
-                      onCheckedChange={() => handleToggleActive(product)}
-                      className="data-[state=checked]:bg-[#FFAE00]"
-                    />
+                    <div className="flex justify-center">
+                      <Switch
+                        checked={product.is_active}
+                        onCheckedChange={() => handleToggleActive(product)}
+                        className="data-[state=checked]:bg-[#FFAE00] data-[state=unchecked]:bg-slate-700"
+                      />
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-1">
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-8 w-8 text-slate-400 hover:text-white"
+                        className="h-9 w-9 text-slate-400 hover:text-white hover:bg-slate-800 transition-all duration-200"
                         onClick={() => {
                           setEditingProduct(product)
                           setIsEditDialogOpen(true)
@@ -431,67 +533,74 @@ export function AdminDashboard({
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-8 w-8 text-red-500 hover:text-red-400"
+                        className="h-9 w-9 text-red-500 hover:text-red-400 hover:bg-red-950/30 transition-all duration-200"
                         onClick={() => handleDelete(product.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </motion.div>
+                </motion.tr>
+                ))}
+              </TableBody>
+            </Table>
+          </motion.div>
+        )}
 
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="bg-slate-950 border-slate-800 max-w-md">
+          <DialogContent className="bg-slate-950 border-slate-800 max-w-md shadow-2xl">
             <DialogHeader>
-              <DialogTitle className="text-white">Editar Producto</DialogTitle>
+              <DialogTitle className="text-white text-xl">Editar Producto</DialogTitle>
+              <p className="text-slate-400 text-sm mt-1">
+                Modifica los datos del producto
+              </p>
             </DialogHeader>
             {editingProduct && (
               <form action={handleEditProduct} className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Nombre</Label>
+                  <Label className="text-slate-300 font-medium">Nombre</Label>
                   <Input
                     name="name"
                     defaultValue={editingProduct.name}
                     required
-                    className="bg-slate-900 border-slate-700 text-white"
+                    className="bg-slate-900/50 border-slate-700 text-white h-11 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Descripcion</Label>
+                  <Label className="text-slate-300 font-medium">Descripcion</Label>
                   <Textarea
                     name="description"
                     defaultValue={editingProduct.description || ''}
-                    className="bg-slate-900 border-slate-700 text-white"
+                    className="bg-slate-900/50 border-slate-700 text-white resize-none h-20 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Precio</Label>
-                  <Input
-                    name="price"
-                    type="number"
-                    step="1"
-                    defaultValue={editingProduct.price}
-                    required
-                    className="bg-slate-900 border-slate-700 text-white"
-                  />
+                  <Label className="text-slate-300 font-medium">Precio</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">$</span>
+                    <Input
+                      name="price"
+                      type="number"
+                      step="1"
+                      defaultValue={editingProduct.price}
+                      required
+                      className="bg-slate-900/50 border-slate-700 text-white h-11 pl-7 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Categoria</Label>
+                  <Label className="text-slate-300 font-medium">Categoria</Label>
                   <Select
                     name="category_id"
                     defaultValue={editingProduct.category_id}
                     required
                   >
-                    <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                    <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white h-11 focus:ring-2 focus:ring-[#FFAE00]/20">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-900 border-slate-700">
                       {categories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
+                        <SelectItem key={cat.id} value={cat.id} className="focus:bg-slate-800 focus:text-white">
                           {cat.name}
                         </SelectItem>
                       ))}
@@ -499,18 +608,18 @@ export function AdminDashboard({
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">URL de imagen</Label>
+                  <Label className="text-slate-300 font-medium">URL de imagen (opcional)</Label>
                   <Input
                     name="image_url"
                     type="url"
                     defaultValue={editingProduct.image_url || ''}
                     placeholder="https://..."
-                    className="bg-slate-900 border-slate-700 text-white"
+                    className="bg-slate-900/50 border-slate-700 text-white h-11 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
                   />
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-[#FFAE00] hover:bg-[#E09D00] text-black font-semibold"
+                  className="w-full h-11 bg-gradient-to-r from-[#FFAE00] to-orange-500 hover:from-[#E09D00] hover:to-orange-600 text-black font-semibold shadow-lg shadow-[#FFAE00]/25 hover:shadow-xl hover:shadow-[#FFAE00]/30 transition-all duration-200"
                 >
                   Guardar Cambios
                 </Button>

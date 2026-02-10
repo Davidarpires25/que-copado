@@ -54,7 +54,8 @@ export function calculateShippingByZone(
         }
       }
     } catch (error) {
-      console.error(`Error checking zone ${zone.name}:`, error)
+      // Skip this zone if there's an error checking coordinates
+      // This allows the function to continue checking other zones
       continue
     }
   }

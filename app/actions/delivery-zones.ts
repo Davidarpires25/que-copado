@@ -63,7 +63,8 @@ async function validateNoOverlap(
   const { data: existingZones, error } = await query
 
   if (error) {
-    console.error('Error fetching zones for overlap validation:', error)
+    // Error fetching zones - fail safely by allowing the operation
+    // This prevents blocking zone creation if there's a temporary DB issue
     return { isValid: true }
   }
 
@@ -95,15 +96,35 @@ export async function createDeliveryZone(formData: FormData) {
 
   const name = formData.get('name') as string
   const polygonStr = formData.get('polygon') as string
-  const shippingCost = parseInt(formData.get('shipping_cost') as string, 10)
+  const shippingCostStr = formData.get('shipping_cost') as string
   const color = formData.get('color') as string
   const freeShippingThresholdStr = formData.get('free_shipping_threshold') as string
   const sortOrderStr = formData.get('sort_order') as string
 
-  if (!name || !polygonStr || isNaN(shippingCost)) {
-    return { error: 'Faltan campos requeridos' }
+  // Validar campos requeridos
+  if (!name?.trim()) {
+    return { error: 'El nombre de la zona es requerido' }
   }
 
+  if (name.trim().length > 100) {
+    return { error: 'El nombre no puede exceder 100 caracteres' }
+  }
+
+  if (!polygonStr?.trim()) {
+    return { error: 'El polígono es requerido' }
+  }
+
+  // Validar shipping cost
+  const shippingCost = parseInt(shippingCostStr, 10)
+  if (isNaN(shippingCost) || shippingCost < 0) {
+    return { error: 'El costo de envío debe ser un número válido mayor o igual a 0' }
+  }
+
+  if (shippingCost > 100000) {
+    return { error: 'El costo de envío no puede exceder $100.000' }
+  }
+
+  // Validar y parsear polígono
   let polygon: GeoJSONPolygon
   try {
     polygon = JSON.parse(polygonStr)
@@ -111,9 +132,27 @@ export async function createDeliveryZone(formData: FormData) {
     return { error: 'Formato de polígono inválido' }
   }
 
-  // Validate polygon has at least 4 points (3 vertices + closing point)
+  // Validar estructura del polígono
+  if (polygon.type !== 'Polygon') {
+    return { error: 'El tipo de polígono es inválido' }
+  }
+
   if (!polygon.coordinates?.[0] || polygon.coordinates[0].length < 4) {
     return { error: 'El polígono debe tener al menos 3 vértices' }
+  }
+
+  // Validar que las coordenadas sean válidas
+  for (const coord of polygon.coordinates[0]) {
+    if (!Array.isArray(coord) || coord.length !== 2) {
+      return { error: 'Formato de coordenadas inválido' }
+    }
+    const [lng, lat] = coord
+    if (typeof lng !== 'number' || typeof lat !== 'number') {
+      return { error: 'Las coordenadas deben ser números' }
+    }
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      return { error: 'Las coordenadas están fuera de rango' }
+    }
   }
 
   // Validate no overlap
@@ -122,14 +161,41 @@ export async function createDeliveryZone(formData: FormData) {
     return { error: `La zona se superpone con "${overlapCheck.overlappingZone}"` }
   }
 
-  const freeShippingThreshold = freeShippingThresholdStr ? parseInt(freeShippingThresholdStr, 10) : null
-  const sortOrder = sortOrderStr ? parseInt(sortOrderStr, 10) : 0
+  // Validar free shipping threshold
+  let freeShippingThreshold: number | null = null
+  if (freeShippingThresholdStr?.trim()) {
+    freeShippingThreshold = parseInt(freeShippingThresholdStr, 10)
+    if (isNaN(freeShippingThreshold) || freeShippingThreshold < 0) {
+      return { error: 'El umbral de envío gratis debe ser un número válido' }
+    }
+    if (freeShippingThreshold > 10000000) {
+      return { error: 'El umbral de envío gratis no puede exceder $10.000.000' }
+    }
+  }
+
+  // Validar sort order
+  let sortOrder = 0
+  if (sortOrderStr?.trim()) {
+    sortOrder = parseInt(sortOrderStr, 10)
+    if (isNaN(sortOrder) || sortOrder < 0) {
+      return { error: 'El orden debe ser un número válido' }
+    }
+  }
+
+  // Validar color (formato hexadecimal)
+  let validColor = '#FF6B00'
+  if (color?.trim()) {
+    if (!/^#[0-9A-F]{6}$/i.test(color)) {
+      return { error: 'El formato del color debe ser hexadecimal (#RRGGBB)' }
+    }
+    validColor = color.toUpperCase()
+  }
 
   const { data: newZone, error } = await supabase.from('delivery_zones').insert({
-    name,
+    name: name.trim(),
     polygon,
     shipping_cost: shippingCost,
-    color: color || '#FF6B00',
+    color: validColor,
     is_active: true,
     sort_order: sortOrder,
     free_shipping_threshold: freeShippingThreshold,
@@ -164,8 +230,77 @@ export async function updateDeliveryZone(
     return { error: 'No autorizado' }
   }
 
-  // If polygon is being updated, validate no overlap
+  // Validar zoneId
+  if (!zoneId?.trim()) {
+    return { error: 'ID de zona inválido' }
+  }
+
+  // Validar datos si se proporcionan
+  if (data.name !== undefined) {
+    if (!data.name.trim()) {
+      return { error: 'El nombre de la zona no puede estar vacío' }
+    }
+    if (data.name.trim().length > 100) {
+      return { error: 'El nombre no puede exceder 100 caracteres' }
+    }
+    data.name = data.name.trim()
+  }
+
+  if (data.shipping_cost !== undefined) {
+    if (isNaN(data.shipping_cost) || data.shipping_cost < 0) {
+      return { error: 'El costo de envío debe ser un número válido mayor o igual a 0' }
+    }
+    if (data.shipping_cost > 100000) {
+      return { error: 'El costo de envío no puede exceder $100.000' }
+    }
+  }
+
+  if (data.free_shipping_threshold !== undefined && data.free_shipping_threshold !== null) {
+    if (isNaN(data.free_shipping_threshold) || data.free_shipping_threshold < 0) {
+      return { error: 'El umbral de envío gratis debe ser un número válido' }
+    }
+    if (data.free_shipping_threshold > 10000000) {
+      return { error: 'El umbral de envío gratis no puede exceder $10.000.000' }
+    }
+  }
+
+  if (data.sort_order !== undefined) {
+    if (isNaN(data.sort_order) || data.sort_order < 0) {
+      return { error: 'El orden debe ser un número válido' }
+    }
+  }
+
+  if (data.color !== undefined) {
+    if (!/^#[0-9A-F]{6}$/i.test(data.color)) {
+      return { error: 'El formato del color debe ser hexadecimal (#RRGGBB)' }
+    }
+    data.color = data.color.toUpperCase()
+  }
+
+  // If polygon is being updated, validate structure and no overlap
   if (data.polygon) {
+    if (data.polygon.type !== 'Polygon') {
+      return { error: 'El tipo de polígono es inválido' }
+    }
+
+    if (!data.polygon.coordinates?.[0] || data.polygon.coordinates[0].length < 4) {
+      return { error: 'El polígono debe tener al menos 3 vértices' }
+    }
+
+    // Validar coordenadas
+    for (const coord of data.polygon.coordinates[0]) {
+      if (!Array.isArray(coord) || coord.length !== 2) {
+        return { error: 'Formato de coordenadas inválido' }
+      }
+      const [lng, lat] = coord
+      if (typeof lng !== 'number' || typeof lat !== 'number') {
+        return { error: 'Las coordenadas deben ser números' }
+      }
+      if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        return { error: 'Las coordenadas están fuera de rango' }
+      }
+    }
+
     const overlapCheck = await validateNoOverlap(data.polygon, zoneId)
     if (!overlapCheck.isValid) {
       return { error: `La zona se superpone con "${overlapCheck.overlappingZone}"` }
@@ -198,6 +333,11 @@ export async function deleteDeliveryZone(zoneId: string) {
     return { error: 'No autorizado' }
   }
 
+  // Validar zoneId
+  if (!zoneId?.trim()) {
+    return { error: 'ID de zona inválido' }
+  }
+
   const { error } = await supabase
     .from('delivery_zones')
     .delete()
@@ -224,6 +364,18 @@ export async function reorderDeliveryZones(zoneIds: string[]) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { error: 'No autorizado' }
+  }
+
+  // Validar que zoneIds sea un array válido
+  if (!Array.isArray(zoneIds) || zoneIds.length === 0) {
+    return { error: 'La lista de zonas es inválida' }
+  }
+
+  // Validar que todos los IDs sean strings válidos
+  for (const zoneId of zoneIds) {
+    if (!zoneId || typeof zoneId !== 'string' || !zoneId.trim()) {
+      return { error: 'ID de zona inválido en la lista' }
+    }
   }
 
   // Update each zone's sort_order

@@ -24,7 +24,8 @@ npm run lint     # Run ESLint
 - **Database:** Supabase (PostgreSQL with RLS)
 - **State:** Zustand with localStorage persistence (cart)
 - **UI:** Tailwind CSS 4 + Shadcn/UI + Radix UI + Framer Motion
-- **Maps:** Leaflet + react-leaflet (address picker)
+- **Maps:** Leaflet + react-leaflet + Geoman (address picker, zone drawing)
+- **Geospatial:** Turf.js (point-in-polygon calculations)
 
 ## Architecture
 
@@ -36,17 +37,20 @@ npm run lint     # Run ESLint
 
 ### Key Directories
 
-- `app/actions/` - Server Actions for Supabase mutations
+- `app/actions/` - Server Actions for Supabase mutations (auth, products, categories, delivery-zones, shipping)
 - `lib/supabase/` - Supabase clients (browser, server, admin)
 - `lib/store/cart-store.ts` - Zustand cart store with persistence
+- `lib/services/` - Business logic services (shipping, geocoding)
 - `components/ui/` - Shadcn/UI components
 - `components/checkout/` - Delivery form, address autocomplete, map picker
+- `docs/` - Technical documentation (shipping system, testing guides)
 
 ### Database Schema
 
-Tables: `categories`, `products`, `orders`
-- RLS enabled: public read for active products, authenticated write for admin
+Tables: `categories`, `products`, `orders`, `delivery_zones`
+- RLS enabled: public read for active products/zones, authenticated write for admin
 - Products have `is_active` (visibility) and `is_out_of_stock` (availability) toggles
+- Delivery zones use GeoJSON polygons for geographic boundaries
 
 ### Route Protection
 
@@ -64,10 +68,21 @@ NEXT_PUBLIC_WHATSAPP_NUMBER=<whatsapp-business-number>
 
 ## Business Logic
 
-- **Free shipping:** Orders over $15,000 ARS
-- **Shipping cost:** $1,500 ARS (below threshold)
-- **Checkout:** Generates WhatsApp message with order details + Google Maps link
+### Shipping System (Dynamic Zones)
+
+- **Zone-based shipping:** Costs calculated based on customer location within configured delivery zones
+- **Fallback shipping:** $1,500 ARS (when zones not configured)
+- **Free shipping threshold:** Configurable per zone (default: $15,000 ARS)
+- **Coverage validation:** Orders blocked if address is outside all delivery zones
+- **Calculation:** Uses Turf.js for point-in-polygon detection with GeoJSON polygons
+
+**Implementation details:** See `/docs/SHIPPING_ZONES.md`
+
+### Checkout Flow
+
+- **Checkout:** Generates WhatsApp message with order details + Google Maps link + detected zone
 - **Currency:** Argentine Peso (ARS), formatted with `formatPrice()` from `lib/utils.ts`
+- **Server-side validation:** Shipping recalculated on server before WhatsApp message generation
 
 ## Styling Conventions
 

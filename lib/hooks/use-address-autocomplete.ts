@@ -55,7 +55,9 @@ export function useAddressAutocomplete(options: UseAddressAutocompleteOptions = 
       } catch (err) {
         if (err instanceof Error && err.name !== 'AbortError') {
           setError('Error al buscar dirección')
-          console.error('Geocoding error:', err)
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Geocoding error:', err)
+          }
         }
       } finally {
         setIsLoading(false)

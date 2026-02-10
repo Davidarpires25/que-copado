@@ -2,13 +2,14 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart } from 'lucide-react'
-import { useCartStore } from '@/lib/store/cart-store'
+import { useCartStore, useHydrated } from '@/lib/store/cart-store'
 
 interface FloatingCartButtonProps {
   onClick: () => void
 }
 
 export function FloatingCartButton({ onClick }: FloatingCartButtonProps) {
+  const hydrated = useHydrated()
   const { getTotal, getItemCount } = useCartStore()
   const itemCount = getItemCount()
   const total = getTotal()
@@ -23,7 +24,7 @@ export function FloatingCartButton({ onClick }: FloatingCartButtonProps) {
 
   return (
     <AnimatePresence>
-      {itemCount > 0 && (
+      {hydrated && itemCount > 0 && (
         <motion.button
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}

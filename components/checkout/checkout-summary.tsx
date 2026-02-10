@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { MessageCircle, Shield, ImageOff, AlertTriangle, MapPin } from 'lucide-react'
+import { MessageCircle, Shield, ImageOff, AlertTriangle, MapPin, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { QuantityStepper } from '@/components/ui/quantity-stepper'
 import { useCartStore } from '@/lib/store/cart-store'
@@ -14,6 +14,7 @@ interface CheckoutSummaryProps {
   isLoading?: boolean
   shippingResult?: ShippingResult
   isBlocked?: boolean
+  isCalculatingShipping?: boolean
 }
 
 export function CheckoutSummary({
@@ -21,6 +22,7 @@ export function CheckoutSummary({
   isLoading = false,
   shippingResult,
   isBlocked = false,
+  isCalculatingShipping = false,
 }: CheckoutSummaryProps) {
   const { items, getTotal, updateQuantity } = useCartStore()
 
@@ -120,23 +122,33 @@ export function CheckoutSummary({
         <div className="flex justify-between text-sm">
           <div className="flex items-center gap-1.5">
             <span className="text-orange-700/70">Envío</span>
-            {hasZoneShipping && shippingResult.zone && (
-              <span
-                className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded"
-                style={{
-                  backgroundColor: `${shippingResult.zone.color}15`,
-                  color: shippingResult.zone.color,
-                }}
-              >
-                <MapPin className="h-3 w-3" />
-                {shippingResult.zone.name}
-              </span>
+            {isCalculatingShipping ? (
+              <Loader2 className="h-3 w-3 text-orange-600 animate-spin" />
+            ) : (
+              hasZoneShipping && shippingResult.zone && (
+                <span
+                  className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded"
+                  style={{
+                    backgroundColor: `${shippingResult.zone.color}15`,
+                    color: shippingResult.zone.color,
+                  }}
+                >
+                  <MapPin className="h-3 w-3" />
+                  {shippingResult.zone.name}
+                </span>
+              )
             )}
           </div>
           <span
             className={`font-medium ${isFreeShipping ? 'text-green-600' : 'text-orange-800'}`}
           >
-            {isFreeShipping ? 'Gratis' : formatPrice(shipping)}
+            {isCalculatingShipping ? (
+              <span className="text-orange-600/50">Calculando...</span>
+            ) : isFreeShipping ? (
+              'Gratis'
+            ) : (
+              formatPrice(shipping)
+            )}
           </span>
         </div>
 

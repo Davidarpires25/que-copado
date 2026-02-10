@@ -13,10 +13,11 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CartItem } from '@/components/cart-item'
-import { useCartStore } from '@/lib/store/cart-store'
+import { useCartStore, useHydrated } from '@/lib/store/cart-store'
 import { formatPrice, calculateShipping, SHIPPING_CONFIG } from '@/lib/utils'
 
 export function CartDrawer() {
+  const hydrated = useHydrated()
   const { items, updateQuantity, removeItem, getTotal, getItemCount } =
     useCartStore()
 
@@ -35,7 +36,7 @@ export function CartDrawer() {
             className="relative border-2 border-orange-300 bg-white hover:bg-orange-50 hover:border-orange-400 shadow-sm"
           >
             <ShoppingCart className="h-5 w-5 text-orange-600" />
-            {itemCount > 0 && (
+            {hydrated && itemCount > 0 && (
               <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold border-2 border-white shadow-md">
                 {itemCount}
               </Badge>
@@ -50,7 +51,7 @@ export function CartDrawer() {
               <ShoppingCart className="h-5 w-5 text-white" />
             </div>
             Tu Pedido
-            {itemCount > 0 && (
+            {hydrated && itemCount > 0 && (
               <span className="text-orange-600/60 font-medium text-sm">
                 ({itemCount} {itemCount === 1 ? 'item' : 'items'})
               </span>

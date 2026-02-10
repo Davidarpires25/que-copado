@@ -39,12 +39,25 @@ export function ZoneMapEditor({
 
   // Initialize map
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current || isInitializingRef.current) return
+    const container = mapContainerRef.current
+    if (!container || mapRef.current || isInitializingRef.current) return
+
+    // Check if container already has a map (Leaflet stores _leaflet_id)
+    if ((container as HTMLDivElement & { _leaflet_id?: number })._leaflet_id) {
+      return
+    }
+
     isInitializingRef.current = true
 
     const initMap = async () => {
       const L = (await import('leaflet')).default
       await import('@geoman-io/leaflet-geoman-free')
+
+      // Double-check the container hasn't been initialized while loading
+      if ((container as HTMLDivElement & { _leaflet_id?: number })._leaflet_id) {
+        isInitializingRef.current = false
+        return
+      }
 
       // Add Leaflet CSS
       const leafletCssId = 'leaflet-css'
@@ -128,7 +141,12 @@ export function ZoneMapEditor({
         mapRef.current.remove()
         mapRef.current = null
       }
+      // Clean up Leaflet's internal reference on the container
+      if (container) {
+        delete (container as HTMLDivElement & { _leaflet_id?: number })._leaflet_id
+      }
       isInitializingRef.current = false
+      setIsMapReady(false)
     }
   }, []) // Empty deps - only initialize once
 

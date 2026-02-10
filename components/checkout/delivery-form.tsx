@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
-import { MapPin, User, Phone, MessageSquare, Map, Truck, Check } from 'lucide-react'
+import { MapPin, User, Phone, MessageSquare, Map, Truck, Check, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -41,6 +41,7 @@ interface DeliveryFormProps {
   onChange: (data: DeliveryFormData) => void
   shippingResult?: ShippingResult
   hasZones?: boolean
+  isCalculatingShipping?: boolean
 }
 
 // Zone indicator component - defined outside to avoid recreation on each render
@@ -48,12 +49,26 @@ function ZoneIndicator({
   hasZones,
   hasCoordinates,
   shippingResult,
+  isCalculating,
 }: {
   hasZones: boolean
   hasCoordinates: boolean
   shippingResult?: ShippingResult
+  isCalculating?: boolean
 }) {
   if (!hasZones || !hasCoordinates) return null
+
+  // Show loading state while calculating
+  if (isCalculating) {
+    return (
+      <div className="mt-3 p-3 rounded-lg bg-orange-50 border border-orange-200 flex items-center gap-3">
+        <Loader2 className="h-4 w-4 text-orange-600 animate-spin shrink-0" />
+        <p className="text-sm text-orange-700">
+          Verificando zona de cobertura...
+        </p>
+      </div>
+    )
+  }
 
   if (shippingResult?.isOutOfCoverage) {
     return (
@@ -103,7 +118,7 @@ function ZoneIndicator({
   return null
 }
 
-export function DeliveryForm({ data, onChange, shippingResult, hasZones = false }: DeliveryFormProps) {
+export function DeliveryForm({ data, onChange, shippingResult, hasZones = false, isCalculatingShipping = false }: DeliveryFormProps) {
   const [showMap, setShowMap] = useState(false)
 
   const updateField = (field: keyof DeliveryFormData, value: string) => {
@@ -229,6 +244,7 @@ export function DeliveryForm({ data, onChange, shippingResult, hasZones = false 
               hasZones={hasZones}
               hasCoordinates={!!data.coordinates}
               shippingResult={shippingResult}
+              isCalculating={isCalculatingShipping}
             />
           </div>
         )}
