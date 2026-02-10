@@ -11,7 +11,9 @@ import {
   X,
   Package,
   DollarSign,
+  MapPin,
 } from 'lucide-react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
@@ -195,16 +197,27 @@ export function AdminDashboard({
             </span>
             <Badge className="bg-slate-800 text-slate-300 ml-2">Admin</Badge>
           </div>
-          <form action={signOut}>
-            <Button
-              type="submit"
-              variant="ghost"
-              className="text-slate-400 hover:text-white"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Salir
-            </Button>
-          </form>
+          <div className="flex items-center gap-2">
+            <Link href="/admin/delivery-zones">
+              <Button
+                variant="ghost"
+                className="text-slate-400 hover:text-white"
+              >
+                <MapPin className="h-4 w-4 mr-2" />
+                Zonas de Envío
+              </Button>
+            </Link>
+            <form action={signOut}>
+              <Button
+                type="submit"
+                variant="ghost"
+                className="text-slate-400 hover:text-white"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Salir
+              </Button>
+            </form>
+          </div>
         </div>
       </header>
 

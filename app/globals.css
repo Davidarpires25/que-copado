@@ -213,3 +213,32 @@
     @apply inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-sm font-medium;
   }
 }
+
+/* Fix z-index para Leaflet maps - asegurar que dialogs aparezcan por encima */
+.leaflet-pane,
+.leaflet-tile-pane,
+.leaflet-overlay-pane,
+.leaflet-shadow-pane,
+.leaflet-marker-pane,
+.leaflet-tooltip-pane,
+.leaflet-popup-pane {
+  z-index: 400;
+}
+
+.leaflet-control {
+  z-index: 800;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 1000;
+}
+
+/* Asegurar que los diálogos de shadcn/ui estén por encima del mapa */
+[data-radix-dialog-overlay] {
+  z-index: 9998 !important;
+}
+
+[data-radix-dialog-content] {
+  z-index: 9999 !important;
+}

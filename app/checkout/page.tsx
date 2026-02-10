@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, ShoppingCart, AlertTriangle, MessageCircle } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { DeliveryForm, type DeliveryFormData } from '@/components/checkout/delivery-form'
@@ -10,8 +10,11 @@ import { PaymentMethodSelector } from '@/components/checkout/payment-method'
 import { CheckoutSummary } from '@/components/checkout/checkout-summary'
 import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/lib/store/cart-store'
-import { formatPrice, calculateShipping } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils'
+import { getActiveDeliveryZones } from '@/app/actions/delivery-zones'
+import { calculateShippingByZone } from '@/lib/services/shipping'
 import { toast } from 'sonner'
+import type { DeliveryZone, ShippingResult } from '@/lib/types/database'
 
 type PaymentMethodType = 'cash' | 'transfer' | 'mercadopago'
 
@@ -31,6 +34,46 @@ export default function CheckoutPage() {
   const [cashAmount, setCashAmount] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
+  // Delivery zones state
+  const [zones, setZones] = useState<DeliveryZone[]>([])
+  const [zonesLoaded, setZonesLoaded] = useState(false)
+
+  // Load delivery zones on mount
+  useEffect(() => {
+    async function loadZones() {
+      const { data } = await getActiveDeliveryZones()
+      if (data) {
+        setZones(data)
+      }
+      setZonesLoaded(true)
+    }
+    loadZones()
+  }, [])
+
+  // Calculate shipping result based on coordinates - useMemo for derived state
+  const subtotal = getTotal()
+  const shippingResult: ShippingResult = useMemo(() => {
+    if (!deliveryData.coordinates || zones.length === 0) {
+      return {
+        zone: null,
+        shippingCost: 0,
+        isFreeShipping: false,
+        isOutOfCoverage: !zonesLoaded || zones.length === 0,
+      }
+    }
+
+    return calculateShippingByZone(
+      deliveryData.coordinates.lat,
+      deliveryData.coordinates.lng,
+      subtotal,
+      zones
+    )
+  }, [deliveryData.coordinates, zones, zonesLoaded, subtotal])
+
+  const handleDeliveryDataChange = (data: DeliveryFormData) => {
+    setDeliveryData(data)
+  }
+
   const handleCheckout = () => {
     if (!deliveryData.name.trim()) {
       toast.error('Por favor ingresá tu nombre')
@@ -45,10 +88,16 @@ export default function CheckoutPage() {
       return
     }
 
+    // Block checkout if out of coverage
+    if (shippingResult.isOutOfCoverage && zones.length > 0) {
+      toast.error('Tu ubicación está fuera de nuestra zona de cobertura')
+      return
+    }
+
     setIsLoading(true)
 
     const subtotal = getTotal()
-    const shipping = calculateShipping(subtotal)
+    const shipping = shippingResult.shippingCost
     const total = subtotal + shipping
 
     const orderItems = items
@@ -78,11 +127,16 @@ export default function CheckoutPage() {
       ? `https://www.google.com/maps?q=${deliveryData.coordinates.lat},${deliveryData.coordinates.lng}`
       : ''
 
+    // Include zone name if available
+    const zoneInfo = shippingResult.zone
+      ? `\n*Zona:* ${shippingResult.zone.name}`
+      : ''
+
     const message = encodeURIComponent(
       `🍔 *NUEVO PEDIDO - QUE COPADO*\n\n` +
         `*Cliente:* ${deliveryData.name}\n` +
         `*Teléfono:* ${deliveryData.phone}\n` +
-        `*Dirección:* ${fullAddress}\n` +
+        `*Dirección:* ${fullAddress}${zoneInfo}\n` +
         (locationLink ? `*📍 Ubicación:* ${locationLink}\n` : '') +
         (deliveryData.notes ? `*Notas:* ${deliveryData.notes}\n` : '') +
         `\n` +
@@ -135,6 +189,8 @@ export default function CheckoutPage() {
     )
   }
 
+  const isOutOfCoverage = shippingResult.isOutOfCoverage && zones.length > 0 && deliveryData.coordinates
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
       <Header />
@@ -153,10 +209,39 @@ export default function CheckoutPage() {
           Checkout
         </h1>
 
+        {/* Out of coverage warning */}
+        {isOutOfCoverage && (
+          <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-amber-800">
+                Tu ubicación está fuera de nuestra zona de cobertura
+              </p>
+              <p className="text-sm text-amber-700 mt-1">
+                No podemos realizar envíos a esta dirección. Contactanos por WhatsApp para coordinar.
+              </p>
+              <a
+                href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5491100000000'}?text=Hola! Mi dirección está fuera de la zona de cobertura. ¿Pueden ayudarme?`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 mt-3 text-sm font-medium text-green-700 hover:text-green-800"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Contactar por WhatsApp
+              </a>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Forms */}
           <div className="lg:col-span-7 space-y-6">
-            <DeliveryForm data={deliveryData} onChange={setDeliveryData} />
+            <DeliveryForm
+              data={deliveryData}
+              onChange={handleDeliveryDataChange}
+              shippingResult={shippingResult}
+              hasZones={zones.length > 0}
+            />
             <PaymentMethodSelector
               selected={paymentMethod}
               onSelect={setPaymentMethod}
@@ -167,7 +252,12 @@ export default function CheckoutPage() {
 
           {/* Summary */}
           <div className="lg:col-span-5">
-            <CheckoutSummary onCheckout={handleCheckout} isLoading={isLoading} />
+            <CheckoutSummary
+              onCheckout={handleCheckout}
+              isLoading={isLoading}
+              shippingResult={shippingResult}
+              isBlocked={!!isOutOfCoverage}
+            />
           </div>
         </div>
       </main>

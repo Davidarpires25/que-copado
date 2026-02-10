@@ -2,12 +2,14 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
-import { MapPin, User, Phone, MessageSquare, Map } from 'lucide-react'
+import { MapPin, User, Phone, MessageSquare, Map, Truck, Check } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { AddressAutocomplete } from './address-autocomplete'
+import { formatPrice } from '@/lib/utils'
 import type { AddressSuggestion } from '@/lib/services/geocoding'
+import type { ShippingResult } from '@/lib/types/database'
 
 // Importar el mapa dinámicamente para evitar errores de SSR
 const AddressMapPicker = dynamic(
@@ -37,9 +39,71 @@ export interface DeliveryFormData {
 interface DeliveryFormProps {
   data: DeliveryFormData
   onChange: (data: DeliveryFormData) => void
+  shippingResult?: ShippingResult
+  hasZones?: boolean
 }
 
-export function DeliveryForm({ data, onChange }: DeliveryFormProps) {
+// Zone indicator component - defined outside to avoid recreation on each render
+function ZoneIndicator({
+  hasZones,
+  hasCoordinates,
+  shippingResult,
+}: {
+  hasZones: boolean
+  hasCoordinates: boolean
+  shippingResult?: ShippingResult
+}) {
+  if (!hasZones || !hasCoordinates) return null
+
+  if (shippingResult?.isOutOfCoverage) {
+    return (
+      <div className="mt-3 p-3 rounded-lg bg-amber-50 border border-amber-200">
+        <p className="text-sm text-amber-700 font-medium">
+          Esta ubicación está fuera de nuestra zona de cobertura
+        </p>
+      </div>
+    )
+  }
+
+  if (shippingResult?.zone) {
+    return (
+      <div
+        className="mt-3 p-3 rounded-lg border flex items-center gap-3"
+        style={{
+          backgroundColor: `${shippingResult.zone.color}10`,
+          borderColor: `${shippingResult.zone.color}40`,
+        }}
+      >
+        <div
+          className="w-3 h-3 rounded-full shrink-0"
+          style={{ backgroundColor: shippingResult.zone.color }}
+        />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-orange-900">
+            Zona: {shippingResult.zone.name}
+          </p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <Truck className="h-3 w-3 text-orange-600" />
+            {shippingResult.isFreeShipping ? (
+              <span className="text-sm text-green-600 font-medium flex items-center gap-1">
+                <Check className="h-3 w-3" />
+                Envío gratis
+              </span>
+            ) : (
+              <span className="text-sm text-orange-600">
+                Envío: {formatPrice(shippingResult.shippingCost)}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return null
+}
+
+export function DeliveryForm({ data, onChange, shippingResult, hasZones = false }: DeliveryFormProps) {
   const [showMap, setShowMap] = useState(false)
 
   const updateField = (field: keyof DeliveryFormData, value: string) => {
@@ -61,7 +125,7 @@ export function DeliveryForm({ data, onChange }: DeliveryFormProps) {
     }
   }
 
-  const handleAddressSelect = (suggestion: AddressSuggestion) => {
+  const handleAddressSelect = (_suggestion: AddressSuggestion) => {
     setShowMap(true)
   }
 
@@ -159,6 +223,13 @@ export function DeliveryForm({ data, onChange }: DeliveryFormProps) {
               Si la ubicación no es exacta, podés arrastrar el marcador o hacer
               clic en el mapa para ajustarla
             </p>
+
+            {/* Zone indicator */}
+            <ZoneIndicator
+              hasZones={hasZones}
+              hasCoordinates={!!data.coordinates}
+              shippingResult={shippingResult}
+            />
           </div>
         )}
 

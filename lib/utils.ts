@@ -25,3 +25,10 @@ export function formatPrice(price: number): string {
     minimumFractionDigits: 0,
   }).format(price)
 }
+
+// Coordenadas de San Fernando del Valle de Catamarca
+export const CATAMARCA_COORDS = {
+  lat: -28.4696,
+  lng: -65.7795,
+  zoom: 13,
+} as const

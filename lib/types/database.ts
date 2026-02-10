@@ -113,3 +113,29 @@ export type Order = Database['public']['Tables']['orders']['Row']
 export type ProductWithCategory = Product & {
   categories: Category
 }
+
+// GeoJSON Types for Delivery Zones
+export interface GeoJSONPolygon {
+  type: 'Polygon'
+  coordinates: number[][][]
+}
+
+export interface DeliveryZone {
+  id: string
+  name: string
+  polygon: GeoJSONPolygon
+  shipping_cost: number
+  color: string
+  is_active: boolean
+  sort_order: number
+  free_shipping_threshold: number | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ShippingResult {
+  zone: DeliveryZone | null
+  shippingCost: number
+  isFreeShipping: boolean
+  isOutOfCoverage: boolean
+}
