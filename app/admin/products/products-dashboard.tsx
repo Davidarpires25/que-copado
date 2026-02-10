@@ -58,7 +58,7 @@ interface AdminDashboardProps {
   categories: Category[]
 }
 
-export function AdminDashboard({
+export function ProductsDashboard({
   initialProducts,
   categories,
 }: AdminDashboardProps) {

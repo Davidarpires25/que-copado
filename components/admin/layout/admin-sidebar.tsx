@@ -12,6 +12,9 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  LayoutDashboard,
+  ClipboardList,
+  Settings,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -24,9 +27,12 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/admin/dashboard', label: 'Productos', icon: Package },
+  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/orders', label: 'Pedidos', icon: ClipboardList },
+  { href: '/admin/products', label: 'Productos', icon: Package },
   { href: '/admin/categories', label: 'Categorías', icon: Tag },
   { href: '/admin/delivery-zones', label: 'Zonas de Envío', icon: MapPin },
+  { href: '/admin/settings', label: 'Configuración', icon: Settings },
 ]
 
 interface AdminSidebarProps {

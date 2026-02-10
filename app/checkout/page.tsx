@@ -10,14 +10,14 @@ import { PaymentMethodSelector } from '@/components/checkout/payment-method'
 import { CheckoutSummary } from '@/components/checkout/checkout-summary'
 import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/lib/store/cart-store'
-import { formatPrice } from '@/lib/utils'
 import { getActiveDeliveryZones } from '@/app/actions/delivery-zones'
 import { calculateShippingCost } from '@/app/actions/shipping'
+import { createOrder } from '@/app/actions/orders'
 import { calculateShippingByZone } from '@/lib/services/shipping'
+import { generateWhatsAppMessage } from '@/lib/services/order-formatter'
 import { toast } from 'sonner'
-import type { DeliveryZone, ShippingResult } from '@/lib/types/database'
-
-type PaymentMethodType = 'cash' | 'transfer' | 'mercadopago'
+import type { DeliveryZone, ShippingResult, PaymentMethod } from '@/lib/types/database'
+import type { OrderItem } from '@/lib/types/orders'
 
 export default function CheckoutPage() {
   const { items, getTotal, clearCart } = useCartStore()
@@ -31,7 +31,7 @@ export default function CheckoutPage() {
     coordinates: undefined,
   })
 
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('cash')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash')
   const [cashAmount, setCashAmount] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -183,73 +183,60 @@ export default function CheckoutPage() {
 
       const total = subtotal + shipping
 
-      const orderItems = items
-        .map(
-          (item) =>
-            `• ${item.quantity}x ${item.product.name} - ${formatPrice(item.product.price * item.quantity)}`
-        )
-        .join('\n')
-
-      const paymentLabels = {
-        cash: 'Efectivo',
-        transfer: 'Transferencia',
-        mercadopago: 'Mercado Pago',
-      }
-
-      let paymentInfo = `*Método de pago:* ${paymentLabels[paymentMethod]}`
-      if (paymentMethod === 'cash' && cashAmount) {
-        paymentInfo += `\n*Paga con:* $${cashAmount}`
-      }
+      // Preparar items para guardar en la orden
+      const orderItems: OrderItem[] = items.map((item) => ({
+        id: item.product.id,
+        name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity,
+        image_url: item.product.image_url,
+      }))
 
       const fullAddress = deliveryData.apartment
         ? `${deliveryData.address}, ${deliveryData.apartment}`
         : deliveryData.address
 
-      // Generar link de Google Maps si hay coordenadas
-      const locationLink = deliveryData.coordinates
-        ? `https://www.google.com/maps?q=${deliveryData.coordinates.lat},${deliveryData.coordinates.lng}`
-        : ''
+      // Guardar orden en la base de datos
+      const { data: order, error: orderError } = await createOrder({
+        customer_name: deliveryData.name,
+        customer_phone: deliveryData.phone,
+        customer_address: fullAddress,
+        customer_coordinates: deliveryData.coordinates || null,
+        items: orderItems,
+        total,
+        shipping_cost: shipping,
+        delivery_zone_id: finalShippingResult.zone?.id || null,
+        notes: deliveryData.notes || null,
+        payment_method: paymentMethod,
+      })
 
-      // Include zone name if available (use server-validated result)
-      const zoneInfo = finalShippingResult.zone
-        ? `\n*Zona:* ${finalShippingResult.zone.name}`
-        : ''
-
-      // Build shipping line with zone context
-      let shippingLine = `*Envío:* `
-      if (finalShippingResult.isFreeShipping) {
-        shippingLine += 'Gratis'
-        if (finalShippingResult.zone) {
-          shippingLine += ` (${finalShippingResult.zone.name})`
-        }
-      } else if (shipping === 0) {
-        shippingLine += 'Gratis'
-      } else {
-        shippingLine += formatPrice(shipping)
-        if (finalShippingResult.zone) {
-          shippingLine += ` (${finalShippingResult.zone.name})`
-        }
+      if (orderError || !order) {
+        toast.error(orderError || 'Error al guardar el pedido')
+        setIsLoading(false)
+        return
       }
 
-      const message = encodeURIComponent(
-        `🍔 *NUEVO PEDIDO - QUE COPADO*\n\n` +
-          `*Cliente:* ${deliveryData.name}\n` +
-          `*Teléfono:* ${deliveryData.phone}\n` +
-          `*Dirección:* ${fullAddress}${zoneInfo}\n` +
-          (locationLink ? `*📍 Ubicación:* ${locationLink}\n` : '') +
-          (deliveryData.notes ? `*Notas:* ${deliveryData.notes}\n` : '') +
-          `\n` +
-          `*PEDIDO:*\n${orderItems}\n\n` +
-          `*Subtotal:* ${formatPrice(subtotal)}\n` +
-          `${shippingLine}\n` +
-          `*TOTAL: ${formatPrice(total)}*\n\n` +
-          `${paymentInfo}\n\n` +
-          `_Enviado desde queCopado.com_`
-      )
+      // Generar mensaje de WhatsApp usando el servicio
+      const message = generateWhatsAppMessage({
+        orderId: order.id,
+        customerName: deliveryData.name,
+        customerPhone: deliveryData.phone,
+        address: fullAddress,
+        coordinates: deliveryData.coordinates,
+        zone: finalShippingResult.zone,
+        notes: deliveryData.notes,
+        items: orderItems,
+        subtotal,
+        shipping,
+        isFreeShipping: finalShippingResult.isFreeShipping,
+        total,
+        paymentMethod,
+        cashAmount: paymentMethod === 'cash' ? cashAmount : undefined,
+      })
 
       const whatsappNumber =
         process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5491100000000'
-      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`
+      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
 
       window.open(whatsappUrl, '_blank')
       clearCart()

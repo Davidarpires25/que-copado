@@ -74,7 +74,14 @@ export interface Database {
           total: number
           items: Json
           customer_phone: string
-          status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+          customer_name: string
+          customer_address: string
+          customer_coordinates: { lat: number; lng: number } | null
+          shipping_cost: number
+          delivery_zone_id: string | null
+          notes: string | null
+          payment_method: 'cash' | 'transfer' | 'mercadopago'
+          status: 'recibido' | 'pagado' | 'entregado' | 'cancelado'
         }
         Insert: {
           id?: string
@@ -82,7 +89,14 @@ export interface Database {
           total: number
           items: Json
           customer_phone: string
-          status?: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+          customer_name: string
+          customer_address: string
+          customer_coordinates?: { lat: number; lng: number } | null
+          shipping_cost?: number
+          delivery_zone_id?: string | null
+          notes?: string | null
+          payment_method: 'cash' | 'transfer' | 'mercadopago'
+          status?: 'recibido' | 'pagado' | 'entregado' | 'cancelado'
         }
         Update: {
           id?: string
@@ -90,7 +104,46 @@ export interface Database {
           total?: number
           items?: Json
           customer_phone?: string
-          status?: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+          customer_name?: string
+          customer_address?: string
+          customer_coordinates?: { lat: number; lng: number } | null
+          shipping_cost?: number
+          delivery_zone_id?: string | null
+          notes?: string | null
+          payment_method?: 'cash' | 'transfer' | 'mercadopago'
+          status?: 'recibido' | 'pagado' | 'entregado' | 'cancelado'
+        }
+      }
+      business_settings: {
+        Row: {
+          id: string
+          operating_days: number[]
+          opening_time: string
+          closing_time: string
+          is_paused: boolean
+          pause_message: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          operating_days?: number[]
+          opening_time?: string
+          closing_time?: string
+          is_paused?: boolean
+          pause_message?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          operating_days?: number[]
+          opening_time?: string
+          closing_time?: string
+          is_paused?: boolean
+          pause_message?: string | null
+          created_at?: string
+          updated_at?: string
         }
       }
     }
@@ -109,9 +162,17 @@ export interface Database {
 export type Category = Database['public']['Tables']['categories']['Row']
 export type Product = Database['public']['Tables']['products']['Row']
 export type Order = Database['public']['Tables']['orders']['Row']
+export type BusinessSettings = Database['public']['Tables']['business_settings']['Row']
+
+export type OrderStatus = Order['status']
+export type PaymentMethod = Order['payment_method']
 
 export type ProductWithCategory = Product & {
   categories: Category
+}
+
+export type OrderWithZone = Order & {
+  delivery_zones: DeliveryZone | null
 }
 
 // GeoJSON Types for Delivery Zones

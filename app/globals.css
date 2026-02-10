@@ -248,3 +248,13 @@
 [data-radix-dialog-content] {
   z-index: 9999 !important;
 }
+
+/* Asegurar que los Select dropdowns estén por encima de los diálogos */
+[data-radix-select-content],
+[data-radix-select-viewport] {
+  z-index: 10000 !important;
+}
+
+[data-slot="select-content"] {
+  z-index: 10000 !important;
+}
