@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter, usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, Home, UtensilsCrossed } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -9,10 +10,23 @@ import { CartDrawer } from './cart-drawer'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const router = useRouter()
+  const pathname = usePathname()
+
+  const scrollToMenu = () => {
+    if (pathname !== '/') {
+      router.push('/#menu')
+    } else {
+      const menuElement = document.getElementById('menu')
+      if (menuElement) {
+        menuElement.scrollIntoView({ behavior: 'smooth' })
+      }
+    }
+  }
 
   const navLinks = [
-    { href: '/', label: 'Inicio', icon: Home },
-    { href: '/#menu', label: 'Menú', icon: UtensilsCrossed },
+    { href: '/', label: 'Inicio', icon: Home, action: null },
+    { href: '/#menu', label: 'Menú', icon: UtensilsCrossed, action: scrollToMenu },
   ]
 
   return (
@@ -42,15 +56,27 @@ export function Header() {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-1">
           {navLinks.map((link) => (
-            <Link key={link.href} href={link.href}>
+            link.action ? (
               <Button
+                key={link.href}
                 variant="ghost"
                 className="text-white hover:text-[#FEC501] hover:bg-white/10 font-semibold"
+                onClick={link.action}
               >
                 <link.icon className="h-4 w-4 mr-2" />
                 {link.label}
               </Button>
-            </Link>
+            ) : (
+              <Link key={link.href} href={link.href}>
+                <Button
+                  variant="ghost"
+                  className="text-white hover:text-[#FEC501] hover:bg-white/10 font-semibold"
+                >
+                  <link.icon className="h-4 w-4 mr-2" />
+                  {link.label}
+                </Button>
+              </Link>
+            )
           ))}
         </nav>
 
@@ -82,21 +108,38 @@ export function Header() {
           >
             <nav className="container mx-auto px-4 py-4 space-y-2">
               {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsMenuOpen(false)}
-                >
+                link.action ? (
                   <motion.div
+                    key={link.href}
                     whileTap={{ scale: 0.98 }}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors"
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
+                    onClick={() => {
+                      link.action()
+                      setIsMenuOpen(false)
+                    }}
                   >
                     <div className="w-10 h-10 rounded-full bg-[#FEC501] flex items-center justify-center">
                       <link.icon className="h-5 w-5 text-black" />
                     </div>
                     <span className="font-semibold text-white">{link.label}</span>
                   </motion.div>
-                </Link>
+                ) : (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <motion.div
+                      whileTap={{ scale: 0.98 }}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-[#FEC501] flex items-center justify-center">
+                        <link.icon className="h-5 w-5 text-black" />
+                      </div>
+                      <span className="font-semibold text-white">{link.label}</span>
+                    </motion.div>
+                  </Link>
+                )
               ))}
             </nav>
           </motion.div>

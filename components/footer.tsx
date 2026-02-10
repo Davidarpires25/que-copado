@@ -2,9 +2,11 @@
 
 import Link from 'next/link'
 import { Phone, MapPin, Clock, Instagram, Facebook } from 'lucide-react'
+import { WhatsAppIcon } from './icons'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5491154997700'
 
   const quickLinks = [
     { href: '/', label: 'Inicio' },
@@ -12,58 +14,56 @@ export function Footer() {
     { href: '/cart', label: 'Mi Pedido' },
   ]
 
-  const legalLinks = [
-    { href: '#', label: 'Términos y Condiciones' },
-    { href: '#', label: 'Política de Privacidad' },
-  ]
-
   return (
-    <footer className="bg-gradient-to-br from-orange-900 via-orange-800 to-amber-900 text-white">
-      <div className="container mx-auto px-4 py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+    <footer className="bg-black text-white border-t border-[#FEC501] mt-16">
+      <div className="container mx-auto px-4 py-10 md:py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+
           {/* Brand */}
-          <div className="lg:col-span-1">
+          <div>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-full bg-[#FEC501] flex items-center justify-center shadow-lg">
-                <span className="text-2xl">🍔</span>
+              <div className="w-10 h-10 rounded-full bg-[#FEC501] flex items-center justify-center">
+                <span className="text-xl">🍔</span>
               </div>
-              <div>
-                <span className="text-xl font-black text-white leading-tight block">
-                  Que <span className="text-amber-400">Copado</span>
-                </span>
-              </div>
+              <span className="text-xl font-black text-white">
+                Que <span className="text-[#FEC501]">Copado</span>
+              </span>
             </div>
-            <p className="text-orange-200/80 text-sm leading-relaxed mb-4">
-              Las mejores hamburguesas artesanales de la zona. Ingredientes frescos,
-              sabor único y mucho amor en cada preparación.
+            <p className="text-gray-400 text-sm leading-relaxed mb-4">
+              Las mejores hamburguesas artesanales. Ingredientes frescos y mucho sabor en cada preparación.
             </p>
+            {/* Redes Sociales */}
             <div className="flex gap-3">
               <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                href="https://instagram.com/tu_usuario"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-full bg-gray-800 hover:bg-[#FEC501] flex items-center justify-center transition-colors group"
                 aria-label="Instagram"
               >
-                <Instagram className="h-5 w-5" />
+                <Instagram className="h-4 w-4 text-gray-400 group-hover:text-black" />
               </a>
               <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                href="https://facebook.com/tu_pagina"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-full bg-gray-800 hover:bg-[#FEC501] flex items-center justify-center transition-colors group"
                 aria-label="Facebook"
               >
-                <Facebook className="h-5 w-5" />
+                <Facebook className="h-4 w-4 text-gray-400 group-hover:text-black" />
               </a>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-bold text-lg mb-4 text-amber-400">Enlaces Rápidos</h3>
+            <h3 className="font-semibold text-white mb-4">Enlaces</h3>
             <ul className="space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-orange-200/80 hover:text-white transition-colors text-sm"
+                    className="text-gray-400 hover:text-[#FEC501] transition-colors text-sm"
                   >
                     {link.label}
                   </Link>
@@ -72,60 +72,61 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Horarios */}
           <div>
-            <h3 className="font-bold text-lg mb-4 text-amber-400">Contacto</h3>
+            <h3 className="font-semibold text-white mb-4">Horarios</h3>
+            <div className="flex items-start gap-3">
+              <Clock className="h-5 w-5 text-[#FEC501] shrink-0 mt-0.5" />
+              <div className="text-gray-400 text-sm">
+                <p className="font-medium text-white">Todos los días</p>
+                <p>21:00 a 01:00 hs</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Contacto */}
+          <div>
+            <h3 className="font-semibold text-white mb-4">Contacto</h3>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
-                <span className="text-orange-200/80 text-sm">
-                  Av. Corrientes 1234, CABA
+                <MapPin className="h-5 w-5 text-[#FEC501] shrink-0 mt-0.5" />
+                <span className="text-gray-400 text-sm">
+                  Av. Güemes Oeste y Avellaneda
                 </span>
               </li>
               <li className="flex items-center gap-3">
-                <Phone className="h-5 w-5 text-amber-400 shrink-0" />
-                <span className="text-orange-200/80 text-sm">
-                  11 1234-5678
-                </span>
+                <Phone className="h-5 w-5 text-[#FEC501] shrink-0" />
+                <a
+                  href="tel:+54154997700"
+                  className="text-gray-400 hover:text-[#FEC501] transition-colors text-sm"
+                >
+                  154 997 700
+                </a>
               </li>
-              <li className="flex items-start gap-3">
-                <Clock className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
-                <div className="text-orange-200/80 text-sm">
-                  <p>Lun - Vie: 11:00 - 23:00</p>
-                  <p>Sáb - Dom: 12:00 - 00:00</p>
-                </div>
+              <li className="flex items-center gap-3">
+                <WhatsAppIcon size={20} className="text-[#FEC501] shrink-0" />
+                <a
+                  href={`https://wa.me/${whatsappNumber}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-[#FEC501] transition-colors text-sm"
+                >
+                  WhatsApp
+                </a>
               </li>
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h3 className="font-bold text-lg mb-4 text-amber-400">Legal</h3>
-            <ul className="space-y-2">
-              {legalLinks.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-orange-200/80 hover:text-white transition-colors text-sm"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
             </ul>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-orange-700/50 mt-10 pt-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-orange-200/60 text-sm text-center md:text-left">
-              © {currentYear} Que Copado. Todos los derechos reservados.
-            </p>
-            <p className="text-orange-200/40 text-xs">
+        <div className="border-t border-gray-800 mt-8 pt-6 items-center text-center">
+          <p className="text-gray-500 text-xs text-center">
+            © {currentYear} Que Copado. Todos los derechos reservados.
+           
+          </p>
+          <p className="text-orange-200/40 text-xs">
               Hecho con 🧡 para los amantes de las buenas burgers
             </p>
-          </div>
         </div>
       </div>
     </footer>

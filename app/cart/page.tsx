@@ -20,7 +20,7 @@ export default function CartPage() {
       <main className="container mx-auto px-4 py-8 md:py-12">
         {/* Back Link */}
         <Link
-          href="/"
+          href="/#menu"
           className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium mb-6 group"
         >
           <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
