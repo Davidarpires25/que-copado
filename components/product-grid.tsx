@@ -20,7 +20,7 @@ export function ProductGrid({ products, categories }: ProductGridProps) {
   }, [products, selectedCategory])
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8 pb-24 md:pb-0">
       <CategoryFilter
         categories={categories}
         selectedCategory={selectedCategory}
@@ -29,7 +29,7 @@ export function ProductGrid({ products, categories }: ProductGridProps) {
 
       <motion.div
         layout
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6"
+        className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6"
       >
         {filteredProducts.map((product, index) => (
           <motion.div

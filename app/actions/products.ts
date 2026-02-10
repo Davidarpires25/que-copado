@@ -102,7 +102,7 @@ export async function updateProduct(productId: string, data: {
   }
 
   if (data.description !== undefined && data.description !== null) {
-    data.description = data.description.trim() || null
+    data.description = data.description.trim() || undefined
   }
 
   if (data.price !== undefined) {

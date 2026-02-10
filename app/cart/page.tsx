@@ -49,7 +49,7 @@ export default function CartPage() {
               </p>
             </div>
             <Link href="/#menu">
-              <Button className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold px-8">
+              <Button className="bg-[#FEC501] hover:bg-[#E5B001] text-black font-bold px-8">
                 Ver Menú
               </Button>
             </Link>

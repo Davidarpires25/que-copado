@@ -37,9 +37,9 @@ export function OrderSummary({
       className="bg-white rounded-2xl border border-orange-100 shadow-warm-lg overflow-hidden sticky top-24"
     >
       {/* Header */}
-      <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-4">
-        <h2 className="text-white font-bold text-lg">Resumen del Pedido</h2>
-        <p className="text-white/80 text-sm">
+      <div className="bg-[#FEC501] px-6 py-4">
+        <h2 className="text-black font-bold text-lg">Resumen del Pedido</h2>
+        <p className="text-black/70 text-sm">
           {getItemCount()} {getItemCount() === 1 ? 'producto' : 'productos'}
         </p>
       </div>
@@ -115,7 +115,7 @@ export function OrderSummary({
 
         {/* Checkout Button */}
         <Link href={checkoutHref} className="block pt-2">
-          <Button className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-6 shadow-warm-lg hover:shadow-warm-xl transition-all group rounded-xl">
+          <Button className="w-full bg-[#FEC501] hover:from-orange-600 hover:to-amber-600 text-black font-bold py-6 shadow-warm-lg hover:shadow-warm-xl transition-all group rounded-xl">
             {checkoutLabel}
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </Button>

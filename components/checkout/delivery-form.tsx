@@ -160,8 +160,8 @@ export function DeliveryForm({ data, onChange, shippingResult, hasZones = false,
     <div className="bg-white rounded-2xl border border-orange-100 shadow-warm overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 px-6 py-4 border-b border-orange-100 bg-orange-50/50">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
-          <MapPin className="h-5 w-5 text-white" />
+        <div className="w-10 h-10 rounded-full bg-[#FEC501] flex items-center justify-center">
+          <MapPin className="h-5 w-5 text-black" />
         </div>
         <div>
           <h2 className="font-bold text-orange-900">Datos de Entrega</h2>

@@ -47,8 +47,8 @@ export function PaymentMethodSelector({
     <div className="bg-white rounded-2xl border border-orange-100 shadow-warm overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 px-6 py-4 border-b border-orange-100 bg-orange-50/50">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
-          <CreditCard className="h-5 w-5 text-white" />
+        <div className="w-10 h-10 rounded-full bg-[#FEC501] flex items-center justify-center">
+          <CreditCard className="h-5 w-5 text-black" />
         </div>
         <div>
           <h2 className="font-bold text-orange-900">Método de Pago</h2>
@@ -76,9 +76,9 @@ export function PaymentMethodSelector({
                 }`}
               >
                 {isSelected && (
-                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center">
+                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FEC501] flex items-center justify-center">
                     <svg
-                      className="w-3 h-3 text-white"
+                      className="w-3 h-3 text-black"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"

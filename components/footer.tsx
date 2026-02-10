@@ -24,7 +24,7 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 rounded-full bg-[#FEC501] flex items-center justify-center shadow-lg">
                 <span className="text-2xl">🍔</span>
               </div>
               <div>

@@ -72,7 +72,7 @@ export function QuantityStepper({
           size="icon"
           onClick={onIncrement}
           disabled={quantity >= max}
-          className={`rounded-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white disabled:opacity-50 ${classes.button}`}
+          className={`rounded-full bg-[#FEC501] hover:bg-[#E5B001] text-black disabled:opacity-50 ${classes.button}`}
         >
           <Plus className={`${classes.icon}`} />
         </Button>

@@ -46,9 +46,9 @@ export function CheckoutSummary({
       className="bg-white rounded-2xl border border-orange-100 shadow-warm-lg overflow-hidden sticky top-24"
     >
       {/* Header */}
-      <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-4">
-        <h2 className="text-white font-bold text-lg">Tu Pedido</h2>
-        <p className="text-white/80 text-sm">
+      <div className="bg-[#FEC501] px-6 py-4">
+        <h2 className="text-black font-bold text-lg">Tu Pedido</h2>
+        <p className="text-black/70 text-sm">
           {items.length} {items.length === 1 ? 'producto' : 'productos'}
         </p>
       </div>

@@ -16,7 +16,7 @@ export function Header() {
   ]
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-orange-200/50 bg-white/90 backdrop-blur-warm shadow-sm">
+    <header className="sticky top-0 z-50 w-full border-b border-neutral-800 bg-black shadow-md">
       <div className="container mx-auto px-4 h-16 md:h-20 flex items-center justify-between gap-4">
         {/* Logo */}
         <Link href="/">
@@ -25,14 +25,14 @@ export function Header() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#FEC501] flex items-center justify-center shadow-lg">
               <span className="text-xl md:text-2xl">🍔</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-lg md:text-xl font-black text-orange-600 leading-tight">
-                Que <span className="text-amber-500">Copado</span>
+              <span className="text-lg md:text-xl font-black text-white leading-tight">
+                Que <span className="text-[#FEC501]">Copado</span>
               </span>
-              <span className="hidden sm:block text-[10px] md:text-xs text-orange-700/60 font-medium -mt-0.5">
+              <span className="hidden sm:block text-[10px] md:text-xs text-white/60 font-medium -mt-0.5">
                 Las mejores burgers
               </span>
             </div>
@@ -45,7 +45,7 @@ export function Header() {
             <Link key={link.href} href={link.href}>
               <Button
                 variant="ghost"
-                className="text-orange-800 hover:text-orange-600 hover:bg-orange-50 font-semibold"
+                className="text-white hover:text-[#FEC501] hover:bg-white/10 font-semibold"
               >
                 <link.icon className="h-4 w-4 mr-2" />
                 {link.label}
@@ -63,7 +63,7 @@ export function Header() {
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden text-orange-600 hover:bg-orange-50"
+            className="md:hidden text-white hover:bg-white/10"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -78,7 +78,7 @@ export function Header() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden border-t border-orange-100 bg-white/95 overflow-hidden"
+            className="md:hidden border-t border-neutral-800 bg-black overflow-hidden"
           >
             <nav className="container mx-auto px-4 py-4 space-y-2">
               {navLinks.map((link) => (
@@ -89,12 +89,12 @@ export function Header() {
                 >
                   <motion.div
                     whileTap={{ scale: 0.98 }}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 transition-colors"
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-colors"
                   >
-                    <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-                      <link.icon className="h-5 w-5 text-orange-600" />
+                    <div className="w-10 h-10 rounded-full bg-[#FEC501] flex items-center justify-center">
+                      <link.icon className="h-5 w-5 text-black" />
                     </div>
-                    <span className="font-semibold text-orange-800">{link.label}</span>
+                    <span className="font-semibold text-white">{link.label}</span>
                   </motion.div>
                 </Link>
               ))}

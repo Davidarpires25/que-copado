@@ -11,7 +11,7 @@ export function HeroSection() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative h-[300px] md:h-[400px] lg:h-[450px] rounded-3xl overflow-hidden"
+      className="relative hidden md:block md:h-[400px] lg:h-[450px] rounded-3xl overflow-hidden"
     >
       {/* Background Image with Overlay */}
       <div
@@ -63,7 +63,7 @@ export function HeroSection() {
           <Link href="#menu">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold shadow-warm-lg hover:shadow-warm-xl transition-all group px-6"
+              className="bg-[#FEC501] hover:bg-[#E5B001] text-black font-bold shadow-warm-lg hover:shadow-warm-xl transition-all group px-6"
             >
               Pedí Ahora
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />

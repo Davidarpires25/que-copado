@@ -41,7 +41,7 @@ export function CategoryFilter({
         <div
           className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-md ${
             selectedCategory === null
-              ? 'bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-warm-lg'
+              ? 'bg-[#FEC501] text-black shadow-lg'
               : 'bg-white border-2 border-orange-200 text-orange-600 hover:border-orange-300 hover:bg-orange-50'
           }`}
         >
@@ -72,7 +72,7 @@ export function CategoryFilter({
             <div
               className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-md ${
                 isActive
-                  ? 'bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-warm-lg'
+                  ? 'bg-[#FEC501] text-black shadow-lg'
                   : 'bg-white border-2 border-orange-200 text-orange-600 hover:border-orange-300 hover:bg-orange-50'
               }`}
             >

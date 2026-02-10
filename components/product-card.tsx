@@ -54,19 +54,19 @@ export function ProductCard({ product, badge, showRating = false, rating = 4.5 }
           {/* Badge */}
           {badge && (
             <Badge
-              className={`absolute top-3 left-3 font-bold text-xs px-2.5 py-1 ${
+              className={`absolute top-2 left-2 md:top-3 md:left-3 font-bold text-[10px] md:text-xs px-1.5 md:px-2.5 py-0.5 md:py-1 ${
                 badge === 'best-seller'
-                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0'
-                  : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0'
+                  ? 'bg-[#FEC501] text-black border-0'
+                  : 'bg-[#FEC501] text-black border-0'
               }`}
             >
-              {badge === 'best-seller' ? 'MÁS PEDIDO' : 'PROMO'}
+              {badge === 'best-seller' ? 'TOP' : 'PROMO'}
             </Badge>
           )}
 
-          {/* Favorite Button */}
+          {/* Favorite Button - Hidden on mobile for cleaner look */}
           <button
-            className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md hover:bg-white hover:scale-110 transition-all"
+            className="hidden md:flex absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm items-center justify-center shadow-md hover:bg-white hover:scale-110 transition-all"
             aria-label="Agregar a favoritos"
           >
             <Heart className="h-5 w-5 text-orange-400 hover:text-orange-600" />
@@ -83,39 +83,39 @@ export function ProductCard({ product, badge, showRating = false, rating = 4.5 }
         </div>
 
         {/* Content */}
-        <div className="p-4 md:p-5 flex flex-col flex-1">
+        <div className="p-3 md:p-5 flex flex-col flex-1">
           {/* Rating */}
           {showRating && (
-            <div className="flex items-center gap-1 mb-2">
-              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-              <span className="text-sm font-semibold text-orange-800">{rating}</span>
+            <div className="flex items-center gap-1 mb-1 md:mb-2">
+              <Star className="h-3 w-3 md:h-4 md:w-4 fill-amber-400 text-amber-400" />
+              <span className="text-xs md:text-sm font-semibold text-orange-800">{rating}</span>
             </div>
           )}
 
           {/* Name */}
-          <h3 className="font-bold text-lg text-orange-900 mb-1 leading-tight">
+          <h3 className="font-bold text-sm md:text-lg text-orange-900 mb-0.5 md:mb-1 leading-tight line-clamp-2">
             {product.name}
           </h3>
 
-          {/* Description */}
+          {/* Description - Hidden on mobile for compact view */}
           {product.description && (
-            <p className="text-sm text-orange-700/60 mb-4 line-clamp-2 flex-1">
+            <p className="hidden md:block text-sm text-orange-700/60 mb-4 line-clamp-2 flex-1">
               {product.description}
             </p>
           )}
 
           {/* Price & Add Button */}
-          <div className="flex items-center justify-between gap-3 mt-auto">
-            <span className="text-xl md:text-2xl font-black bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+          <div className="flex items-center justify-between gap-2 mt-auto pt-2">
+            <span className="text-base md:text-2xl font-black bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
               {formatPrice(product.price)}
             </span>
             <Button
               onClick={handleAddToCart}
               disabled={product.is_out_of_stock}
               size="icon"
-              className="h-11 w-11 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
+              className="h-9 w-9 md:h-11 md:w-11 rounded-full bg-[#FEC501] hover:bg-[#E5B001] text-black shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
           </div>
         </div>

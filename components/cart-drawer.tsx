@@ -33,11 +33,11 @@ export function CartDrawer() {
           <Button
             variant="outline"
             size="icon"
-            className="relative border-2 border-orange-300 bg-white hover:bg-orange-50 hover:border-orange-400 shadow-sm"
+            className="relative border-2 border-neutral-700 bg-neutral-900 hover:bg-neutral-800 hover:border-[#FEC501] shadow-sm"
           >
-            <ShoppingCart className="h-5 w-5 text-orange-600" />
+            <ShoppingCart className="h-5 w-5 text-white" />
             {hydrated && itemCount > 0 && (
-              <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold border-2 border-white shadow-md">
+              <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-[#FEC501] text-black text-xs font-bold border-2 border-black shadow-md">
                 {itemCount}
               </Badge>
             )}
@@ -47,8 +47,8 @@ export function CartDrawer() {
       <SheetContent className="w-full sm:max-w-md bg-gradient-to-br from-orange-50 to-amber-50 border-l border-orange-200 p-0 flex flex-col">
         <SheetHeader className="px-4 py-4 border-b border-orange-200 bg-white/80 backdrop-blur-sm">
           <SheetTitle className="text-orange-900 flex items-center gap-2 text-lg font-black">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
-              <ShoppingCart className="h-5 w-5 text-white" />
+            <div className="w-10 h-10 rounded-full bg-[#FEC501] flex items-center justify-center">
+              <ShoppingCart className="h-5 w-5 text-black" />
             </div>
             Tu Pedido
             {hydrated && itemCount > 0 && (
@@ -74,7 +74,7 @@ export function CartDrawer() {
                 </p>
               </div>
               <Link href="/#menu">
-                <Button className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold">
+                <Button className="bg-[#FEC501] hover:bg-[#E5B001] text-black font-bold">
                   Ver Menú
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -144,7 +144,7 @@ export function CartDrawer() {
 
                 {/* Checkout Button */}
                 <Link href="/checkout" className="block">
-                  <Button className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-6 shadow-warm-lg hover:shadow-warm-xl transition-all group">
+                  <Button className="w-full bg-[#FEC501] hover:bg-[#E5B001] text-black font-bold py-6 shadow-warm-lg hover:shadow-warm-xl transition-all group">
                     Finalizar Pedido
                     <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </Button>

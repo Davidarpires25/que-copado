@@ -27,8 +27,8 @@ export default async function HomePage() {
       <Header />
 
       <main>
-        {/* Hero + Side Deals Layout */}
-        <section className="container mx-auto px-4 py-6 md:py-10">
+        {/* Hero + Side Deals Layout - Hidden on mobile */}
+        <section className="hidden md:block container mx-auto px-4 py-6 md:py-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Hero Section */}
             <div className="lg:col-span-8">
@@ -43,7 +43,7 @@ export default async function HomePage() {
         </section>
 
         {/* Menu Section */}
-        <section id="menu" className="py-8 md:py-12 scroll-mt-24">
+        <section id="menu" className="pt-4 pb-8 md:py-12 scroll-mt-24">
           <div className="container mx-auto px-4">
             <div className="mb-6 md:mb-8">
               <h2 className="text-2xl md:text-3xl font-black text-orange-900">
