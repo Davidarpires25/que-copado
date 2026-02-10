@@ -1,7 +1,19 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Flame, Beef, Salad, IceCream, Coffee, Pizza, Sandwich, Beer } from 'lucide-react'
+import {
+  BurgerIcon,
+  SodaIcon,
+  PizzaIcon,
+  IceCreamIcon,
+  BeerIcon,
+  SandwichIcon,
+  SaladIcon,
+  FireIcon,
+  FriesIcon,
+  ComboIcon,
+  LomosIcon
+} from '@/components/icons'
 import type { Category } from '@/lib/types/database'
 
 interface CategoryFilterProps {
@@ -11,17 +23,20 @@ interface CategoryFilterProps {
 }
 
 const categoryIcons: Record<string, React.ElementType> = {
-  hamburguesas: Beef,
-  bebidas: Coffee,
-  postres: IceCream,
-  ensaladas: Salad,
-  pizzas: Pizza,
-  sandwiches: Sandwich,
-  cervezas: Beer,
+  hamburguesas: BurgerIcon,
+  papas: FriesIcon,
+  bebidas: SodaIcon,
+  postres: IceCreamIcon,
+  ensaladas: SaladIcon,
+  pizzas: PizzaIcon,
+  sandwich: SandwichIcon,
+  cervezas: BeerIcon,
+  combos:ComboIcon,
+  lomos:LomosIcon
 }
 
 function getCategoryIcon(slug: string): React.ElementType {
-  return categoryIcons[slug.toLowerCase()] || Beef
+  return categoryIcons[slug.toLowerCase()] || BurgerIcon
 }
 
 export function CategoryFilter({
@@ -45,7 +60,7 @@ export function CategoryFilter({
               : 'bg-white border-2 border-orange-200 text-orange-600 hover:border-orange-300 hover:bg-orange-50'
           }`}
         >
-          <Flame className="w-7 h-7 md:w-8 md:h-8" />
+          <FireIcon className="w-7 h-7 md:w-8 md:h-8" />
         </div>
         <span
           className={`text-xs md:text-sm font-semibold transition-colors ${

@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Tag, Truck, Shield, Clock } from 'lucide-react'
+import { ArrowRight, Tag, Shield, Clock } from 'lucide-react'
+import { DeliveryBikeIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useCartStore } from '@/lib/store/cart-store'
-import { formatPrice, calculateShipping, SHIPPING_CONFIG } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils'
 
 interface OrderSummaryProps {
   showPromoInput?: boolean
@@ -26,9 +27,7 @@ export function OrderSummary({
   const { getTotal, getItemCount } = useCartStore()
 
   const subtotal = getTotal()
-  const shipping = calculateShipping(subtotal)
   const discount = 0
-  const total = subtotal + shipping - discount
 
   return (
     <motion.div
@@ -79,13 +78,11 @@ export function OrderSummary({
 
           <div className="flex justify-between text-sm">
             <span className="text-orange-700/70 flex items-center gap-1">
-              <Truck className="h-4 w-4" />
+              <DeliveryBikeIcon className="h-4 w-4" />
               Envío
             </span>
-            <span
-              className={`font-medium ${shipping === 0 ? 'text-green-600' : 'text-orange-800'}`}
-            >
-              {shipping === 0 ? 'Gratis' : formatPrice(shipping)}
+            <span className="font-medium text-orange-600">
+              Según ubicación
             </span>
           </div>
 
@@ -99,19 +96,17 @@ export function OrderSummary({
           )}
 
           <div className="border-t border-dashed border-orange-200 pt-3 flex justify-between items-center">
-            <span className="text-orange-900 font-bold text-lg">Total</span>
+            <span className="text-orange-900 font-bold text-lg">Subtotal</span>
             <span className="text-2xl font-black bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-              {formatPrice(total)}
+              {formatPrice(subtotal)}
             </span>
           </div>
         </div>
 
         {/* Shipping Note */}
-        {shipping > 0 && (
-          <p className="text-xs text-orange-600/70 text-center">
-            Sumá {formatPrice(SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD - subtotal)} más para envío gratis
-          </p>
-        )}
+        <p className="text-xs text-orange-600/70 text-center">
+          El costo de envío se calcula en el checkout según tu ubicación
+        </p>
 
         {/* Checkout Button */}
         <Link href={checkoutHref} className="block pt-2">

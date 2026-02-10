@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ShoppingCart, ArrowRight, Truck } from 'lucide-react'
+import { ShoppingCart, ArrowRight } from 'lucide-react'
+import { DeliveryBikeIcon } from '@/components/icons'
 import {
   Sheet,
   SheetContent,
@@ -14,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CartItem } from '@/components/cart-item'
 import { useCartStore, useHydrated } from '@/lib/store/cart-store'
-import { formatPrice, calculateShipping, SHIPPING_CONFIG } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils'
 
 export function CartDrawer() {
   const hydrated = useHydrated()
@@ -23,8 +24,6 @@ export function CartDrawer() {
 
   const itemCount = getItemCount()
   const subtotal = getTotal()
-  const shipping = calculateShipping(subtotal)
-  const total = subtotal + shipping
 
   return (
     <Sheet>
@@ -106,16 +105,10 @@ export function CartDrawer() {
               <div className="border-t border-orange-200 bg-white/90 backdrop-blur-sm p-4 space-y-4">
                 {/* Shipping info */}
                 <div className="flex items-center gap-2 text-sm">
-                  <Truck className="h-4 w-4 text-orange-500" />
-                  {shipping === 0 ? (
-                    <span className="text-green-600 font-medium">
-                      Envío gratis
-                    </span>
-                  ) : (
-                    <span className="text-orange-700/70">
-                      Envío gratis en compras +{formatPrice(SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD)}
-                    </span>
-                  )}
+                  <DeliveryBikeIcon className="h-4 w-4 text-orange-500" />
+                  <span className="text-orange-700/70">
+                    Envío se calcula según tu ubicación
+                  </span>
                 </div>
 
                 {/* Totals */}
@@ -128,16 +121,14 @@ export function CartDrawer() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-orange-700/70">Envío</span>
-                    <span
-                      className={`font-medium ${shipping === 0 ? 'text-green-600' : 'text-orange-800'}`}
-                    >
-                      {shipping === 0 ? 'Gratis' : formatPrice(shipping)}
+                    <span className="font-medium text-orange-600">
+                      Según ubicación
                     </span>
                   </div>
                   <div className="border-t border-dashed border-orange-200 pt-2 flex justify-between">
-                    <span className="text-orange-900 font-bold">Total</span>
+                    <span className="text-orange-900 font-bold">Subtotal</span>
                     <span className="text-xl font-black bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-                      {formatPrice(total)}
+                      {formatPrice(subtotal)}
                     </span>
                   </div>
                 </div>

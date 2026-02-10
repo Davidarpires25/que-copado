@@ -1,7 +1,18 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Flame, Beef, Salad, IceCream, Coffee, Pizza, Sandwich, Beer } from 'lucide-react'
+import {
+  BurgerIcon,
+  SodaIcon,
+  PizzaIcon,
+  IceCreamIcon,
+  BeerIcon,
+  SandwichIcon,
+  SaladIcon,
+  FireIcon,
+  ComboIcon,
+  LomosIcon,
+} from '@/components/icons'
 import type { Category } from '@/lib/types/database'
 
 interface CategoriesSectionProps {
@@ -9,22 +20,24 @@ interface CategoriesSectionProps {
 }
 
 const categoryIcons: Record<string, React.ElementType> = {
-  hamburguesas: Beef,
-  bebidas: Coffee,
-  postres: IceCream,
-  ensaladas: Salad,
-  pizzas: Pizza,
-  sandwiches: Sandwich,
-  cervezas: Beer,
+  hamburguesas: BurgerIcon,
+  bebidas: SodaIcon,
+  postres: IceCreamIcon,
+  ensaladas: SaladIcon,
+  pizzas: PizzaIcon,
+  sandwiches: SandwichIcon,
+  cervezas: BeerIcon,
+  combos:ComboIcon,
+  lomos:LomosIcon
 }
 
 function getCategoryIcon(slug: string): React.ElementType {
-  return categoryIcons[slug.toLowerCase()] || Beef
+  return categoryIcons[slug.toLowerCase()] || BurgerIcon
 }
 
 export function CategoriesSection({ categories }: CategoriesSectionProps) {
   const allCategories = [
-    { id: null, name: 'Todos', slug: 'todos', icon: Flame },
+    { id: null, name: 'Todos', slug: 'todos', icon: FireIcon },
     ...categories.map((cat) => ({
       ...cat,
       icon: getCategoryIcon(cat.slug),

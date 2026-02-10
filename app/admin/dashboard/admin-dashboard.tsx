@@ -12,6 +12,7 @@ import {
   Package,
   DollarSign,
   MapPin,
+  Tag,
 } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -205,6 +206,15 @@ export function AdminDashboard({
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link href="/admin/categories">
+              <Button
+                variant="ghost"
+                className="text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all duration-200"
+              >
+                <Tag className="h-4 w-4 mr-2" />
+                Categorías
+              </Button>
+            </Link>
             <Link href="/admin/delivery-zones">
               <Button
                 variant="ghost"

@@ -2,11 +2,12 @@
 
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { MessageCircle, Shield, ImageOff, AlertTriangle, MapPin, Loader2 } from 'lucide-react'
+import { Shield, ImageOff, AlertTriangle, MapPin, Loader2 } from 'lucide-react'
+import { WhatsAppIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { QuantityStepper } from '@/components/ui/quantity-stepper'
 import { useCartStore } from '@/lib/store/cart-store'
-import { formatPrice, calculateShipping, SHIPPING_CONFIG } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils'
 import type { ShippingResult } from '@/lib/types/database'
 
 interface CheckoutSummaryProps {
@@ -28,15 +29,13 @@ export function CheckoutSummary({
 
   const subtotal = getTotal()
 
-  // Use shipping result if available, otherwise fallback to legacy calculation
+  // Solo mostrar shipping cuando hay una zona detectada
   const hasZoneShipping = shippingResult && !shippingResult.isOutOfCoverage && shippingResult.zone
-  const shipping = hasZoneShipping
-    ? shippingResult.shippingCost
-    : calculateShipping(subtotal)
-  const isFreeShipping = hasZoneShipping
-    ? shippingResult.isFreeShipping
-    : subtotal >= SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD
+  const shipping = hasZoneShipping ? shippingResult.shippingCost : 0
+  const isFreeShipping = hasZoneShipping ? shippingResult.isFreeShipping : false
+  const showShippingPending = !hasZoneShipping && !isCalculatingShipping
 
+  // Total solo incluye shipping si ya se calculó
   const total = subtotal + shipping
 
   return (
@@ -140,10 +139,12 @@ export function CheckoutSummary({
             )}
           </div>
           <span
-            className={`font-medium ${isFreeShipping ? 'text-green-600' : 'text-orange-800'}`}
+            className={`font-medium ${isFreeShipping ? 'text-green-600' : showShippingPending ? 'text-orange-600' : 'text-orange-800'}`}
           >
             {isCalculatingShipping ? (
               <span className="text-orange-600/50">Calculando...</span>
+            ) : showShippingPending ? (
+              'Ingresá ubicación'
             ) : isFreeShipping ? (
               'Gratis'
             ) : (
@@ -159,10 +160,18 @@ export function CheckoutSummary({
           </p>
         )}
 
+        {/* Pending location hint */}
+        {showShippingPending && (
+          <p className="text-xs text-orange-600/70">
+          </p>
+        )}
+
         <div className="border-t border-dashed border-orange-200 pt-2 flex justify-between items-center">
-          <span className="text-orange-900 font-bold">Total</span>
+          <span className="text-orange-900 font-bold">
+            {showShippingPending ? 'Subtotal' : 'Total'}
+          </span>
           <span className="text-xl font-black bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-            {formatPrice(total)}
+            {formatPrice(showShippingPending ? subtotal : total)}
           </span>
         </div>
       </div>
@@ -182,7 +191,7 @@ export function CheckoutSummary({
             disabled={isLoading || items.length === 0}
             className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6 shadow-lg hover:shadow-xl transition-all rounded-xl"
           >
-            <MessageCircle className="mr-2 h-5 w-5" />
+            <WhatsAppIcon className="mr-2 h-5 w-5" />
             {isLoading ? 'Enviando...' : 'Pedir por WhatsApp'}
           </Button>
         )}
