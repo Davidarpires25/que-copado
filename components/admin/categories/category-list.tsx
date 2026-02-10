@@ -83,14 +83,14 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
       {categories.map((category, index) => (
         <div
           key={category.id}
-          className="flex items-center gap-3 p-4 bg-slate-800 rounded-xl border border-slate-700 hover:border-slate-600 transition-colors"
+          className="flex items-center gap-3 p-4 bg-[#2a2f3a] rounded-xl border border-[#2a2f3a] hover:border-[#3a4150] transition-colors"
         >
           {/* Drag Handle / Reorder Buttons */}
           <div className="flex flex-col gap-1">
             <button
               onClick={() => handleMoveUp(index)}
               disabled={index === 0 || movingId === category.id}
-              className="p-1 text-slate-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1 text-[#8b9ab0] hover:text-[#f0f2f5] disabled:opacity-30 disabled:cursor-not-allowed"
               title="Mover arriba"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -100,7 +100,7 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
             <button
               onClick={() => handleMoveDown(index)}
               disabled={index === categories.length - 1 || movingId === category.id}
-              className="p-1 text-slate-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1 text-[#8b9ab0] hover:text-[#f0f2f5] disabled:opacity-30 disabled:cursor-not-allowed"
               title="Mover abajo"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -110,23 +110,23 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
           </div>
 
           {/* Order Number */}
-          <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-sm font-medium text-slate-400">
+          <div className="w-8 h-8 rounded-lg bg-[#2a2f3a] flex items-center justify-center text-sm font-medium text-[#8b9ab0]">
             {index + 1}
           </div>
 
           {/* Category Info */}
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-white truncate">
+            <h3 className="font-semibold text-[#f0f2f5] truncate">
               {category.name}
             </h3>
-            <p className="text-sm text-slate-400 truncate">
+            <p className="text-sm text-[#8b9ab0] truncate">
               /{category.slug}
             </p>
           </div>
 
           {/* Loading State */}
           {movingId === category.id && (
-            <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
+            <Loader2 className="h-4 w-4 text-[#8b9ab0] animate-spin" />
           )}
 
           {/* Actions */}
@@ -135,7 +135,7 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
               variant="ghost"
               size="icon"
               onClick={() => onEdit(category)}
-              className="h-9 w-9 text-slate-400 hover:text-white hover:bg-slate-700"
+              className="h-9 w-9 text-[#8b9ab0] hover:text-[#f0f2f5] hover:bg-[#2a2f3a]"
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -144,7 +144,7 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
               size="icon"
               onClick={() => handleDelete(category)}
               disabled={deletingId === category.id}
-              className="h-9 w-9 text-slate-400 hover:text-red-400 hover:bg-red-500/10"
+              className="h-9 w-9 text-[#8b9ab0] hover:text-red-400 hover:bg-red-500/10"
             >
               {deletingId === category.id ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

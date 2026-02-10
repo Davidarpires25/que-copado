@@ -69,11 +69,11 @@ export function ZoneList({
   }
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/30 backdrop-blur shadow-xl">
-      <div className="p-5 border-b border-slate-800 bg-slate-900/50">
-        <h2 className="text-white font-semibold text-lg flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#FFAE00]/10 rounded-lg flex items-center justify-center">
-            <MapPin className="h-4 w-4 text-[#FFAE00]" />
+    <div className="rounded-xl border border-[#2a2f3a] bg-[#1a1d24] backdrop-blur shadow-xl">
+      <div className="p-5 border-b border-[#2a2f3a] bg-[#1a1d24]">
+        <h2 className="text-[#f0f2f5] font-semibold text-lg flex items-center gap-2">
+          <div className="w-8 h-8 bg-[#FEC501]/10 rounded-lg flex items-center justify-center">
+            <MapPin className="h-4 w-4 text-[#FEC501]" />
           </div>
           Zonas Configuradas
         </h2>
@@ -81,16 +81,16 @@ export function ZoneList({
 
       {zones.length === 0 ? (
         <div className="p-10 text-center">
-          <div className="w-16 h-16 bg-slate-800/50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <MapPin className="h-8 w-8 text-slate-600" />
+          <div className="w-16 h-16 bg-[#252a35] rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <MapPin className="h-8 w-8 text-[#3a4150]" />
           </div>
-          <h3 className="text-lg font-semibold text-white mb-2">No hay zonas configuradas</h3>
-          <p className="text-sm text-slate-400 max-w-xs mx-auto">
+          <h3 className="text-lg font-semibold text-[#f0f2f5] mb-2">No hay zonas configuradas</h3>
+          <p className="text-sm text-[#8b9ab0] max-w-xs mx-auto">
             Dibuja un polígono en el mapa o haz clic en &quot;Nueva Zona&quot; para comenzar
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-slate-800/50">
+        <div className="divide-y divide-[#252a35]">
           {zones.map((zone, index) => (
             <motion.div
               key={zone.id}
@@ -99,8 +99,8 @@ export function ZoneList({
               transition={{ delay: index * 0.05 }}
               className={`p-4 transition-all duration-200 cursor-pointer group ${
                 selectedZoneId === zone.id
-                  ? 'bg-slate-800/50 border-l-2 border-[#FFAE00]'
-                  : 'hover:bg-slate-800/30'
+                  ? 'bg-[#252a35] border-l-2 border-[#FEC501]'
+                  : 'hover:bg-[#252a35]'
               }`}
               onClick={() => onZoneSelect(zone.id)}
             >
@@ -115,20 +115,20 @@ export function ZoneList({
                   />
                   <div className="min-w-0">
                     <p className={`font-semibold truncate transition-colors duration-200 ${
-                      zone.is_active ? 'text-white group-hover:text-[#FFAE00]' : 'text-slate-500'
+                      zone.is_active ? 'text-[#f0f2f5] group-hover:text-[#FEC501]' : 'text-[#8b9ab0]'
                     }`}>
                       {zone.name}
                     </p>
                     <div className="flex items-center gap-2 mt-1.5">
-                      <Truck className="h-3.5 w-3.5 text-slate-500" />
-                      <span className="text-sm text-[#FFAE00] font-semibold">
+                      <Truck className="h-3.5 w-3.5 text-[#8b9ab0]" />
+                      <span className="text-sm text-[#FEC501] font-semibold">
                         {zone.shipping_cost === 0
                           ? 'Envío Gratis'
                           : formatPrice(zone.shipping_cost)}
                       </span>
                     </div>
                     {zone.free_shipping_threshold && (
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="text-xs text-[#8b9ab0] mt-1">
                         Gratis desde {formatPrice(zone.free_shipping_threshold)}
                       </p>
                     )}
@@ -140,7 +140,7 @@ export function ZoneList({
                     checked={zone.is_active}
                     onCheckedChange={() => handleToggleActive(zone)}
                     disabled={loadingIds.has(zone.id)}
-                    className="data-[state=checked]:bg-[#FFAE00] data-[state=unchecked]:bg-slate-700"
+                    className="data-[state=checked]:bg-[#FEC501] data-[state=unchecked]:bg-[#2a2f3a]"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>
@@ -148,7 +148,7 @@ export function ZoneList({
 
               <div className="flex items-center gap-2 mt-3">
                 {!zone.is_active && (
-                  <Badge variant="outline" className="border-slate-700 text-slate-500 text-xs bg-slate-800/30">
+                  <Badge variant="outline" className="border-[#2a2f3a] text-[#8b9ab0] text-xs bg-[#252a35]">
                     Inactiva
                   </Badge>
                 )}
@@ -156,7 +156,7 @@ export function ZoneList({
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800 transition-all duration-200"
+                  className="h-8 w-8 text-[#8b9ab0] hover:text-[#f0f2f5] hover:bg-[#2a2f3a] transition-all duration-200"
                   onClick={(e) => {
                     e.stopPropagation()
                     onZoneEdit(zone)

@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
-  LogOut,
   Plus,
   Pencil,
   Trash2,
@@ -11,14 +10,12 @@ import {
   X,
   Package,
   DollarSign,
-  MapPin,
-  Tag,
 } from 'lucide-react'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
+import { AdminLayout } from '@/components/admin/layout'
 import {
   Table,
   TableBody,
@@ -43,7 +40,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { signOut } from '@/app/actions/auth'
 import {
   createProduct,
   updateProduct,
@@ -191,69 +187,22 @@ export function AdminDashboard({
   const outOfStock = products.filter(p => p.is_out_of_stock)
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/95 backdrop-blur-xl shadow-lg">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#FFAE00] to-orange-600 rounded-xl flex items-center justify-center text-xl shadow-lg shadow-[#FFAE00]/20">
-              🍔
-            </div>
-            <div>
-              <span className="text-xl font-bold text-white">
-                Que <span className="text-[#FFAE00]">Copado</span>
-              </span>
-              <Badge className="bg-slate-800 text-slate-300 ml-2 text-xs">Admin</Badge>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link href="/admin/categories">
-              <Button
-                variant="ghost"
-                className="text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all duration-200"
-              >
-                <Tag className="h-4 w-4 mr-2" />
-                Categorías
-              </Button>
-            </Link>
-            <Link href="/admin/delivery-zones">
-              <Button
-                variant="ghost"
-                className="text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all duration-200"
-              >
-                <MapPin className="h-4 w-4 mr-2" />
-                Zonas de Envío
-              </Button>
-            </Link>
-            <form action={signOut}>
-              <Button
-                type="submit"
-                variant="ghost"
-                className="text-slate-400 hover:text-red-400 hover:bg-red-950/20 transition-all duration-200"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Salir
-              </Button>
-            </form>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8">
-        {/* Stats Cards */}
+    <AdminLayout title="Productos" description="Administra el catálogo de tu negocio">
+      {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-slate-900/50 backdrop-blur border border-slate-800 rounded-xl p-6 hover:border-[#FFAE00]/30 transition-colors duration-200"
+            className="bg-[#1a1d24] backdrop-blur border border-[#2a2f3a] rounded-xl p-6 hover:border-[#FEC501]/30 transition-colors duration-200"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-400 text-sm font-medium">Total de Productos</p>
-                <p className="text-3xl font-bold text-white mt-1">{products.length}</p>
+                <p className="text-[#8b9ab0] text-sm font-medium">Total de Productos</p>
+                <p className="text-3xl font-bold text-[#f0f2f5] mt-1">{products.length}</p>
               </div>
-              <div className="w-12 h-12 bg-[#FFAE00]/10 rounded-xl flex items-center justify-center">
-                <Package className="h-6 w-6 text-[#FFAE00]" />
+              <div className="w-12 h-12 bg-[#FEC501]/10 rounded-xl flex items-center justify-center">
+                <Package className="h-6 w-6 text-[#FEC501]" />
               </div>
             </div>
           </motion.div>
@@ -262,12 +211,12 @@ export function AdminDashboard({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-slate-900/50 backdrop-blur border border-slate-800 rounded-xl p-6 hover:border-green-500/30 transition-colors duration-200"
+            className="bg-[#1a1d24] backdrop-blur border border-[#2a2f3a] rounded-xl p-6 hover:border-green-500/30 transition-colors duration-200"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-400 text-sm font-medium">Productos Activos</p>
-                <p className="text-3xl font-bold text-white mt-1">{activeProducts.length}</p>
+                <p className="text-[#8b9ab0] text-sm font-medium">Productos Activos</p>
+                <p className="text-3xl font-bold text-[#f0f2f5] mt-1">{activeProducts.length}</p>
               </div>
               <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
                 <Check className="h-6 w-6 text-green-500" />
@@ -279,12 +228,12 @@ export function AdminDashboard({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-slate-900/50 backdrop-blur border border-slate-800 rounded-xl p-6 hover:border-red-500/30 transition-colors duration-200"
+            className="bg-[#1a1d24] backdrop-blur border border-[#2a2f3a] rounded-xl p-6 hover:border-red-500/30 transition-colors duration-200"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-400 text-sm font-medium">Sin Stock</p>
-                <p className="text-3xl font-bold text-white mt-1">{outOfStock.length}</p>
+                <p className="text-[#8b9ab0] text-sm font-medium">Sin Stock</p>
+                <p className="text-3xl font-bold text-[#f0f2f5] mt-1">{outOfStock.length}</p>
               </div>
               <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center">
                 <X className="h-6 w-6 text-red-500" />
@@ -294,71 +243,66 @@ export function AdminDashboard({
         </div>
 
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-white mb-1">
-              Gestión de Productos
-            </h1>
-            <p className="text-slate-400 text-sm">
-              Administra el catálogo de tu negocio
-            </p>
-          </div>
+          <p className="text-[#8b9ab0]">
+            {products.length} {products.length === 1 ? 'producto' : 'productos'}
+          </p>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-[#FFAE00] to-orange-500 hover:from-[#E09D00] hover:to-orange-600 text-black font-semibold shadow-lg shadow-[#FFAE00]/25 hover:shadow-xl hover:shadow-[#FFAE00]/30 transition-all duration-200 hover:scale-105 active:scale-95">
+              <Button className="bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[#FEC501]/20 transition-all duration-200 hover:scale-105 active:scale-95">
                 <Plus className="h-4 w-4 mr-2" />
                 Agregar Producto
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-slate-950 border-slate-800 max-w-md shadow-2xl">
+            <DialogContent className="bg-[#12151a] border-[#2a2f3a] max-w-md shadow-2xl">
               <DialogHeader>
-                <DialogTitle className="text-white text-xl">
+                <DialogTitle className="text-[#f0f2f5] text-xl">
                   Nuevo Producto
                 </DialogTitle>
-                <p className="text-slate-400 text-sm mt-1">
+                <p className="text-[#8b9ab0] text-sm mt-1">
                   Completa los datos para agregar un nuevo producto al catálogo
                 </p>
               </DialogHeader>
               <form action={handleAddProduct} className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-300 font-medium">Nombre</Label>
+                  <Label className="text-[#c4cdd9] font-medium">Nombre</Label>
                   <Input
                     name="name"
                     required
-                    placeholder="Ej: Hamburguesa Completa"
-                    className="bg-slate-900/50 border-slate-700 text-white h-11 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
+                    placeholder="Nombre del producto"
+                    className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11 placeholder:text-[#8b9ab0] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300 font-medium">Descripcion</Label>
+                  <Label className="text-[#c4cdd9] font-medium">Descripcion</Label>
                   <Textarea
                     name="description"
-                    placeholder="Describe el producto..."
-                    className="bg-slate-900/50 border-slate-700 text-white resize-none h-20 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
+                    placeholder="Descripción opcional"
+                    className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] resize-none h-20 placeholder:text-[#8b9ab0] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300 font-medium">Precio</Label>
+                  <Label className="text-[#c4cdd9] font-medium">Precio</Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8b9ab0] font-semibold">$</span>
                     <Input
                       name="price"
                       type="number"
                       step="1"
                       required
-                      placeholder="3500"
-                      className="bg-slate-900/50 border-slate-700 text-white h-11 pl-7 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
+                      placeholder="Precio en pesos"
+                      className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11 pl-7 placeholder:text-[#8b9ab0] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300 font-medium">Categoria</Label>
+                  <Label className="text-[#c4cdd9] font-medium">Categoria</Label>
                   <Select name="category_id" required>
-                    <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white h-11 focus:ring-2 focus:ring-[#FFAE00]/20">
+                    <SelectTrigger className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11 focus:ring-2 focus:ring-[#FEC501]/20">
                       <SelectValue placeholder="Seleccionar categoria..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-slate-700">
+                    <SelectContent className="bg-[#1a1d24] border-[#2a2f3a]">
                       {categories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id} className="focus:bg-slate-800 focus:text-white">
+                        <SelectItem key={cat.id} value={cat.id} className="focus:bg-[#2a2f3a] focus:text-[#f0f2f5]">
                           {cat.name}
                         </SelectItem>
                       ))}
@@ -366,17 +310,17 @@ export function AdminDashboard({
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300 font-medium">URL de imagen (opcional)</Label>
+                  <Label className="text-[#c4cdd9] font-medium">URL de imagen (opcional)</Label>
                   <Input
                     name="image_url"
                     type="url"
-                    placeholder="https://..."
-                    className="bg-slate-900/50 border-slate-700 text-white h-11 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
+                    placeholder="URL de la imagen"
+                    className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11 placeholder:text-[#8b9ab0] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
                   />
                 </div>
                 <Button
                   type="submit"
-                  className="w-full h-11 bg-gradient-to-r from-[#FFAE00] to-orange-500 hover:from-[#E09D00] hover:to-orange-600 text-black font-semibold shadow-lg shadow-[#FFAE00]/25 hover:shadow-xl hover:shadow-[#FFAE00]/30 transition-all duration-200"
+                  className="w-full h-11 bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[#FEC501]/20 transition-all duration-200"
                 >
                   Crear Producto
                 </Button>
@@ -389,19 +333,19 @@ export function AdminDashboard({
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl border border-slate-800 bg-slate-900/30 overflow-hidden"
+            className="rounded-xl border border-[#2a2f3a] bg-[#1a1d24] overflow-hidden"
           >
             <div className="p-16 text-center">
-              <div className="w-20 h-20 bg-slate-800/50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-[#252a35] rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <Package className="h-10 w-10 text-slate-600" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">No hay productos todavía</h3>
-              <p className="text-slate-400 mb-6 max-w-sm mx-auto">
+              <h3 className="text-xl font-semibold text-[#f0f2f5] mb-2">No hay productos todavía</h3>
+              <p className="text-[#8b9ab0] mb-6 max-w-sm mx-auto">
                 Comienza agregando tu primer producto al catálogo para que los clientes puedan hacer pedidos.
               </p>
               <Button
                 onClick={() => setIsAddDialogOpen(true)}
-                className="bg-gradient-to-r from-[#FFAE00] to-orange-500 hover:from-[#E09D00] hover:to-orange-600 text-black font-semibold shadow-lg shadow-[#FFAE00]/25"
+                className="bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[#FEC501]/25"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Agregar Primer Producto
@@ -413,21 +357,21 @@ export function AdminDashboard({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="rounded-xl border border-slate-800 bg-slate-900/30 overflow-hidden backdrop-blur"
+            className="rounded-xl border border-[#2a2f3a] bg-[#1a1d24] overflow-hidden backdrop-blur"
           >
             <Table>
               <TableHeader>
-                <TableRow className="border-slate-800 hover:bg-slate-900/50">
-                  <TableHead className="text-slate-400 font-semibold">Producto</TableHead>
-                  <TableHead className="text-slate-400 font-semibold">Categoria</TableHead>
-                  <TableHead className="text-slate-400 font-semibold">Precio</TableHead>
-                  <TableHead className="text-slate-400 font-semibold text-center">
+                <TableRow className="border-[#2a2f3a] hover:bg-[#1a1d24]">
+                  <TableHead className="text-[#8b9ab0] font-semibold">Producto</TableHead>
+                  <TableHead className="text-[#8b9ab0] font-semibold">Categoria</TableHead>
+                  <TableHead className="text-[#8b9ab0] font-semibold">Precio</TableHead>
+                  <TableHead className="text-[#8b9ab0] font-semibold text-center">
                     Stock
                   </TableHead>
-                  <TableHead className="text-slate-400 font-semibold text-center">
+                  <TableHead className="text-[#8b9ab0] font-semibold text-center">
                     Activo
                   </TableHead>
-                  <TableHead className="text-slate-400 font-semibold text-right">
+                  <TableHead className="text-[#8b9ab0] font-semibold text-right">
                     Acciones
                   </TableHead>
                 </TableRow>
@@ -439,11 +383,11 @@ export function AdminDashboard({
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="border-slate-800 hover:bg-slate-800/30 transition-colors duration-200 group"
+                  className="border-[#2a2f3a] hover:bg-[#252a35] transition-colors duration-200 group"
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-lg bg-slate-800 flex items-center justify-center overflow-hidden group-hover:ring-2 group-hover:ring-[#FFAE00]/30 transition-all duration-200">
+                      <div className="h-12 w-12 rounded-lg bg-[#2a2f3a] flex items-center justify-center overflow-hidden group-hover:ring-2 group-hover:ring-[#FEC501]/30 transition-all duration-200">
                         {product.image_url ? (
                           <img
                             src={product.image_url}
@@ -451,13 +395,13 @@ export function AdminDashboard({
                             className="h-12 w-12 object-cover group-hover:scale-110 transition-transform duration-200"
                           />
                         ) : (
-                          <Package className="h-5 w-5 text-slate-500" />
+                          <Package className="h-5 w-5 text-[#8b9ab0]" />
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-semibold text-white group-hover:text-[#FFAE00] transition-colors duration-200">{product.name}</p>
+                        <p className="font-semibold text-[#f0f2f5] group-hover:text-[#FEC501] transition-colors duration-200">{product.name}</p>
                         {product.description && (
-                          <p className="text-sm text-slate-500 truncate max-w-xs">
+                          <p className="text-sm text-[#8b9ab0] truncate max-w-xs">
                             {product.description}
                           </p>
                         )}
@@ -467,7 +411,7 @@ export function AdminDashboard({
                   <TableCell>
                     <Badge
                       variant="outline"
-                      className="border-slate-700 text-slate-300 bg-slate-800/30 font-medium"
+                      className="border-[#2a2f3a] text-[#c4cdd9] bg-[#252a35] font-medium"
                     >
                       {product.categories?.name || 'Sin categoria'}
                     </Badge>
@@ -478,7 +422,7 @@ export function AdminDashboard({
                         <Input
                           value={priceValue}
                           onChange={(e) => setPriceValue(e.target.value)}
-                          className="w-28 h-9 bg-slate-900 border-slate-700 text-white focus:border-[#FFAE00] focus:ring-2 focus:ring-[#FFAE00]/20"
+                          className="w-28 h-9 bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] focus:border-[#FEC501] focus:ring-2 focus:ring-[#FEC501]/20"
                           type="number"
                           autoFocus
                         />
@@ -502,7 +446,7 @@ export function AdminDashboard({
                     ) : (
                       <button
                         onClick={() => handlePriceEdit(product)}
-                        className="flex items-center gap-1.5 text-[#FFAE00] hover:text-[#E09D00] transition-all duration-200 font-semibold group/price px-2 py-1 rounded-lg hover:bg-[#FFAE00]/10"
+                        className="flex items-center gap-1.5 text-[#FEC501] hover:text-[#E09D00] transition-all duration-200 font-semibold group/price px-2 py-1 rounded-lg hover:bg-[#FEC501]/10"
                       >
                         {formatPrice(product.price)}
                         <DollarSign className="h-3.5 w-3.5 opacity-50 group-hover/price:opacity-100 transition-opacity" />
@@ -514,7 +458,7 @@ export function AdminDashboard({
                       <Switch
                         checked={!product.is_out_of_stock}
                         onCheckedChange={() => handleToggleStock(product)}
-                        className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-slate-700"
+                        className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-[#2a2f3a]"
                       />
                     </div>
                   </TableCell>
@@ -523,7 +467,7 @@ export function AdminDashboard({
                       <Switch
                         checked={product.is_active}
                         onCheckedChange={() => handleToggleActive(product)}
-                        className="data-[state=checked]:bg-[#FFAE00] data-[state=unchecked]:bg-slate-700"
+                        className="data-[state=checked]:bg-[#FEC501] data-[state=unchecked]:bg-[#2a2f3a]"
                       />
                     </div>
                   </TableCell>
@@ -532,7 +476,7 @@ export function AdminDashboard({
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-9 w-9 text-slate-400 hover:text-white hover:bg-slate-800 transition-all duration-200"
+                        className="h-9 w-9 text-[#8b9ab0] hover:text-[#f0f2f5] hover:bg-[#2a2f3a] transition-all duration-200"
                         onClick={() => {
                           setEditingProduct(product)
                           setIsEditDialogOpen(true)
@@ -558,59 +502,59 @@ export function AdminDashboard({
         )}
 
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="bg-slate-950 border-slate-800 max-w-md shadow-2xl">
+          <DialogContent className="bg-[#12151a] border-[#2a2f3a] max-w-md shadow-2xl">
             <DialogHeader>
-              <DialogTitle className="text-white text-xl">Editar Producto</DialogTitle>
-              <p className="text-slate-400 text-sm mt-1">
+              <DialogTitle className="text-[#f0f2f5] text-xl">Editar Producto</DialogTitle>
+              <p className="text-[#8b9ab0] text-sm mt-1">
                 Modifica los datos del producto
               </p>
             </DialogHeader>
             {editingProduct && (
               <form action={handleEditProduct} className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-300 font-medium">Nombre</Label>
+                  <Label className="text-[#c4cdd9] font-medium">Nombre</Label>
                   <Input
                     name="name"
                     defaultValue={editingProduct.name}
                     required
-                    className="bg-slate-900/50 border-slate-700 text-white h-11 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
+                    className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11 focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300 font-medium">Descripcion</Label>
+                  <Label className="text-[#c4cdd9] font-medium">Descripcion</Label>
                   <Textarea
                     name="description"
                     defaultValue={editingProduct.description || ''}
-                    className="bg-slate-900/50 border-slate-700 text-white resize-none h-20 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
+                    className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] resize-none h-20 focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300 font-medium">Precio</Label>
+                  <Label className="text-[#c4cdd9] font-medium">Precio</Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8b9ab0] font-semibold">$</span>
                     <Input
                       name="price"
                       type="number"
                       step="1"
                       defaultValue={editingProduct.price}
                       required
-                      className="bg-slate-900/50 border-slate-700 text-white h-11 pl-7 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
+                      className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11 pl-7 focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300 font-medium">Categoria</Label>
+                  <Label className="text-[#c4cdd9] font-medium">Categoria</Label>
                   <Select
                     name="category_id"
                     defaultValue={editingProduct.category_id}
                     required
                   >
-                    <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white h-11 focus:ring-2 focus:ring-[#FFAE00]/20">
+                    <SelectTrigger className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11 focus:ring-2 focus:ring-[#FEC501]/20">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-slate-700">
+                    <SelectContent className="bg-[#1a1d24] border-[#2a2f3a]">
                       {categories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id} className="focus:bg-slate-800 focus:text-white">
+                        <SelectItem key={cat.id} value={cat.id} className="focus:bg-[#2a2f3a] focus:text-[#f0f2f5]">
                           {cat.name}
                         </SelectItem>
                       ))}
@@ -618,18 +562,18 @@ export function AdminDashboard({
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300 font-medium">URL de imagen (opcional)</Label>
+                  <Label className="text-[#c4cdd9] font-medium">URL de imagen (opcional)</Label>
                   <Input
                     name="image_url"
                     type="url"
                     defaultValue={editingProduct.image_url || ''}
-                    placeholder="https://..."
-                    className="bg-slate-900/50 border-slate-700 text-white h-11 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all"
+                    placeholder="URL de la imagen"
+                    className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11 placeholder:text-[#8b9ab0] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
                   />
                 </div>
                 <Button
                   type="submit"
-                  className="w-full h-11 bg-gradient-to-r from-[#FFAE00] to-orange-500 hover:from-[#E09D00] hover:to-orange-600 text-black font-semibold shadow-lg shadow-[#FFAE00]/25 hover:shadow-xl hover:shadow-[#FFAE00]/30 transition-all duration-200"
+                  className="w-full h-11 bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[#FEC501]/20 transition-all duration-200"
                 >
                   Guardar Cambios
                 </Button>
@@ -637,7 +581,6 @@ export function AdminDashboard({
             )}
           </DialogContent>
         </Dialog>
-      </main>
-    </div>
+    </AdminLayout>
   )
 }

@@ -24,10 +24,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#12151a] via-[#1a1d24] to-[#12151a] flex items-center justify-center p-4 relative overflow-hidden">
       {/* Decoración de fondo */}
       <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#FFAE00] rounded-full blur-[120px]" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#FEC501] rounded-full blur-[120px]" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-600 rounded-full blur-[120px]" />
       </div>
 
@@ -37,73 +37,73 @@ export default function LoginPage() {
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className="relative z-10"
       >
-        <Card className="w-full max-w-md bg-slate-900/80 backdrop-blur-xl border-slate-800/50 shadow-2xl">
+        <Card className="w-full max-w-md bg-[#1a1d24]/80 backdrop-blur-xl border-[#252a35] shadow-2xl">
           <CardHeader className="text-center pb-6 space-y-4">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="mx-auto w-20 h-20 bg-gradient-to-br from-[#FFAE00] to-orange-600 rounded-2xl flex items-center justify-center text-4xl shadow-lg shadow-[#FFAE00]/25"
+              className="mx-auto w-20 h-20 bg-[#FEC501] rounded-2xl flex items-center justify-center text-4xl shadow-lg shadow-[#FEC501]/25"
             >
               🍔
             </motion.div>
             <div>
-              <CardTitle className="text-3xl font-bold text-white mb-2">
-                Que <span className="text-[#FFAE00]">Copado</span>
+              <CardTitle className="text-3xl font-bold text-[#f0f2f5] mb-2">
+                Que <span className="text-[#FEC501]">Copado</span>
               </CardTitle>
-              <p className="text-slate-400">Panel de Administracion</p>
+              <p className="text-[#8b9ab0]">Panel de Administracion</p>
             </div>
           </CardHeader>
           <CardContent className="pt-2 pb-6">
             <form action={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-300 text-sm font-medium">
+                <Label htmlFor="email" className="text-[#c4cdd9] text-sm font-medium">
                   Email
                 </Label>
                 <div className="relative group">
                   <Mail
                     className={`absolute left-3.5 top-3.5 h-4 w-4 transition-colors duration-200 ${
-                      focusedInput === 'email' ? 'text-[#FFAE00]' : 'text-slate-500'
+                      focusedInput === 'email' ? 'text-[#FEC501]' : 'text-[#8b9ab0]'
                     }`}
                   />
                   <Input
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="admin@quecopado.com"
+                    placeholder="Ingresa tu email"
                     required
                     onFocus={() => setFocusedInput('email')}
                     onBlur={() => setFocusedInput(null)}
-                    className="pl-10 h-12 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all duration-200"
+                    className="pl-10 h-12 bg-[#252a35] border-[#2a2f3a] text-[#f0f2f5] placeholder:text-[#8b9ab0] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all duration-200"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-slate-300 text-sm font-medium">
+                <Label htmlFor="password" className="text-[#c4cdd9] text-sm font-medium">
                   Contrasena
                 </Label>
                 <div className="relative group">
                   <Lock
                     className={`absolute left-3.5 top-3.5 h-4 w-4 transition-colors duration-200 ${
-                      focusedInput === 'password' ? 'text-[#FFAE00]' : 'text-slate-500'
+                      focusedInput === 'password' ? 'text-[#FEC501]' : 'text-[#8b9ab0]'
                     }`}
                   />
                   <Input
                     id="password"
                     name="password"
                     type="password"
-                    placeholder="********"
+                    placeholder="Ingresa tu contraseña"
                     required
                     onFocus={() => setFocusedInput('password')}
                     onBlur={() => setFocusedInput(null)}
-                    className="pl-10 h-12 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#FFAE00]/50 focus:ring-2 focus:ring-[#FFAE00]/20 transition-all duration-200"
+                    className="pl-10 h-12 bg-[#252a35] border-[#2a2f3a] text-[#f0f2f5] placeholder:text-[#8b9ab0] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all duration-200"
                   />
                 </div>
               </div>
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 bg-gradient-to-r from-[#FFAE00] to-orange-500 hover:from-[#E09D00] hover:to-orange-600 text-black font-semibold shadow-lg shadow-[#FFAE00]/25 hover:shadow-xl hover:shadow-[#FFAE00]/30 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="w-full h-12 bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[#FEC501]/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {loading ? (
                   <div className="flex items-center gap-2">

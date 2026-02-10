@@ -105,7 +105,7 @@ export function CategoryFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-slate-800 border-slate-700 text-white sm:max-w-md">
+      <DialogContent className="bg-[#2a2f3a] border-[#2a2f3a] text-[#f0f2f5] sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             {isEditing ? 'Editar Categoría' : 'Nueva Categoría'}
@@ -115,15 +115,15 @@ export function CategoryFormDialog({
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           {/* Name */}
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-slate-300">
+            <Label htmlFor="name" className="text-[#c4cdd9]">
               Nombre
             </Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="Ej: Hamburguesas"
-              className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+              placeholder="Nombre de la categoría"
+              className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11 placeholder:text-[#8b9ab0] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
               required
               maxLength={100}
             />
@@ -131,18 +131,18 @@ export function CategoryFormDialog({
 
           {/* Slug */}
           <div className="space-y-2">
-            <Label htmlFor="slug" className="text-slate-300">
+            <Label htmlFor="slug" className="text-[#c4cdd9]">
               Slug (URL)
             </Label>
             <Input
               id="slug"
               value={slug}
               onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''))}
-              placeholder="hamburguesas"
-              className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+              placeholder="url-amigable"
+              className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11 placeholder:text-[#8b9ab0] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
               required
             />
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#8b9ab0]">
               Se usa para filtrar productos. Solo letras, números y guiones.
             </p>
           </div>
@@ -153,7 +153,7 @@ export function CategoryFormDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700"
+              className="flex-1 border-[#3a4150] text-[#c4cdd9] hover:bg-[#2a2f3a]"
               disabled={isLoading}
             >
               Cancelar
