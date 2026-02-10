@@ -113,6 +113,12 @@ export default function CheckoutPage() {
     setDeliveryData(data)
   }
 
+  // Memoizar el estado de cobertura (debe estar antes de cualquier early return)
+  const isOutOfCoverage = useMemo(() =>
+    shippingResult.isOutOfCoverage && zones.length > 0 && !!deliveryData.coordinates,
+    [shippingResult.isOutOfCoverage, zones.length, deliveryData.coordinates]
+  )
+
   const handleCheckout = async () => {
     // Validaciones de campos requeridos
     if (!deliveryData.name.trim()) {
@@ -288,11 +294,6 @@ export default function CheckoutPage() {
       </div>
     )
   }
-
-  const isOutOfCoverage = useMemo(() =>
-    shippingResult.isOutOfCoverage && zones.length > 0 && !!deliveryData.coordinates,
-    [shippingResult.isOutOfCoverage, zones.length, deliveryData.coordinates]
-  )
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
