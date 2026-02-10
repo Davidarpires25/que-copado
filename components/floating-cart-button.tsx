@@ -1,20 +1,26 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, ArrowRight } from 'lucide-react'
 import { useCartStore, useHydrated } from '@/lib/store/cart-store'
 import { formatPrice } from '@/lib/utils'
 
 export function FloatingCartButton() {
+  const pathname = usePathname()
   const hydrated = useHydrated()
   const { getTotal, getItemCount } = useCartStore()
   const itemCount = getItemCount()
   const total = getTotal()
 
+  // No mostrar en checkout, cart o páginas de admin
+  const hiddenRoutes = ['/checkout', '/cart', '/admin']
+  const shouldHide = hiddenRoutes.some(route => pathname?.startsWith(route))
+
   return (
     <AnimatePresence>
-      {hydrated && itemCount > 0 && (
+      {hydrated && itemCount > 0 && !shouldHide && (
         <motion.div
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
