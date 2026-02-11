@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { getBusinessSettings } from '@/app/actions/business-settings'
+import { checkBusinessStatus } from '@/lib/services/business-hours'
 import type { Order, OrderStatus, OrderWithZone } from '@/lib/types/database'
 import type { CreateOrderData, OrderFilters } from '@/lib/types/orders'
 
@@ -13,6 +15,36 @@ export async function createOrder(
 ): Promise<{ data: Order | null; error: string | null }> {
   try {
     const supabase = await createClient()
+
+    // VALIDACIÓN: Verificar si los pedidos están pausados
+    const { data: businessSettings, error: settingsError } = await getBusinessSettings()
+
+    if (settingsError) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error fetching business settings:', settingsError)
+      }
+      return { data: null, error: 'Error al verificar el estado del negocio' }
+    }
+
+    if (businessSettings) {
+      const businessStatus = checkBusinessStatus(businessSettings)
+
+      // Bloquear si está pausado manualmente
+      if (businessStatus.isPaused) {
+        return {
+          data: null,
+          error: businessStatus.message || 'Los pedidos están pausados temporalmente'
+        }
+      }
+
+      // Bloquear si está cerrado por horario
+      if (!businessStatus.isOpen) {
+        return {
+          data: null,
+          error: `No estamos recibiendo pedidos. ${businessStatus.message}`
+        }
+      }
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: order, error } = await (supabase as any)

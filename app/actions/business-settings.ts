@@ -161,6 +161,7 @@ export async function toggleBusinessPause(
 
     revalidatePath('/admin/settings')
     revalidatePath('/checkout')
+    revalidatePath('/')
 
     return { data: data as BusinessSettings, error: null }
   } catch (error) {
@@ -168,5 +169,57 @@ export async function toggleBusinessPause(
       console.error('Error in toggleBusinessPause:', error)
     }
     return { data: null, error: 'Error inesperado' }
+  }
+}
+
+/**
+ * Verificar si el negocio está aceptando pedidos (público - para checkout)
+ */
+export async function checkIfAcceptingOrders(): Promise<{
+  accepting: boolean
+  message: string | null
+}> {
+  try {
+    const { data: settings, error } = await getBusinessSettings()
+
+    if (error || !settings) {
+      // Si hay error, permitir pedidos pero con advertencia
+      return {
+        accepting: true,
+        message: null,
+      }
+    }
+
+    // Importar aquí para evitar problemas de dependencias circulares
+    const { checkBusinessStatus } = await import('@/lib/services/business-hours')
+    const status = checkBusinessStatus(settings)
+
+    if (status.isPaused) {
+      return {
+        accepting: false,
+        message: status.message,
+      }
+    }
+
+    if (!status.isOpen) {
+      return {
+        accepting: false,
+        message: status.message,
+      }
+    }
+
+    return {
+      accepting: true,
+      message: null,
+    }
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error in checkIfAcceptingOrders:', error)
+    }
+    // En caso de error, permitir pedidos
+    return {
+      accepting: true,
+      message: null,
+    }
   }
 }

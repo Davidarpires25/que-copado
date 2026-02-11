@@ -140,6 +140,14 @@ export function CartDrawer() {
                     <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
+
+                {/* Link to full cart page */}
+                <Link
+                  href="/cart"
+                  className="block text-center text-sm text-orange-600 hover:text-orange-700 font-medium py-2"
+                >
+                  Ver carrito completo
+                </Link>
               </div>
             </>
           )}

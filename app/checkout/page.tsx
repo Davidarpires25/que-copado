@@ -2,25 +2,27 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ShoppingCart, AlertTriangle, MessageCircle, Loader2 } from 'lucide-react'
+import { ArrowLeft, ShoppingCart, AlertTriangle, MessageCircle, PauseCircle } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
-import { DeliveryForm, type DeliveryFormData } from '@/components/checkout/delivery-form'
-import { PaymentMethodSelector } from '@/components/checkout/payment-method'
+import { DeliveryForm, type DeliveryFormData, type DeliveryType, type PaymentMethod } from '@/components/checkout/delivery-form'
 import { CheckoutSummary } from '@/components/checkout/checkout-summary'
 import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/lib/store/cart-store'
 import { getActiveDeliveryZones } from '@/app/actions/delivery-zones'
 import { calculateShippingCost } from '@/app/actions/shipping'
 import { createOrder } from '@/app/actions/orders'
+import { checkIfAcceptingOrders } from '@/app/actions/business-settings'
 import { calculateShippingByZone } from '@/lib/services/shipping'
 import { generateWhatsAppMessage } from '@/lib/services/order-formatter'
 import { toast } from 'sonner'
-import type { DeliveryZone, ShippingResult, PaymentMethod } from '@/lib/types/database'
+import type { DeliveryZone, ShippingResult } from '@/lib/types/database'
 import type { OrderItem } from '@/lib/types/orders'
 
 export default function CheckoutPage() {
   const { items, getTotal, clearCart } = useCartStore()
+
+  const [deliveryType, setDeliveryType] = useState<DeliveryType | null>(null)
 
   const [deliveryData, setDeliveryData] = useState<DeliveryFormData>({
     name: '',
@@ -35,10 +37,14 @@ export default function CheckoutPage() {
   const [cashAmount, setCashAmount] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
+  // Business status state
+  const [isAcceptingOrders, setIsAcceptingOrders] = useState(true)
+  const [businessMessage, setBusinessMessage] = useState<string | null>(null)
+  const [checkingBusiness, setCheckingBusiness] = useState(true)
+
   // Delivery zones state
   const [zones, setZones] = useState<DeliveryZone[]>([])
   const [zonesLoaded, setZonesLoaded] = useState(false)
-  const [zonesError, setZonesError] = useState<string | null>(null)
 
   // Shipping calculation state
   const [shippingResult, setShippingResult] = useState<ShippingResult>({
@@ -49,14 +55,31 @@ export default function CheckoutPage() {
   })
   const [isCalculatingShipping, setIsCalculatingShipping] = useState(false)
 
+  // Check business status on mount
+  useEffect(() => {
+    async function checkBusiness() {
+      try {
+        const { accepting, message } = await checkIfAcceptingOrders()
+        setIsAcceptingOrders(accepting)
+        setBusinessMessage(message)
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error checking business status:', error)
+        }
+        setIsAcceptingOrders(true)
+      } finally {
+        setCheckingBusiness(false)
+      }
+    }
+    checkBusiness()
+  }, [])
+
   // Load delivery zones on mount
   useEffect(() => {
     async function loadZones() {
       try {
-        setZonesError(null)
         const { data, error } = await getActiveDeliveryZones()
         if (error) {
-          setZonesError(error)
           toast.error('Error al cargar zonas de delivery')
         } else if (data) {
           setZones(data)
@@ -65,7 +88,6 @@ export default function CheckoutPage() {
         if (process.env.NODE_ENV === 'development') {
           console.error('Error loading zones:', error)
         }
-        setZonesError('Error inesperado al cargar zonas')
       } finally {
         setZonesLoaded(true)
       }
@@ -76,8 +98,19 @@ export default function CheckoutPage() {
   // Calculate shipping when coordinates or subtotal change
   const subtotal = getTotal()
   useEffect(() => {
+    // Si es retiro en local, el envío es siempre 0
+    if (deliveryType === 'pickup') {
+      setShippingResult({
+        zone: null,
+        shippingCost: 0,
+        isFreeShipping: true,
+        isOutOfCoverage: false,
+      })
+      setIsCalculatingShipping(false)
+      return
+    }
+
     if (!deliveryData.coordinates || zones.length === 0) {
-      // Reset to default if no coordinates or no zones
       setShippingResult({
         zone: null,
         shippingCost: 0,
@@ -88,11 +121,8 @@ export default function CheckoutPage() {
       return
     }
 
-    // Show calculating state briefly for UX feedback
     setIsCalculatingShipping(true)
 
-    // Calculate shipping - use client-side calculation for instant feedback
-    // Server validation happens on checkout
     const result = calculateShippingByZone(
       deliveryData.coordinates.lat,
       deliveryData.coordinates.lng,
@@ -100,27 +130,50 @@ export default function CheckoutPage() {
       zones
     )
 
-    // Small delay to show the loading state
     const timer = setTimeout(() => {
       setShippingResult(result)
       setIsCalculatingShipping(false)
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [deliveryData.coordinates, zones, zonesLoaded, subtotal])
+  }, [deliveryType, deliveryData.coordinates, zones, zonesLoaded, subtotal])
 
   const handleDeliveryDataChange = (data: DeliveryFormData) => {
     setDeliveryData(data)
   }
 
-  // Memoizar el estado de cobertura (debe estar antes de cualquier early return)
+  const handleDeliveryTypeChange = (type: DeliveryType) => {
+    setDeliveryType(type)
+    if (type === 'pickup') {
+      setShippingResult({
+        zone: null,
+        shippingCost: 0,
+        isFreeShipping: true,
+        isOutOfCoverage: false,
+      })
+    }
+  }
+
+  // Memoizar el estado de cobertura
   const isOutOfCoverage = useMemo(() =>
-    shippingResult.isOutOfCoverage && zones.length > 0 && !!deliveryData.coordinates,
-    [shippingResult.isOutOfCoverage, zones.length, deliveryData.coordinates]
+    deliveryType === 'delivery' && shippingResult.isOutOfCoverage && zones.length > 0 && !!deliveryData.coordinates,
+    [deliveryType, shippingResult.isOutOfCoverage, zones.length, deliveryData.coordinates]
   )
 
   const handleCheckout = async () => {
-    // Validaciones de campos requeridos
+    // VALIDACIÓN: Verificar si estamos aceptando pedidos
+    if (!isAcceptingOrders) {
+      toast.error(businessMessage || 'No estamos recibiendo pedidos en este momento')
+      return
+    }
+
+    // Validar que haya seleccionado tipo de entrega
+    if (!deliveryType) {
+      toast.error('Por favor seleccioná cómo recibís tu pedido')
+      return
+    }
+
+    // Validaciones - nombre y teléfono siempre requeridos
     if (!deliveryData.name.trim()) {
       toast.error('Por favor ingresá tu nombre')
       return
@@ -129,15 +182,18 @@ export default function CheckoutPage() {
       toast.error('Por favor ingresá tu teléfono')
       return
     }
-    if (!deliveryData.address.trim()) {
-      toast.error('Por favor ingresá tu dirección')
-      return
-    }
 
-    // Block checkout if out of coverage
-    if (shippingResult.isOutOfCoverage && zones.length > 0) {
-      toast.error('Tu ubicación está fuera de nuestra zona de cobertura')
-      return
+    // Para delivery, validar dirección
+    if (deliveryType === 'delivery') {
+      if (!deliveryData.address.trim()) {
+        toast.error('Por favor ingresá tu dirección')
+        return
+      }
+
+      if (shippingResult.isOutOfCoverage && zones.length > 0) {
+        toast.error('Tu ubicación está fuera de nuestra zona de cobertura')
+        return
+      }
     }
 
     setIsLoading(true)
@@ -147,43 +203,49 @@ export default function CheckoutPage() {
       let shipping = 0
       let finalShippingResult = shippingResult
 
-      // Si hay coordenadas y zonas configuradas, validar shipping en el servidor
-      if (deliveryData.coordinates && zones.length > 0) {
-        const { data: serverShippingResult, error: shippingError } = await calculateShippingCost({
-          lat: deliveryData.coordinates.lat,
-          lng: deliveryData.coordinates.lng,
-          subtotal,
-        })
-
-        if (shippingError) {
-          toast.error('Error al calcular el envío. Intenta nuevamente.')
-          setIsLoading(false)
-          return
+      if (deliveryType === 'pickup') {
+        shipping = 0
+        finalShippingResult = {
+          zone: null,
+          shippingCost: 0,
+          isFreeShipping: true,
+          isOutOfCoverage: false,
         }
-
-        if (!serverShippingResult) {
-          toast.error('No se pudo calcular el costo de envío')
-          setIsLoading(false)
-          return
-        }
-
-        // Verificar cobertura nuevamente en el servidor
-        if (serverShippingResult.isOutOfCoverage) {
-          toast.error('Tu ubicación está fuera de nuestra zona de cobertura')
-          setIsLoading(false)
-          return
-        }
-
-        finalShippingResult = serverShippingResult
-        shipping = serverShippingResult.shippingCost
       } else {
-        // Sin zonas configuradas, usar costo de envío estándar
-        shipping = shippingResult.shippingCost
+        if (deliveryData.coordinates && zones.length > 0) {
+          const { data: serverShippingResult, error: shippingError } = await calculateShippingCost({
+            lat: deliveryData.coordinates.lat,
+            lng: deliveryData.coordinates.lng,
+            subtotal,
+          })
+
+          if (shippingError) {
+            toast.error('Error al calcular el envío. Intenta nuevamente.')
+            setIsLoading(false)
+            return
+          }
+
+          if (!serverShippingResult) {
+            toast.error('No se pudo calcular el costo de envío')
+            setIsLoading(false)
+            return
+          }
+
+          if (serverShippingResult.isOutOfCoverage) {
+            toast.error('Tu ubicación está fuera de nuestra zona de cobertura')
+            setIsLoading(false)
+            return
+          }
+
+          finalShippingResult = serverShippingResult
+          shipping = serverShippingResult.shippingCost
+        } else {
+          shipping = shippingResult.shippingCost
+        }
       }
 
       const total = subtotal + shipping
 
-      // Preparar items para guardar en la orden
       const orderItems: OrderItem[] = items.map((item) => ({
         id: item.product.id,
         name: item.product.name,
@@ -192,21 +254,20 @@ export default function CheckoutPage() {
         image_url: item.product.image_url,
       }))
 
-      const fullAddress = deliveryData.apartment
-        ? `${deliveryData.address}, ${deliveryData.apartment}`
+      const fullAddress = deliveryType === 'pickup'
+        ? 'Retiro en local'
         : deliveryData.address
 
-      // Guardar orden en la base de datos
       const { data: order, error: orderError } = await createOrder({
         customer_name: deliveryData.name,
         customer_phone: deliveryData.phone,
         customer_address: fullAddress,
-        customer_coordinates: deliveryData.coordinates || null,
+        customer_coordinates: deliveryType === 'pickup' ? null : (deliveryData.coordinates || null),
         items: orderItems,
         total,
         shipping_cost: shipping,
         delivery_zone_id: finalShippingResult.zone?.id || null,
-        notes: deliveryData.notes || null,
+        notes: deliveryType === 'pickup' ? null : (deliveryData.notes || null),
         payment_method: paymentMethod,
       })
 
@@ -216,15 +277,14 @@ export default function CheckoutPage() {
         return
       }
 
-      // Generar mensaje de WhatsApp usando el servicio
       const message = generateWhatsAppMessage({
         orderId: order.id,
         customerName: deliveryData.name,
         customerPhone: deliveryData.phone,
         address: fullAddress,
-        coordinates: deliveryData.coordinates,
+        coordinates: deliveryType === 'pickup' ? undefined : deliveryData.coordinates,
         zone: finalShippingResult.zone,
-        notes: deliveryData.notes,
+        notes: deliveryType === 'pickup' ? undefined : deliveryData.notes,
         items: orderItems,
         subtotal,
         shipping,
@@ -286,59 +346,81 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
       <Header />
 
-      <main className="container mx-auto px-4 py-8 md:py-12">
-        {/* Back Link */}
-        <Link
-          href="/cart"
-          className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium mb-6 group"
-        >
-          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-          Volver al carrito
-        </Link>
+      <main className="container mx-auto px-4 py-4 md:py-12">
+        <div className="lg:max-w-5xl lg:mx-auto">
+          {/* Back Link */}
+          <Link
+            href="/cart"
+            className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium mb-3 md:mb-6 group"
+          >
+            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+            Volver al carrito
+          </Link>
 
-        <h1 className="text-2xl md:text-3xl font-black text-orange-900 mb-8">
-          Checkout
-        </h1>
-
-        {/* Out of coverage warning */}
-        {isOutOfCoverage && (
-          <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-amber-800">
-                Tu ubicación está fuera de nuestra zona de cobertura
-              </p>
-              <p className="text-sm text-amber-700 mt-1">
-                No podemos realizar envíos a esta dirección. Contactanos por WhatsApp para coordinar.
-              </p>
-              <a
-                href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5491100000000'}?text=Hola! Mi dirección está fuera de la zona de cobertura. ¿Pueden ayudarme?`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 mt-3 text-sm font-medium text-green-700 hover:text-green-800"
-              >
-                <MessageCircle className="h-4 w-4" />
-                Contactar por WhatsApp
-              </a>
+          {/* Orders paused warning */}
+          {!checkingBusiness && !isAcceptingOrders && (
+            <div className="mb-3 md:mb-6 p-3 md:p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3">
+              <PauseCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-red-800">
+                  No estamos recibiendo pedidos
+                </p>
+                <p className="text-sm text-red-700 mt-1">
+                  {businessMessage || 'Temporalmente no estamos aceptando nuevos pedidos. Volvé más tarde.'}
+                </p>
+                <a
+                  href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5491100000000'}?text=Hola! Vi que no están recibiendo pedidos. ¿Cuándo puedo hacer mi pedido?`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 mt-3 text-sm font-medium text-green-700 hover:text-green-800"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Consultar por WhatsApp
+                </a>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Out of coverage warning */}
+          {isOutOfCoverage && (
+            <div className="mb-3 md:mb-6 p-3 md:p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-amber-800">
+                  Tu ubicación está fuera de nuestra zona de cobertura
+                </p>
+                <p className="text-sm text-amber-700 mt-1">
+                  No podemos realizar envíos a esta dirección. Contactanos por WhatsApp para coordinar.
+                </p>
+                <a
+                  href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5491100000000'}?text=Hola! Mi dirección está fuera de la zona de cobertura. ¿Pueden ayudarme?`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 mt-3 text-sm font-medium text-green-700 hover:text-green-800"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Contactar por WhatsApp
+                </a>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8">
           {/* Forms */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7">
+            {/* Unified Delivery Form */}
             <DeliveryForm
               data={deliveryData}
               onChange={handleDeliveryDataChange}
+              deliveryType={deliveryType}
+              onDeliveryTypeChange={handleDeliveryTypeChange}
+              paymentMethod={paymentMethod}
+              onPaymentMethodChange={setPaymentMethod}
+              cashAmount={cashAmount}
+              onCashAmountChange={setCashAmount}
               shippingResult={shippingResult}
               hasZones={zones.length > 0}
               isCalculatingShipping={isCalculatingShipping}
-            />
-            <PaymentMethodSelector
-              selected={paymentMethod}
-              onSelect={setPaymentMethod}
-              cashAmount={cashAmount}
-              onCashAmountChange={setCashAmount}
             />
           </div>
 
@@ -348,10 +430,13 @@ export default function CheckoutPage() {
               onCheckout={handleCheckout}
               isLoading={isLoading}
               shippingResult={shippingResult}
-              isBlocked={!!isOutOfCoverage}
+              isBlocked={!!isOutOfCoverage || !isAcceptingOrders}
+              isPaused={!isAcceptingOrders}
               isCalculatingShipping={isCalculatingShipping}
+              isPickup={deliveryType === 'pickup'}
             />
           </div>
+        </div>
         </div>
       </main>
 

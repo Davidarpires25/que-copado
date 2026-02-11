@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { MapPin, Loader2, Search } from 'lucide-react'
+import { MapPin, Loader2, Search, Navigation, AlertCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 import { useAddressAutocomplete } from '@/lib/hooks/use-address-autocomplete'
+import { reverseGeocode } from '@/lib/services/geocoding'
 import type { AddressSuggestion } from '@/lib/services/geocoding'
 
 interface AddressAutocompleteProps {
@@ -21,13 +23,15 @@ export function AddressAutocomplete({
   value,
   onChange,
   onSelect,
-  placeholder = 'Calle y número, barrio o localidad',
+  placeholder = 'Buscar dirección...',
   label = 'Dirección',
   required = false,
   disabled = false,
 }: AddressAutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
+  const [isGeolocating, setIsGeolocating] = useState(false)
+  const [geoError, setGeoError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -63,6 +67,7 @@ export function AddressAutocomplete({
     onChange(newValue)
     setIsOpen(true)
     setSelectedIndex(-1)
+    setGeoError(null)
   }
 
   const handleSelect = (suggestion: AddressSuggestion) => {
@@ -101,6 +106,64 @@ export function AddressAutocomplete({
     }
   }
 
+  const handleGeolocation = async () => {
+    if (!navigator.geolocation) {
+      setGeoError('Tu navegador no soporta geolocalización')
+      return
+    }
+
+    setIsGeolocating(true)
+    setGeoError(null)
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords
+          const result = await reverseGeocode(latitude, longitude)
+
+          onChange(result.address, { lat: latitude, lng: longitude })
+          setQuery(result.address)
+          clearSuggestions()
+          setIsOpen(false)
+
+          // Simular selección para mostrar el mapa
+          onSelect?.({
+            id: 'geolocation',
+            label: result.address,
+            shortAddress: result.address,
+            fullAddress: result.fullAddress,
+            coordinates: { lat: latitude, lng: longitude },
+          })
+        } catch {
+          setGeoError('No pudimos obtener tu dirección')
+        } finally {
+          setIsGeolocating(false)
+        }
+      },
+      (error) => {
+        setIsGeolocating(false)
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            setGeoError('Permití el acceso a tu ubicación')
+            break
+          case error.POSITION_UNAVAILABLE:
+            setGeoError('Ubicación no disponible')
+            break
+          case error.TIMEOUT:
+            setGeoError('Tiempo de espera agotado')
+            break
+          default:
+            setGeoError('Error al obtener ubicación')
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    )
+  }
+
   return (
     <div className="relative space-y-2">
       <Label
@@ -112,27 +175,49 @@ export function AddressAutocomplete({
         {required && <span className="text-red-500">*</span>}
       </Label>
 
-      <div className="relative flex items-center">
-        <Search className="absolute left-4 h-5 w-5 text-orange-400 pointer-events-none z-10" />
-        <Input
-          ref={inputRef}
-          id="address-autocomplete"
-          type="text"
-          value={query}
-          onChange={(e) => handleInputChange(e.target.value)}
-          onFocus={() => suggestions.length > 0 && setIsOpen(true)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          disabled={disabled}
-          className="input-large border-orange-200 focus:border-orange-400 !pl-12 !pr-12"
-          autoComplete="off"
-        />
+      <div className="flex gap-2">
+        {/* Input con autocomplete */}
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-400 pointer-events-none z-10" />
+          <Input
+            ref={inputRef}
+            id="address-autocomplete"
+            type="text"
+            value={query}
+            onChange={(e) => handleInputChange(e.target.value)}
+            onFocus={() => suggestions.length > 0 && setIsOpen(true)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            disabled={disabled || isGeolocating}
+            className="input-large border-orange-200 !pl-12 !pr-4"
+            autoComplete="off"
+          />
 
-        {isLoading && (
-          <div className="absolute right-4 z-10">
-            <Loader2 className="h-5 w-5 text-orange-500 animate-spin" />
-          </div>
-        )}
+          {isLoading && (
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10">
+              <Loader2 className="h-5 w-5 text-orange-500 animate-spin" />
+            </div>
+          )}
+        </div>
+
+        {/* Botón GPS */}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleGeolocation}
+          disabled={disabled || isGeolocating}
+          className="shrink-0 h-[52px] px-4 border-orange-200 hover:border-[#FEC501] hover:bg-[#FEC501]/10 text-orange-700 hover:text-orange-900 transition-all"
+          title="Usar mi ubicación"
+        >
+          {isGeolocating ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <>
+              <Navigation className="h-5 w-5 mr-2" />
+              <span className="hidden sm:inline">GPS</span>
+            </>
+          )}
+        </Button>
       </div>
 
       {/* Dropdown de sugerencias */}
@@ -140,6 +225,7 @@ export function AddressAutocomplete({
         <div
           ref={dropdownRef}
           className="absolute z-50 w-full mt-1 bg-white border border-orange-200 rounded-xl shadow-warm-lg max-h-60 overflow-y-auto"
+          style={{ top: '100%' }}
         >
           {suggestions.map((suggestion, index) => (
             <button
@@ -166,15 +252,23 @@ export function AddressAutocomplete({
         </div>
       )}
 
-      {/* Error */}
-      {error && (
+      {/* Error de geolocalización */}
+      {geoError && (
+        <p className="text-sm text-amber-600 flex items-center gap-1.5">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {geoError}
+        </p>
+      )}
+
+      {/* Error de autocomplete */}
+      {error && !geoError && (
         <p className="text-sm text-red-600 flex items-center gap-1">
           <span>⚠</span> {error}
         </p>
       )}
 
       {/* Hint */}
-      {!error && query.length > 0 && query.length < 3 && (
+      {!error && !geoError && query.length > 0 && query.length < 3 && (
         <p className="text-xs text-orange-600/70">
           Escribí al menos 3 caracteres para buscar
         </p>

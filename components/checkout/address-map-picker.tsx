@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
-import { MapPin, Navigation, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
-import { Button } from '@/components/ui/button'
 import { reverseGeocode } from '@/lib/services/geocoding'
+import { GpsIcon } from '@/components/icons'
 import 'leaflet/dist/leaflet.css'
 
 // Fix para los iconos de Leaflet en Next.js
@@ -93,11 +93,11 @@ function DraggableMarker({
 export function AddressMapPicker({
   coordinates,
   onCoordinatesChange,
-  height = '250px',
+  height = '200px',
   disabled = false,
 }: AddressMapPickerProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [isLocating, setIsLocating] = useState(false)
+  const [isGettingLocation, setIsGettingLocation] = useState(false)
   const [markerPosition, setMarkerPosition] = useState<Coordinates | null>(null)
 
   // Buenos Aires centro como ubicación por defecto
@@ -113,12 +113,10 @@ export function AddressMapPicker({
 
   const handlePositionChange = useCallback(
     async (coords: Coordinates) => {
-      // Actualizar posición del marcador inmediatamente
       setMarkerPosition(coords)
       setIsLoading(true)
 
       try {
-        // Throttle: esperar 1 segundo para respetar límites de Nominatim
         await new Promise((resolve) => setTimeout(resolve, 1000))
         const result = await reverseGeocode(coords.lat, coords.lng)
         onCoordinatesChange(coords, result.address)
@@ -134,28 +132,26 @@ export function AddressMapPicker({
     [onCoordinatesChange]
   )
 
-  const handleUseMyLocation = useCallback(() => {
+  const handleGetCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      alert('Tu navegador no soporta geolocalización')
       return
     }
 
-    setIsLocating(true)
+    setIsGettingLocation(true)
     navigator.geolocation.getCurrentPosition(
-      async (position) => {
+      (position) => {
         const coords = {
           lat: position.coords.latitude,
-          lng: position.coords.longitude,
+          lng: position.coords.longitude
         }
-        await handlePositionChange(coords)
-        setIsLocating(false)
+        handlePositionChange(coords)
+        setIsGettingLocation(false)
       },
       (error) => {
         if (process.env.NODE_ENV === 'development') {
           console.error('Error getting location:', error)
         }
-        alert('No pudimos obtener tu ubicación. Verificá los permisos del navegador.')
-        setIsLocating(false)
+        setIsGettingLocation(false)
       },
       { enableHighAccuracy: true, timeout: 10000 }
     )
@@ -172,69 +168,71 @@ export function AddressMapPicker({
     )
   }
 
-  const displayPosition = markerPosition || currentCoords
+  // Solo mostrar marcador si hay coordenadas reales del usuario
+  const hasUserCoordinates = !!coordinates
+  const displayPosition = markerPosition || coordinates
+
+  // Zoom: más alejado si no hay ubicación, más cercano si ya seleccionó
+  const initialZoom = hasUserCoordinates ? 16 : 13
 
   return (
-    <div className="space-y-3">
-      {/* Botón usar mi ubicación */}
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-orange-700/70 flex items-center gap-1">
-          <MapPin className="h-3 w-3" />
-          Arrastrá el marcador para ajustar la ubicación
-        </p>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleUseMyLocation}
-          disabled={isLocating}
-          className="text-xs border-orange-300 text-orange-600 hover:bg-orange-50"
-        >
-          {isLocating ? (
-            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-          ) : (
-            <Navigation className="h-3 w-3 mr-1" />
-          )}
-          Usar mi ubicación
-        </Button>
-      </div>
-
-      {/* Mapa */}
-      <div className="relative">
-        <MapContainer
-          center={[currentCoords.lat, currentCoords.lng]}
-          zoom={16}
-          style={{ height, width: '100%' }}
-          className="rounded-xl overflow-hidden z-0"
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+    <div className="relative">
+      <MapContainer
+        center={[currentCoords.lat, currentCoords.lng]}
+        zoom={initialZoom}
+        style={{ height, width: '100%' }}
+        className="rounded-xl overflow-hidden z-0"
+        zoomControl={false}
+        attributionControl={false}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        {/* Solo mostrar marcador si el usuario seleccionó ubicación */}
+        {displayPosition && (
           <DraggableMarker
             position={displayPosition}
             onDragEnd={handlePositionChange}
           />
-          <MapClickHandler onMapClick={handlePositionChange} />
-          <MapCenterUpdater coordinates={displayPosition} />
-        </MapContainer>
-
-        {/* Overlay de carga */}
-        {isLoading && (
-          <div className="absolute inset-0 bg-white/70 rounded-xl flex items-center justify-center z-10">
-            <div className="flex items-center gap-2 text-orange-600">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              <span className="text-sm font-medium">Obteniendo dirección...</span>
-            </div>
-          </div>
         )}
-      </div>
+        <MapClickHandler onMapClick={handlePositionChange} />
+        {displayPosition && <MapCenterUpdater coordinates={displayPosition} />}
+      </MapContainer>
 
-      {/* Coordenadas actuales */}
-      {markerPosition && (
-        <p className="text-xs text-orange-600/50 text-center">
-          {markerPosition.lat.toFixed(6)}, {markerPosition.lng.toFixed(6)}
-        </p>
+      {/* Hint cuando no hay ubicación seleccionada */}
+      {!hasUserCoordinates && !isLoading && !isGettingLocation && (
+        <div className="absolute bottom-3 left-3 right-14 z-10">
+          <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md border border-orange-100">
+            <p className="text-xs text-orange-700 text-center">
+              Tocá en el mapa o usá el botón GPS para marcar tu ubicación
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* GPS Button */}
+      <button
+        type="button"
+        onClick={handleGetCurrentLocation}
+        disabled={isGettingLocation || isLoading}
+        className="absolute top-3 right-3 z-10 w-10 h-10 bg-white rounded-full shadow-lg border border-orange-200 flex items-center justify-center hover:bg-orange-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        title="Usar mi ubicación actual"
+      >
+        {isGettingLocation ? (
+          <Loader2 className="h-5 w-5 text-orange-600 animate-spin" />
+        ) : (
+          <GpsIcon size={20} className="text-orange-600" />
+        )}
+      </button>
+
+      {/* Overlay de carga */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-white/70 rounded-xl flex items-center justify-center z-10">
+          <div className="flex items-center gap-2 text-orange-600">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span className="text-sm font-medium">Obteniendo dirección...</span>
+          </div>
+        </div>
       )}
     </div>
   )

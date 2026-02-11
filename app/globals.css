@@ -66,7 +66,7 @@
   --secondary: 40 100% 58%;
   --secondary-foreground: 25 25% 20%;
   --muted: 30 40% 96%;
-  --muted-foreground: 25 10% 45%;
+  --muted-foreground: 25 8% 72%;
   --accent: 160 84% 39%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
@@ -211,7 +211,19 @@
 
   /* Input grande estilo checkout */
   .input-large {
-    @apply h-14 rounded-xl text-base px-4;
+    @apply h-14 rounded-[13px] text-base px-4;
+  }
+
+  .input-large::placeholder {
+    color: #b8b8b8;
+    font-weight: 400;
+  }
+
+  /* Fix para el focus de inputs grandes - evitar ring deformado */
+  .input-large:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.15);
+    border-color: rgb(251, 146, 60);
   }
 
   /* Trust badge estilo */
