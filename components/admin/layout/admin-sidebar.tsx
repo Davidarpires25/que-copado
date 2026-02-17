@@ -15,6 +15,7 @@ import {
   LayoutDashboard,
   ClipboardList,
   Settings,
+  BarChart3,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -28,6 +29,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/admin/orders', label: 'Pedidos', icon: ClipboardList },
   { href: '/admin/products', label: 'Productos', icon: Package },
   { href: '/admin/categories', label: 'Categorías', icon: Tag },

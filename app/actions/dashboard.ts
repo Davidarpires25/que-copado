@@ -1,10 +1,12 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import type { DashboardStats, TopProduct, SalesChartData } from '@/lib/types/orders'
+import { getAuthUser } from '@/lib/server/auth'
+import { devError } from '@/lib/server/logger'
 import { parseOrderItems } from '@/lib/services/order-formatter'
+import type { Json } from '@/lib/types/database'
+import type { DashboardStats, TopProduct, SalesChartData } from '@/lib/types/orders'
 
-// Tipos para las queries
 interface OrderStatsRow {
   total: number
   shipping_cost: number
@@ -31,28 +33,24 @@ export async function getDashboardStats(): Promise<{
   try {
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthUser(supabase)
     if (!user) {
       return { data: null, error: 'No autenticado' }
     }
 
     const now = new Date()
 
-    // Inicio del día
     const todayStart = new Date(now)
     todayStart.setHours(0, 0, 0, 0)
 
-    // Inicio de la semana (lunes)
     const weekStart = new Date(now)
     const dayOfWeek = weekStart.getDay()
     const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
     weekStart.setDate(weekStart.getDate() - daysToMonday)
     weekStart.setHours(0, 0, 0, 0)
 
-    // Inicio del mes
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
-    // Obtener todas las órdenes del mes (para calcular todo)
     const { data: orders, error } = await supabase
       .from('orders')
       .select('total, shipping_cost, created_at, status')
@@ -60,13 +58,10 @@ export async function getDashboardStats(): Promise<{
       .neq('status', 'cancelado') as { data: OrderStatsRow[] | null; error: unknown }
 
     if (error || !orders) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching stats:', error)
-      }
+      devError('Error fetching stats:', error)
       return { data: null, error: 'Error al cargar estadísticas' }
     }
 
-    // Calcular estadísticas
     let todayRevenue = 0
     let todayOrders = 0
     let weekRevenue = 0
@@ -78,17 +73,14 @@ export async function getDashboardStats(): Promise<{
       const orderDate = new Date(order.created_at)
       const revenue = order.total
 
-      // Mes
       monthRevenue += revenue
       monthOrders++
 
-      // Semana
       if (orderDate >= weekStart) {
         weekRevenue += revenue
         weekOrders++
       }
 
-      // Hoy
       if (orderDate >= todayStart) {
         todayRevenue += revenue
         todayOrders++
@@ -110,9 +102,7 @@ export async function getDashboardStats(): Promise<{
       error: null,
     }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error in getDashboardStats:', error)
-    }
+    devError('Error in getDashboardStats:', error)
     return { data: null, error: 'Error inesperado' }
   }
 }
@@ -126,12 +116,11 @@ export async function getTopProducts(
   try {
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthUser(supabase)
     if (!user) {
       return { data: null, error: 'No autenticado' }
     }
 
-    // Obtener órdenes del mes actual
     const monthStart = new Date()
     monthStart.setDate(1)
     monthStart.setHours(0, 0, 0, 0)
@@ -143,17 +132,14 @@ export async function getTopProducts(
       .neq('status', 'cancelado') as { data: OrderItemsRow[] | null; error: unknown }
 
     if (error || !orders) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching orders for top products:', error)
-      }
+      devError('Error fetching orders for top products:', error)
       return { data: null, error: 'Error al cargar productos' }
     }
 
-    // Agregar ventas por producto
     const productStats: Record<string, { name: string; quantity: number; revenue: number }> = {}
 
     orders.forEach((order) => {
-      const items = parseOrderItems(order.items)
+      const items = parseOrderItems(order.items as Json)
       items.forEach((item) => {
         if (!productStats[item.id]) {
           productStats[item.id] = {
@@ -167,7 +153,6 @@ export async function getTopProducts(
       })
     })
 
-    // Ordenar por cantidad y tomar los top
     const topProducts = Object.entries(productStats)
       .map(([id, stats]) => ({
         id,
@@ -180,9 +165,7 @@ export async function getTopProducts(
 
     return { data: topProducts, error: null }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error in getTopProducts:', error)
-    }
+    devError('Error in getTopProducts:', error)
     return { data: null, error: 'Error inesperado' }
   }
 }
@@ -196,12 +179,11 @@ export async function getSalesChartData(
   try {
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthUser(supabase)
     if (!user) {
       return { data: null, error: 'No autenticado' }
     }
 
-    // Calcular fecha de inicio
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days + 1)
     startDate.setHours(0, 0, 0, 0)
@@ -213,13 +195,10 @@ export async function getSalesChartData(
       .neq('status', 'cancelado') as { data: OrderChartRow[] | null; error: unknown }
 
     if (error || !orders) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching chart data:', error)
-      }
+      devError('Error fetching chart data:', error)
       return { data: null, error: 'Error al cargar datos' }
     }
 
-    // Inicializar datos por día
     const chartData: Record<string, { revenue: number; orders: number }> = {}
 
     for (let i = 0; i < days; i++) {
@@ -229,7 +208,6 @@ export async function getSalesChartData(
       chartData[dateKey] = { revenue: 0, orders: 0 }
     }
 
-    // Agregar datos de órdenes
     orders.forEach((order) => {
       const dateKey = order.created_at.split('T')[0]
       if (chartData[dateKey]) {
@@ -238,7 +216,6 @@ export async function getSalesChartData(
       }
     })
 
-    // Convertir a array y ordenar por fecha
     const result: SalesChartData[] = Object.entries(chartData)
       .map(([date, stats]) => ({
         date,
@@ -249,9 +226,7 @@ export async function getSalesChartData(
 
     return { data: result, error: null }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error in getSalesChartData:', error)
-    }
+    devError('Error in getSalesChartData:', error)
     return { data: null, error: 'Error inesperado' }
   }
 }

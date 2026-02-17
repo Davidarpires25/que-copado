@@ -1,7 +1,10 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getAuthUser } from '@/lib/server/auth'
+import { devError } from '@/lib/server/logger'
+import { revalidateBusinessSettings } from '@/lib/server/revalidate'
 import type { BusinessSettings } from '@/lib/types/database'
 
 // ID fijo para el singleton de configuración
@@ -17,17 +20,14 @@ export async function getBusinessSettings(): Promise<{
   try {
     const supabase = await createClient()
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('business_settings')
       .select('*')
       .eq('id', SETTINGS_ID)
       .single()
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching business settings:', error)
-      }
+      devError('Error fetching business settings:', error)
       // Retornar configuración por defecto si no existe
       return {
         data: {
@@ -46,9 +46,7 @@ export async function getBusinessSettings(): Promise<{
 
     return { data, error: null }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error in getBusinessSettings:', error)
-    }
+    devError('Error in getBusinessSettings:', error)
     return { data: null, error: 'Error inesperado' }
   }
 }
@@ -64,10 +62,9 @@ export async function updateBusinessSettings(updates: {
   pause_message?: string
 }): Promise<{ data: BusinessSettings | null; error: string | null }> {
   try {
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
 
-    // Verificar autenticación
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthUser(supabase)
     if (!user) {
       return { data: null, error: 'No autenticado' }
     }
@@ -93,8 +90,7 @@ export async function updateBusinessSettings(updates: {
       }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('business_settings')
       .update(updates)
       .eq('id', SETTINGS_ID)
@@ -102,21 +98,15 @@ export async function updateBusinessSettings(updates: {
       .single()
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error updating business settings:', error)
-      }
+      devError('Error updating business settings:', error)
       return { data: null, error: 'Error al actualizar configuración' }
     }
 
-    // Revalidar páginas
-    revalidatePath('/admin/settings')
-    revalidatePath('/checkout')
+    revalidateBusinessSettings()
 
     return { data: data as BusinessSettings, error: null }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error in updateBusinessSettings:', error)
-    }
+    devError('Error in updateBusinessSettings:', error)
     return { data: null, error: 'Error inesperado' }
   }
 }
@@ -129,9 +119,9 @@ export async function toggleBusinessPause(
   message?: string
 ): Promise<{ data: BusinessSettings | null; error: string | null }> {
   try {
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthUser(supabase)
     if (!user) {
       return { data: null, error: 'No autenticado' }
     }
@@ -144,8 +134,7 @@ export async function toggleBusinessPause(
       updates.pause_message = message
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('business_settings')
       .update(updates)
       .eq('id', SETTINGS_ID)
@@ -153,21 +142,15 @@ export async function toggleBusinessPause(
       .single()
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error toggling pause:', error)
-      }
+      devError('Error toggling pause:', error)
       return { data: null, error: 'Error al cambiar estado' }
     }
 
-    revalidatePath('/admin/settings')
-    revalidatePath('/checkout')
-    revalidatePath('/')
+    revalidateBusinessSettings()
 
     return { data: data as BusinessSettings, error: null }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error in toggleBusinessPause:', error)
-    }
+    devError('Error in toggleBusinessPause:', error)
     return { data: null, error: 'Error inesperado' }
   }
 }
@@ -183,43 +166,23 @@ export async function checkIfAcceptingOrders(): Promise<{
     const { data: settings, error } = await getBusinessSettings()
 
     if (error || !settings) {
-      // Si hay error, permitir pedidos pero con advertencia
-      return {
-        accepting: true,
-        message: null,
-      }
+      return { accepting: true, message: null }
     }
 
-    // Importar aquí para evitar problemas de dependencias circulares
     const { checkBusinessStatus } = await import('@/lib/services/business-hours')
     const status = checkBusinessStatus(settings)
 
     if (status.isPaused) {
-      return {
-        accepting: false,
-        message: status.message,
-      }
+      return { accepting: false, message: status.message }
     }
 
     if (!status.isOpen) {
-      return {
-        accepting: false,
-        message: status.message,
-      }
+      return { accepting: false, message: status.message }
     }
 
-    return {
-      accepting: true,
-      message: null,
-    }
+    return { accepting: true, message: null }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error in checkIfAcceptingOrders:', error)
-    }
-    // En caso de error, permitir pedidos
-    return {
-      accepting: true,
-      message: null,
-    }
+    devError('Error in checkIfAcceptingOrders:', error)
+    return { accepting: true, message: null }
   }
 }

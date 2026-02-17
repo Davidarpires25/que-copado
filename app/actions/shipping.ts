@@ -2,6 +2,7 @@
 
 import { getActiveDeliveryZones } from '@/app/actions/delivery-zones'
 import { calculateShippingByZone, getShippingMessage } from '@/lib/services/shipping'
+import { devError } from '@/lib/server/logger'
 import type { ShippingResult } from '@/lib/types/database'
 
 export interface CalculateShippingParams {
@@ -60,10 +61,7 @@ export async function calculateShippingCost(
 
     return { data: result, error: null }
   } catch (error) {
-    // Log error for debugging in development only
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error calculating shipping:', error)
-    }
+    devError('Error calculating shipping:', error)
     return { data: null, error: 'Error al calcular el costo de envío' }
   }
 }

@@ -105,17 +105,20 @@ export function CategoryFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#2a2f3a] border-[#2a2f3a] text-[#f0f2f5] sm:max-w-md">
+      <DialogContent className="bg-[#12151a] border-[#2a2f3a] text-[#f0f2f5] sm:max-w-md shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">
+          <DialogTitle className="text-lg font-semibold text-[#f0f2f5]">
             {isEditing ? 'Editar Categoría' : 'Nueva Categoría'}
           </DialogTitle>
+          <p className="text-[#8b9ab0] text-xs mt-0.5">
+            {isEditing ? 'Modifica los datos de la categoría' : 'Agrega una nueva categoría al catálogo'}
+          </p>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+        <form onSubmit={handleSubmit} className="space-y-3 mt-4">
           {/* Name */}
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-[#c4cdd9]">
+          <div className="space-y-1.5">
+            <Label htmlFor="name" className="text-[#8b9ab0] text-xs font-semibold uppercase tracking-wide">
               Nombre
             </Label>
             <Input
@@ -123,15 +126,15 @@ export function CategoryFormDialog({
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="Nombre de la categoría"
-              className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11 placeholder:text-[#8b9ab0] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+              className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 text-sm placeholder:text-[#6b7a8d] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
               required
               maxLength={100}
             />
           </div>
 
           {/* Slug */}
-          <div className="space-y-2">
-            <Label htmlFor="slug" className="text-[#c4cdd9]">
+          <div className="space-y-1.5">
+            <Label htmlFor="slug" className="text-[#8b9ab0] text-xs font-semibold uppercase tracking-wide">
               Slug (URL)
             </Label>
             <Input
@@ -139,7 +142,7 @@ export function CategoryFormDialog({
               value={slug}
               onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''))}
               placeholder="url-amigable"
-              className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11 placeholder:text-[#8b9ab0] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+              className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 text-sm placeholder:text-[#6b7a8d] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
               required
             />
             <p className="text-xs text-[#8b9ab0]">
@@ -148,25 +151,29 @@ export function CategoryFormDialog({
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-3">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1 border-[#3a4150] text-[#c4cdd9] hover:bg-[#2a2f3a]"
+              className="flex-1 h-10 text-sm border-[#3a4150] text-[#8b9ab0] hover:text-[#f0f2f5] hover:bg-[#252a35]"
               disabled={isLoading}
             >
               Cancelar
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold"
+              className={`flex-1 h-10 text-sm font-semibold transition-all duration-200 ${
+                isLoading || !name.trim()
+                  ? 'bg-[#3a3f4a] text-[#6b7a8d] cursor-not-allowed shadow-none'
+                  : 'bg-[#FEC501] hover:bg-[#E5B001] text-black shadow-lg shadow-[#FEC501]/20'
+              }`}
               disabled={isLoading || !name.trim()}
             >
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {isEditing ? 'Guardando...' : 'Creando...'}
+                  Guardando...
                 </>
               ) : isEditing ? (
                 'Guardar Cambios'

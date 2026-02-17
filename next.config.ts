@@ -10,38 +10,31 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'st.depositphotos.com', // El dominio que causaba el error
+        hostname: 'st.depositphotos.com',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'www.yoquiero.com.ar', // El dominio que causaba el error
+        hostname: 'www.yoquiero.com.ar',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'encrypted-tbn0.gstatic.com', // El dominio de Google Images
+        hostname: 'encrypted-tbn0.gstatic.com',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'static.wixstatic.com', // El dominio de Wix para la nueva imagen
+        hostname: 'static.wixstatic.com',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'static.wixstatic.com', // El dominio de Wix para la nueva imagen
+        hostname: 'yyphmsxxzgjdvblfrfpv.supabase.co',
         pathname: '/**',
       },
-      {
-        protocol: 'https',
-        hostname: 'yyphmsxxzgjdvblfrfpv.supabase.co', // Tu instancia de Supabase
-        pathname: '/**',
-      },
-            
     ],
   },
-  /* config options here */
 };
 
 export default nextConfig;

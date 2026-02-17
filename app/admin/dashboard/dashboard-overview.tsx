@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Clock,
   ArrowRight,
+  BarChart3,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AdminLayout } from '@/components/admin/layout'
@@ -17,12 +18,14 @@ import { formatPrice } from '@/lib/utils'
 import { formatRelativeDate, getShortOrderId, parseOrderItems } from '@/lib/services/order-formatter'
 import type { DashboardStats, TopProduct, SalesChartData } from '@/lib/types/orders'
 import type { OrderWithZone } from '@/lib/types/database'
+import type { ComparativeStats } from '@/app/actions/analytics'
 
 interface DashboardOverviewProps {
   stats: DashboardStats | null
   topProducts: TopProduct[]
   chartData: SalesChartData[]
   recentOrders: OrderWithZone[]
+  trends?: ComparativeStats | null
 }
 
 export function DashboardOverview({
@@ -30,6 +33,7 @@ export function DashboardOverview({
   topProducts,
   chartData,
   recentOrders,
+  trends,
 }: DashboardOverviewProps) {
   return (
     <AdminLayout title="Dashboard" description="Resumen de tu negocio">
@@ -42,6 +46,7 @@ export function DashboardOverview({
           icon={DollarSign}
           iconColor="text-green-500"
           iconBgColor="bg-green-500/10"
+          trend={trends?.todayRevenueTrend || undefined}
           delay={0.1}
         />
         <StatsCard
@@ -51,6 +56,7 @@ export function DashboardOverview({
           icon={TrendingUp}
           iconColor="text-blue-500"
           iconBgColor="bg-blue-500/10"
+          trend={trends?.weekRevenueTrend || undefined}
           delay={0.15}
         />
         <StatsCard
@@ -60,6 +66,7 @@ export function DashboardOverview({
           icon={ShoppingBag}
           iconColor="text-purple-500"
           iconBgColor="bg-purple-500/10"
+          trend={trends?.monthRevenueTrend || undefined}
           delay={0.2}
         />
         <StatsCard
@@ -69,9 +76,37 @@ export function DashboardOverview({
           icon={Clock}
           iconColor="text-[#FEC501]"
           iconBgColor="bg-[#FEC501]/10"
+          trend={trends?.averageTicketTrend || undefined}
           delay={0.25}
         />
       </div>
+
+      {/* Analytics Quick Link */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.28 }}
+        className="mb-6"
+      >
+        <Link href="/admin/analytics">
+          <div className="bg-[#1a1d24] border border-[#2a2f3a] rounded-xl p-4 hover:border-[#FEC501]/30 hover:bg-[#1a1d24]/80 transition-all duration-200 group flex items-center justify-between cursor-pointer">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-[#FEC501]/10 rounded-lg flex items-center justify-center group-hover:bg-[#FEC501]/20 transition-colors">
+                <BarChart3 className="h-5 w-5 text-[#FEC501]" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-[#f0f2f5] group-hover:text-[#FEC501] transition-colors">
+                  Ver Analytics completo
+                </p>
+                <p className="text-xs text-[#8b9ab0]">
+                  Ventas por hora, día, zona, productos y más
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4 text-[#8b9ab0] group-hover:text-[#FEC501] group-hover:translate-x-1 transition-all duration-200" />
+          </div>
+        </Link>
+      </motion.div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">

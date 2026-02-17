@@ -1,0 +1,242 @@
+version: "2"
+type: frontend
+tech_stack:
+  - TypeScript
+  - Next.js 16 (App Router)
+  - React 19
+  - Tailwind CSS 4
+  - Shadcn/UI + Radix UI
+  - Framer Motion
+  - Zustand (state management)
+  - Supabase (PostgreSQL + Auth)
+  - Leaflet + react-leaflet (maps)
+  - Turf.js (geospatial)
+  - Recharts (charts)
+  - Sonner (toasts)
+routes:
+  - path: /
+    file: app/page.tsx
+    auth_required: false
+    description: Public homepage with hero section, promotions, and product catalog grid with category filters
+  - path: /cart
+    file: app/cart/page.tsx
+    auth_required: false
+    description: Shopping cart page showing cart items with quantity controls and order summary
+  - path: /checkout
+    file: app/checkout/page.tsx
+    auth_required: false
+    description: Checkout page with delivery form, address autocomplete with map, payment method selection, and WhatsApp order submission
+  - path: /admin/login
+    file: app/admin/login/page.tsx
+    auth_required: false
+    description: Admin login page with email and password authentication
+  - path: /admin/dashboard
+    file: app/admin/dashboard/page.tsx
+    auth_required: true
+    description: Admin dashboard with sales statistics, recent orders, and KPI cards
+  - path: /admin/products
+    file: app/admin/products/page.tsx
+    auth_required: true
+    description: Admin product management with CRUD operations, image upload, and stock toggle
+  - path: /admin/categories
+    file: app/admin/categories/page.tsx
+    auth_required: true
+    description: Admin category management with CRUD operations and sort order
+  - path: /admin/orders
+    file: app/admin/orders/page.tsx
+    auth_required: true
+    description: Admin order management with status tracking and order details
+  - path: /admin/delivery-zones
+    file: app/admin/delivery-zones/page.tsx
+    auth_required: true
+    description: Admin delivery zone management with map-based polygon drawing and shipping cost configuration
+  - path: /admin/settings
+    file: app/admin/settings/page.tsx
+    auth_required: true
+    description: Admin business settings including pause orders toggle and WhatsApp number configuration
+features:
+  - name: Product Catalog
+    description: Browse products by category with filtering, view product details with images and prices
+    files:
+      - app/page.tsx
+      - components/product-grid.tsx
+      - components/product-card.tsx
+    entry_route: /
+    user_interactions:
+      - View all products on the homepage
+      - Click category filter tabs to filter products
+      - Click "Agregar" button on a product card to add it to cart
+      - See product name, price, description, and image
+    api_calls:
+      - method: GET
+        endpoint: supabase.from('products').select('*')
+      - method: GET
+        endpoint: supabase.from('categories').select('*')
+    auth_required: false
+  - name: Shopping Cart
+    description: Persistent cart using Zustand with localStorage, quantity management, and order summary
+    files:
+      - app/cart/page.tsx
+      - components/cart-item.tsx
+      - components/order-summary.tsx
+      - lib/store/cart-store.ts
+    entry_route: /cart
+    user_interactions:
+      - View items in the cart with quantities and prices
+      - Increase or decrease item quantity with + and - buttons
+      - Remove item from cart
+      - See subtotal and order summary
+      - Click "Ir al checkout" to proceed to checkout
+      - Click "Seguir comprando" to go back to menu
+    api_calls: []
+    auth_required: false
+  - name: Checkout with WhatsApp
+    description: Complete order with delivery/pickup selection, address with map, payment method, and send order via WhatsApp
+    files:
+      - app/checkout/page.tsx
+      - components/checkout/delivery-form.tsx
+      - components/checkout/address-autocomplete.tsx
+      - components/checkout/address-map-picker.tsx
+      - components/checkout/checkout-summary.tsx
+      - lib/services/order-formatter.ts
+      - lib/services/shipping.ts
+      - app/actions/shipping.ts
+      - app/actions/orders.ts
+    entry_route: /checkout
+    user_interactions:
+      - Fill in name and phone number
+      - Select delivery type (Delivery or Retiro/Pickup)
+      - Type address with autocomplete suggestions
+      - Adjust pin on the map for exact location
+      - See detected delivery zone and shipping cost
+      - Select payment method (Efectivo, Transferencia, Mercado Pago)
+      - Enter cash amount if paying with cash
+      - Review order summary with subtotal, shipping, and total
+      - Click "Enviar pedido por WhatsApp" to submit order
+    api_calls:
+      - method: POST
+        endpoint: server action calculateShippingCost
+      - method: POST
+        endpoint: server action createOrder
+      - method: GET
+        endpoint: server action getActiveDeliveryZones
+      - method: GET
+        endpoint: server action checkIfAcceptingOrders
+    auth_required: false
+  - name: Admin Login
+    description: Email/password authentication for admin panel access
+    files:
+      - app/admin/login/page.tsx
+      - app/actions/auth.ts
+    entry_route: /admin/login
+    user_interactions:
+      - Fill email input field
+      - Fill password input field
+      - Click "Iniciar Sesion" button to submit
+      - See error toast on invalid credentials
+      - Redirect to /admin/dashboard on success
+    api_calls:
+      - method: POST
+        endpoint: server action signIn (supabase.auth.signInWithPassword)
+    auth_required: false
+  - name: Admin Dashboard
+    description: Sales statistics overview with KPIs, charts, and recent orders
+    files:
+      - app/admin/dashboard/page.tsx
+      - app/actions/dashboard.ts
+    entry_route: /admin/dashboard
+    user_interactions:
+      - View total sales, order count, and average order value KPIs
+      - View sales charts
+      - View list of recent orders
+      - Navigate to other admin sections via sidebar
+    api_calls:
+      - method: GET
+        endpoint: server action getDashboardStats
+    auth_required: true
+  - name: Admin Product Management
+    description: CRUD for products including image upload to Supabase Storage, stock and visibility toggles
+    files:
+      - app/admin/products/page.tsx
+      - app/actions/products.ts
+    entry_route: /admin/products
+    user_interactions:
+      - View list of all products
+      - Click "Nuevo Producto" to add a product
+      - Fill product form (name, description, price, category, image)
+      - Toggle product visibility (is_active)
+      - Toggle out of stock status (is_out_of_stock)
+      - Edit existing product
+      - Delete a product
+    api_calls:
+      - method: POST
+        endpoint: server action createProduct
+      - method: PUT
+        endpoint: server action updateProduct
+      - method: DELETE
+        endpoint: server action deleteProduct
+      - method: PATCH
+        endpoint: server action toggleProductActive
+      - method: PATCH
+        endpoint: server action toggleProductStock
+    auth_required: true
+  - name: Admin Category Management
+    description: CRUD for product categories with sort ordering
+    files:
+      - app/admin/categories/page.tsx
+      - app/actions/categories.ts
+    entry_route: /admin/categories
+    user_interactions:
+      - View list of all categories
+      - Create new category with name and sort order
+      - Edit existing category
+      - Delete a category
+    api_calls:
+      - method: POST
+        endpoint: server action createCategory
+      - method: PUT
+        endpoint: server action updateCategory
+      - method: DELETE
+        endpoint: server action deleteCategory
+    auth_required: true
+  - name: Admin Order Management
+    description: View and manage customer orders with status updates
+    files:
+      - app/admin/orders/page.tsx
+      - app/actions/orders.ts
+    entry_route: /admin/orders
+    user_interactions:
+      - View list of all orders with status badges
+      - View order details (items, customer info, delivery address)
+      - Update order status
+    api_calls:
+      - method: GET
+        endpoint: server action getOrders
+      - method: PATCH
+        endpoint: server action updateOrderStatus
+    auth_required: true
+  - name: Admin Business Settings
+    description: Configure business settings like pause orders toggle and WhatsApp number
+    files:
+      - app/admin/settings/page.tsx
+      - app/actions/business-settings.ts
+    entry_route: /admin/settings
+    user_interactions:
+      - Toggle pause/resume accepting orders
+      - Set custom pause message
+      - Configure WhatsApp business number
+    api_calls:
+      - method: GET
+        endpoint: server action getBusinessSettings
+      - method: PUT
+        endpoint: server action updateBusinessSettings
+      - method: PUT
+        endpoint: server action toggleAcceptingOrders
+    auth_required: true
+known_limitations:
+  - issue: Store coordinates are hardcoded instead of configurable
+    location: components/checkout/delivery-form.tsx
+    impact: Store location for pickup map link uses fixed coordinates
+  - issue: Admin pages use 'as any' to bypass Supabase type checking for business_settings and orders tables
+    location: app/actions/business-settings.ts, app/actions/orders.ts
+    impact: Reduced type safety for these database operations

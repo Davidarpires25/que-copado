@@ -8,6 +8,9 @@ interface UseAddressAutocompleteOptions {
   minChars?: number
 }
 
+// Nominatim usage policy requires max 1 request per second
+const NOMINATIM_THROTTLE_MS = 1000
+
 export function useAddressAutocomplete(options: UseAddressAutocompleteOptions = {}) {
   const { debounceMs = 500, minChars = 3 } = options
 
@@ -37,7 +40,7 @@ export function useAddressAutocomplete(options: UseAddressAutocompleteOptions = 
       // Throttle: asegurar 1 segundo entre requests
       const now = Date.now()
       const timeSinceLastRequest = now - lastRequestTime.current
-      const waitTime = Math.max(0, 1000 - timeSinceLastRequest)
+      const waitTime = Math.max(0, NOMINATIM_THROTTLE_MS - timeSinceLastRequest)
 
       if (waitTime > 0) {
         await new Promise((resolve) => setTimeout(resolve, waitTime))

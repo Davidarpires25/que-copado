@@ -25,6 +25,7 @@ export function ProductGrid({ products, categories }: ProductGridProps) {
         categories={categories}
         selectedCategory={selectedCategory}
         onSelectCategory={setSelectedCategory}
+        typeCategory={'user'}
       />
 
       <motion.div

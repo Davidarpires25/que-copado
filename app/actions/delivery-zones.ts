@@ -1,8 +1,9 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/server/auth'
+import { revalidateDeliveryZones } from '@/lib/server/revalidate'
 import type { DeliveryZone, GeoJSONPolygon } from '@/lib/types/database'
 import booleanIntersects from '@turf/boolean-intersects'
 import { polygon as turfPolygon } from '@turf/helpers'
@@ -11,7 +12,7 @@ import { polygon as turfPolygon } from '@turf/helpers'
 export async function getDeliveryZones(): Promise<{ data: DeliveryZone[] | null; error: string | null }> {
   const supabase = await createAdminClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser(supabase)
   if (!user) {
     return { data: null, error: 'No autorizado' }
   }
@@ -63,8 +64,6 @@ async function validateNoOverlap(
   const { data: existingZones, error } = await query
 
   if (error) {
-    // Error fetching zones - fail safely by allowing the operation
-    // This prevents blocking zone creation if there's a temporary DB issue
     return { isValid: true }
   }
 
@@ -89,7 +88,7 @@ async function validateNoOverlap(
 export async function createDeliveryZone(formData: FormData) {
   const supabase = await createAdminClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser(supabase)
   if (!user) {
     return { error: 'No autorizado' }
   }
@@ -101,7 +100,6 @@ export async function createDeliveryZone(formData: FormData) {
   const freeShippingThresholdStr = formData.get('free_shipping_threshold') as string
   const sortOrderStr = formData.get('sort_order') as string
 
-  // Validar campos requeridos
   if (!name?.trim()) {
     return { error: 'El nombre de la zona es requerido' }
   }
@@ -114,7 +112,6 @@ export async function createDeliveryZone(formData: FormData) {
     return { error: 'El polígono es requerido' }
   }
 
-  // Validar shipping cost
   const shippingCost = parseInt(shippingCostStr, 10)
   if (isNaN(shippingCost) || shippingCost < 0) {
     return { error: 'El costo de envío debe ser un número válido mayor o igual a 0' }
@@ -124,7 +121,6 @@ export async function createDeliveryZone(formData: FormData) {
     return { error: 'El costo de envío no puede exceder $100.000' }
   }
 
-  // Validar y parsear polígono
   let polygon: GeoJSONPolygon
   try {
     polygon = JSON.parse(polygonStr)
@@ -132,7 +128,6 @@ export async function createDeliveryZone(formData: FormData) {
     return { error: 'Formato de polígono inválido' }
   }
 
-  // Validar estructura del polígono
   if (polygon.type !== 'Polygon') {
     return { error: 'El tipo de polígono es inválido' }
   }
@@ -141,7 +136,6 @@ export async function createDeliveryZone(formData: FormData) {
     return { error: 'El polígono debe tener al menos 3 vértices' }
   }
 
-  // Validar que las coordenadas sean válidas
   for (const coord of polygon.coordinates[0]) {
     if (!Array.isArray(coord) || coord.length !== 2) {
       return { error: 'Formato de coordenadas inválido' }
@@ -155,13 +149,11 @@ export async function createDeliveryZone(formData: FormData) {
     }
   }
 
-  // Validate no overlap
   const overlapCheck = await validateNoOverlap(polygon)
   if (!overlapCheck.isValid) {
     return { error: `La zona se superpone con "${overlapCheck.overlappingZone}"` }
   }
 
-  // Validar free shipping threshold
   let freeShippingThreshold: number | null = null
   if (freeShippingThresholdStr?.trim()) {
     freeShippingThreshold = parseInt(freeShippingThresholdStr, 10)
@@ -173,7 +165,6 @@ export async function createDeliveryZone(formData: FormData) {
     }
   }
 
-  // Validar sort order
   let sortOrder = 0
   if (sortOrderStr?.trim()) {
     sortOrder = parseInt(sortOrderStr, 10)
@@ -182,7 +173,6 @@ export async function createDeliveryZone(formData: FormData) {
     }
   }
 
-  // Validar color (formato hexadecimal)
   let validColor = '#FF6B00'
   if (color?.trim()) {
     if (!/^#[0-9A-F]{6}$/i.test(color)) {
@@ -205,8 +195,7 @@ export async function createDeliveryZone(formData: FormData) {
     return { error: error.message }
   }
 
-  revalidatePath('/admin/delivery-zones')
-  revalidatePath('/checkout')
+  revalidateDeliveryZones()
   return { success: true, zone: newZone as DeliveryZone }
 }
 
@@ -225,17 +214,15 @@ export async function updateDeliveryZone(
 ) {
   const supabase = await createAdminClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser(supabase)
   if (!user) {
     return { error: 'No autorizado' }
   }
 
-  // Validar zoneId
   if (!zoneId?.trim()) {
     return { error: 'ID de zona inválido' }
   }
 
-  // Validar datos si se proporcionan
   if (data.name !== undefined) {
     if (!data.name.trim()) {
       return { error: 'El nombre de la zona no puede estar vacío' }
@@ -277,7 +264,6 @@ export async function updateDeliveryZone(
     data.color = data.color.toUpperCase()
   }
 
-  // If polygon is being updated, validate structure and no overlap
   if (data.polygon) {
     if (data.polygon.type !== 'Polygon') {
       return { error: 'El tipo de polígono es inválido' }
@@ -287,7 +273,6 @@ export async function updateDeliveryZone(
       return { error: 'El polígono debe tener al menos 3 vértices' }
     }
 
-    // Validar coordenadas
     for (const coord of data.polygon.coordinates[0]) {
       if (!Array.isArray(coord) || coord.length !== 2) {
         return { error: 'Formato de coordenadas inválido' }
@@ -319,8 +304,7 @@ export async function updateDeliveryZone(
     return { error: error.message }
   }
 
-  revalidatePath('/admin/delivery-zones')
-  revalidatePath('/checkout')
+  revalidateDeliveryZones()
   return { success: true }
 }
 
@@ -328,12 +312,11 @@ export async function updateDeliveryZone(
 export async function deleteDeliveryZone(zoneId: string) {
   const supabase = await createAdminClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser(supabase)
   if (!user) {
     return { error: 'No autorizado' }
   }
 
-  // Validar zoneId
   if (!zoneId?.trim()) {
     return { error: 'ID de zona inválido' }
   }
@@ -347,8 +330,7 @@ export async function deleteDeliveryZone(zoneId: string) {
     return { error: error.message }
   }
 
-  revalidatePath('/admin/delivery-zones')
-  revalidatePath('/checkout')
+  revalidateDeliveryZones()
   return { success: true }
 }
 
@@ -361,24 +343,21 @@ export async function toggleZoneActive(zoneId: string, isActive: boolean) {
 export async function reorderDeliveryZones(zoneIds: string[]) {
   const supabase = await createAdminClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser(supabase)
   if (!user) {
     return { error: 'No autorizado' }
   }
 
-  // Validar que zoneIds sea un array válido
   if (!Array.isArray(zoneIds) || zoneIds.length === 0) {
     return { error: 'La lista de zonas es inválida' }
   }
 
-  // Validar que todos los IDs sean strings válidos
   for (const zoneId of zoneIds) {
     if (!zoneId || typeof zoneId !== 'string' || !zoneId.trim()) {
       return { error: 'ID de zona inválido en la lista' }
     }
   }
 
-  // Update each zone's sort_order
   for (let i = 0; i < zoneIds.length; i++) {
     const { error } = await supabase
       .from('delivery_zones')
@@ -390,6 +369,6 @@ export async function reorderDeliveryZones(zoneIds: string[]) {
     }
   }
 
-  revalidatePath('/admin/delivery-zones')
+  revalidateDeliveryZones()
   return { success: true }
 }

@@ -1,9 +1,12 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getBusinessSettings } from '@/app/actions/business-settings'
 import { checkBusinessStatus } from '@/lib/services/business-hours'
+import { getAuthUser } from '@/lib/server/auth'
+import { devError } from '@/lib/server/logger'
+import { revalidateOrders } from '@/lib/server/revalidate'
 import type { Order, OrderStatus, OrderWithZone } from '@/lib/types/database'
 import type { CreateOrderData, OrderFilters } from '@/lib/types/orders'
 
@@ -14,22 +17,19 @@ export async function createOrder(
   data: CreateOrderData
 ): Promise<{ data: Order | null; error: string | null }> {
   try {
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
 
     // VALIDACIÓN: Verificar si los pedidos están pausados
     const { data: businessSettings, error: settingsError } = await getBusinessSettings()
 
     if (settingsError) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching business settings:', settingsError)
-      }
+      devError('Error fetching business settings:', settingsError)
       return { data: null, error: 'Error al verificar el estado del negocio' }
     }
 
     if (businessSettings) {
       const businessStatus = checkBusinessStatus(businessSettings)
 
-      // Bloquear si está pausado manualmente
       if (businessStatus.isPaused) {
         return {
           data: null,
@@ -37,7 +37,6 @@ export async function createOrder(
         }
       }
 
-      // Bloquear si está cerrado por horario
       if (!businessStatus.isOpen) {
         return {
           data: null,
@@ -46,8 +45,7 @@ export async function createOrder(
       }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: order, error } = await (supabase as any)
+    const { data: order, error } = await supabase
       .from('orders')
       .insert({
         customer_name: data.customer_name,
@@ -66,21 +64,29 @@ export async function createOrder(
       .single()
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error creating order:', error)
-      }
+      devError('Error creating order:', error)
       return { data: null, error: 'Error al crear el pedido' }
     }
 
-    // Revalidar páginas del admin
-    revalidatePath('/admin/orders')
-    revalidatePath('/admin/dashboard')
+    // Log initial status in history (non-blocking)
+    supabase
+      .from('order_status_history')
+      .insert({
+        order_id: order.id,
+        from_status: null,
+        to_status: 'recibido',
+      })
+      .then(({ error: historyError }) => {
+        if (historyError) {
+          devError('Error logging initial status:', historyError)
+        }
+      })
+
+    revalidateOrders()
 
     return { data: order, error: null }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error in createOrder:', error)
-    }
+    devError('Error in createOrder:', error)
     return { data: null, error: 'Error inesperado al crear el pedido' }
   }
 }
@@ -94,8 +100,7 @@ export async function getOrders(
   try {
     const supabase = await createClient()
 
-    // Verificar autenticación
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthUser(supabase)
     if (!user) {
       return { data: null, error: 'No autenticado' }
     }
@@ -105,7 +110,6 @@ export async function getOrders(
       .select('*, delivery_zones(*)')
       .order('created_at', { ascending: false })
 
-    // Aplicar filtros
     if (filters?.status && filters.status !== 'all') {
       query = query.eq('status', filters.status)
     }
@@ -127,17 +131,13 @@ export async function getOrders(
     const { data, error } = await query
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching orders:', error)
-      }
+      devError('Error fetching orders:', error)
       return { data: null, error: 'Error al cargar pedidos' }
     }
 
-    return { data: data as OrderWithZone[], error: null }
+    return { data: data as unknown as OrderWithZone[], error: null }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error in getOrders:', error)
-    }
+    devError('Error in getOrders:', error)
     return { data: null, error: 'Error inesperado' }
   }
 }
@@ -151,7 +151,7 @@ export async function getOrderById(
   try {
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthUser(supabase)
     if (!user) {
       return { data: null, error: 'No autenticado' }
     }
@@ -163,17 +163,13 @@ export async function getOrderById(
       .single()
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching order:', error)
-      }
+      devError('Error fetching order:', error)
       return { data: null, error: 'Error al cargar pedido' }
     }
 
-    return { data: data as OrderWithZone, error: null }
+    return { data: data as unknown as OrderWithZone, error: null }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error in getOrderById:', error)
-    }
+    devError('Error in getOrderById:', error)
     return { data: null, error: 'Error inesperado' }
   }
 }
@@ -186,15 +182,29 @@ export async function updateOrderStatus(
   newStatus: OrderStatus
 ): Promise<{ data: Order | null; error: string | null }> {
   try {
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthUser(supabase)
     if (!user) {
       return { data: null, error: 'No autenticado' }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any)
+    // Get current status before updating
+    const { data: currentOrder, error: fetchError } = await supabase
+      .from('orders')
+      .select('status')
+      .eq('id', orderId)
+      .single()
+
+    if (fetchError) {
+      devError('Error fetching current order status:', fetchError)
+      return { data: null, error: 'Error al obtener estado actual' }
+    }
+
+    const fromStatus = (currentOrder as { status: string }).status
+
+    // Update the order status
+    const { data, error } = await supabase
       .from('orders')
       .update({ status: newStatus })
       .eq('id', orderId)
@@ -202,21 +212,30 @@ export async function updateOrderStatus(
       .single()
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error updating order status:', error)
-      }
+      devError('Error updating order status:', error)
       return { data: null, error: 'Error al actualizar estado' }
     }
 
-    // Revalidar páginas
-    revalidatePath('/admin/orders')
-    revalidatePath('/admin/dashboard')
+    // Log status change in history (non-blocking)
+    supabase
+      .from('order_status_history')
+      .insert({
+        order_id: orderId,
+        from_status: fromStatus,
+        to_status: newStatus,
+        changed_by: user.id,
+      })
+      .then(({ error: historyError }) => {
+        if (historyError) {
+          devError('Error logging status history:', historyError)
+        }
+      })
+
+    revalidateOrders()
 
     return { data: data as Order, error: null }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error in updateOrderStatus:', error)
-    }
+    devError('Error in updateOrderStatus:', error)
     return { data: null, error: 'Error inesperado' }
   }
 }
@@ -231,12 +250,11 @@ export async function getTodayOrders(): Promise<{
   try {
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthUser(supabase)
     if (!user) {
       return { data: null, error: 'No autenticado' }
     }
 
-    // Inicio del día actual en timezone local
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
@@ -247,17 +265,13 @@ export async function getTodayOrders(): Promise<{
       .order('created_at', { ascending: false })
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching today orders:', error)
-      }
+      devError('Error fetching today orders:', error)
       return { data: null, error: 'Error al cargar pedidos' }
     }
 
-    return { data: data as OrderWithZone[], error: null }
+    return { data: data as unknown as OrderWithZone[], error: null }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error in getTodayOrders:', error)
-    }
+    devError('Error in getTodayOrders:', error)
     return { data: null, error: 'Error inesperado' }
   }
 }
@@ -271,7 +285,7 @@ export async function getRecentOrders(
   try {
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthUser(supabase)
     if (!user) {
       return { data: null, error: 'No autenticado' }
     }
@@ -283,17 +297,13 @@ export async function getRecentOrders(
       .limit(limit)
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching recent orders:', error)
-      }
+      devError('Error fetching recent orders:', error)
       return { data: null, error: 'Error al cargar pedidos' }
     }
 
-    return { data: data as OrderWithZone[], error: null }
+    return { data: data as unknown as OrderWithZone[], error: null }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error in getRecentOrders:', error)
-    }
+    devError('Error in getRecentOrders:', error)
     return { data: null, error: 'Error inesperado' }
   }
 }
@@ -306,21 +316,19 @@ export async function getOrderCountsByStatus(): Promise<{
   error: string | null
 }> {
   try {
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthUser(supabase)
     if (!user) {
       return { data: null, error: 'No autenticado' }
     }
 
     const { data, error } = await supabase
       .from('orders')
-      .select('status') as { data: { status: string }[] | null; error: unknown }
+      .select('status')
 
     if (error || !data) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error counting orders:', error)
-      }
+      devError('Error counting orders:', error)
       return { data: null, error: 'Error al contar pedidos' }
     }
 
@@ -331,7 +339,7 @@ export async function getOrderCountsByStatus(): Promise<{
       cancelado: 0,
     }
 
-    data.forEach((order) => {
+    data.forEach((order: { status: string }) => {
       if (order.status in counts) {
         counts[order.status as OrderStatus]++
       }
@@ -339,9 +347,7 @@ export async function getOrderCountsByStatus(): Promise<{
 
     return { data: counts, error: null }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error in getOrderCountsByStatus:', error)
-    }
+    devError('Error in getOrderCountsByStatus:', error)
     return { data: null, error: 'Error inesperado' }
   }
 }

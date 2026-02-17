@@ -1,5 +1,5 @@
 import { formatPrice } from '@/lib/utils'
-import type { Order, OrderStatus, PaymentMethod } from '@/lib/types/database'
+import type { Json, Order, OrderStatus, PaymentMethod } from '@/lib/types/database'
 import type { OrderItem } from '@/lib/types/orders'
 import { ORDER_STATUS_CONFIG, PAYMENT_METHOD_CONFIG } from '@/lib/types/orders'
 
@@ -273,19 +273,23 @@ export function getOrderSubtotal(order: Order): number {
   return order.total - order.shipping_cost
 }
 
+function isOrderItemLike(item: Json): item is { [key: string]: Json | undefined } & { name: Json; price: Json } {
+  return typeof item === 'object' && item !== null && !Array.isArray(item) && 'name' in item && 'price' in item
+}
+
 /**
- * Parsea los items de una orden desde JSON
+ * Parsea los items de una orden desde JSON con validacion de tipos
  */
-export function parseOrderItems(items: unknown): OrderItem[] {
+export function parseOrderItems(items: Json): OrderItem[] {
   if (!items || !Array.isArray(items)) {
     return []
   }
 
-  return items.map((item) => ({
-    id: item.id || '',
-    name: item.name || 'Producto',
+  return items.filter(isOrderItemLike).map((item) => ({
+    id: String(item.id ?? ''),
+    name: String(item.name ?? 'Producto'),
     price: Number(item.price) || 0,
     quantity: Number(item.quantity) || 1,
-    image_url: item.image_url || null,
+    image_url: item.image_url ? String(item.image_url) : null,
   }))
 }

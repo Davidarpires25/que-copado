@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Plus, ImageOff, Heart, Star } from 'lucide-react'
@@ -17,7 +18,7 @@ interface ProductCardProps {
   rating?: number
 }
 
-export function ProductCard({ product, badge, showRating = false, rating = 4.5 }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({ product, badge, showRating = false, rating = 4.5 }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem)
 
   const handleAddToCart = () => {
@@ -122,4 +123,4 @@ export function ProductCard({ product, badge, showRating = false, rating = 4.5 }
       </div>
     </motion.div>
   )
-}
+})

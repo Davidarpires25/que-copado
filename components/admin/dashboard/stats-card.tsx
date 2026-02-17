@@ -15,6 +15,7 @@ interface StatsCardProps {
     value: number
     isPositive: boolean
   }
+  trendLabel?: string
   delay?: number
 }
 
@@ -26,6 +27,7 @@ export function StatsCard({
   iconColor = 'text-[#FEC501]',
   iconBgColor = 'bg-[#FEC501]/10',
   trend,
+  trendLabel = 'vs. periodo anterior',
   delay = 0,
 }: StatsCardProps) {
   return (
@@ -49,7 +51,7 @@ export function StatsCard({
             )}>
               <span>{trend.isPositive ? '↑' : '↓'}</span>
               <span>{Math.abs(trend.value)}%</span>
-              <span className="text-[#8b9ab0] font-normal">vs. ayer</span>
+              <span className="text-[#8b9ab0] font-normal">{trendLabel}</span>
             </div>
           )}
         </div>

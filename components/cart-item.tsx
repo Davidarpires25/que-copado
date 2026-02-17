@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Trash2, ImageOff } from 'lucide-react'
@@ -15,7 +16,7 @@ interface CartItemProps {
   showImage?: boolean
 }
 
-export function CartItem({
+export const CartItem = memo(function CartItem({
   item,
   onUpdateQuantity,
   onRemove,
@@ -85,4 +86,4 @@ export function CartItem({
       </div>
     </motion.div>
   )
-}
+})

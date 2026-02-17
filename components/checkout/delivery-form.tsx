@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { MapPin, User, Phone, MessageSquare, Truck, Check, Loader2, Store } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -194,8 +193,6 @@ export function DeliveryForm({
   hasZones = false,
   isCalculatingShipping = false
 }: DeliveryFormProps) {
-  const [showMap, setShowMap] = useState(false)
-
   const updateField = (field: keyof DeliveryFormData, value: string) => {
     onChange({ ...data, [field]: value })
   }
@@ -209,13 +206,10 @@ export function DeliveryForm({
       address: value,
       coordinates: coordinates || data.coordinates,
     })
-    if (coordinates) {
-      setShowMap(true)
-    }
   }
 
   const handleAddressSelect = (_suggestion: AddressSuggestion) => {
-    setShowMap(true)
+    // Address selected from autocomplete - map updates via coordinates
   }
 
   const handleMapCoordinatesChange = (

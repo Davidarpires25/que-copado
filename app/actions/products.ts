@@ -1,12 +1,13 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getAuthUser } from '@/lib/server/auth'
+import { revalidateStorefront } from '@/lib/server/revalidate'
 
 export async function createProduct(formData: FormData) {
   const supabase = await createAdminClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser(supabase)
   if (!user) {
     return { error: 'No autorizado' }
   }
@@ -15,10 +16,10 @@ export async function createProduct(formData: FormData) {
   const name = formData.get('name') as string
   const description = formData.get('description') as string
   const priceStr = formData.get('price') as string
+  const costStr = formData.get('cost') as string
   const categoryId = formData.get('category_id') as string
   const imageUrl = formData.get('image_url') as string
 
-  // Validar campos requeridos
   if (!name?.trim()) {
     return { error: 'El nombre del producto es requerido' }
   }
@@ -31,7 +32,6 @@ export async function createProduct(formData: FormData) {
     return { error: 'La categoría es requerida' }
   }
 
-  // Validar precio
   const price = parseFloat(priceStr)
   if (isNaN(price) || price <= 0) {
     return { error: 'El precio debe ser un número válido mayor a 0' }
@@ -41,7 +41,11 @@ export async function createProduct(formData: FormData) {
     return { error: 'El precio no puede exceder $1.000.000' }
   }
 
-  // Validar URL de imagen (opcional)
+  const cost = costStr ? parseFloat(costStr) : null
+  if (cost !== null && (isNaN(cost) || cost < 0)) {
+    return { error: 'El costo debe ser un número válido mayor o igual a 0' }
+  }
+
   if (imageUrl && imageUrl.trim()) {
     try {
       new URL(imageUrl)
@@ -50,29 +54,34 @@ export async function createProduct(formData: FormData) {
     }
   }
 
-  const { error } = await supabase.from('products').insert({
-    name: name.trim(),
-    description: description?.trim() || null,
-    price,
-    category_id: categoryId,
-    image_url: imageUrl?.trim() || null,
-    is_active: true,
-    is_out_of_stock: false,
-  })
+  const { data, error } = await supabase
+    .from('products')
+    .insert({
+      name: name.trim(),
+      description: description?.trim() || null,
+      price,
+      cost,
+      category_id: categoryId,
+      image_url: imageUrl?.trim() || null,
+      is_active: true,
+      is_out_of_stock: false,
+    })
+    .select('*, categories(*)')
+    .single()
 
   if (error) {
     return { error: error.message }
   }
 
-  revalidatePath('/')
-  revalidatePath('/admin/dashboard')
-  return { success: true }
+  revalidateStorefront()
+  return { success: true, product: data }
 }
 
 export async function updateProduct(productId: string, data: {
   name?: string
   description?: string
   price?: number
+  cost?: number | null
   category_id?: string
   image_url?: string
   is_active?: boolean
@@ -80,17 +89,15 @@ export async function updateProduct(productId: string, data: {
 }) {
   const supabase = await createAdminClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser(supabase)
   if (!user) {
     return { error: 'No autorizado' }
   }
 
-  // Validar productId
   if (!productId?.trim()) {
     return { error: 'ID de producto inválido' }
   }
 
-  // Validar datos si se proporcionan
   if (data.name !== undefined) {
     if (!data.name.trim()) {
       return { error: 'El nombre del producto no puede estar vacío' }
@@ -123,29 +130,29 @@ export async function updateProduct(productId: string, data: {
     }
   }
 
-  const { error } = await supabase
+  const { data: updatedProduct, error } = await supabase
     .from('products')
     .update(data)
     .eq('id', productId)
+    .select('*, categories(*)')
+    .single()
 
   if (error) {
     return { error: error.message }
   }
 
-  revalidatePath('/')
-  revalidatePath('/admin/dashboard')
-  return { success: true }
+  revalidateStorefront()
+  return { success: true, product: updatedProduct }
 }
 
 export async function deleteProduct(productId: string) {
   const supabase = await createAdminClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser(supabase)
   if (!user) {
     return { error: 'No autorizado' }
   }
 
-  // Validar productId
   if (!productId?.trim()) {
     return { error: 'ID de producto inválido' }
   }
@@ -159,8 +166,7 @@ export async function deleteProduct(productId: string) {
     return { error: error.message }
   }
 
-  revalidatePath('/')
-  revalidatePath('/admin/dashboard')
+  revalidateStorefront()
   return { success: true }
 }
 

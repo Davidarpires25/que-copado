@@ -6,6 +6,12 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+// GeoJSON Types for Delivery Zones (declared before Database since it's referenced in table types)
+export interface GeoJSONPolygon {
+  type: 'Polygon'
+  coordinates: number[][][]
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -39,6 +45,7 @@ export interface Database {
           name: string
           description: string | null
           price: number
+          cost: number | null
           image_url: string | null
           is_active: boolean
           is_out_of_stock: boolean
@@ -50,6 +57,7 @@ export interface Database {
           name: string
           description?: string | null
           price: number
+          cost?: number | null
           image_url?: string | null
           is_active?: boolean
           is_out_of_stock?: boolean
@@ -61,6 +69,7 @@ export interface Database {
           name?: string
           description?: string | null
           price?: number
+          cost?: number | null
           image_url?: string | null
           is_active?: boolean
           is_out_of_stock?: boolean
@@ -76,12 +85,12 @@ export interface Database {
           customer_phone: string
           customer_name: string
           customer_address: string
-          customer_coordinates: { lat: number; lng: number } | null
+          customer_coordinates: Json
           shipping_cost: number
           delivery_zone_id: string | null
           notes: string | null
-          payment_method: 'cash' | 'transfer' | 'mercadopago'
-          status: 'recibido' | 'pagado' | 'entregado' | 'cancelado'
+          payment_method: string
+          status: string
         }
         Insert: {
           id?: string
@@ -91,12 +100,12 @@ export interface Database {
           customer_phone: string
           customer_name: string
           customer_address: string
-          customer_coordinates?: { lat: number; lng: number } | null
+          customer_coordinates?: Json
           shipping_cost?: number
           delivery_zone_id?: string | null
           notes?: string | null
-          payment_method: 'cash' | 'transfer' | 'mercadopago'
-          status?: 'recibido' | 'pagado' | 'entregado' | 'cancelado'
+          payment_method: string
+          status?: string
         }
         Update: {
           id?: string
@@ -106,18 +115,18 @@ export interface Database {
           customer_phone?: string
           customer_name?: string
           customer_address?: string
-          customer_coordinates?: { lat: number; lng: number } | null
+          customer_coordinates?: Json
           shipping_cost?: number
           delivery_zone_id?: string | null
           notes?: string | null
-          payment_method?: 'cash' | 'transfer' | 'mercadopago'
-          status?: 'recibido' | 'pagado' | 'entregado' | 'cancelado'
+          payment_method?: string
+          status?: string
         }
       }
       business_settings: {
         Row: {
           id: string
-          operating_days: number[]
+          operating_days: Json
           opening_time: string
           closing_time: string
           is_paused: boolean
@@ -127,7 +136,7 @@ export interface Database {
         }
         Insert: {
           id?: string
-          operating_days?: number[]
+          operating_days?: Json
           opening_time?: string
           closing_time?: string
           is_paused?: boolean
@@ -137,11 +146,49 @@ export interface Database {
         }
         Update: {
           id?: string
-          operating_days?: number[]
+          operating_days?: Json
           opening_time?: string
           closing_time?: string
           is_paused?: boolean
           pause_message?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      delivery_zones: {
+        Row: {
+          id: string
+          name: string
+          polygon: Json
+          shipping_cost: number
+          color: string
+          is_active: boolean
+          sort_order: number
+          free_shipping_threshold: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          polygon: Json
+          shipping_cost: number
+          color?: string
+          is_active?: boolean
+          sort_order?: number
+          free_shipping_threshold?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          polygon?: Json
+          shipping_cost?: number
+          color?: string
+          is_active?: boolean
+          sort_order?: number
+          free_shipping_threshold?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -159,13 +206,39 @@ export interface Database {
   }
 }
 
+// Convenience type aliases with proper business types
+export interface Order {
+  id: string
+  created_at: string
+  total: number
+  items: Json
+  customer_phone: string
+  customer_name: string
+  customer_address: string
+  customer_coordinates: { lat: number; lng: number } | null
+  shipping_cost: number
+  delivery_zone_id: string | null
+  notes: string | null
+  payment_method: PaymentMethod
+  status: OrderStatus
+}
+
 export type Category = Database['public']['Tables']['categories']['Row']
 export type Product = Database['public']['Tables']['products']['Row']
-export type Order = Database['public']['Tables']['orders']['Row']
-export type BusinessSettings = Database['public']['Tables']['business_settings']['Row']
 
-export type OrderStatus = Order['status']
-export type PaymentMethod = Order['payment_method']
+export interface BusinessSettings {
+  id: string
+  operating_days: number[]
+  opening_time: string
+  closing_time: string
+  is_paused: boolean
+  pause_message: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type OrderStatus = 'recibido' | 'pagado' | 'entregado' | 'cancelado'
+export type PaymentMethod = 'cash' | 'transfer' | 'mercadopago'
 
 export type ProductWithCategory = Product & {
   categories: Category
@@ -173,12 +246,6 @@ export type ProductWithCategory = Product & {
 
 export type OrderWithZone = Order & {
   delivery_zones: DeliveryZone | null
-}
-
-// GeoJSON Types for Delivery Zones
-export interface GeoJSONPolygon {
-  type: 'Polygon'
-  coordinates: number[][][]
 }
 
 export interface DeliveryZone {
