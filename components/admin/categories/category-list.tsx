@@ -1,8 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Pencil, Trash2, GripVertical, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { deleteCategory, updateCategory } from '@/app/actions/categories'
 import { toast } from 'sonner'
 import type { Category } from '@/lib/types/database'
@@ -14,14 +17,13 @@ interface CategoryListProps {
 }
 
 export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProps) {
+  const router = useRouter()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [movingId, setMovingId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Category | null>(null)
 
   const handleDelete = async (category: Category) => {
-    if (!confirm(`¿Estás seguro de eliminar la categoría "${category.name}"?`)) {
-      return
-    }
-
+    setDeleteTarget(null)
     setDeletingId(category.id)
     try {
       const result = await deleteCategory(category.id)
@@ -31,7 +33,7 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
       }
       toast.success('Categoría eliminada')
       onDeleted(category.id)
-    } catch (error) {
+    } catch {
       toast.error('Error al eliminar la categoría')
     } finally {
       setDeletingId(null)
@@ -45,11 +47,10 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
 
     setMovingId(category.id)
     try {
-      // Swap sort_order values
       await updateCategory(category.id, { sort_order: prevCategory.sort_order })
       await updateCategory(prevCategory.id, { sort_order: category.sort_order })
-      window.location.reload()
-    } catch (error) {
+      router.refresh()
+    } catch {
       toast.error('Error al reordenar')
     } finally {
       setMovingId(null)
@@ -63,11 +64,10 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
 
     setMovingId(category.id)
     try {
-      // Swap sort_order values
       await updateCategory(category.id, { sort_order: nextCategory.sort_order })
       await updateCategory(nextCategory.id, { sort_order: category.sort_order })
-      window.location.reload()
-    } catch (error) {
+      router.refresh()
+    } catch {
       toast.error('Error al reordenar')
     } finally {
       setMovingId(null)
@@ -90,7 +90,7 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
             <button
               onClick={() => handleMoveUp(index)}
               disabled={index === 0 || movingId === category.id}
-              className="p-1 text-[#8b9ab0] hover:text-[#f0f2f5] disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1 text-[#a8b5c9] hover:text-[#f0f2f5] disabled:opacity-30 disabled:cursor-not-allowed"
               title="Mover arriba"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -100,7 +100,7 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
             <button
               onClick={() => handleMoveDown(index)}
               disabled={index === categories.length - 1 || movingId === category.id}
-              className="p-1 text-[#8b9ab0] hover:text-[#f0f2f5] disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1 text-[#a8b5c9] hover:text-[#f0f2f5] disabled:opacity-30 disabled:cursor-not-allowed"
               title="Mover abajo"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -110,7 +110,7 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
           </div>
 
           {/* Order Number */}
-          <div className="w-8 h-8 rounded-lg bg-[#2a2f3a] flex items-center justify-center text-sm font-medium text-[#8b9ab0]">
+          <div className="w-8 h-8 rounded-lg bg-[#2a2f3a] flex items-center justify-center text-sm font-medium text-[#a8b5c9]">
             {index + 1}
           </div>
 
@@ -119,42 +119,65 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
             <h3 className="font-semibold text-[#f0f2f5] truncate">
               {category.name}
             </h3>
-            <p className="text-sm text-[#8b9ab0] truncate">
+            <p className="text-sm text-[#a8b5c9] truncate">
               /{category.slug}
             </p>
           </div>
 
           {/* Loading State */}
           {movingId === category.id && (
-            <Loader2 className="h-4 w-4 text-[#8b9ab0] animate-spin" />
+            <Loader2 className="h-4 w-4 text-[#a8b5c9] animate-spin" />
           )}
 
           {/* Actions */}
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onEdit(category)}
-              className="h-9 w-9 text-[#8b9ab0] hover:text-[#f0f2f5] hover:bg-[#2a2f3a]"
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handleDelete(category)}
-              disabled={deletingId === category.id}
-              className="h-9 w-9 text-[#8b9ab0] hover:text-red-400 hover:bg-red-500/10"
-            >
-              {deletingId === category.id ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onEdit(category)}
+                    className="h-9 w-9 text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#2a2f3a]"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Editar</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeleteTarget(category)}
+                    disabled={deletingId === category.id}
+                    className="h-9 w-9 text-[#a8b5c9] hover:text-red-400 hover:bg-red-500/10"
+                  >
+                    {deletingId === category.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Eliminar</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       ))}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Eliminar categoría"
+        description={`¿Estás seguro de eliminar la categoría "${deleteTarget?.name}"? Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
+      />
     </div>
   )
 }

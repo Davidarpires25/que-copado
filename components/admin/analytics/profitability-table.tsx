@@ -9,7 +9,7 @@ interface ProfitabilityTableProps {
 }
 
 function getMarginColor(pct: number, hasCost: boolean) {
-  if (!hasCost) return 'text-[#8b9ab0]'
+  if (!hasCost) return 'text-[#a8b5c9]'
   if (pct >= 65) return 'text-green-500'
   if (pct >= 50) return 'text-yellow-500'
   return 'text-red-500'
@@ -24,7 +24,7 @@ function getFoodCostColor(pct: number) {
 export function ProfitabilityTable({ data }: ProfitabilityTableProps) {
   if (data.products.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[200px] text-[#8b9ab0] gap-2">
+      <div className="flex flex-col items-center justify-center h-[200px] text-[#a8b5c9] gap-2">
         <TrendingUp className="h-8 w-8 opacity-50" />
         <p className="text-sm">No hay datos de ventas en este periodo</p>
       </div>
@@ -36,21 +36,21 @@ export function ProfitabilityTable({ data }: ProfitabilityTableProps) {
       {/* KPI Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-[#252a35] rounded-lg p-3 hover:bg-[#2a2f3a] transition-colors">
-          <p className="text-xs text-[#8b9ab0] mb-1">Revenue</p>
+          <p className="text-xs text-[#a8b5c9] mb-1">Revenue</p>
           <p className="text-lg font-bold text-[#f0f2f5]">{formatPrice(data.totalRevenue)}</p>
         </div>
         <div className="bg-[#252a35] rounded-lg p-3 hover:bg-[#2a2f3a] transition-colors">
-          <p className="text-xs text-[#8b9ab0] mb-1">COGS</p>
+          <p className="text-xs text-[#a8b5c9] mb-1">COGS</p>
           <p className="text-lg font-bold text-[#f0f2f5]">{formatPrice(data.totalCOGS)}</p>
         </div>
         <div className="bg-[#252a35] rounded-lg p-3 hover:bg-[#2a2f3a] transition-colors">
-          <p className="text-xs text-[#8b9ab0] mb-1">Margen Bruto</p>
+          <p className="text-xs text-[#a8b5c9] mb-1">Margen Bruto</p>
           <p className={`text-lg font-bold ${getMarginColor(data.grossMarginPercentage, true)}`}>
             {data.grossMarginPercentage}%
           </p>
         </div>
         <div className="bg-[#252a35] rounded-lg p-3 hover:bg-[#2a2f3a] transition-colors">
-          <p className="text-xs text-[#8b9ab0] mb-1">Food Cost</p>
+          <p className="text-xs text-[#a8b5c9] mb-1">Food Cost</p>
           <p className={`text-lg font-bold ${getFoodCostColor(data.foodCostPercentage)}`}>
             {data.foodCostPercentage}%
           </p>
@@ -72,12 +72,12 @@ export function ProfitabilityTable({ data }: ProfitabilityTableProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#2a2f3a]">
-              <th className="text-left text-[#8b9ab0] font-semibold pb-2 pr-3">Producto</th>
-              <th className="text-right text-[#8b9ab0] font-semibold pb-2 px-2">Cant.</th>
-              <th className="text-right text-[#8b9ab0] font-semibold pb-2 px-2">Revenue</th>
-              <th className="text-right text-[#8b9ab0] font-semibold pb-2 px-2">Costo</th>
-              <th className="text-right text-[#8b9ab0] font-semibold pb-2 px-2">Margen</th>
-              <th className="text-right text-[#8b9ab0] font-semibold pb-2 pl-2">Food Cost</th>
+              <th className="text-left text-[#a8b5c9] font-semibold pb-2 pr-3">Producto</th>
+              <th className="text-right text-[#a8b5c9] font-semibold pb-2 px-2">Cant.</th>
+              <th className="text-right text-[#a8b5c9] font-semibold pb-2 px-2">Revenue</th>
+              <th className="text-right text-[#a8b5c9] font-semibold pb-2 px-2">Costo</th>
+              <th className="text-right text-[#a8b5c9] font-semibold pb-2 px-2">Margen</th>
+              <th className="text-right text-[#a8b5c9] font-semibold pb-2 pl-2">Food Cost</th>
             </tr>
           </thead>
           <tbody>
@@ -106,7 +106,7 @@ export function ProfitabilityTable({ data }: ProfitabilityTableProps) {
                   <td className="text-right py-2.5 px-2 text-[#f0f2f5]">
                     {formatPrice(product.revenue)}
                   </td>
-                  <td className="text-right py-2.5 px-2 text-[#8b9ab0]">
+                  <td className="text-right py-2.5 px-2 text-[#a8b5c9]">
                     {hasCost ? formatPrice(product.cogs) : '-'}
                   </td>
                   <td className="text-right py-2.5 px-2">
@@ -115,7 +115,7 @@ export function ProfitabilityTable({ data }: ProfitabilityTableProps) {
                     </span>
                   </td>
                   <td className="text-right py-2.5 pl-2">
-                    <span className={`font-semibold ${hasCost ? getFoodCostColor(product.foodCostPercentage) : 'text-[#8b9ab0]'}`}>
+                    <span className={`font-semibold ${hasCost ? getFoodCostColor(product.foodCostPercentage) : 'text-[#a8b5c9]'}`}>
                       {hasCost ? `${product.foodCostPercentage}%` : '-'}
                     </span>
                   </td>

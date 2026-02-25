@@ -3,6 +3,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { revalidateStorefront } from '@/lib/server/revalidate'
+import { friendlyError } from '@/lib/server/error-messages'
 
 export async function createProduct(formData: FormData) {
   const supabase = await createAdminClient()
@@ -54,6 +55,8 @@ export async function createProduct(formData: FormData) {
     }
   }
 
+  const productType = (formData.get('product_type') as string) || 'elaborado'
+
   const { data, error } = await supabase
     .from('products')
     .insert({
@@ -61,6 +64,7 @@ export async function createProduct(formData: FormData) {
       description: description?.trim() || null,
       price,
       cost,
+      product_type: productType,
       category_id: categoryId,
       image_url: imageUrl?.trim() || null,
       is_active: true,
@@ -70,7 +74,7 @@ export async function createProduct(formData: FormData) {
     .single()
 
   if (error) {
-    return { error: error.message }
+    return { error: friendlyError(error) }
   }
 
   revalidateStorefront()
@@ -82,6 +86,7 @@ export async function updateProduct(productId: string, data: {
   description?: string
   price?: number
   cost?: number | null
+  product_type?: string
   category_id?: string
   image_url?: string
   is_active?: boolean
@@ -138,7 +143,7 @@ export async function updateProduct(productId: string, data: {
     .single()
 
   if (error) {
-    return { error: error.message }
+    return { error: friendlyError(error) }
   }
 
   revalidateStorefront()
@@ -163,7 +168,7 @@ export async function deleteProduct(productId: string) {
     .eq('id', productId)
 
   if (error) {
-    return { error: error.message }
+    return { error: friendlyError(error) }
   }
 
   revalidateStorefront()
@@ -180,4 +185,56 @@ export async function toggleProductActive(productId: string, isActive: boolean) 
 
 export async function updateProductPrice(productId: string, price: number) {
   return updateProduct(productId, { price })
+}
+
+// Bulk operations
+
+export async function bulkToggleActive(productIds: string[], isActive: boolean) {
+  const supabase = await createAdminClient()
+
+  const user = await getAuthUser(supabase)
+  if (!user) {
+    return { error: 'No autorizado' }
+  }
+
+  if (!Array.isArray(productIds) || productIds.length === 0) {
+    return { error: 'No se seleccionaron productos' }
+  }
+
+  const { error } = await supabase
+    .from('products')
+    .update({ is_active: isActive })
+    .in('id', productIds)
+
+  if (error) {
+    return { error: friendlyError(error) }
+  }
+
+  revalidateStorefront()
+  return { success: true, count: productIds.length }
+}
+
+export async function bulkDelete(productIds: string[]) {
+  const supabase = await createAdminClient()
+
+  const user = await getAuthUser(supabase)
+  if (!user) {
+    return { error: 'No autorizado' }
+  }
+
+  if (!Array.isArray(productIds) || productIds.length === 0) {
+    return { error: 'No se seleccionaron productos' }
+  }
+
+  const { error } = await supabase
+    .from('products')
+    .delete()
+    .in('id', productIds)
+
+  if (error) {
+    return { error: friendlyError(error) }
+  }
+
+  revalidateStorefront()
+  return { success: true, count: productIds.length }
 }

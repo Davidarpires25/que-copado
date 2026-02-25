@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import type { LucideIcon } from 'lucide-react'
@@ -17,6 +18,7 @@ interface StatsCardProps {
   }
   trendLabel?: string
   delay?: number
+  href?: string
 }
 
 export function StatsCard({
@@ -29,20 +31,24 @@ export function StatsCard({
   trend,
   trendLabel = 'vs. periodo anterior',
   delay = 0,
+  href,
 }: StatsCardProps) {
-  return (
+  const content = (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className="bg-[#1a1d24] backdrop-blur border border-[#2a2f3a] rounded-xl p-6 hover:border-[#3a4150] transition-colors duration-200"
+      className={cn(
+        "bg-[#1a1d24] backdrop-blur border border-[#2a2f3a] rounded-xl p-6 hover:border-[#3a4150] transition-colors duration-200 h-full",
+        href && "cursor-pointer hover:border-[#FEC501]/30"
+      )}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-[#8b9ab0] text-sm font-medium">{title}</p>
+          <p className="text-[#a8b5c9] text-sm font-medium">{title}</p>
           <p className="text-3xl font-bold text-[#f0f2f5] mt-1">{value}</p>
           {subtitle && (
-            <p className="text-sm text-[#8b9ab0] mt-1">{subtitle}</p>
+            <p className="text-sm text-[#a8b5c9] mt-1">{subtitle}</p>
           )}
           {trend && (
             <div className={cn(
@@ -51,7 +57,7 @@ export function StatsCard({
             )}>
               <span>{trend.isPositive ? '↑' : '↓'}</span>
               <span>{Math.abs(trend.value)}%</span>
-              <span className="text-[#8b9ab0] font-normal">{trendLabel}</span>
+              <span className="text-[#a8b5c9] font-normal">{trendLabel}</span>
             </div>
           )}
         </div>
@@ -61,4 +67,10 @@ export function StatsCard({
       </div>
     </motion.div>
   )
+
+  if (href) {
+    return <Link href={href}>{content}</Link>
+  }
+
+  return content
 }

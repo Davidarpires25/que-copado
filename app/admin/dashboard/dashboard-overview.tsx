@@ -48,6 +48,7 @@ export function DashboardOverview({
           iconBgColor="bg-green-500/10"
           trend={trends?.todayRevenueTrend || undefined}
           delay={0.1}
+          href="/admin/orders"
         />
         <StatsCard
           title="Ventas Semana"
@@ -58,6 +59,7 @@ export function DashboardOverview({
           iconBgColor="bg-blue-500/10"
           trend={trends?.weekRevenueTrend || undefined}
           delay={0.15}
+          href="/admin/analytics"
         />
         <StatsCard
           title="Ventas Mes"
@@ -68,6 +70,7 @@ export function DashboardOverview({
           iconBgColor="bg-purple-500/10"
           trend={trends?.monthRevenueTrend || undefined}
           delay={0.2}
+          href="/admin/analytics"
         />
         <StatsCard
           title="Ticket Promedio"
@@ -78,6 +81,7 @@ export function DashboardOverview({
           iconBgColor="bg-[#FEC501]/10"
           trend={trends?.averageTicketTrend || undefined}
           delay={0.25}
+          href="/admin/analytics"
         />
       </div>
 
@@ -98,23 +102,23 @@ export function DashboardOverview({
                 <p className="text-sm font-medium text-[#f0f2f5] group-hover:text-[#FEC501] transition-colors">
                   Ver Analytics completo
                 </p>
-                <p className="text-xs text-[#8b9ab0]">
+                <p className="text-xs text-[#a8b5c9]">
                   Ventas por hora, día, zona, productos y más
                 </p>
               </div>
             </div>
-            <ArrowRight className="h-4 w-4 text-[#8b9ab0] group-hover:text-[#FEC501] group-hover:translate-x-1 transition-all duration-200" />
+            <ArrowRight className="h-4 w-4 text-[#a8b5c9] group-hover:text-[#FEC501] group-hover:translate-x-1 transition-all duration-200" />
           </div>
         </Link>
       </motion.div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8 items-stretch">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="lg:col-span-2"
+          className="lg:col-span-3 flex"
         >
           <SalesChart data={chartData} />
         </motion.div>
@@ -123,6 +127,7 @@ export function DashboardOverview({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
+          className="lg:col-span-2 flex"
         >
           <TopProductsTable products={topProducts} />
         </motion.div>
@@ -148,7 +153,7 @@ export function DashboardOverview({
         </div>
 
         {recentOrders.length === 0 ? (
-          <p className="text-center text-[#8b9ab0] py-8">
+          <p className="text-center text-[#a8b5c9] py-8">
             No hay pedidos recientes
           </p>
         ) : (
@@ -168,13 +173,13 @@ export function DashboardOverview({
                       <p className="font-mono text-[#f0f2f5] font-semibold group-hover:text-[#FEC501] transition-colors">
                         #{getShortOrderId(order.id)}
                       </p>
-                      <p className="text-xs text-[#8b9ab0]">
+                      <p className="text-xs text-[#a8b5c9]">
                         {formatRelativeDate(order.created_at)}
                       </p>
                     </div>
                     <div className="hidden sm:block">
                       <p className="text-[#c4cdd9] text-sm">{order.customer_name}</p>
-                      <p className="text-xs text-[#8b9ab0] truncate max-w-[200px]">
+                      <p className="text-xs text-[#a8b5c9] truncate max-w-[200px]">
                         {itemsSummary}
                       </p>
                     </div>

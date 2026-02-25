@@ -60,7 +60,7 @@ export function ChangeStatusDialog({
       <DialogContent className="bg-[#12151a] border-[#2a2f3a] max-w-sm">
         <DialogHeader>
           <DialogTitle className="text-[#f0f2f5]">Cambiar Estado</DialogTitle>
-          <p className="text-sm text-[#8b9ab0] mt-1">
+          <p className="text-sm text-[#a8b5c9] mt-1">
             Estado actual: <OrderStatusBadge status={currentStatus} size="sm" />
           </p>
         </DialogHeader>
@@ -93,7 +93,7 @@ export function ChangeStatusDialog({
                 )}
                 <span className="text-[#f0f2f5]">{config.label}</span>
                 {isCurrentStatus && (
-                  <span className="ml-auto text-xs text-[#8b9ab0]">Actual</span>
+                  <span className="ml-auto text-xs text-[#a8b5c9]">Actual</span>
                 )}
               </Button>
             )

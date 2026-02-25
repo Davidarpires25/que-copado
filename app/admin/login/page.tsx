@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Lock, Mail, Loader2 } from 'lucide-react'
+import { Lock, Mail, Loader2, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,6 +13,7 @@ import { toast } from 'sonner'
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [focusedInput, setFocusedInput] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(formData: FormData) {
     setLoading(true)
@@ -51,7 +52,7 @@ export default function LoginPage() {
               <CardTitle className="text-3xl font-bold text-[#f0f2f5] mb-2">
                 Que <span className="text-[#FEC501]">Copado</span>
               </CardTitle>
-              <p className="text-[#8b9ab0]">Panel de Administracion</p>
+              <p className="text-[#a8b5c9]">Panel de Administracion</p>
             </div>
           </CardHeader>
           <CardContent className="pt-2 pb-6">
@@ -63,7 +64,7 @@ export default function LoginPage() {
                 <div className="relative group">
                   <Mail
                     className={`absolute left-3.5 top-3.5 h-4 w-4 transition-colors duration-200 ${
-                      focusedInput === 'email' ? 'text-[#FEC501]' : 'text-[#8b9ab0]'
+                      focusedInput === 'email' ? 'text-[#FEC501]' : 'text-[#a8b5c9]'
                     }`}
                   />
                   <Input
@@ -74,7 +75,7 @@ export default function LoginPage() {
                     required
                     onFocus={() => setFocusedInput('email')}
                     onBlur={() => setFocusedInput(null)}
-                    className="pl-10 h-12 bg-[#252a35] border-[#2a2f3a] text-[#f0f2f5] placeholder:text-[#8b9ab0] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all duration-200"
+                    className="pl-10 h-12 bg-[#252a35] border-[#2a2f3a] text-[#f0f2f5] placeholder:text-[#a8b5c9] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all duration-200"
                   />
                 </div>
               </div>
@@ -85,19 +86,31 @@ export default function LoginPage() {
                 <div className="relative group">
                   <Lock
                     className={`absolute left-3.5 top-3.5 h-4 w-4 transition-colors duration-200 ${
-                      focusedInput === 'password' ? 'text-[#FEC501]' : 'text-[#8b9ab0]'
+                      focusedInput === 'password' ? 'text-[#FEC501]' : 'text-[#a8b5c9]'
                     }`}
                   />
                   <Input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="Ingresa tu contraseña"
                     required
                     onFocus={() => setFocusedInput('password')}
                     onBlur={() => setFocusedInput(null)}
-                    className="pl-10 h-12 bg-[#252a35] border-[#2a2f3a] text-[#f0f2f5] placeholder:text-[#8b9ab0] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all duration-200"
+                    className="pl-10 pr-10 h-12 bg-[#252a35] border-[#2a2f3a] text-[#f0f2f5] placeholder:text-[#a8b5c9] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all duration-200"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-3.5 text-[#a8b5c9] hover:text-[#f0f2f5] transition-colors duration-200"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
                 </div>
               </div>
               <Button

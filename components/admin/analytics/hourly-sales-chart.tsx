@@ -26,7 +26,7 @@ export function HourlySalesChart({ data }: HourlySalesChartProps) {
 
   if (!hasAnyData) {
     return (
-      <div className="flex flex-col items-center justify-center h-[280px] text-[#8b9ab0] gap-2">
+      <div className="flex flex-col items-center justify-center h-[280px] text-[#a8b5c9] gap-2">
         <Clock className="h-8 w-8 opacity-50" />
         <p className="text-sm">No hay datos de ventas en este período</p>
       </div>
@@ -40,13 +40,13 @@ export function HourlySalesChart({ data }: HourlySalesChartProps) {
           <CartesianGrid strokeDasharray="3 3" stroke="#2a2f3a" />
           <XAxis
             dataKey="label"
-            stroke="#8b9ab0"
+            stroke="#a8b5c9"
             fontSize={11}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
-            stroke="#8b9ab0"
+            stroke="#a8b5c9"
             fontSize={11}
             tickLine={false}
             axisLine={false}

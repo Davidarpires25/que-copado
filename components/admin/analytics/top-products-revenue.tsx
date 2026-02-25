@@ -11,7 +11,7 @@ interface TopProductsRevenueProps {
 export function TopProductsRevenue({ data }: TopProductsRevenueProps) {
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[300px] text-[#8b9ab0] gap-2">
+      <div className="flex flex-col items-center justify-center h-[300px] text-[#a8b5c9] gap-2">
         <Package className="h-8 w-8 opacity-50" />
         <p className="text-sm">No hay datos de productos en este período</p>
       </div>
@@ -32,7 +32,7 @@ export function TopProductsRevenue({ data }: TopProductsRevenueProps) {
           >
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="text-[#8b9ab0] text-xs w-5 shrink-0 text-right">
+                <span className="text-[#a8b5c9] text-xs w-5 shrink-0 text-right">
                   {index === 0 ? (
                     <Trophy className="h-4 w-4 text-[#FEC501] inline" />
                   ) : (
@@ -44,10 +44,10 @@ export function TopProductsRevenue({ data }: TopProductsRevenueProps) {
                 </span>
               </div>
               <div className="flex items-center gap-3 text-xs shrink-0">
-                <span className="text-[#8b9ab0]">
+                <span className="text-[#a8b5c9]">
                   {product.quantity} uds
                 </span>
-                <span className="text-[#8b9ab0]">
+                <span className="text-[#a8b5c9]">
                   {product.percentage}%
                 </span>
                 <span className="text-[#FEC501] font-semibold min-w-[72px] text-right">

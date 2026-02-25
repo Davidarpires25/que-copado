@@ -59,6 +59,7 @@ export async function createOrder(
         notes: data.notes || null,
         payment_method: data.payment_method,
         status: 'recibido',
+        order_source: 'web',
       })
       .select()
       .single()
@@ -120,6 +121,10 @@ export async function getOrders(
 
     if (filters?.dateTo) {
       query = query.lte('created_at', filters.dateTo)
+    }
+
+    if (filters?.source && filters.source !== 'all') {
+      query = query.eq('order_source', filters.source)
     }
 
     if (filters?.search) {
@@ -333,7 +338,9 @@ export async function getOrderCountsByStatus(): Promise<{
     }
 
     const counts: Record<OrderStatus, number> = {
+      abierto: 0,
       recibido: 0,
+      cuenta_pedida: 0,
       pagado: 0,
       entregado: 0,
       cancelado: 0,

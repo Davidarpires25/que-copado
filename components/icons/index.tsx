@@ -36,27 +36,7 @@ export function SodaIcon({ size = 24, ...props }: IconProps) {
 // Pizza
 export function PizzaIcon({ size = 24, ...props }: IconProps) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      {/* Porción de pizza */}
-      <path d="M12 2L3 20h18L12 2z" />
-      {/* Pepperoni */}
-      <circle cx="10" cy="12" r="1.5" fill="currentColor" />
-      <circle cx="14" cy="14" r="1.5" fill="currentColor" />
-      <circle cx="11" cy="17" r="1.5" fill="currentColor" />
-      {/* Borde */}
-      <path d="M12 2c0 0-2 1-2 2s2 2 4 2 2-1 2-2-2-2-2-2" />
-    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6.234 16.925a15.98 15.98 0 0 1 10.69-10.691M7.582 7.58a18.76 18.76 0 0 1 7.33-4.53c.536-.18 1.103.136 1.265.678l4.779 15.928a1.042 1.042 0 0 1-1.298 1.298L3.73 16.176c-.542-.162-.858-.729-.679-1.266a18.76 18.76 0 0 1 4.53-7.33M11 15l.354.354M15 11l.354.354M16 16l.354.354"/></svg>
   )
 }
 
@@ -64,7 +44,7 @@ export function PizzaIcon({ size = 24, ...props }: IconProps) {
 export function IceCreamIcon({ size = 24, ...props }: IconProps) {
   return (
     <svg
-      xmlns="http://www.w3.org/2000/svg"
+      xmlns="http://www.w3.org/2000/svg"  
       width={size}
       height={size}
       viewBox="0 0 24 24"

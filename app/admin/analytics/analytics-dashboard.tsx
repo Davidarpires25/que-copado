@@ -210,7 +210,7 @@ export function AnalyticsDashboard({
           ) : profitability ? (
             <ProfitabilityTable data={profitability} />
           ) : (
-            <p className="text-[#8b9ab0] text-center py-8">
+            <p className="text-[#a8b5c9] text-center py-8">
               No hay datos de rentabilidad
             </p>
           )}
@@ -345,7 +345,7 @@ export function AnalyticsDashboard({
             ) : shipping ? (
               <ShippingAnalysis data={shipping} />
             ) : (
-              <p className="text-[#8b9ab0] text-center py-8">
+              <p className="text-[#a8b5c9] text-center py-8">
                 No hay datos de envío
               </p>
             )}

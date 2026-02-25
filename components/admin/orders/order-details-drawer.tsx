@@ -75,7 +75,7 @@ export function OrderDetailsDrawer({
                 <h2 className="text-lg font-bold text-[#f0f2f5]">
                   Pedido #{getShortOrderId(order.id)}
                 </h2>
-                <p className="text-sm text-[#8b9ab0] flex items-center gap-1 mt-0.5">
+                <p className="text-sm text-[#a8b5c9] flex items-center gap-1 mt-0.5">
                   <Clock className="h-3.5 w-3.5" />
                   {formatDateTime(order.created_at)}
                 </p>
@@ -84,7 +84,7 @@ export function OrderDetailsDrawer({
                 variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="h-9 w-9 text-[#8b9ab0] hover:text-[#f0f2f5] hover:bg-[#252a35]"
+                className="h-9 w-9 text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#252a35]"
               >
                 <X className="h-5 w-5" />
               </Button>
@@ -110,14 +110,14 @@ export function OrderDetailsDrawer({
                 <h3 className="font-semibold text-[#f0f2f5] mb-3">Cliente</h3>
 
                 <div className="flex items-start gap-3">
-                  <User className="h-4 w-4 text-[#8b9ab0] mt-0.5" />
+                  <User className="h-4 w-4 text-[#a8b5c9] mt-0.5" />
                   <div>
                     <p className="text-[#f0f2f5]">{order.customer_name}</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <Phone className="h-4 w-4 text-[#8b9ab0] mt-0.5" />
+                  <Phone className="h-4 w-4 text-[#a8b5c9] mt-0.5" />
                   <div>
                     <a
                       href={`tel:${order.customer_phone}`}
@@ -129,11 +129,11 @@ export function OrderDetailsDrawer({
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <MapPin className="h-4 w-4 text-[#8b9ab0] mt-0.5" />
+                  <MapPin className="h-4 w-4 text-[#a8b5c9] mt-0.5" />
                   <div className="flex-1">
                     <p className="text-[#f0f2f5]">{order.customer_address}</p>
                     {order.delivery_zones && (
-                      <p className="text-sm text-[#8b9ab0] mt-0.5">
+                      <p className="text-sm text-[#a8b5c9] mt-0.5">
                         Zona: {order.delivery_zones.name}
                       </p>
                     )}
@@ -153,7 +153,7 @@ export function OrderDetailsDrawer({
 
                 {order.notes && (
                   <div className="pt-2 border-t border-[#2a2f3a]">
-                    <p className="text-sm text-[#8b9ab0]">Notas:</p>
+                    <p className="text-sm text-[#a8b5c9]">Notas:</p>
                     <p className="text-[#f0f2f5] mt-1">{order.notes}</p>
                   </div>
                 )}
@@ -167,7 +167,7 @@ export function OrderDetailsDrawer({
                   {items.map((item, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <span className="text-[#8b9ab0] text-sm w-6">
+                        <span className="text-[#a8b5c9] text-sm w-6">
                           {item.quantity}x
                         </span>
                         <span className="text-[#f0f2f5]">{item.name}</span>
@@ -181,11 +181,11 @@ export function OrderDetailsDrawer({
 
                 <div className="border-t border-[#2a2f3a] mt-4 pt-4 space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-[#8b9ab0]">Subtotal</span>
+                    <span className="text-[#a8b5c9]">Subtotal</span>
                     <span className="text-[#c4cdd9]">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-[#8b9ab0] flex items-center gap-1">
+                    <span className="text-[#a8b5c9] flex items-center gap-1">
                       <Truck className="h-3.5 w-3.5" />
                       Envío
                     </span>
@@ -203,9 +203,9 @@ export function OrderDetailsDrawer({
               {/* Payment Method */}
               <div className="bg-[#1a1d24] rounded-xl p-4">
                 <div className="flex items-center gap-3">
-                  <CreditCard className="h-4 w-4 text-[#8b9ab0]" />
+                  <CreditCard className="h-4 w-4 text-[#a8b5c9]" />
                   <div>
-                    <p className="text-sm text-[#8b9ab0]">Método de pago</p>
+                    <p className="text-sm text-[#a8b5c9]">Método de pago</p>
                     <p className="text-[#f0f2f5]">
                       {getPaymentMethodIcon(order.payment_method)}{' '}
                       {getPaymentMethodLabel(order.payment_method)}

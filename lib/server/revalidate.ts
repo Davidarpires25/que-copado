@@ -24,3 +24,32 @@ export function revalidateBusinessSettings() {
   revalidatePath('/checkout')
   revalidatePath('/')
 }
+
+/** Revalida caja POS + dashboard */
+export function revalidateCaja() {
+  revalidatePath('/admin/caja')
+  revalidatePath('/admin/dashboard')
+}
+
+/** Revalida gestión de mesas + caja */
+export function revalidateTables() {
+  revalidatePath('/admin/tables')
+  revalidatePath('/admin/caja')
+}
+
+/** Revalida ingredientes + recetas + productos (cost recalc) + analytics */
+export function revalidateIngredients() {
+  revalidatePath('/admin/ingredients')
+  revalidatePath('/admin/recipes')
+  revalidatePath('/admin/products')
+  revalidatePath('/admin/analytics')
+  revalidatePath('/admin/dashboard')
+}
+
+/** Revalida recetas + productos (cost recalc) + analytics */
+export function revalidateRecipes() {
+  revalidatePath('/admin/recipes')
+  revalidatePath('/admin/products')
+  revalidatePath('/admin/analytics')
+  revalidatePath('/admin/dashboard')
+}

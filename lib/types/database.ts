@@ -46,6 +46,7 @@ export interface Database {
           description: string | null
           price: number
           cost: number | null
+          product_type: string
           image_url: string | null
           is_active: boolean
           is_out_of_stock: boolean
@@ -58,6 +59,7 @@ export interface Database {
           description?: string | null
           price: number
           cost?: number | null
+          product_type?: string
           image_url?: string | null
           is_active?: boolean
           is_out_of_stock?: boolean
@@ -70,6 +72,7 @@ export interface Database {
           description?: string | null
           price?: number
           cost?: number | null
+          product_type?: string
           image_url?: string | null
           is_active?: boolean
           is_out_of_stock?: boolean
@@ -82,45 +85,154 @@ export interface Database {
           created_at: string
           total: number
           items: Json
-          customer_phone: string
-          customer_name: string
-          customer_address: string
+          customer_phone: string | null
+          customer_name: string | null
+          customer_address: string | null
           customer_coordinates: Json
           shipping_cost: number
           delivery_zone_id: string | null
           notes: string | null
           payment_method: string
           status: string
+          order_source: string
+          order_type: string | null
+          table_number: number | null
+          cash_register_session_id: string | null
+          opened_at: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: string
           created_at?: string
           total: number
           items: Json
-          customer_phone: string
-          customer_name: string
-          customer_address: string
+          customer_phone?: string | null
+          customer_name?: string | null
+          customer_address?: string | null
           customer_coordinates?: Json
           shipping_cost?: number
           delivery_zone_id?: string | null
           notes?: string | null
           payment_method: string
           status?: string
+          order_source?: string
+          order_type?: string | null
+          table_number?: number | null
+          cash_register_session_id?: string | null
+          opened_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
           created_at?: string
           total?: number
           items?: Json
-          customer_phone?: string
-          customer_name?: string
-          customer_address?: string
+          customer_phone?: string | null
+          customer_name?: string | null
+          customer_address?: string | null
           customer_coordinates?: Json
           shipping_cost?: number
           delivery_zone_id?: string | null
           notes?: string | null
           payment_method?: string
           status?: string
+          order_source?: string
+          order_type?: string | null
+          table_number?: number | null
+          cash_register_session_id?: string | null
+          opened_at?: string | null
+          updated_at?: string | null
+        }
+      }
+      cash_register_sessions: {
+        Row: {
+          id: string
+          opened_at: string
+          closed_at: string | null
+          opened_by: string | null
+          closed_by: string | null
+          opening_balance: number
+          expected_cash: number | null
+          actual_cash: number | null
+          cash_difference: number | null
+          total_sales: number
+          total_orders: number
+          total_cash_sales: number
+          total_card_sales: number
+          total_transfer_sales: number
+          total_withdrawals: number
+          total_deposits: number
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          id?: string
+          opened_at?: string
+          closed_at?: string | null
+          opened_by?: string | null
+          closed_by?: string | null
+          opening_balance?: number
+          expected_cash?: number | null
+          actual_cash?: number | null
+          cash_difference?: number | null
+          total_sales?: number
+          total_orders?: number
+          total_cash_sales?: number
+          total_card_sales?: number
+          total_transfer_sales?: number
+          total_withdrawals?: number
+          total_deposits?: number
+          notes?: string | null
+          status?: string
+        }
+        Update: {
+          id?: string
+          opened_at?: string
+          closed_at?: string | null
+          opened_by?: string | null
+          closed_by?: string | null
+          opening_balance?: number
+          expected_cash?: number | null
+          actual_cash?: number | null
+          cash_difference?: number | null
+          total_sales?: number
+          total_orders?: number
+          total_cash_sales?: number
+          total_card_sales?: number
+          total_transfer_sales?: number
+          total_withdrawals?: number
+          total_deposits?: number
+          notes?: string | null
+          status?: string
+        }
+      }
+      cash_movements: {
+        Row: {
+          id: string
+          session_id: string
+          type: string
+          amount: number
+          reason: string
+          created_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          type: string
+          amount: number
+          reason: string
+          created_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          type?: string
+          amount?: number
+          reason?: string
+          created_by?: string | null
+          created_at?: string
         }
       }
       business_settings: {
@@ -153,6 +265,183 @@ export interface Database {
           pause_message?: string | null
           created_at?: string
           updated_at?: string
+        }
+      }
+      restaurant_tables: {
+        Row: {
+          id: string
+          number: number
+          label: string | null
+          section: string
+          capacity: number
+          status: string
+          current_order_id: string | null
+          is_active: boolean
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          number: number
+          label?: string | null
+          section?: string
+          capacity?: number
+          status?: string
+          current_order_id?: string | null
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          number?: number
+          label?: string | null
+          section?: string
+          capacity?: number
+          status?: string
+          current_order_id?: string | null
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+        }
+      }
+      order_items: {
+        Row: {
+          id: string
+          order_id: string
+          product_id: string | null
+          product_name: string
+          product_price: number
+          quantity: number
+          notes: string | null
+          status: string
+          added_at: string
+          added_by: string | null
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          product_id?: string | null
+          product_name: string
+          product_price: number
+          quantity?: number
+          notes?: string | null
+          status?: string
+          added_at?: string
+          added_by?: string | null
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          product_id?: string | null
+          product_name?: string
+          product_price?: number
+          quantity?: number
+          notes?: string | null
+          status?: string
+          added_at?: string
+          added_by?: string | null
+        }
+      }
+      ingredients: {
+        Row: {
+          id: string
+          name: string
+          unit: string
+          cost_per_unit: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          unit: string
+          cost_per_unit: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          unit?: string
+          cost_per_unit?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      recipes: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      recipe_ingredients: {
+        Row: {
+          id: string
+          recipe_id: string
+          ingredient_id: string
+          quantity: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          recipe_id: string
+          ingredient_id: string
+          quantity: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          recipe_id?: string
+          ingredient_id?: string
+          quantity?: number
+          created_at?: string
+        }
+      }
+      product_recipes: {
+        Row: {
+          id: string
+          product_id: string
+          recipe_id: string
+          quantity: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          recipe_id: string
+          quantity: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          recipe_id?: string
+          quantity?: number
+          created_at?: string
         }
       }
       delivery_zones: {
@@ -212,15 +501,21 @@ export interface Order {
   created_at: string
   total: number
   items: Json
-  customer_phone: string
-  customer_name: string
-  customer_address: string
+  customer_phone: string | null
+  customer_name: string | null
+  customer_address: string | null
   customer_coordinates: { lat: number; lng: number } | null
   shipping_cost: number
   delivery_zone_id: string | null
   notes: string | null
   payment_method: PaymentMethod
   status: OrderStatus
+  order_source: OrderSource
+  order_type: PosOrderType | null
+  table_number: number | null
+  cash_register_session_id: string | null
+  opened_at: string | null
+  updated_at: string | null
 }
 
 export type Category = Database['public']['Tables']['categories']['Row']
@@ -237,8 +532,12 @@ export interface BusinessSettings {
   updated_at: string
 }
 
-export type OrderStatus = 'recibido' | 'pagado' | 'entregado' | 'cancelado'
-export type PaymentMethod = 'cash' | 'transfer' | 'mercadopago'
+export type OrderStatus = 'abierto' | 'recibido' | 'cuenta_pedida' | 'pagado' | 'entregado' | 'cancelado'
+export type PaymentMethod = 'cash' | 'transfer' | 'mercadopago' | 'card'
+export type OrderSource = 'web' | 'pos'
+export type PosOrderType = 'mostrador' | 'mesa'
+export type CashRegisterSessionStatus = 'open' | 'closed'
+export type CashMovementType = 'withdrawal' | 'deposit'
 
 export type ProductWithCategory = Product & {
   categories: Category
@@ -266,4 +565,45 @@ export interface ShippingResult {
   shippingCost: number
   isFreeShipping: boolean
   isOutOfCoverage: boolean
+}
+
+// Ingredients
+export type Ingredient = Database['public']['Tables']['ingredients']['Row']
+export type IngredientUnit = 'kg' | 'g' | 'litro' | 'ml' | 'unidad'
+
+export const INGREDIENT_UNIT_LABELS: Record<IngredientUnit, string> = {
+  kg: 'Kilogramo', g: 'Gramo', litro: 'Litro', ml: 'Mililitro', unidad: 'Unidad',
+}
+export const INGREDIENT_UNIT_ABBR: Record<IngredientUnit, string> = {
+  kg: 'kg', g: 'g', litro: 'lt', ml: 'ml', unidad: 'u',
+}
+
+// Recipes
+export type Recipe = Database['public']['Tables']['recipes']['Row']
+export type RecipeIngredient = Database['public']['Tables']['recipe_ingredients']['Row']
+export type ProductRecipe = Database['public']['Tables']['product_recipes']['Row']
+
+export type RecipeIngredientWithDetails = RecipeIngredient & {
+  ingredients: Ingredient
+}
+
+export type RecipeWithIngredients = Recipe & {
+  recipe_ingredients: RecipeIngredientWithDetails[]
+}
+
+export type ProductRecipeWithDetails = ProductRecipe & {
+  recipes: RecipeWithIngredients
+}
+
+// Product types
+export type ProductType = 'elaborado' | 'reventa'
+
+export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
+  elaborado: 'Elaborado',
+  reventa: 'Reventa',
+}
+
+export const PRODUCT_TYPE_DESCRIPTIONS: Record<ProductType, string> = {
+  elaborado: 'Se prepara con recetas (ej: hamburguesas, papas)',
+  reventa: 'Se compra y revende tal cual (ej: bebidas, extras)',
 }

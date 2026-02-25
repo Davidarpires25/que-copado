@@ -1,4 +1,4 @@
-import type { Order, OrderStatus, PaymentMethod, DeliveryZone } from './database'
+import type { Order, OrderStatus, OrderSource, PaymentMethod, DeliveryZone } from './database'
 
 // Item del carrito guardado en la orden
 export interface OrderItem {
@@ -31,6 +31,7 @@ export interface OrderWithZone extends Order {
 // Filtros para listar órdenes
 export interface OrderFilters {
   status?: OrderStatus | 'all'
+  source?: OrderSource | 'all'
   dateFrom?: string
   dateTo?: string
   search?: string
@@ -69,11 +70,23 @@ export const ORDER_STATUS_CONFIG: Record<OrderStatus, {
   bgColor: string
   textColor: string
 }> = {
+  abierto: {
+    label: 'Abierto',
+    color: '#FEC501',
+    bgColor: 'bg-amber-500/20',
+    textColor: 'text-amber-400',
+  },
   recibido: {
     label: 'Recibido',
     color: '#FEC501',
     bgColor: 'bg-yellow-500/20',
     textColor: 'text-yellow-500',
+  },
+  cuenta_pedida: {
+    label: 'Cuenta Pedida',
+    color: '#F97316',
+    bgColor: 'bg-orange-500/20',
+    textColor: 'text-orange-400',
   },
   pagado: {
     label: 'Pagado',
@@ -110,6 +123,10 @@ export const PAYMENT_METHOD_CONFIG: Record<PaymentMethod, {
   },
   mercadopago: {
     label: 'Mercado Pago',
+    icon: '💳',
+  },
+  card: {
+    label: 'Tarjeta',
     icon: '💳',
   },
 }

@@ -6,6 +6,8 @@ import { Pencil, Trash2, MapPin, Truck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { deleteDeliveryZone, toggleZoneActive } from '@/app/actions/delivery-zones'
 import { toast } from 'sonner'
 import { formatPrice } from '@/lib/utils'
@@ -29,6 +31,7 @@ export function ZoneList({
   onZoneToggled,
 }: ZoneListProps) {
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
+  const [deleteTarget, setDeleteTarget] = useState<DeliveryZone | null>(null)
 
   const handleToggleActive = async (zone: DeliveryZone) => {
     setLoadingIds((prev) => new Set(prev).add(zone.id))
@@ -50,8 +53,7 @@ export function ZoneList({
   }
 
   const handleDelete = async (zone: DeliveryZone) => {
-    if (!confirm(`¿Eliminar la zona "${zone.name}"?`)) return
-
+    setDeleteTarget(null)
     setLoadingIds((prev) => new Set(prev).add(zone.id))
     const result = await deleteDeliveryZone(zone.id)
     setLoadingIds((prev) => {
@@ -85,7 +87,7 @@ export function ZoneList({
             <MapPin className="h-8 w-8 text-[#3a4150]" />
           </div>
           <h3 className="text-lg font-semibold text-[#f0f2f5] mb-2">No hay zonas configuradas</h3>
-          <p className="text-sm text-[#8b9ab0] max-w-xs mx-auto">
+          <p className="text-sm text-[#a8b5c9] max-w-xs mx-auto">
             Dibuja un polígono en el mapa o haz clic en &quot;Nueva Zona&quot; para comenzar
           </p>
         </div>
@@ -115,12 +117,12 @@ export function ZoneList({
                   />
                   <div className="min-w-0">
                     <p className={`font-semibold truncate transition-colors duration-200 ${
-                      zone.is_active ? 'text-[#f0f2f5] group-hover:text-[#FEC501]' : 'text-[#8b9ab0]'
+                      zone.is_active ? 'text-[#f0f2f5] group-hover:text-[#FEC501]' : 'text-[#a8b5c9]'
                     }`}>
                       {zone.name}
                     </p>
                     <div className="flex items-center gap-2 mt-1.5">
-                      <Truck className="h-3.5 w-3.5 text-[#8b9ab0]" />
+                      <Truck className="h-3.5 w-3.5 text-[#a8b5c9]" />
                       <span className="text-sm text-[#FEC501] font-semibold">
                         {zone.shipping_cost === 0
                           ? 'Envío Gratis'
@@ -128,7 +130,7 @@ export function ZoneList({
                       </span>
                     </div>
                     {zone.free_shipping_threshold && (
-                      <p className="text-xs text-[#8b9ab0] mt-1">
+                      <p className="text-xs text-[#a8b5c9] mt-1">
                         Gratis desde {formatPrice(zone.free_shipping_threshold)}
                       </p>
                     )}
@@ -148,40 +150,63 @@ export function ZoneList({
 
               <div className="flex items-center gap-2 mt-3">
                 {!zone.is_active && (
-                  <Badge variant="outline" className="border-[#2a2f3a] text-[#8b9ab0] text-xs bg-[#252a35]">
+                  <Badge variant="outline" className="border-[#2a2f3a] text-[#a8b5c9] text-xs bg-[#252a35]">
                     Inactiva
                   </Badge>
                 )}
                 <div className="flex-1" />
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-[#8b9ab0] hover:text-[#f0f2f5] hover:bg-[#2a2f3a] transition-all duration-200"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onZoneEdit(zone)
-                  }}
-                  disabled={loadingIds.has(zone.id)}
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-red-500 hover:text-red-400 hover:bg-red-950/30 transition-all duration-200"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleDelete(zone)
-                  }}
-                  disabled={loadingIds.has(zone.id)}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#2a2f3a] transition-all duration-200"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onZoneEdit(zone)
+                        }}
+                        disabled={loadingIds.has(zone.id)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Editar</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-red-500 hover:text-red-400 hover:bg-red-950/30 transition-all duration-200"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setDeleteTarget(zone)
+                        }}
+                        disabled={loadingIds.has(zone.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Eliminar</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </motion.div>
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Eliminar zona"
+        description={`¿Eliminar la zona "${deleteTarget?.name}"? Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
+      />
     </div>
   )
 }

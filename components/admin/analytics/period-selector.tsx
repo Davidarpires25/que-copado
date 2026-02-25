@@ -32,7 +32,7 @@ export function PeriodSelector({
             'px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 min-w-[60px] touch-manipulation',
             value === period
               ? 'bg-[#FEC501] text-[#12151a] shadow-md'
-              : 'text-[#8b9ab0] hover:text-[#f0f2f5] hover:bg-[#2a2f3a] active:scale-95'
+              : 'text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#2a2f3a] active:scale-95'
           )}
         >
           {PERIOD_LABELS[period]}

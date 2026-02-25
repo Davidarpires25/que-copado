@@ -133,12 +133,23 @@
 
 /* Estilos personalizados para mejorar la UX */
 @layer utilities {
+  /* Hide scrollbar - mantener funcionalidad de scroll */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
 
   .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* No scrollbar (alias) */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
 

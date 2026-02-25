@@ -80,7 +80,7 @@ export function DeliveryZonesDashboard({ initialZones }: DeliveryZonesDashboardP
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[#8b9ab0] text-sm font-medium">Total de Zonas</p>
+              <p className="text-[#a8b5c9] text-sm font-medium">Total de Zonas</p>
               <p className="text-3xl font-bold text-[#f0f2f5] mt-1">{zones.length}</p>
             </div>
             <div className="w-12 h-12 bg-[#FEC501]/10 rounded-xl flex items-center justify-center">
@@ -97,7 +97,7 @@ export function DeliveryZonesDashboard({ initialZones }: DeliveryZonesDashboardP
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[#8b9ab0] text-sm font-medium">Zonas Activas</p>
+              <p className="text-[#a8b5c9] text-sm font-medium">Zonas Activas</p>
               <p className="text-3xl font-bold text-[#f0f2f5] mt-1">{activeZones.length}</p>
             </div>
             <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
@@ -109,7 +109,7 @@ export function DeliveryZonesDashboard({ initialZones }: DeliveryZonesDashboardP
 
       {/* Actions Bar */}
       <div className="flex items-center justify-between mb-6">
-        <p className="text-[#8b9ab0]">
+        <p className="text-[#a8b5c9]">
           {zones.length} {zones.length === 1 ? 'zona' : 'zonas'} configuradas
         </p>
         <Button
@@ -141,7 +141,7 @@ export function DeliveryZonesDashboard({ initialZones }: DeliveryZonesDashboardP
                 </div>
                 Mapa de Cobertura
               </h2>
-              <p className="text-sm text-[#8b9ab0] mt-1">
+              <p className="text-sm text-[#a8b5c9] mt-1">
                 Dibuja polígonos en el mapa para definir las zonas de envío
               </p>
             </div>

@@ -3,6 +3,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { revalidateStorefront } from '@/lib/server/revalidate'
+import { friendlyError } from '@/lib/server/error-messages'
 
 export async function createCategory(formData: FormData) {
   const supabase = await createAdminClient()
@@ -35,18 +36,18 @@ export async function createCategory(formData: FormData) {
     .limit(1)
     .single()
 
-  const { error } = await supabase.from('categories').insert({
+  const { data, error } = await supabase.from('categories').insert({
     name: name.trim(),
     slug,
     sort_order: (maxOrder?.sort_order ?? 0) + 1,
-  })
+  }).select().single()
 
   if (error) {
-    return { error: error.message }
+    return { error: friendlyError(error) }
   }
 
   revalidateStorefront()
-  return { success: true }
+  return { success: true, category: data }
 }
 
 export async function updateCategory(categoryId: string, data: {
@@ -94,7 +95,7 @@ export async function updateCategory(categoryId: string, data: {
     .eq('id', categoryId)
 
   if (error) {
-    return { error: error.message }
+    return { error: friendlyError(error) }
   }
 
   revalidateStorefront()
@@ -119,7 +120,7 @@ export async function deleteCategory(categoryId: string) {
     .eq('id', categoryId)
 
   if (error) {
-    return { error: error.message }
+    return { error: friendlyError(error) }
   }
 
   revalidateStorefront()

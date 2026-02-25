@@ -49,7 +49,7 @@ export function CategoryFilter({
   return (
     <div>
       {typeCategory=='user' ? (
-        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide scroll-snap-x -mx-4 px-4">
+        <div className="flex gap-4 overflow-visible pb-4 scrollbar-hide scroll-snap-x -mx-4 px-4">
         {/* All Category */}
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -89,7 +89,7 @@ export function CategoryFilter({
               className="flex flex-col items-center gap-2 scroll-snap-start shrink-0"
             >
               <div
-                className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-md ${
+                className={`w-18 h-18 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-md ${
                   isActive
                     ? 'bg-[#FEC501] text-black shadow-lg'
                     : 'bg-white border-2 border-orange-200 text-orange-600 hover:border-orange-300 hover:bg-orange-50'
@@ -98,7 +98,7 @@ export function CategoryFilter({
                 <Icon className="w-7 h-7 md:w-8 md:h-8" />
               </div>
               <span
-                className={`text-xs md:text-sm font-semibold transition-colors max-w-[80px] text-center truncate ${
+                className={`text-xs md:text-sm font-semibold transition-colors max-w-[150px] text-center truncate ${
                   isActive ? 'text-orange-600' : 'text-orange-800/70'
                 }`}
               >
@@ -118,7 +118,7 @@ export function CategoryFilter({
           className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shrink-0 scroll-snap-start ${
             selectedCategory === null
               ? 'bg-[#FEC501] text-black shadow-md shadow-[#FEC501]/20'
-              : 'bg-[#252a35] border border-[#2a2f3a] text-[#8b9ab0] hover:bg-[#2a2f3a] hover:text-[#f0f2f5] hover:border-[#3a3f4a]'
+              : 'bg-[#252a35] border border-[#2a2f3a] text-[#a8b5c9] hover:bg-[#2a2f3a] hover:text-[#f0f2f5] hover:border-[#3a3f4a]'
           }`}
         >
           Todos
@@ -136,7 +136,7 @@ export function CategoryFilter({
               className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shrink-0 scroll-snap-start whitespace-nowrap ${
                 isActive
                   ? 'bg-[#FEC501] text-black shadow-md shadow-[#FEC501]/20'
-                  : 'bg-[#252a35] border border-[#2a2f3a] text-[#8b9ab0] hover:bg-[#2a2f3a] hover:text-[#f0f2f5] hover:border-[#3a3f4a]'
+                  : 'bg-[#252a35] border border-[#2a2f3a] text-[#a8b5c9] hover:bg-[#2a2f3a] hover:text-[#f0f2f5] hover:border-[#3a3f4a]'
               }`}
             >
               {category.name}

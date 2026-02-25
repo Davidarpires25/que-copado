@@ -24,7 +24,7 @@ export function ConfigurableSalesChart({ data }: ConfigurableSalesChartProps) {
 
   if (!hasData) {
     return (
-      <div className="flex flex-col items-center justify-center h-[300px] text-[#8b9ab0] gap-2">
+      <div className="flex flex-col items-center justify-center h-[300px] text-[#a8b5c9] gap-2">
         <TrendingUp className="h-8 w-8 opacity-50" />
         <p className="text-sm">No hay datos de ventas en este período</p>
       </div>
@@ -35,12 +35,12 @@ export function ConfigurableSalesChart({ data }: ConfigurableSalesChartProps) {
     <div>
       <div className="flex items-center gap-4 mb-4 text-sm bg-[#252a35] rounded-lg px-4 py-2.5">
         <div className="flex items-center gap-2">
-          <span className="text-[#8b9ab0]">Total:</span>
+          <span className="text-[#a8b5c9]">Total:</span>
           <span className="text-[#FEC501] font-semibold">{formatPrice(totalRevenue)}</span>
         </div>
         <div className="h-4 w-px bg-[#3a4150]" />
         <div className="flex items-center gap-2">
-          <span className="text-[#8b9ab0]">Pedidos:</span>
+          <span className="text-[#a8b5c9]">Pedidos:</span>
           <span className="text-[#f0f2f5] font-semibold">{totalOrders}</span>
         </div>
       </div>
@@ -57,14 +57,14 @@ export function ConfigurableSalesChart({ data }: ConfigurableSalesChartProps) {
             <CartesianGrid strokeDasharray="3 3" stroke="#2a2f3a" />
             <XAxis
               dataKey="label"
-              stroke="#8b9ab0"
+              stroke="#a8b5c9"
               fontSize={11}
               tickLine={false}
               axisLine={false}
               interval="preserveStartEnd"
             />
             <YAxis
-              stroke="#8b9ab0"
+              stroke="#a8b5c9"
               fontSize={11}
               tickLine={false}
               axisLine={false}

@@ -27,7 +27,7 @@ const DEFAULT_COLOR = '#F59E0B'
 export function PaymentMethodChart({ data }: PaymentMethodChartProps) {
   if (!data || data.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[200px] text-[#8b9ab0] gap-2">
+      <div className="flex flex-col items-center justify-center h-[200px] text-[#a8b5c9] gap-2">
         <Banknote className="h-8 w-8 opacity-50" />
         <p className="text-sm">No hay datos de pagos en este periodo</p>
       </div>
@@ -101,10 +101,10 @@ export function PaymentMethodChart({ data }: PaymentMethodChartProps) {
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-[#8b9ab0]">
+              <span className="text-xs text-[#a8b5c9]">
                 {d.orders} pedidos
               </span>
-              <span className="text-xs text-[#8b9ab0]">
+              <span className="text-xs text-[#a8b5c9]">
                 Ticket prom: <span className="text-[#f0f2f5]">{formatPrice(d.avgTicket)}</span>
               </span>
             </div>

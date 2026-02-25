@@ -93,10 +93,11 @@ export function CategoryFormDialog({
         }
 
         toast.success('Categoría creada')
-        // Reload to get the new category with its ID
-        window.location.reload()
+        if (result.category) {
+          onCategoryCreated(result.category as Category)
+        }
       }
-    } catch (error) {
+    } catch {
       toast.error('Ocurrió un error inesperado')
     } finally {
       setIsLoading(false)
@@ -110,7 +111,7 @@ export function CategoryFormDialog({
           <DialogTitle className="text-lg font-semibold text-[#f0f2f5]">
             {isEditing ? 'Editar Categoría' : 'Nueva Categoría'}
           </DialogTitle>
-          <p className="text-[#8b9ab0] text-xs mt-0.5">
+          <p className="text-[#a8b5c9] text-xs mt-0.5">
             {isEditing ? 'Modifica los datos de la categoría' : 'Agrega una nueva categoría al catálogo'}
           </p>
         </DialogHeader>
@@ -118,7 +119,7 @@ export function CategoryFormDialog({
         <form onSubmit={handleSubmit} className="space-y-3 mt-4">
           {/* Name */}
           <div className="space-y-1.5">
-            <Label htmlFor="name" className="text-[#8b9ab0] text-xs font-semibold uppercase tracking-wide">
+            <Label htmlFor="name" className="text-[#a8b5c9] text-xs font-semibold uppercase tracking-wide">
               Nombre
             </Label>
             <Input
@@ -126,7 +127,7 @@ export function CategoryFormDialog({
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="Nombre de la categoría"
-              className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 text-sm placeholder:text-[#6b7a8d] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+              className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 text-sm placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
               required
               maxLength={100}
             />
@@ -134,19 +135,20 @@ export function CategoryFormDialog({
 
           {/* Slug */}
           <div className="space-y-1.5">
-            <Label htmlFor="slug" className="text-[#8b9ab0] text-xs font-semibold uppercase tracking-wide">
+            <Label htmlFor="slug" className="text-[#a8b5c9] text-xs font-semibold uppercase tracking-wide">
               Slug (URL)
             </Label>
             <Input
               id="slug"
               value={slug}
-              onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''))}
-              placeholder="url-amigable"
-              className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 text-sm placeholder:text-[#6b7a8d] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+              onChange={(e) => isEditing && setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''))}
+              placeholder="Se genera automaticamente"
+              readOnly={!isEditing}
+              className={`bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 text-sm placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all ${!isEditing ? 'opacity-60 cursor-not-allowed' : ''}`}
               required
             />
-            <p className="text-xs text-[#8b9ab0]">
-              Se usa para filtrar productos. Solo letras, números y guiones.
+            <p className="text-xs text-[#a8b5c9]">
+              {isEditing ? 'Solo letras, números y guiones.' : 'Se genera automaticamente a partir del nombre.'}
             </p>
           </div>
 
@@ -156,7 +158,7 @@ export function CategoryFormDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1 h-10 text-sm border-[#3a4150] text-[#8b9ab0] hover:text-[#f0f2f5] hover:bg-[#252a35]"
+              className="flex-1 h-10 text-sm border-[#3a4150] text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#252a35]"
               disabled={isLoading}
             >
               Cancelar

@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Search, Filter, Eye, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   Select,
   SelectContent,
@@ -36,6 +38,7 @@ interface OrdersTableProps {
 }
 
 export function OrdersTable({ initialOrders }: OrdersTableProps) {
+  const router = useRouter()
   const [orders, setOrders] = useState(initialOrders)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
@@ -81,14 +84,16 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
   }
 
   const handleRefresh = () => {
-    window.location.reload()
+    router.refresh()
   }
 
   // Contadores por estado
   const statusCounts = useMemo(() => {
     const counts: Record<OrderStatus | 'all', number> = {
       all: orders.length,
+      abierto: 0,
       recibido: 0,
+      cuenta_pedida: 0,
       pagado: 0,
       entregado: 0,
       cancelado: 0,
@@ -104,12 +109,12 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8b9ab0]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#a8b5c9]" />
           <Input
             placeholder="Buscar por nombre, teléfono, dirección..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11 placeholder:text-[#8b9ab0] placeholder:italic"
+            className="pl-10 bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 placeholder:text-[#a8b5c9] placeholder:italic"
           />
         </div>
 
@@ -118,8 +123,8 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
             value={statusFilter}
             onValueChange={(value) => setStatusFilter(value as OrderStatus | 'all')}
           >
-            <SelectTrigger className="w-[180px] bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11">
-              <Filter className="h-4 w-4 mr-2 text-[#8b9ab0]" />
+            <SelectTrigger className="w-[180px] bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10">
+              <Filter className="h-4 w-4 mr-2 text-[#a8b5c9]" />
               <SelectValue placeholder="Filtrar por estado" />
             </SelectTrigger>
             <SelectContent className="bg-[#1a1d24] border-[#2a2f3a]">
@@ -138,13 +143,20 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
             </SelectContent>
           </Select>
 
-          <Button
-            variant="outline"
-            onClick={handleRefresh}
-            className="border-[#2a2f3a] text-[#c4cdd9] hover:bg-[#252a35] h-11"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={handleRefresh}
+                  className="border-[#2a2f3a] text-[#c4cdd9] hover:bg-[#252a35] h-10"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Actualizar pedidos</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
 
@@ -155,7 +167,7 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
           animate={{ opacity: 1, y: 0 }}
           className="rounded-xl border border-[#2a2f3a] bg-[#1a1d24] p-16 text-center"
         >
-          <p className="text-[#8b9ab0]">
+          <p className="text-[#a8b5c9]">
             {orders.length === 0
               ? 'No hay pedidos todavía'
               : 'No se encontraron pedidos con los filtros aplicados'}
@@ -168,14 +180,14 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
           className="rounded-xl border border-[#2a2f3a] bg-[#1a1d24] overflow-hidden"
         >
           <Table>
-            <TableHeader>
+            <TableHeader className="sticky top-0 z-10 bg-[#1a1d24]">
               <TableRow className="border-[#2a2f3a] hover:bg-[#1a1d24]">
-                <TableHead className="text-[#8b9ab0] font-semibold">Pedido</TableHead>
-                <TableHead className="text-[#8b9ab0] font-semibold">Cliente</TableHead>
-                <TableHead className="text-[#8b9ab0] font-semibold">Productos</TableHead>
-                <TableHead className="text-[#8b9ab0] font-semibold">Total</TableHead>
-                <TableHead className="text-[#8b9ab0] font-semibold">Estado</TableHead>
-                <TableHead className="text-[#8b9ab0] font-semibold text-right">Acciones</TableHead>
+                <TableHead className="text-[#a8b5c9] font-semibold">Pedido</TableHead>
+                <TableHead className="text-[#a8b5c9] font-semibold">Cliente</TableHead>
+                <TableHead className="text-[#a8b5c9] font-semibold">Productos</TableHead>
+                <TableHead className="text-[#a8b5c9] font-semibold">Total</TableHead>
+                <TableHead className="text-[#a8b5c9] font-semibold">Estado</TableHead>
+                <TableHead className="text-[#a8b5c9] font-semibold text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -199,7 +211,7 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
                         <p className="font-mono text-[#f0f2f5] font-semibold">
                           #{getShortOrderId(order.id)}
                         </p>
-                        <p className="text-xs text-[#8b9ab0]">
+                        <p className="text-xs text-[#a8b5c9]">
                           {formatRelativeDate(order.created_at)}
                         </p>
                       </div>
@@ -207,7 +219,7 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
                     <TableCell>
                       <div>
                         <p className="text-[#f0f2f5]">{order.customer_name}</p>
-                        <p className="text-xs text-[#8b9ab0]">{order.customer_phone}</p>
+                        <p className="text-xs text-[#a8b5c9]">{order.customer_phone}</p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -224,17 +236,24 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
                       <OrderStatusBadge status={order.status} size="sm" />
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleViewOrder(order)
-                        }}
-                        className="h-8 w-8 text-[#8b9ab0] hover:text-[#f0f2f5] hover:bg-[#2a2f3a]"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleViewOrder(order)
+                              }}
+                              className="h-8 w-8 text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#2a2f3a]"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Ver detalle</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </TableCell>
                   </motion.tr>
                 )

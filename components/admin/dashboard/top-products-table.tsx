@@ -11,11 +11,11 @@ interface TopProductsTableProps {
 export function TopProductsTable({ products }: TopProductsTableProps) {
   if (products.length === 0) {
     return (
-      <div className="bg-[#1a1d24] border border-[#2a2f3a] rounded-xl p-6">
+      <div className="bg-[#1a1d24] border border-[#2a2f3a] rounded-xl p-6 w-full h-full flex flex-col">
         <h3 className="text-lg font-semibold text-[#f0f2f5] mb-4">
           Productos Más Vendidos
         </h3>
-        <p className="text-[#8b9ab0] text-center py-8">
+        <p className="text-[#a8b5c9] text-center py-8 flex-1 flex items-center justify-center">
           No hay datos de ventas este mes
         </p>
       </div>
@@ -25,7 +25,7 @@ export function TopProductsTable({ products }: TopProductsTableProps) {
   const maxQuantity = Math.max(...products.map((p) => p.quantity))
 
   return (
-    <div className="bg-[#1a1d24] border border-[#2a2f3a] rounded-xl p-6">
+    <div className="bg-[#1a1d24] border border-[#2a2f3a] rounded-xl p-6 w-full h-full flex flex-col">
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="h-5 w-5 text-[#FEC501]" />
         <h3 className="text-lg font-semibold text-[#f0f2f5]">
@@ -33,7 +33,7 @@ export function TopProductsTable({ products }: TopProductsTableProps) {
         </h3>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 flex-1">
         {products.map((product, index) => {
           const percentage = (product.quantity / maxQuantity) * 100
 
@@ -41,7 +41,7 @@ export function TopProductsTable({ products }: TopProductsTableProps) {
             <div key={product.id} className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-[#8b9ab0] text-sm w-5">
+                  <span className="text-[#a8b5c9] text-sm w-5">
                     {index + 1}.
                   </span>
                   <span className="text-[#f0f2f5] font-medium truncate">
@@ -49,7 +49,7 @@ export function TopProductsTable({ products }: TopProductsTableProps) {
                   </span>
                 </div>
                 <div className="flex items-center gap-4 text-sm">
-                  <span className="text-[#8b9ab0]">
+                  <span className="text-[#a8b5c9]">
                     {product.quantity} ventas
                   </span>
                   <span className="text-[#FEC501] font-semibold min-w-[80px] text-right">

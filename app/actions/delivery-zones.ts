@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/server/auth'
 import { revalidateDeliveryZones } from '@/lib/server/revalidate'
+import { friendlyError } from '@/lib/server/error-messages'
 import type { DeliveryZone, GeoJSONPolygon } from '@/lib/types/database'
 import booleanIntersects from '@turf/boolean-intersects'
 import { polygon as turfPolygon } from '@turf/helpers'
@@ -23,7 +24,7 @@ export async function getDeliveryZones(): Promise<{ data: DeliveryZone[] | null;
     .order('sort_order', { ascending: true })
 
   if (error) {
-    return { data: null, error: error.message }
+    return { data: null, error: friendlyError(error) }
   }
 
   return { data: data as DeliveryZone[], error: null }
@@ -40,7 +41,7 @@ export async function getActiveDeliveryZones(): Promise<{ data: DeliveryZone[] |
     .order('sort_order', { ascending: true })
 
   if (error) {
-    return { data: null, error: error.message }
+    return { data: null, error: friendlyError(error) }
   }
 
   return { data: data as DeliveryZone[], error: null }
@@ -192,7 +193,7 @@ export async function createDeliveryZone(formData: FormData) {
   }).select().single()
 
   if (error) {
-    return { error: error.message }
+    return { error: friendlyError(error) }
   }
 
   revalidateDeliveryZones()
@@ -301,7 +302,7 @@ export async function updateDeliveryZone(
     .eq('id', zoneId)
 
   if (error) {
-    return { error: error.message }
+    return { error: friendlyError(error) }
   }
 
   revalidateDeliveryZones()
@@ -327,7 +328,7 @@ export async function deleteDeliveryZone(zoneId: string) {
     .eq('id', zoneId)
 
   if (error) {
-    return { error: error.message }
+    return { error: friendlyError(error) }
   }
 
   revalidateDeliveryZones()
@@ -365,7 +366,7 @@ export async function reorderDeliveryZones(zoneIds: string[]) {
       .eq('id', zoneIds[i])
 
     if (error) {
-      return { error: error.message }
+      return { error: friendlyError(error) }
     }
   }
 

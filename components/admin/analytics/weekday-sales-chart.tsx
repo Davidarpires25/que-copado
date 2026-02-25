@@ -23,7 +23,7 @@ export function WeekdaySalesChart({ data }: WeekdaySalesChartProps) {
 
   if (!hasAnyData) {
     return (
-      <div className="flex flex-col items-center justify-center h-[280px] text-[#8b9ab0] gap-2">
+      <div className="flex flex-col items-center justify-center h-[280px] text-[#a8b5c9] gap-2">
         <Calendar className="h-8 w-8 opacity-50" />
         <p className="text-sm">No hay datos de ventas en este período</p>
       </div>
@@ -48,13 +48,13 @@ export function WeekdaySalesChart({ data }: WeekdaySalesChartProps) {
             <CartesianGrid strokeDasharray="3 3" stroke="#2a2f3a" />
             <XAxis
               dataKey="shortName"
-              stroke="#8b9ab0"
+              stroke="#a8b5c9"
               fontSize={12}
               tickLine={false}
               axisLine={false}
             />
             <YAxis
-              stroke="#8b9ab0"
+              stroke="#a8b5c9"
               fontSize={11}
               tickLine={false}
               axisLine={false}
@@ -85,12 +85,12 @@ export function WeekdaySalesChart({ data }: WeekdaySalesChartProps) {
             {avgRevenue > 0 && (
               <ReferenceLine
                 y={avgRevenue}
-                stroke="#8b9ab0"
+                stroke="#a8b5c9"
                 strokeDasharray="3 3"
                 label={{
                   value: 'Promedio',
                   position: 'right',
-                  fill: '#8b9ab0',
+                  fill: '#a8b5c9',
                   fontSize: 11,
                 }}
               />
@@ -107,9 +107,9 @@ export function WeekdaySalesChart({ data }: WeekdaySalesChartProps) {
 
       {bestDay && bestDay.totalRevenue > 0 && (
         <div className="mt-3 flex items-center gap-2 text-sm bg-[#252a35] rounded-lg px-3 py-2">
-          <span className="text-[#8b9ab0]">Mejor día:</span>
+          <span className="text-[#a8b5c9]">Mejor día:</span>
           <span className="text-[#FEC501] font-semibold">{bestDay.dayName}</span>
-          <span className="text-[#8b9ab0]">con {formatPrice(bestDay.totalRevenue)}</span>
+          <span className="text-[#a8b5c9]">con {formatPrice(bestDay.totalRevenue)}</span>
         </div>
       )}
     </div>

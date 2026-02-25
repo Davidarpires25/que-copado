@@ -109,7 +109,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
                 <p className={`font-semibold ${businessStatus.isOpen ? 'text-green-400' : 'text-red-400'}`}>
                   {businessStatus.isOpen ? 'Abierto' : 'Cerrado'}
                 </p>
-                <p className="text-sm text-[#8b9ab0]">{businessStatus.message}</p>
+                <p className="text-sm text-[#a8b5c9]">{businessStatus.message}</p>
               </div>
             </div>
 
@@ -159,14 +159,14 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
                     operatingDays.includes(value)
                       ? 'bg-[#FEC501] text-black'
-                      : 'bg-[#252a35] text-[#8b9ab0] hover:bg-[#2a2f3a]'
+                      : 'bg-[#252a35] text-[#a8b5c9] hover:bg-[#2a2f3a]'
                   }`}
                 >
                   {label}
                 </button>
               ))}
             </div>
-            <p className="text-sm text-[#8b9ab0]">
+            <p className="text-sm text-[#a8b5c9]">
               {formatOperatingDays(operatingDays)}
             </p>
           </div>
@@ -179,7 +179,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
                 type="time"
                 value={openingTime}
                 onChange={(e) => setOpeningTime(e.target.value)}
-                className="bg-[#252a35] border-[#2a2f3a] text-[#f0f2f5] h-11"
+                className="bg-[#252a35] border-[#2a2f3a] text-[#f0f2f5] h-10"
               />
             </div>
             <div className="space-y-2">
@@ -188,11 +188,11 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
                 type="time"
                 value={closingTime}
                 onChange={(e) => setClosingTime(e.target.value)}
-                className="bg-[#252a35] border-[#2a2f3a] text-[#f0f2f5] h-11"
+                className="bg-[#252a35] border-[#2a2f3a] text-[#f0f2f5] h-10"
               />
             </div>
           </div>
-          <p className="text-sm text-[#8b9ab0]">
+          <p className="text-sm text-[#a8b5c9]">
             Horario: {formatBusinessHours(openingTime, closingTime)}
           </p>
         </motion.div>
@@ -217,7 +217,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
               value={pauseMessage}
               onChange={(e) => setPauseMessage(e.target.value)}
               placeholder="Estamos cerrados temporalmente. Volvemos pronto!"
-              className="bg-[#252a35] border-[#2a2f3a] text-[#f0f2f5] min-h-[100px] placeholder:text-[#8b9ab0] placeholder:italic"
+              className="bg-[#252a35] border-[#2a2f3a] text-[#f0f2f5] min-h-[100px] placeholder:text-[#a8b5c9] placeholder:italic"
             />
           </div>
         </motion.div>

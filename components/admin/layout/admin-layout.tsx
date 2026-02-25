@@ -33,6 +33,14 @@ export function AdminLayout({ children, title, description }: AdminLayoutProps) 
 
   return (
     <div className="min-h-screen bg-[#12151a]">
+      {/* Skip link for keyboard navigation */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[#FEC501] focus:text-black focus:font-bold focus:rounded-lg focus:shadow-lg focus:outline-none"
+      >
+        Saltar al contenido
+      </a>
+
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <AdminSidebar collapsed={sidebarCollapsed} onToggleCollapse={handleToggleCollapse} />
@@ -54,7 +62,7 @@ export function AdminLayout({ children, title, description }: AdminLayoutProps) 
             variant="ghost"
             size="icon"
             onClick={() => setMobileMenuOpen(true)}
-            className="mr-3 text-[#8b9ab0] hover:text-[#f0f2f5] hover:bg-[#252a35]"
+            className="mr-3 text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#252a35]"
           >
             <Menu className="h-5 w-5" />
           </Button>
@@ -72,12 +80,12 @@ export function AdminLayout({ children, title, description }: AdminLayoutProps) 
         </header>
 
         {/* Page Content */}
-        <main className="p-4 md:p-6 lg:p-8">
+        <main id="main-content" className="p-4 md:p-6 lg:p-8">
           {/* Page Header */}
           <div className="mb-6 md:mb-8">
             <h1 className="text-2xl md:text-3xl font-bold text-[#f0f2f5]">{title}</h1>
             {description && (
-              <p className="text-[#8b9ab0] text-sm mt-1">{description}</p>
+              <p className="text-[#a8b5c9] text-sm mt-1">{description}</p>
             )}
           </div>
 

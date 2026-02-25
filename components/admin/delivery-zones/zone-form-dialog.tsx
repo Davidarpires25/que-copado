@@ -139,14 +139,14 @@ function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose 
           onChange={(e) => setName(e.target.value)}
           placeholder="Nombre de la zona"
           maxLength={50}
-          className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11 placeholder:text-[#8b9ab0] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+          className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 placeholder:text-[#a8b5c9] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
         />
       </div>
 
       <div className="space-y-2">
         <Label className="text-[#c4cdd9] font-medium">Costo de envío (ARS)</Label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8b9ab0] font-semibold">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a8b5c9] font-semibold">$</span>
           <Input
             type="number"
             value={shippingCost}
@@ -154,11 +154,11 @@ function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose 
             placeholder="Monto del envío"
             min={0}
             step={100}
-            className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11 pl-7 placeholder:text-[#8b9ab0] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+            className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 pl-7 placeholder:text-[#a8b5c9] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
           />
         </div>
-        <p className="text-xs text-[#8b9ab0] flex items-center gap-1">
-          <span className="w-1 h-1 bg-[#8b9ab0] rounded-full" />
+        <p className="text-xs text-[#a8b5c9] flex items-center gap-1">
+          <span className="w-1 h-1 bg-[#a8b5c9] rounded-full" />
           Ingresa 0 para envío gratuito en esta zona
         </p>
       </div>
@@ -166,7 +166,7 @@ function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose 
       <div className="space-y-2">
         <Label className="text-[#c4cdd9] font-medium">Umbral de envío gratis (opcional)</Label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8b9ab0] font-semibold">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a8b5c9] font-semibold">$</span>
           <Input
             type="number"
             value={freeShippingThreshold}
@@ -174,11 +174,11 @@ function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose 
             placeholder="Monto mínimo"
             min={0}
             step={1000}
-            className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-11 pl-7 placeholder:text-[#8b9ab0] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+            className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 pl-7 placeholder:text-[#a8b5c9] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
           />
         </div>
-        <p className="text-xs text-[#8b9ab0] flex items-center gap-1">
-          <span className="w-1 h-1 bg-[#8b9ab0] rounded-full" />
+        <p className="text-xs text-[#a8b5c9] flex items-center gap-1">
+          <span className="w-1 h-1 bg-[#a8b5c9] rounded-full" />
           Pedidos que superen este monto tendrán envío gratis
         </p>
       </div>
@@ -194,7 +194,7 @@ function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose 
               className={`w-10 h-10 rounded-lg border-2 transition-all duration-200 hover:scale-110 ${
                 color === presetColor
                   ? 'border-white scale-110 shadow-lg'
-                  : 'border-[#2a2f3a] hover:border-[#8b9ab0]'
+                  : 'border-[#2a2f3a] hover:border-[#a8b5c9]'
               }`}
               style={{
                 backgroundColor: presetColor,
@@ -209,7 +209,7 @@ function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose 
               type="color"
               value={color}
               onChange={(e) => setColor(e.target.value)}
-              className="w-12 h-11 p-0 border-0 bg-transparent cursor-pointer rounded-lg"
+              className="w-12 h-10 p-0 border-0 bg-transparent cursor-pointer rounded-lg"
             />
           </div>
           <Input
@@ -218,7 +218,7 @@ function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose 
             onChange={(e) => setColor(e.target.value)}
             placeholder="#FF6B00"
             pattern="^#[0-9A-Fa-f]{6}$"
-            className="flex-1 bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] font-mono h-11 focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+            className="flex-1 bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] font-mono h-10 focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
           />
         </div>
       </div>
@@ -247,14 +247,14 @@ function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose 
           variant="outline"
           onClick={onClose}
           disabled={isLoading}
-          className="flex-1 h-11 border-[#2a2f3a] text-[#c4cdd9] hover:bg-[#2a2f3a] hover:text-[#f0f2f5] transition-all duration-200"
+          className="flex-1 h-10 border-[#2a2f3a] text-[#c4cdd9] hover:bg-[#2a2f3a] hover:text-[#f0f2f5] transition-all duration-200"
         >
           Cancelar
         </Button>
         <Button
           type="submit"
           disabled={isLoading || (!polygon && !zone?.polygon)}
-          className="flex-1 h-11 bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[#FEC501]/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 h-10 bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[#FEC501]/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading
             ? 'Guardando...'
@@ -284,7 +284,7 @@ export function ZoneFormDialog({
           <DialogTitle className="text-[#f0f2f5] text-xl">
             {zone?.id ? 'Editar Zona' : 'Nueva Zona de Envío'}
           </DialogTitle>
-          <p className="text-[#8b9ab0] text-sm mt-1">
+          <p className="text-[#a8b5c9] text-sm mt-1">
             {zone?.id
               ? 'Modifica los datos de la zona de envío'
               : 'Define el área de cobertura y el costo de envío'}

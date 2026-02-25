@@ -29,7 +29,7 @@ export function ChartContainer({
         <div className="min-w-0">
           <h3 className="text-lg font-semibold text-[#f0f2f5]">{title}</h3>
           {subtitle && (
-            <p className="text-sm text-[#8b9ab0] mt-0.5">{subtitle}</p>
+            <p className="text-sm text-[#a8b5c9] mt-0.5">{subtitle}</p>
           )}
         </div>
         {period && onPeriodChange && (
