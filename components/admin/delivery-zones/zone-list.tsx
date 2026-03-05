@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Pencil, Trash2, MapPin, Truck } from 'lucide-react'
+import { Pencil, Trash2, MapPin, Truck, CircleDot, Hexagon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
@@ -71,11 +70,11 @@ export function ZoneList({
   }
 
   return (
-    <div className="rounded-xl border border-[#2a2f3a] bg-[#1a1d24] backdrop-blur shadow-xl">
-      <div className="p-5 border-b border-[#2a2f3a] bg-[#1a1d24]">
-        <h2 className="text-[#f0f2f5] font-semibold text-lg flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#FEC501]/10 rounded-lg flex items-center justify-center">
-            <MapPin className="h-4 w-4 text-[#FEC501]" />
+    <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg)] backdrop-blur shadow-xl">
+      <div className="p-5 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]">
+        <h2 className="text-[var(--admin-text)] font-semibold text-lg flex items-center gap-2">
+          <div className="w-8 h-8 bg-[var(--admin-accent)]/10 rounded-lg flex items-center justify-center">
+            <MapPin className="h-4 w-4 text-[var(--admin-accent-text)]" />
           </div>
           Zonas Configuradas
         </h2>
@@ -83,26 +82,23 @@ export function ZoneList({
 
       {zones.length === 0 ? (
         <div className="p-10 text-center">
-          <div className="w-16 h-16 bg-[#252a35] rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-[var(--admin-surface-2)] rounded-2xl flex items-center justify-center mx-auto mb-4">
             <MapPin className="h-8 w-8 text-[#3a4150]" />
           </div>
-          <h3 className="text-lg font-semibold text-[#f0f2f5] mb-2">No hay zonas configuradas</h3>
-          <p className="text-sm text-[#a8b5c9] max-w-xs mx-auto">
+          <h3 className="text-lg font-semibold text-[var(--admin-text)] mb-2">No hay zonas configuradas</h3>
+          <p className="text-sm text-[var(--admin-text-muted)] max-w-xs mx-auto">
             Dibuja un polígono en el mapa o haz clic en &quot;Nueva Zona&quot; para comenzar
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-[#252a35]">
+        <div className="divide-y divide-[var(--admin-surface-2)]">
           {zones.map((zone, index) => (
-            <motion.div
+            <div
               key={zone.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
               className={`p-4 transition-all duration-200 cursor-pointer group ${
                 selectedZoneId === zone.id
-                  ? 'bg-[#252a35] border-l-2 border-[#FEC501]'
-                  : 'hover:bg-[#252a35]'
+                  ? 'bg-[var(--admin-surface-2)] border-l-2 border-[var(--admin-accent)]'
+                  : 'hover:bg-[var(--admin-surface-2)]'
               }`}
               onClick={() => onZoneSelect(zone.id)}
             >
@@ -117,20 +113,38 @@ export function ZoneList({
                   />
                   <div className="min-w-0">
                     <p className={`font-semibold truncate transition-colors duration-200 ${
-                      zone.is_active ? 'text-[#f0f2f5] group-hover:text-[#FEC501]' : 'text-[#a8b5c9]'
+                      zone.is_active ? 'text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)]' : 'text-[var(--admin-text-muted)]'
                     }`}>
                       {zone.name}
                     </p>
                     <div className="flex items-center gap-2 mt-1.5">
-                      <Truck className="h-3.5 w-3.5 text-[#a8b5c9]" />
-                      <span className="text-sm text-[#FEC501] font-semibold">
+                      <Truck className="h-3.5 w-3.5 text-[var(--admin-text-muted)]" />
+                      <span className="text-sm text-[var(--admin-accent-text)] font-semibold">
                         {zone.shipping_cost === 0
                           ? 'Envío Gratis'
                           : formatPrice(zone.shipping_cost)}
                       </span>
                     </div>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      {zone.zone_type === 'circle' ? (
+                        <>
+                          <CircleDot className="h-3 w-3 text-[var(--admin-text-muted)]" />
+                          <span className="text-xs text-[var(--admin-text-muted)]">
+                            Radio{' '}
+                            {zone.radius_meters && zone.radius_meters >= 1000
+                              ? `${(zone.radius_meters / 1000).toFixed(1)} km`
+                              : `${zone.radius_meters} m`}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Hexagon className="h-3 w-3 text-[var(--admin-text-muted)]" />
+                          <span className="text-xs text-[var(--admin-text-muted)]">Polígono</span>
+                        </>
+                      )}
+                    </div>
                     {zone.free_shipping_threshold && (
-                      <p className="text-xs text-[#a8b5c9] mt-1">
+                      <p className="text-xs text-[var(--admin-text-muted)] mt-1">
                         Gratis desde {formatPrice(zone.free_shipping_threshold)}
                       </p>
                     )}
@@ -142,7 +156,7 @@ export function ZoneList({
                     checked={zone.is_active}
                     onCheckedChange={() => handleToggleActive(zone)}
                     disabled={loadingIds.has(zone.id)}
-                    className="data-[state=checked]:bg-[#FEC501] data-[state=unchecked]:bg-[#2a2f3a]"
+                    className="data-[state=checked]:bg-[var(--admin-accent)] data-[state=unchecked]:bg-[var(--admin-border)]"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>
@@ -150,7 +164,7 @@ export function ZoneList({
 
               <div className="flex items-center gap-2 mt-3">
                 {!zone.is_active && (
-                  <Badge variant="outline" className="border-[#2a2f3a] text-[#a8b5c9] text-xs bg-[#252a35]">
+                  <Badge variant="outline" className="border-[var(--admin-border)] text-[var(--admin-text-muted)] text-xs bg-[var(--admin-surface-2)]">
                     Inactiva
                   </Badge>
                 )}
@@ -161,7 +175,7 @@ export function ZoneList({
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-8 w-8 text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#2a2f3a] transition-all duration-200"
+                        className="h-8 w-8 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)] transition-all duration-200"
                         onClick={(e) => {
                           e.stopPropagation()
                           onZoneEdit(zone)
@@ -194,7 +208,7 @@ export function ZoneList({
                   </Tooltip>
                 </TooltipProvider>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}

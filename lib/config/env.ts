@@ -1,10 +1,8 @@
-function getRequiredEnv(key: string): string {
-  const value = process.env[key]
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${key}`)
-  }
+function requireValue(value: string | undefined, name: string): string {
+  if (!value) throw new Error(`Missing required environment variable: ${name}`)
   return value
 }
 
-export const SUPABASE_URL = getRequiredEnv('NEXT_PUBLIC_SUPABASE_URL')
-export const SUPABASE_ANON_KEY = getRequiredEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+// Use static property access so Next.js can inline NEXT_PUBLIC_ vars at build time
+export const SUPABASE_URL = requireValue(process.env.NEXT_PUBLIC_SUPABASE_URL, 'NEXT_PUBLIC_SUPABASE_URL')
+export const SUPABASE_ANON_KEY = requireValue(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, 'NEXT_PUBLIC_SUPABASE_ANON_KEY')

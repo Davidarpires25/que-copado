@@ -12,6 +12,18 @@ export interface GeoJSONPolygon {
   coordinates: number[][][]
 }
 
+export type ZoneType = 'polygon' | 'circle'
+
+export interface ZoneCenter {
+  lat: number
+  lng: number
+}
+
+// Discriminated union for geometry drawn on the map
+export type DrawnZoneGeometry =
+  | { type: 'polygon'; polygon: GeoJSONPolygon }
+  | { type: 'circle'; center: ZoneCenter; radius_meters: number }
+
 export interface Database {
   public: {
     Tables: {
@@ -50,6 +62,10 @@ export interface Database {
           image_url: string | null
           is_active: boolean
           is_out_of_stock: boolean
+          current_stock: number
+          min_stock: number | null
+          stock_tracking_enabled: boolean
+          auto_disabled: boolean
           created_at: string
         }
         Insert: {
@@ -63,6 +79,10 @@ export interface Database {
           image_url?: string | null
           is_active?: boolean
           is_out_of_stock?: boolean
+          current_stock?: number
+          min_stock?: number | null
+          stock_tracking_enabled?: boolean
+          auto_disabled?: boolean
           created_at?: string
         }
         Update: {
@@ -76,6 +96,10 @@ export interface Database {
           image_url?: string | null
           is_active?: boolean
           is_out_of_stock?: boolean
+          current_stock?: number
+          min_stock?: number | null
+          stock_tracking_enabled?: boolean
+          auto_disabled?: boolean
           created_at?: string
         }
       }
@@ -343,13 +367,35 @@ export interface Database {
           added_by?: string | null
         }
       }
+      ingredient_categories: {
+        Row: {
+          id: string
+          name: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          created_at?: string
+        }
+      }
       ingredients: {
         Row: {
           id: string
           name: string
           unit: string
           cost_per_unit: number
+          waste_percentage: number
+          category_id: string | null
           is_active: boolean
+          current_stock: number
+          min_stock: number | null
+          stock_tracking_enabled: boolean
           created_at: string
           updated_at: string
         }
@@ -358,7 +404,12 @@ export interface Database {
           name: string
           unit: string
           cost_per_unit: number
+          waste_percentage?: number
+          category_id?: string | null
           is_active?: boolean
+          current_stock?: number
+          min_stock?: number | null
+          stock_tracking_enabled?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -367,7 +418,12 @@ export interface Database {
           name?: string
           unit?: string
           cost_per_unit?: number
+          waste_percentage?: number
+          category_id?: string | null
           is_active?: boolean
+          current_stock?: number
+          min_stock?: number | null
+          stock_tracking_enabled?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -404,6 +460,7 @@ export interface Database {
           recipe_id: string
           ingredient_id: string
           quantity: number
+          unit: string | null
           created_at: string
         }
         Insert: {
@@ -411,6 +468,7 @@ export interface Database {
           recipe_id: string
           ingredient_id: string
           quantity: number
+          unit?: string | null
           created_at?: string
         }
         Update: {
@@ -418,6 +476,7 @@ export interface Database {
           recipe_id?: string
           ingredient_id?: string
           quantity?: number
+          unit?: string | null
           created_at?: string
         }
       }
@@ -444,11 +503,58 @@ export interface Database {
           created_at?: string
         }
       }
+      stock_movements: {
+        Row: {
+          id: string
+          ingredient_id: string | null
+          product_id: string | null
+          movement_type: string
+          quantity: number
+          previous_stock: number
+          new_stock: number
+          reason: string | null
+          reference_type: string | null
+          order_id: string | null
+          created_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          ingredient_id?: string | null
+          product_id?: string | null
+          movement_type: string
+          quantity: number
+          previous_stock: number
+          new_stock: number
+          reason?: string | null
+          reference_type?: string | null
+          order_id?: string | null
+          created_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          ingredient_id?: string | null
+          product_id?: string | null
+          movement_type?: string
+          quantity?: number
+          previous_stock?: number
+          new_stock?: number
+          reason?: string | null
+          reference_type?: string | null
+          order_id?: string | null
+          created_by?: string | null
+          created_at?: string
+        }
+      }
       delivery_zones: {
         Row: {
           id: string
           name: string
-          polygon: Json
+          zone_type: string
+          polygon: Json | null
+          center: Json | null
+          radius_meters: number | null
           shipping_cost: number
           color: string
           is_active: boolean
@@ -460,7 +566,10 @@ export interface Database {
         Insert: {
           id?: string
           name: string
-          polygon: Json
+          zone_type?: string
+          polygon?: Json | null
+          center?: Json | null
+          radius_meters?: number | null
           shipping_cost: number
           color?: string
           is_active?: boolean
@@ -472,7 +581,10 @@ export interface Database {
         Update: {
           id?: string
           name?: string
-          polygon?: Json
+          zone_type?: string
+          polygon?: Json | null
+          center?: Json | null
+          radius_meters?: number | null
           shipping_cost?: number
           color?: string
           is_active?: boolean
@@ -550,7 +662,10 @@ export type OrderWithZone = Order & {
 export interface DeliveryZone {
   id: string
   name: string
-  polygon: GeoJSONPolygon
+  zone_type: ZoneType
+  polygon: GeoJSONPolygon | null
+  center: ZoneCenter | null
+  radius_meters: number | null
   shipping_cost: number
   color: string
   is_active: boolean
@@ -567,8 +682,15 @@ export interface ShippingResult {
   isOutOfCoverage: boolean
 }
 
+// Ingredient Categories
+export type IngredientCategory = Database['public']['Tables']['ingredient_categories']['Row']
+
 // Ingredients
 export type Ingredient = Database['public']['Tables']['ingredients']['Row']
+
+export type IngredientWithCategory = Ingredient & {
+  ingredient_categories: IngredientCategory | null
+}
 export type IngredientUnit = 'kg' | 'g' | 'litro' | 'ml' | 'unidad'
 
 export const INGREDIENT_UNIT_LABELS: Record<IngredientUnit, string> = {
@@ -606,4 +728,18 @@ export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
 export const PRODUCT_TYPE_DESCRIPTIONS: Record<ProductType, string> = {
   elaborado: 'Se prepara con recetas (ej: hamburguesas, papas)',
   reventa: 'Se compra y revende tal cual (ej: bebidas, extras)',
+}
+
+// Ingredient Sub-Recipes (BOM)
+export type IngredientSubRecipe = {
+  id: string
+  parent_ingredient_id: string
+  child_ingredient_id: string
+  quantity: number
+  unit: string
+  created_at: string
+}
+
+export type IngredientSubRecipeWithChild = IngredientSubRecipe & {
+  ingredients: Pick<Ingredient, 'id' | 'name' | 'unit' | 'cost_per_unit'>
 }

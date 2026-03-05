@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Clock, Calendar, Pause, Play, Loader2, Save } from 'lucide-react'
+import { Clock, Calendar, Pause, Play, Loader2, Save, Sun, Moon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,8 +9,10 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { AdminLayout } from '@/components/admin/layout'
 import { updateBusinessSettings, toggleBusinessPause } from '@/app/actions/business-settings'
+import { useThemeStore } from '@/lib/store/theme-store'
 import { checkBusinessStatus, formatOperatingDays, formatBusinessHours } from '@/lib/services/business-hours'
 import { toast } from 'sonner'
+import { DangerZone } from '@/components/admin/settings/danger-zone'
 import type { BusinessSettings } from '@/lib/types/database'
 
 interface BusinessSettingsFormProps {
@@ -32,6 +33,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
   const [settings, setSettings] = useState(initialSettings)
   const [isSaving, setIsSaving] = useState(false)
   const [isTogglingPause, setIsTogglingPause] = useState(false)
+  const { theme, setTheme } = useThemeStore()
 
   // Form state
   const [operatingDays, setOperatingDays] = useState<number[]>(settings.operating_days)
@@ -89,9 +91,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
     <AdminLayout title="Configuración" description="Horarios y preferencias del negocio">
       <div className="max-w-2xl space-y-6">
         {/* Status Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
           className={`rounded-xl p-6 border ${
             businessStatus.isOpen
               ? 'bg-green-500/10 border-green-500/30'
@@ -109,7 +109,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
                 <p className={`font-semibold ${businessStatus.isOpen ? 'text-green-400' : 'text-red-400'}`}>
                   {businessStatus.isOpen ? 'Abierto' : 'Cerrado'}
                 </p>
-                <p className="text-sm text-[#a8b5c9]">{businessStatus.message}</p>
+                <p className="text-sm text-[var(--admin-text-muted)]">{businessStatus.message}</p>
               </div>
             </div>
 
@@ -133,23 +133,20 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
               {settings.is_paused ? 'Reanudar Pedidos' : 'Pausar Pedidos'}
             </Button>
           </div>
-        </motion.div>
+        </div>
 
         {/* Business Hours */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-[#1a1d24] border border-[#2a2f3a] rounded-xl p-6 space-y-6"
+        <div
+          className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 space-y-6 shadow-[var(--shadow-card)]"
         >
           <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-[#FEC501]" />
-            <h2 className="text-lg font-semibold text-[#f0f2f5]">Horarios de Atención</h2>
+            <Clock className="h-5 w-5 text-[var(--admin-accent-text)]" />
+            <h2 className="text-lg font-semibold text-[var(--admin-text)]">Horarios de Atención</h2>
           </div>
 
           {/* Days */}
           <div className="space-y-3">
-            <Label className="text-[#c4cdd9]">Días de operación</Label>
+            <Label className="text-[var(--admin-text-muted)]">Días de operación</Label>
             <div className="flex flex-wrap gap-2">
               {DAYS_OF_WEEK.map(({ value, label }) => (
                 <button
@@ -158,15 +155,15 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
                   onClick={() => handleToggleDay(value)}
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
                     operatingDays.includes(value)
-                      ? 'bg-[#FEC501] text-black'
-                      : 'bg-[#252a35] text-[#a8b5c9] hover:bg-[#2a2f3a]'
+                      ? 'bg-[var(--admin-accent)] text-black'
+                      : 'bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-border)]'
                   }`}
                 >
                   {label}
                 </button>
               ))}
             </div>
-            <p className="text-sm text-[#a8b5c9]">
+            <p className="text-sm text-[var(--admin-text-muted)]">
               {formatOperatingDays(operatingDays)}
             </p>
           </div>
@@ -174,64 +171,104 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
           {/* Time */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-[#c4cdd9]">Hora de apertura</Label>
+              <Label className="text-[var(--admin-text-muted)]">Hora de apertura</Label>
               <Input
                 type="time"
                 value={openingTime}
                 onChange={(e) => setOpeningTime(e.target.value)}
-                className="bg-[#252a35] border-[#2a2f3a] text-[#f0f2f5] h-10"
+                className="bg-[var(--admin-surface-2)] border-[var(--admin-border)] text-[var(--admin-text)] h-10"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[#c4cdd9]">Hora de cierre</Label>
+              <Label className="text-[var(--admin-text-muted)]">Hora de cierre</Label>
               <Input
                 type="time"
                 value={closingTime}
                 onChange={(e) => setClosingTime(e.target.value)}
-                className="bg-[#252a35] border-[#2a2f3a] text-[#f0f2f5] h-10"
+                className="bg-[var(--admin-surface-2)] border-[var(--admin-border)] text-[var(--admin-text)] h-10"
               />
             </div>
           </div>
-          <p className="text-sm text-[#a8b5c9]">
+          <p className="text-sm text-[var(--admin-text-muted)]">
             Horario: {formatBusinessHours(openingTime, closingTime)}
           </p>
-        </motion.div>
+        </div>
 
         {/* Pause Message */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-[#1a1d24] border border-[#2a2f3a] rounded-xl p-6 space-y-4"
+        <div
+          className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 space-y-4 shadow-[var(--shadow-card)]"
         >
           <div className="flex items-center gap-2">
-            <Pause className="h-5 w-5 text-[#FEC501]" />
-            <h2 className="text-lg font-semibold text-[#f0f2f5]">Mensaje de Pausa</h2>
+            <Pause className="h-5 w-5 text-[var(--admin-accent-text)]" />
+            <h2 className="text-lg font-semibold text-[var(--admin-text)]">Mensaje de Pausa</h2>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-[#c4cdd9]">
+            <Label className="text-[var(--admin-text-muted)]">
               Mensaje cuando los pedidos están pausados
             </Label>
             <Textarea
               value={pauseMessage}
               onChange={(e) => setPauseMessage(e.target.value)}
               placeholder="Estamos cerrados temporalmente. Volvemos pronto!"
-              className="bg-[#252a35] border-[#2a2f3a] text-[#f0f2f5] min-h-[100px] placeholder:text-[#a8b5c9] placeholder:italic"
+              className="bg-[var(--admin-surface-2)] border-[var(--admin-border)] text-[var(--admin-text)] min-h-[100px] placeholder:text-[var(--admin-text-muted)]"
             />
           </div>
-        </motion.div>
+        </div>
+
+        {/* Apariencia */}
+        <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 space-y-4 shadow-[var(--shadow-card)]">
+          <div className="flex items-center gap-2">
+            {theme === 'dark' ? (
+              <Moon className="h-5 w-5 text-[var(--admin-accent-text)]" />
+            ) : (
+              <Sun className="h-5 w-5 text-[var(--admin-accent-text)]" />
+            )}
+            <h2 className="text-lg font-semibold text-[var(--admin-text)]">Apariencia</h2>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-[var(--admin-text)]">
+                {theme === 'dark' ? 'Modo Oscuro' : 'Modo Claro'}
+              </p>
+              <p className="text-xs text-[var(--admin-text-muted)] mt-0.5">
+                {theme === 'dark'
+                  ? 'Interfaz oscura, ideal para ambientes con poca luz'
+                  : 'Interfaz clara, ideal para ambientes bien iluminados'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className={`relative inline-flex h-8 w-[3.75rem] items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)] ${
+                theme === 'dark'
+                  ? 'bg-[var(--admin-accent)]'
+                  : 'bg-[var(--admin-border)]'
+              }`}
+              aria-label="Cambiar tema"
+            >
+              <span
+                className={`flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-sm transition-transform ${
+                  theme === 'dark' ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              >
+                {theme === 'dark' ? (
+                  <Moon className="h-3.5 w-3.5 text-[#1a1d24]" />
+                ) : (
+                  <Sun className="h-3.5 w-3.5 text-amber-500" />
+                )}
+              </span>
+            </button>
+          </div>
+        </div>
 
         {/* Save Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
+        <div>
           <Button
             onClick={handleSave}
             disabled={isSaving}
-            className="w-full h-12 bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold"
+            className="w-full h-12 bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold"
           >
             {isSaving ? (
               <>
@@ -245,7 +282,9 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
               </>
             )}
           </Button>
-        </motion.div>
+        </div>
+
+        <DangerZone />
       </div>
     </AdminLayout>
   )

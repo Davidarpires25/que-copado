@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MapPin } from 'lucide-react'
+import { MapPin, CircleDot, Hexagon } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -13,38 +13,35 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createDeliveryZone, updateDeliveryZone } from '@/app/actions/delivery-zones'
 import { toast } from 'sonner'
-import type { DeliveryZone, GeoJSONPolygon } from '@/lib/types/database'
+import type { DeliveryZone, DrawnZoneGeometry } from '@/lib/types/database'
 
 interface ZoneFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   zone: DeliveryZone | null
-  polygon: GeoJSONPolygon | null
+  drawnGeometry: DrawnZoneGeometry | null
   onZoneUpdated: (zone: DeliveryZone) => void
   onZoneCreated: (zone: DeliveryZone) => void
 }
 
 const PRESET_COLORS = [
-  '#FF6B00', // Orange
-  '#3B82F6', // Blue
-  '#22C55E', // Green
-  '#EF4444', // Red
-  '#8B5CF6', // Purple
-  '#F59E0B', // Amber
-  '#EC4899', // Pink
-  '#06B6D4', // Cyan
+  '#FF6B00', '#3B82F6', '#22C55E', '#EF4444',
+  '#8B5CF6', '#F59E0B', '#EC4899', '#06B6D4',
 ]
 
 interface ZoneFormContentProps {
   zone: DeliveryZone | null
-  polygon: GeoJSONPolygon | null
+  drawnGeometry: DrawnZoneGeometry | null
   onZoneUpdated: (zone: DeliveryZone) => void
   onZoneCreated: (zone: DeliveryZone) => void
   onClose: () => void
 }
 
-function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose }: ZoneFormContentProps) {
-  // Initialize with zone values if editing
+function formatRadius(meters: number): string {
+  return meters >= 1000 ? `${(meters / 1000).toFixed(1)} km` : `${meters} m`
+}
+
+function ZoneFormContent({ zone, drawnGeometry, onZoneUpdated, onZoneCreated, onClose }: ZoneFormContentProps) {
   const [name, setName] = useState(zone?.name ?? '')
   const [shippingCost, setShippingCost] = useState(zone?.shipping_cost?.toString() ?? '')
   const [color, setColor] = useState(zone?.color ?? '#FF6B00')
@@ -55,39 +52,56 @@ function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose 
 
   const isEditing = !!zone?.id
 
+  // Determine effective geometry: drawn takes precedence over saved zone geometry
+  const effectiveGeometry: DrawnZoneGeometry | null = drawnGeometry ?? (
+    zone?.zone_type === 'circle' && zone.center && zone.radius_meters
+      ? { type: 'circle', center: zone.center, radius_meters: zone.radius_meters }
+      : zone?.polygon
+        ? { type: 'polygon', polygon: zone.polygon }
+        : null
+  )
+
+  const hasGeometry = !!effectiveGeometry
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const polygonToUse = polygon || zone?.polygon
-    if (!polygonToUse) {
-      toast.error('Dibuja un polígono en el mapa primero')
+    if (!effectiveGeometry) {
+      toast.error('Dibuja el área de cobertura en el mapa primero')
       return
     }
-
-    if (!name.trim()) {
-      toast.error('El nombre es requerido')
-      return
-    }
+    if (!name.trim()) { toast.error('El nombre es requerido'); return }
 
     const cost = parseInt(shippingCost, 10)
-    if (isNaN(cost) || cost < 0) {
-      toast.error('El costo de envío debe ser un número válido')
-      return
-    }
+    if (isNaN(cost) || cost < 0) { toast.error('El costo de envío debe ser un número válido'); return }
 
     setIsLoading(true)
 
     if (isEditing && zone) {
-      const result = await updateDeliveryZone(zone.id, {
-        name: name.trim(),
-        polygon: polygonToUse,
-        shipping_cost: cost,
-        color,
-        free_shipping_threshold: freeShippingThreshold
-          ? parseInt(freeShippingThreshold, 10)
-          : null,
-      })
+      const updatePayload =
+        effectiveGeometry.type === 'circle'
+          ? {
+              name: name.trim(),
+              zone_type: 'circle' as const,
+              polygon: null,
+              center: effectiveGeometry.center,
+              radius_meters: effectiveGeometry.radius_meters,
+              shipping_cost: cost,
+              color,
+              free_shipping_threshold: freeShippingThreshold ? parseInt(freeShippingThreshold, 10) : null,
+            }
+          : {
+              name: name.trim(),
+              zone_type: 'polygon' as const,
+              polygon: effectiveGeometry.polygon,
+              center: null,
+              radius_meters: null,
+              shipping_cost: cost,
+              color,
+              free_shipping_threshold: freeShippingThreshold ? parseInt(freeShippingThreshold, 10) : null,
+            }
 
+      const result = await updateDeliveryZone(zone.id, updatePayload)
       setIsLoading(false)
 
       if (result.error) {
@@ -96,28 +110,27 @@ function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose 
         toast.success('Zona actualizada')
         onZoneUpdated({
           ...zone,
-          name: name.trim(),
-          polygon: polygonToUse,
-          shipping_cost: cost,
-          color,
-          free_shipping_threshold: freeShippingThreshold
-            ? parseInt(freeShippingThreshold, 10)
-            : null,
+          ...updatePayload,
           updated_at: new Date().toISOString(),
         })
       }
     } else {
       const formData = new FormData()
       formData.set('name', name.trim())
-      formData.set('polygon', JSON.stringify(polygonToUse))
       formData.set('shipping_cost', cost.toString())
       formData.set('color', color)
-      if (freeShippingThreshold) {
-        formData.set('free_shipping_threshold', freeShippingThreshold)
+      if (freeShippingThreshold) formData.set('free_shipping_threshold', freeShippingThreshold)
+
+      if (effectiveGeometry.type === 'circle') {
+        formData.set('zone_type', 'circle')
+        formData.set('center', JSON.stringify(effectiveGeometry.center))
+        formData.set('radius_meters', effectiveGeometry.radius_meters.toString())
+      } else {
+        formData.set('zone_type', 'polygon')
+        formData.set('polygon', JSON.stringify(effectiveGeometry.polygon))
       }
 
       const result = await createDeliveryZone(formData)
-
       setIsLoading(false)
 
       if (result.error) {
@@ -132,21 +145,68 @@ function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+      {/* Geometry info */}
+      {effectiveGeometry ? (
+        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-2)] p-3 flex items-center gap-3">
+          {effectiveGeometry.type === 'circle' ? (
+            <>
+              <div className="w-8 h-8 bg-[var(--admin-accent)]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <CircleDot className="h-4 w-4 text-[var(--admin-accent-text)]" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-[var(--admin-text-muted)]">Radio circular</p>
+                <p className="text-sm font-semibold text-[var(--admin-text)]">
+                  {formatRadius(effectiveGeometry.radius_meters)}
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="w-8 h-8 bg-[var(--admin-accent)]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Hexagon className="h-4 w-4 text-[var(--admin-accent-text)]" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-[var(--admin-text-muted)]">Polígono personalizado</p>
+                <p className="text-sm font-semibold text-[var(--admin-text)]">
+                  {effectiveGeometry.polygon.coordinates[0].length - 1} vértices
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-amber-600/50 bg-gradient-to-br from-amber-900/20 to-orange-900/20 p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+              <MapPin className="h-4 w-4 text-amber-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-amber-300 mb-1">Área de cobertura requerida</p>
+              <p className="text-xs text-amber-400/80">
+                Dibuja un <strong>polígono</strong> o un <strong>círculo</strong> en el mapa para definir el área
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Name */}
       <div className="space-y-2">
-        <Label className="text-[#c4cdd9] font-medium">Nombre de la zona</Label>
+        <Label className="text-[var(--admin-text-muted)] font-medium">Nombre de la zona</Label>
         <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Nombre de la zona"
           maxLength={50}
-          className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 placeholder:text-[#a8b5c9] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+          className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-10 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all"
         />
       </div>
 
+      {/* Shipping cost */}
       <div className="space-y-2">
-        <Label className="text-[#c4cdd9] font-medium">Costo de envío (ARS)</Label>
+        <Label className="text-[var(--admin-text-muted)] font-medium">Costo de envío (ARS)</Label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a8b5c9] font-semibold">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] font-semibold">$</span>
           <Input
             type="number"
             value={shippingCost}
@@ -154,19 +214,20 @@ function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose 
             placeholder="Monto del envío"
             min={0}
             step={100}
-            className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 pl-7 placeholder:text-[#a8b5c9] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+            className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-10 pl-7 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all"
           />
         </div>
-        <p className="text-xs text-[#a8b5c9] flex items-center gap-1">
-          <span className="w-1 h-1 bg-[#a8b5c9] rounded-full" />
+        <p className="text-xs text-[var(--admin-text-muted)] flex items-center gap-1">
+          <span className="w-1 h-1 bg-[var(--admin-text-muted)] rounded-full" />
           Ingresa 0 para envío gratuito en esta zona
         </p>
       </div>
 
+      {/* Free shipping threshold */}
       <div className="space-y-2">
-        <Label className="text-[#c4cdd9] font-medium">Umbral de envío gratis (opcional)</Label>
+        <Label className="text-[var(--admin-text-muted)] font-medium">Umbral de envío gratis (opcional)</Label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a8b5c9] font-semibold">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] font-semibold">$</span>
           <Input
             type="number"
             value={freeShippingThreshold}
@@ -174,17 +235,18 @@ function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose 
             placeholder="Monto mínimo"
             min={0}
             step={1000}
-            className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 pl-7 placeholder:text-[#a8b5c9] placeholder:italic focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+            className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-10 pl-7 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all"
           />
         </div>
-        <p className="text-xs text-[#a8b5c9] flex items-center gap-1">
-          <span className="w-1 h-1 bg-[#a8b5c9] rounded-full" />
+        <p className="text-xs text-[var(--admin-text-muted)] flex items-center gap-1">
+          <span className="w-1 h-1 bg-[var(--admin-text-muted)] rounded-full" />
           Pedidos que superen este monto tendrán envío gratis
         </p>
       </div>
 
+      {/* Color */}
       <div className="space-y-2">
-        <Label className="text-[#c4cdd9] font-medium">Color de la zona</Label>
+        <Label className="text-[var(--admin-text-muted)] font-medium">Color de la zona</Label>
         <div className="flex flex-wrap gap-2">
           {PRESET_COLORS.map((presetColor) => (
             <button
@@ -194,73 +256,50 @@ function ZoneFormContent({ zone, polygon, onZoneUpdated, onZoneCreated, onClose 
               className={`w-10 h-10 rounded-lg border-2 transition-all duration-200 hover:scale-110 ${
                 color === presetColor
                   ? 'border-white scale-110 shadow-lg'
-                  : 'border-[#2a2f3a] hover:border-[#a8b5c9]'
+                  : 'border-[var(--admin-border)] hover:border-[var(--admin-text-muted)]'
               }`}
               style={{
                 backgroundColor: presetColor,
-                boxShadow: color === presetColor ? `0 4px 12px ${presetColor}60` : 'none'
+                boxShadow: color === presetColor ? `0 4px 12px ${presetColor}60` : 'none',
               }}
             />
           ))}
         </div>
         <div className="flex items-center gap-2 mt-3">
-          <div className="relative">
-            <Input
-              type="color"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              className="w-12 h-10 p-0 border-0 bg-transparent cursor-pointer rounded-lg"
-            />
-          </div>
+          <Input
+            type="color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+            className="w-12 h-10 p-0 border-0 bg-transparent cursor-pointer rounded-lg"
+          />
           <Input
             type="text"
             value={color}
             onChange={(e) => setColor(e.target.value)}
             placeholder="#FF6B00"
             pattern="^#[0-9A-Fa-f]{6}$"
-            className="flex-1 bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] font-mono h-10 focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+            className="flex-1 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] font-mono h-10 focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all"
           />
         </div>
       </div>
 
-      {!polygon && !zone?.polygon && (
-        <div className="rounded-xl border border-amber-600/50 bg-gradient-to-br from-amber-900/20 to-orange-900/20 p-4 backdrop-blur">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-              <MapPin className="h-4 w-4 text-amber-400" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-amber-300 mb-1">
-                Área de cobertura requerida
-              </p>
-              <p className="text-xs text-amber-400/80">
-                Dibuja un polígono en el mapa para definir el área de esta zona
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Actions */}
       <div className="flex gap-3 pt-2">
         <Button
           type="button"
           variant="outline"
           onClick={onClose}
           disabled={isLoading}
-          className="flex-1 h-10 border-[#2a2f3a] text-[#c4cdd9] hover:bg-[#2a2f3a] hover:text-[#f0f2f5] transition-all duration-200"
+          className="flex-1 h-10 border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-border)] hover:text-[var(--admin-text)] transition-all duration-200"
         >
           Cancelar
         </Button>
         <Button
           type="submit"
-          disabled={isLoading || (!polygon && !zone?.polygon)}
-          className="flex-1 h-10 bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[#FEC501]/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isLoading || !hasGeometry}
+          className="flex-1 h-10 bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading
-            ? 'Guardando...'
-            : isEditing
-              ? 'Guardar Cambios'
-              : 'Crear Zona'}
+          {isLoading ? 'Guardando...' : isEditing ? 'Guardar Cambios' : 'Crear Zona'}
         </Button>
       </div>
     </form>
@@ -271,7 +310,7 @@ export function ZoneFormDialog({
   open,
   onOpenChange,
   zone,
-  polygon,
+  drawnGeometry,
   onZoneUpdated,
   onZoneCreated,
 }: ZoneFormDialogProps) {
@@ -279,23 +318,22 @@ export function ZoneFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#12151a] border-[#2a2f3a] max-w-md shadow-2xl">
+      <DialogContent className="bg-[var(--admin-surface)] border-[var(--admin-border)] max-w-md shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-[#f0f2f5] text-xl">
+          <DialogTitle className="text-[var(--admin-text)] text-xl">
             {zone?.id ? 'Editar Zona' : 'Nueva Zona de Envío'}
           </DialogTitle>
-          <p className="text-[#a8b5c9] text-sm mt-1">
+          <p className="text-[var(--admin-text-muted)] text-sm mt-1">
             {zone?.id
               ? 'Modifica los datos de la zona de envío'
-              : 'Define el área de cobertura y el costo de envío'}
+              : 'Dibuja un polígono o círculo en el mapa, luego completá los datos'}
           </p>
         </DialogHeader>
 
-        {/* Use key to force remount when zone changes */}
         <ZoneFormContent
           key={zone?.id ?? 'new'}
           zone={zone}
-          polygon={polygon}
+          drawnGeometry={drawnGeometry}
           onZoneUpdated={onZoneUpdated}
           onZoneCreated={onZoneCreated}
           onClose={handleClose}
