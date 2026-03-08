@@ -33,8 +33,11 @@ export function CategoryFormDialog({
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [nameTouched, setNameTouched] = useState(false)
 
   const isEditing = !!category
+  const nameError = nameTouched && !name.trim() ? 'El nombre es requerido' : ''
+  const canSubmit = !isLoading && !!name.trim()
 
   useEffect(() => {
     if (category) {
@@ -44,6 +47,7 @@ export function CategoryFormDialog({
       setName('')
       setSlug('')
     }
+    setNameTouched(false)
   }, [category, open])
 
   // Auto-generate slug from name
@@ -61,6 +65,9 @@ export function CategoryFormDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setNameTouched(true)
+    if (!name.trim()) return
+
     setIsLoading(true)
 
     try {
@@ -106,12 +113,12 @@ export function CategoryFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#12151a] border-[#2a2f3a] text-[#f0f2f5] sm:max-w-md shadow-2xl">
+      <DialogContent className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] sm:max-w-md shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-[#f0f2f5]">
+          <DialogTitle className="text-lg font-semibold text-[var(--admin-text)]">
             {isEditing ? 'Editar Categoría' : 'Nueva Categoría'}
           </DialogTitle>
-          <p className="text-[#a8b5c9] text-xs mt-0.5">
+          <p className="text-[var(--admin-text-muted)] text-xs mt-0.5">
             {isEditing ? 'Modifica los datos de la categoría' : 'Agrega una nueva categoría al catálogo'}
           </p>
         </DialogHeader>
@@ -119,23 +126,32 @@ export function CategoryFormDialog({
         <form onSubmit={handleSubmit} className="space-y-3 mt-4">
           {/* Name */}
           <div className="space-y-1.5">
-            <Label htmlFor="name" className="text-[#a8b5c9] text-xs font-semibold uppercase tracking-wide">
-              Nombre
+            <Label htmlFor="name" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
+              Nombre <span className="text-red-400 ml-0.5">*</span>
             </Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
+              onBlur={() => setNameTouched(true)}
               placeholder="Nombre de la categoría"
-              className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 text-sm placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
-              required
+              className={`bg-[var(--admin-bg)] border h-10 text-sm placeholder:text-[var(--admin-text-muted)] transition-all ${
+                nameError
+                  ? 'border-red-500/60 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-[var(--admin-text)]'
+                  : 'border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20'
+              }`}
               maxLength={100}
             />
+            {nameError && (
+              <p className="text-xs text-red-400 flex items-center gap-1">
+                {nameError}
+              </p>
+            )}
           </div>
 
           {/* Slug */}
           <div className="space-y-1.5">
-            <Label htmlFor="slug" className="text-[#a8b5c9] text-xs font-semibold uppercase tracking-wide">
+            <Label htmlFor="slug" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
               Slug (URL)
             </Label>
             <Input
@@ -144,10 +160,9 @@ export function CategoryFormDialog({
               onChange={(e) => isEditing && setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''))}
               placeholder="Se genera automaticamente"
               readOnly={!isEditing}
-              className={`bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 text-sm placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all ${!isEditing ? 'opacity-60 cursor-not-allowed' : ''}`}
-              required
+              className={`bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-10 text-sm placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all ${!isEditing ? 'opacity-60 cursor-not-allowed' : ''}`}
             />
-            <p className="text-xs text-[#a8b5c9]">
+            <p className="text-xs text-[var(--admin-text-muted)]">
               {isEditing ? 'Solo letras, números y guiones.' : 'Se genera automaticamente a partir del nombre.'}
             </p>
           </div>
@@ -158,7 +173,7 @@ export function CategoryFormDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1 h-10 text-sm border-[#3a4150] text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#252a35]"
+              className="flex-1 h-10 text-sm border-[#3a4150] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)]"
               disabled={isLoading}
             >
               Cancelar
@@ -166,11 +181,11 @@ export function CategoryFormDialog({
             <Button
               type="submit"
               className={`flex-1 h-10 text-sm font-semibold transition-all duration-200 ${
-                isLoading || !name.trim()
-                  ? 'bg-[#3a3f4a] text-[#6b7a8d] cursor-not-allowed shadow-none'
-                  : 'bg-[#FEC501] hover:bg-[#E5B001] text-black shadow-lg shadow-[#FEC501]/20'
+                !canSubmit
+                  ? 'bg-[var(--admin-text-placeholder)] text-[var(--admin-text-faint)] cursor-not-allowed shadow-none'
+                  : 'bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black shadow-lg shadow-[var(--admin-accent)]/20'
               }`}
-              disabled={isLoading || !name.trim()}
+              disabled={!canSubmit}
             >
               {isLoading ? (
                 <>

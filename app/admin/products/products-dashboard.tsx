@@ -122,31 +122,31 @@ function ProductForm({
     >
       <input type="hidden" name="product_type" value={productType} />
       <div className="space-y-2">
-        <Label className="text-[#a8b5c9] text-sm font-medium">Nombre</Label>
+        <Label className="text-[var(--admin-text-muted)] text-sm font-medium">Nombre</Label>
         <Input
           name="name"
           required
           defaultValue={mode === 'edit' && editingProduct ? editingProduct.name : ''}
           placeholder="Nombre del producto"
           onChange={markDirty}
-          className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] text-sm h-10 placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+          className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all"
         />
       </div>
 
       <div className="space-y-2">
-        <Label className="text-[#a8b5c9] text-sm font-medium">Descripcion</Label>
+        <Label className="text-[var(--admin-text-muted)] text-sm font-medium">Descripcion</Label>
         <Input
           name="description"
           defaultValue={mode === 'edit' && editingProduct ? (editingProduct.description || '') : ''}
           placeholder="Descripcion opcional"
           onChange={markDirty}
-          className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] text-sm h-10 placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+          className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all"
         />
       </div>
 
       {/* Product Type Selector */}
       <div className="space-y-2">
-        <Label className="text-[#a8b5c9] text-sm font-medium">Tipo de producto</Label>
+        <Label className="text-[var(--admin-text-muted)] text-sm font-medium">Tipo de producto</Label>
         <div className="grid grid-cols-2 gap-2">
           {(['elaborado', 'reventa'] as ProductType[]).map((type) => (
             <button
@@ -155,14 +155,14 @@ function ProductForm({
               onClick={() => { onProductTypeChange(type); markDirty() }}
               className={`p-2.5 rounded-lg border text-left transition-all duration-200 ${
                 productType === type
-                  ? 'border-[#FEC501]/50 bg-[#FEC501]/10 ring-1 ring-[#FEC501]/20'
-                  : 'border-[#2a2f3a] bg-[#1a1d24] hover:border-[#3a4150]'
+                  ? 'border-[var(--admin-accent)]/50 bg-[var(--admin-accent)]/10 ring-1 ring-[var(--admin-accent)]/20'
+                  : 'border-[var(--admin-border)] bg-[var(--admin-bg)] hover:border-[var(--admin-accent)]/40'
               }`}
             >
-              <p className={`text-sm font-semibold ${productType === type ? 'text-[#FEC501]' : 'text-[#f0f2f5]'}`}>
+              <p className={`text-sm font-semibold ${productType === type ? 'text-[var(--admin-accent-text)]' : 'text-[var(--admin-text)]'}`}>
                 {PRODUCT_TYPE_LABELS[type]}
               </p>
-              <p className="text-[10px] text-[#a8b5c9] mt-0.5 leading-tight">
+              <p className="text-xs text-[var(--admin-text-muted)] mt-0.5 leading-tight">
                 {PRODUCT_TYPE_DESCRIPTIONS[type]}
               </p>
             </button>
@@ -172,9 +172,9 @@ function ProductForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label className="text-[#a8b5c9] text-sm font-medium">Precio</Label>
+          <Label className="text-[var(--admin-text-muted)] text-sm font-medium">Precio</Label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a8b5c9] text-sm font-semibold">$</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold">$</span>
             <Input
               name="price"
               type="number"
@@ -183,27 +183,27 @@ function ProductForm({
               defaultValue={mode === 'edit' && editingProduct ? editingProduct.price : ''}
               placeholder="Venta"
               onChange={markDirty}
-              className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] text-sm h-10 pl-7 placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+              className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 pl-7 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all"
             />
           </div>
         </div>
         <div className="space-y-2">
-          <Label className="text-[#a8b5c9] text-sm font-medium flex items-center gap-1.5">
+          <Label className="text-[var(--admin-text-muted)] text-sm font-medium flex items-center gap-1.5">
             Costo
             {productType === 'elaborado' && selectedRecipes.length > 0 && (
-              <span className="text-[10px] bg-[#FEC501]/15 text-[#FEC501] px-1.5 py-0.5 rounded font-semibold">
+              <span className="text-xs bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)] px-1.5 py-0.5 rounded font-semibold">
                 Recetas
               </span>
             )}
             {productType === 'reventa' && (
-              <span className="text-[10px] bg-blue-500/15 text-blue-400 px-1.5 py-0.5 rounded font-semibold">
+              <span className="text-xs bg-blue-500/15 text-blue-400 px-1.5 py-0.5 rounded font-semibold">
                 Directo
               </span>
             )}
           </Label>
           {productType === 'elaborado' && selectedRecipes.length > 0 ? (
-            <div className="h-11 bg-[#1a1d24] border border-[#2a2f3a] rounded-md px-3 flex items-center">
-              <span className="text-[#FEC501] text-sm font-semibold">
+            <div className="h-11 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-md px-3 flex items-center">
+              <span className="text-[var(--admin-accent-text)] text-sm font-semibold">
                 ${Math.round(selectedRecipes.reduce((sum, item) => {
                   const recipe = recipes.find((r) => r.id === item.recipe_id)
                   if (!recipe) return sum
@@ -216,7 +216,7 @@ function ProductForm({
             </div>
           ) : (
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a8b5c9] text-sm font-semibold">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold">$</span>
               <Input
                 name="cost"
                 type="number"
@@ -224,7 +224,7 @@ function ProductForm({
                 defaultValue={mode === 'edit' && editingProduct ? (editingProduct.cost ?? '') : ''}
                 placeholder={productType === 'reventa' ? 'Costo de compra' : 'Sin receta'}
                 onChange={markDirty}
-                className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] text-sm h-10 pl-7 placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+                className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 pl-7 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all"
               />
             </div>
           )}
@@ -241,22 +241,22 @@ function ProductForm({
       )}
 
       <div className="space-y-2">
-        <Label className="text-[#a8b5c9] text-sm font-medium">Categoria</Label>
+        <Label className="text-[var(--admin-text-muted)] text-sm font-medium">Categoria</Label>
         <Select
           name="category_id"
           required
           defaultValue={mode === 'edit' && editingProduct ? editingProduct.category_id : undefined}
           onValueChange={() => markDirty()}
         >
-          <SelectTrigger className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] text-sm h-10 focus:ring-2 focus:ring-[#FEC501]/20 focus:border-[#FEC501]/50 data-[placeholder]:text-[#a8b5c9] [&_svg]:text-[#a8b5c9] [&_svg]:opacity-100 transition-all">
+          <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 data-[placeholder]:text-[var(--admin-text-muted)] [&_svg]:text-[var(--admin-text-muted)] [&_svg]:opacity-100 transition-all">
             <SelectValue placeholder="Seleccionar categoria..." />
           </SelectTrigger>
-          <SelectContent className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5]">
+          <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">
             {categories.map((cat) => (
               <SelectItem
                 key={cat.id}
                 value={cat.id}
-                className="text-[#f0f2f5] focus:bg-[#2a2f3a] focus:text-[#f0f2f5] hover:bg-[#2a2f3a] cursor-pointer"
+                className="text-[var(--admin-text)] focus:bg-[var(--admin-border)] focus:text-[var(--admin-text)] hover:bg-[var(--admin-border)] cursor-pointer"
               >
                 {cat.name}
               </SelectItem>
@@ -266,15 +266,40 @@ function ProductForm({
       </div>
 
       <div className="space-y-2">
-        <Label className="text-[#a8b5c9] text-sm font-medium">URL de imagen (opcional)</Label>
+        <Label className="text-[var(--admin-text-muted)] text-sm font-medium">URL de imagen (opcional)</Label>
         <Input
           name="image_url"
           type="url"
           defaultValue={mode === 'edit' && editingProduct ? (editingProduct.image_url || '') : ''}
           placeholder="URL de la imagen"
           onChange={markDirty}
-          className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] text-sm h-10 placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+          className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all"
         />
+      </div>
+
+      {/* Station selector (cocina de preparacion) */}
+      <div className="space-y-2">
+        <Label className="text-[var(--admin-text-muted)] text-sm font-medium">Estacion de cocina</Label>
+        <Select
+          name="station"
+          defaultValue={mode === 'edit' && editingProduct ? (editingProduct.station ?? 'none') : 'none'}
+          onValueChange={() => markDirty()}
+        >
+          <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 data-[placeholder]:text-[var(--admin-text-muted)] [&_svg]:text-[var(--admin-text-muted)] [&_svg]:opacity-100 transition-all">
+            <SelectValue placeholder="Sin estacion..." />
+          </SelectTrigger>
+          <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">
+            <SelectItem value="none" className="text-[var(--admin-text)] focus:bg-[var(--admin-border)] focus:text-[var(--admin-text)] hover:bg-[var(--admin-border)] cursor-pointer">
+              Sin estacion (bebidas / reventa)
+            </SelectItem>
+            <SelectItem value="cocina" className="text-[var(--admin-text)] focus:bg-[var(--admin-border)] focus:text-[var(--admin-text)] hover:bg-[var(--admin-border)] cursor-pointer">
+              Cocina
+            </SelectItem>
+            <SelectItem value="barra" className="text-[var(--admin-text)] focus:bg-[var(--admin-border)] focus:text-[var(--admin-text)] hover:bg-[var(--admin-border)] cursor-pointer">
+              Barra
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Warning: elaborado without recipes */}
@@ -290,10 +315,10 @@ function ProductForm({
           disabled={isSaving || (productType === 'elaborado' && selectedRecipes.length === 0)}
           className={`w-full h-10 font-semibold transition-all duration-200 ${
             isSaving || (productType === 'elaborado' && selectedRecipes.length === 0)
-              ? 'bg-[#3a3f4a] text-[#a8b5c9] cursor-not-allowed shadow-none'
+              ? 'bg-[var(--admin-text-placeholder)] text-[var(--admin-text-muted)] cursor-not-allowed shadow-none'
               : mode === 'edit'
                 ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20'
-                : 'bg-[#FEC501] hover:bg-[#E5B001] text-black shadow-lg shadow-[#FEC501]/20'
+                : 'bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black shadow-lg shadow-[var(--admin-accent)]/20'
           }`}
         >
           {isSaving ? (
@@ -313,7 +338,7 @@ function ProductForm({
             type="button"
             variant="ghost"
             onClick={onCancelEdit}
-            className="w-full h-10 text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#252a35]"
+            className="w-full h-10 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)]"
           >
             <RotateCcw className="h-4 w-4 mr-2" />
             Cancelar y crear nuevo
@@ -341,15 +366,15 @@ function StatsCards({ total, active, outOfStock }: StatsCardsProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-[#1a1d24] backdrop-blur border border-[#2a2f3a] rounded-xl p-4 lg:p-6 hover:border-[#FEC501]/30 transition-colors duration-200"
+        className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-[var(--admin-accent)]/30 transition-all duration-200"
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[#a8b5c9] text-sm font-medium">Total</p>
-            <p className="text-2xl lg:text-3xl font-bold text-[#f0f2f5] mt-1">{total}</p>
+            <p className="text-[var(--admin-text-muted)] text-sm font-medium">Total</p>
+            <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{total}</p>
           </div>
-          <div className="w-10 h-10 lg:w-12 lg:h-12 bg-[#FEC501]/10 rounded-xl flex items-center justify-center">
-            <Package className="h-5 w-5 lg:h-6 lg:w-6 text-[#FEC501]" />
+          <div className="w-10 h-10 lg:w-12 lg:h-12 bg-[var(--admin-accent)]/10 rounded-xl flex items-center justify-center">
+            <Package className="h-5 w-5 lg:h-6 lg:w-6 text-[var(--admin-accent-text)]" />
           </div>
         </div>
       </motion.div>
@@ -358,12 +383,12 @@ function StatsCards({ total, active, outOfStock }: StatsCardsProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-[#1a1d24] backdrop-blur border border-[#2a2f3a] rounded-xl p-4 lg:p-6 hover:border-green-500/30 transition-colors duration-200"
+        className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-green-500/30 transition-all duration-200"
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[#a8b5c9] text-sm font-medium">Activos</p>
-            <p className="text-2xl lg:text-3xl font-bold text-[#f0f2f5] mt-1">{active}</p>
+            <p className="text-[var(--admin-text-muted)] text-sm font-medium">Activos</p>
+            <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{active}</p>
           </div>
           <div className="w-10 h-10 lg:w-12 lg:h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
             <Check className="h-5 w-5 lg:h-6 lg:w-6 text-green-500" />
@@ -375,12 +400,12 @@ function StatsCards({ total, active, outOfStock }: StatsCardsProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="bg-[#1a1d24] backdrop-blur border border-[#2a2f3a] rounded-xl p-4 lg:p-6 hover:border-red-500/30 transition-colors duration-200"
+        className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-red-500/30 transition-all duration-200"
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[#a8b5c9] text-sm font-medium">Sin Stock</p>
-            <p className="text-2xl lg:text-3xl font-bold text-[#f0f2f5] mt-1">{outOfStock}</p>
+            <p className="text-[var(--admin-text-muted)] text-sm font-medium">Sin Stock</p>
+            <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{outOfStock}</p>
           </div>
           <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-500/10 rounded-xl flex items-center justify-center">
             <X className="h-5 w-5 lg:h-6 lg:w-6 text-red-500" />
@@ -680,6 +705,7 @@ export function ProductsDashboard({
         const isElaborado = productType === 'elaborado'
         const hasRecipes = isElaborado && selectedRecipes.length > 0
         const costStr = formData.get('cost') as string
+        const stationRaw = (formData.get('station') as string) || 'none'
         const result = await updateProduct(editingProduct.id, {
           name: formData.get('name') as string,
           description: formData.get('description') as string,
@@ -688,6 +714,7 @@ export function ProductsDashboard({
           product_type: productType,
           category_id: formData.get('category_id') as string,
           image_url: (formData.get('image_url') as string) || undefined,
+          station: stationRaw === 'none' ? null : stationRaw,
         })
 
         if (result.error) {
@@ -841,16 +868,16 @@ export function ProductsDashboard({
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-[#2a2f3a] bg-[#1a1d24] overflow-hidden"
+          className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden"
         >
           <div className="p-16 text-center">
-            <div className="w-20 h-20 bg-[#252a35] rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <div className="w-20 h-20 bg-[var(--admin-surface-2)] rounded-2xl flex items-center justify-center mx-auto mb-6">
               <Package className="h-10 w-10 text-slate-600" />
             </div>
-            <h3 className="text-xl font-semibold text-[#f0f2f5] mb-2">
+            <h3 className="text-xl font-semibold text-[var(--admin-text)] mb-2">
               No hay productos todavia
             </h3>
-            <p className="text-[#a8b5c9] mb-6 max-w-sm mx-auto">
+            <p className="text-[var(--admin-text-muted)] mb-6 max-w-sm mx-auto">
               Comienza agregando tu primer producto al catalogo para que los
               clientes puedan hacer pedidos.
             </p>
@@ -860,7 +887,7 @@ export function ProductsDashboard({
                 resetToCreateMode()
                 setIsSheetOpen(true)
               }}
-              className="bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[#FEC501]/25 lg:hidden"
+              className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/25 lg:hidden"
             >
               <Plus className="h-4 w-4 mr-2" />
               Agregar Primer Producto
@@ -872,19 +899,19 @@ export function ProductsDashboard({
           {/* Header with search, count and add button */}
           <div className="flex items-center gap-3 mb-4">
             <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#a8b5c9]" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Buscar producto..."
-                className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] text-sm h-9 pl-9 placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20"
+                className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-9 pl-9 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
               />
             </div>
-            <p className="text-[#a8b5c9] text-sm hidden sm:block">
+            <p className="text-[var(--admin-text-muted)] text-sm hidden sm:block">
               {filteredProducts.length}{' '}
               {filteredProducts.length === 1 ? 'producto' : 'productos'}
               {(selectedCategory || searchQuery) && products.length !== filteredProducts.length && (
-                <span className="text-[#a8b5c9]/60"> de {products.length}</span>
+                <span className="text-[var(--admin-text-muted)]/60"> de {products.length}</span>
               )}
             </p>
             <div className="ml-auto">
@@ -893,7 +920,7 @@ export function ProductsDashboard({
                   resetToCreateMode()
                   setIsSheetOpen(true)
                 }}
-                className="bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[#FEC501]/20 transition-all duration-200 hover:scale-105 active:scale-95 lg:hidden"
+                className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all duration-200 hover:scale-105 active:scale-95 lg:hidden"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Agregar
@@ -920,36 +947,36 @@ export function ProductsDashboard({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
                 className={cn(
-                  "rounded-xl border border-[#2a2f3a] bg-[#1a1d24] overflow-hidden backdrop-blur transition-[padding]",
+                  "rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden transition-[padding]",
                   selectedIds.size > 0 && "pb-20"
                 )}
               >
                 <Table>
-                  <TableHeader className="sticky top-0 z-10 bg-[#1a1d24]">
-                    <TableRow className="border-[#2a2f3a] hover:bg-[#1a1d24]">
+                  <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
+                    <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
                       <TableHead className="w-10 text-center">
                         <Checkbox
                           checked={filteredProducts.length > 0 && selectedIds.size === filteredProducts.length}
                           onCheckedChange={toggleSelectAll}
-                          className="border-[#3a4150] data-[state=checked]:bg-[#FEC501] data-[state=checked]:border-[#FEC501] data-[state=checked]:text-black"
+                          className="border-[#3a4150] data-[state=checked]:bg-[var(--admin-accent)] data-[state=checked]:border-[var(--admin-accent)] data-[state=checked]:text-black"
                         />
                       </TableHead>
-                      <TableHead className="text-[#a8b5c9] font-semibold">
+                      <TableHead className="text-[var(--admin-text-muted)] font-semibold">
                         Producto
                       </TableHead>
-                      <TableHead className="text-[#a8b5c9] font-semibold hidden md:table-cell">
+                      <TableHead className="text-[var(--admin-text-muted)] font-semibold hidden md:table-cell">
                         Categoria
                       </TableHead>
-                      <TableHead className="text-[#a8b5c9] font-semibold">
+                      <TableHead className="text-[var(--admin-text-muted)] font-semibold">
                         Precio / Costo
                       </TableHead>
-                      <TableHead className="text-[#a8b5c9] font-semibold text-center hidden sm:table-cell">
+                      <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center hidden sm:table-cell">
                         Stock
                       </TableHead>
-                      <TableHead className="text-[#a8b5c9] font-semibold text-center hidden sm:table-cell">
+                      <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center hidden sm:table-cell">
                         Activo
                       </TableHead>
-                      <TableHead className="text-[#a8b5c9] font-semibold text-right">
+                      <TableHead className="text-[var(--admin-text-muted)] font-semibold text-right">
                         Acciones
                       </TableHead>
                     </TableRow>
@@ -964,22 +991,22 @@ export function ProductsDashboard({
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.03 }}
-                          className={`border-[#2a2f3a] transition-colors duration-200 group ${
+                          className={`border-[var(--admin-border)] transition-colors duration-200 group ${
                             isBeingEdited
                               ? 'bg-blue-950/20 border-l-2 border-l-blue-500'
-                              : 'hover:bg-[#252a35]'
+                              : 'hover:bg-[var(--admin-surface-2)]'
                           }`}
                         >
                           <TableCell className="w-10 text-center">
                             <Checkbox
                               checked={selectedIds.has(product.id)}
                               onCheckedChange={() => toggleSelectId(product.id)}
-                              className="border-[#3a4150] data-[state=checked]:bg-[#FEC501] data-[state=checked]:border-[#FEC501] data-[state=checked]:text-black"
+                              className="border-[#3a4150] data-[state=checked]:bg-[var(--admin-accent)] data-[state=checked]:border-[var(--admin-accent)] data-[state=checked]:text-black"
                             />
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-lg bg-[#2a2f3a] flex items-center justify-center overflow-hidden group-hover:ring-2 group-hover:ring-[#FEC501]/30 transition-all duration-200 shrink-0">
+                              <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-lg bg-[var(--admin-border)] flex items-center justify-center overflow-hidden group-hover:ring-2 group-hover:ring-[var(--admin-accent)]/30 transition-all duration-200 shrink-0">
                                 {product.image_url ? (
                                   <img
                                     src={product.image_url}
@@ -987,20 +1014,20 @@ export function ProductsDashboard({
                                     className="h-10 w-10 lg:h-12 lg:w-12 object-cover group-hover:scale-110 transition-transform duration-200"
                                   />
                                 ) : (
-                                  <Package className="h-4 w-4 lg:h-5 lg:w-5 text-[#a8b5c9]" />
+                                  <Package className="h-4 w-4 lg:h-5 lg:w-5 text-[var(--admin-text-muted)]" />
                                 )}
                               </div>
                               <div className="min-w-0">
-                                <p className="font-semibold text-[#f0f2f5] group-hover:text-[#FEC501] transition-colors duration-200 text-sm lg:text-base truncate">
+                                <p className="font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors duration-200 text-sm lg:text-base truncate">
                                   {product.name}
                                 </p>
                                 {product.description && (
-                                  <p className="text-xs lg:text-sm text-[#a8b5c9] truncate max-w-[150px] lg:max-w-xs">
+                                  <p className="text-xs lg:text-sm text-[var(--admin-text-muted)] truncate max-w-[150px] lg:max-w-xs">
                                     {product.description}
                                   </p>
                                 )}
                                 {/* Show category inline on mobile */}
-                                <span className="md:hidden text-xs text-[#a8b5c9]">
+                                <span className="md:hidden text-xs text-[var(--admin-text-muted)]">
                                   {product.categories?.name || 'Sin categoria'}
                                 </span>
                               </div>
@@ -1009,7 +1036,7 @@ export function ProductsDashboard({
                           <TableCell className="hidden md:table-cell">
                             <Badge
                               variant="outline"
-                              className="border-[#2a2f3a] text-[#c4cdd9] bg-[#252a35] font-medium"
+                              className="border-[var(--admin-border)] text-[var(--admin-text-muted)] bg-[var(--admin-surface-2)] font-medium"
                             >
                               {product.categories?.name || 'Sin categoria'}
                             </Badge>
@@ -1020,7 +1047,7 @@ export function ProductsDashboard({
                                 <Input
                                   value={priceValue}
                                   onChange={(e) => setPriceValue(e.target.value)}
-                                  className="w-20 lg:w-28 h-9 bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] focus:border-[#FEC501] focus:ring-2 focus:ring-[#FEC501]/20 text-sm"
+                                  className="w-20 lg:w-28 h-9 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)] focus:ring-2 focus:ring-[var(--admin-accent)]/20 text-sm"
                                   type="number"
                                   autoFocus
                                   onKeyDown={(e) => {
@@ -1049,22 +1076,22 @@ export function ProductsDashboard({
                               <div>
                                 <button
                                   onClick={() => handlePriceEdit(product)}
-                                  className="flex items-center gap-1 text-[#FEC501] hover:text-[#E09D00] transition-all duration-200 font-semibold group/price px-1.5 py-1 rounded-lg hover:bg-[#FEC501]/10 text-sm lg:text-base"
+                                  className="flex items-center gap-1 text-[var(--admin-accent-text)] hover:text-[#E09D00] transition-all duration-200 font-semibold group/price px-1.5 py-1 rounded-lg hover:bg-[var(--admin-accent)]/10 text-sm lg:text-base"
                                 >
                                   {formatPrice(product.price)}
                                   <DollarSign className="h-3 w-3 lg:h-3.5 lg:w-3.5 opacity-50 group-hover/price:opacity-100 transition-opacity" />
                                 </button>
-                                <p className="text-xs text-[#a8b5c9] px-1.5 flex items-center gap-1">
+                                <p className="text-xs text-[var(--admin-text-muted)] px-1.5 flex items-center gap-1">
                                   {product.cost != null
                                     ? `Costo: ${formatPrice(product.cost)}`
-                                    : <span className="text-[#a8b5c9]/50">Sin costo</span>
+                                    : <span className="text-[var(--admin-text-muted)]/50">Sin costo</span>
                                   }
                                   {product.product_type === 'reventa' ? (
-                                    <span className="text-[9px] bg-blue-500/15 text-blue-400 px-1 py-0.5 rounded font-semibold">
+                                    <span className="text-xs bg-blue-500/15 text-blue-400 px-1.5 py-0.5 rounded font-semibold">
                                       Reventa
                                     </span>
                                   ) : product.cost != null && (
-                                    <span className="text-[9px] bg-[#FEC501]/15 text-[#FEC501] px-1 py-0.5 rounded font-semibold">
+                                    <span className="text-xs bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)] px-1.5 py-0.5 rounded font-semibold">
                                       Receta
                                     </span>
                                   )}
@@ -1080,7 +1107,7 @@ export function ProductsDashboard({
                                     <Switch
                                       checked={!product.is_out_of_stock}
                                       onCheckedChange={() => handleToggleStock(product)}
-                                      className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-[#2a2f3a]"
+                                      className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-[var(--admin-border)]"
                                       aria-label={product.is_out_of_stock ? 'Sin stock' : 'En stock'}
                                     />
                                   </div>
@@ -1099,7 +1126,7 @@ export function ProductsDashboard({
                                     <Switch
                                       checked={product.is_active}
                                       onCheckedChange={() => handleToggleActive(product)}
-                                      className="data-[state=checked]:bg-[#FEC501] data-[state=unchecked]:bg-[#2a2f3a]"
+                                      className="data-[state=checked]:bg-[var(--admin-accent)] data-[state=unchecked]:bg-[var(--admin-border)]"
                                       aria-label={product.is_active ? 'Activo' : 'Inactivo'}
                                     />
                                   </div>
@@ -1121,7 +1148,7 @@ export function ProductsDashboard({
                                       className={`h-8 w-8 lg:h-9 lg:w-9 transition-all duration-200 ${
                                         isBeingEdited
                                           ? 'text-blue-400 bg-blue-950/30'
-                                          : 'text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#2a2f3a]'
+                                          : 'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)]'
                                       }`}
                                       onClick={() => handleStartEdit(product)}
                                     >
@@ -1163,14 +1190,14 @@ export function ProductsDashboard({
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="rounded-xl border border-[#2a2f3a] bg-[#1a1d24] overflow-hidden backdrop-blur"
+                  className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden"
                 >
                   {/* Form header with mode indicator */}
                   <div
                     className={`px-6 py-4 border-b transition-colors duration-300 ${
                       formMode === 'edit'
                         ? 'border-blue-500/30 bg-blue-950/20'
-                        : 'border-[#2a2f3a]'
+                        : 'border-[var(--admin-border)]'
                     }`}
                   >
                     <AnimatePresence mode="wait">
@@ -1181,7 +1208,7 @@ export function ProductsDashboard({
                         exit={{ opacity: 0, x: -10 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <h3 className="text-lg font-semibold text-[#f0f2f5] flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-[var(--admin-text)] flex items-center gap-2">
                           {formMode === 'edit' ? (
                             <>
                               <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
@@ -1189,12 +1216,12 @@ export function ProductsDashboard({
                             </>
                           ) : (
                             <>
-                              <Plus className="h-5 w-5 text-[#FEC501]" />
+                              <Plus className="h-5 w-5 text-[var(--admin-accent-text)]" />
                               Nuevo Producto
                             </>
                           )}
                         </h3>
-                        <p className="text-[#a8b5c9] text-sm mt-1">
+                        <p className="text-[var(--admin-text-muted)] text-sm mt-1">
                           {formMode === 'edit' && editingProduct
                             ? `Editando: ${editingProduct.name}`
                             : 'Completa los datos para agregar al catalogo'}
@@ -1213,11 +1240,11 @@ export function ProductsDashboard({
           <Sheet open={isSheetOpen} onOpenChange={handleSheetOpenChange}>
             <SheetContent
               side="bottom"
-              className="bg-[#12151a] border-[#2a2f3a] rounded-t-2xl max-h-[85vh] overflow-hidden flex flex-col lg:hidden"
+              className="bg-[var(--admin-surface)] border-[var(--admin-border)] rounded-t-2xl max-h-[85vh] overflow-hidden flex flex-col lg:hidden"
               showCloseButton
             >
               <SheetHeader className="pb-2 shrink-0">
-                <SheetTitle className="text-[#f0f2f5] text-xl flex items-center gap-2">
+                <SheetTitle className="text-[var(--admin-text)] text-xl flex items-center gap-2">
                   {formMode === 'edit' ? (
                     <>
                       <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
@@ -1225,12 +1252,12 @@ export function ProductsDashboard({
                     </>
                   ) : (
                     <>
-                      <Plus className="h-5 w-5 text-[#FEC501]" />
+                      <Plus className="h-5 w-5 text-[var(--admin-accent-text)]" />
                       Nuevo Producto
                     </>
                   )}
                 </SheetTitle>
-                <SheetDescription className="text-[#a8b5c9] text-sm">
+                <SheetDescription className="text-[var(--admin-text-muted)] text-sm">
                   {formMode === 'edit' && editingProduct
                     ? `Editando: ${editingProduct.name}`
                     : 'Completa los datos para agregar al catalogo'}
@@ -1249,12 +1276,12 @@ export function ProductsDashboard({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#1a1d24] border border-[#2a2f3a] rounded-xl shadow-2xl shadow-black/50 px-4 py-3 flex items-center gap-3"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl shadow-2xl shadow-black/50 px-4 py-3 flex items-center gap-3"
           >
-            <span className="text-sm text-[#f0f2f5] font-medium whitespace-nowrap">
+            <span className="text-sm text-[var(--admin-text)] font-medium whitespace-nowrap">
               {selectedIds.size} seleccionado{selectedIds.size > 1 ? 's' : ''}
             </span>
-            <div className="w-px h-6 bg-[#2a2f3a]" />
+            <div className="w-px h-6 bg-[var(--admin-border)]" />
             <Button
               size="sm"
               variant="ghost"
@@ -1270,7 +1297,7 @@ export function ProductsDashboard({
               variant="ghost"
               disabled={isBulkAction}
               onClick={() => handleBulkActivate(false)}
-              className="text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#252a35] text-xs gap-1.5"
+              className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] text-xs gap-1.5"
             >
               <EyeOff className="h-3.5 w-3.5" />
               Desactivar
@@ -1285,12 +1312,12 @@ export function ProductsDashboard({
               <Trash2 className="h-3.5 w-3.5" />
               Eliminar
             </Button>
-            <div className="w-px h-6 bg-[#2a2f3a]" />
+            <div className="w-px h-6 bg-[var(--admin-border)]" />
             <Button
               size="sm"
               variant="ghost"
               onClick={() => setSelectedIds(new Set())}
-              className="text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#252a35] text-xs"
+              className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] text-xs"
             >
               <X className="h-3.5 w-3.5" />
             </Button>

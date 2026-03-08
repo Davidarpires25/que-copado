@@ -55,25 +55,25 @@ export function SessionCloseScreen({
   }
 
   return (
-    <div className="h-full bg-[#1a1d24] flex items-center justify-center p-4 overflow-y-auto">
+    <div className="h-full bg-[var(--admin-bg)] flex items-center justify-center p-4 overflow-y-auto">
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <button
             onClick={onBack}
-            className="w-10 h-10 rounded-xl bg-[#1a1d24] border border-[#2a2f3a] flex items-center justify-center text-[#a8b5c9] hover:text-[#f0f2f5] transition-colors"
+            className="w-10 h-10 rounded-xl bg-[var(--admin-bg)] border border-[var(--admin-border)] flex items-center justify-center text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-[#f0f2f5]">Cerrar Caja</h1>
-            <p className="text-sm text-[#a8b5c9]">Arqueo de cierre</p>
+            <h1 className="text-xl font-bold text-[var(--admin-text)]">Cerrar Caja</h1>
+            <p className="text-sm text-[var(--admin-text-muted)]">Arqueo de cierre</p>
           </div>
         </div>
 
         {/* Session summary */}
-        <div className="bg-[#1a1d24] border border-[#2a2f3a] rounded-xl p-5 mb-4 space-y-3">
-          <h3 className="text-sm font-semibold text-[#a8b5c9] uppercase tracking-wider">
+        <div className="bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl p-5 mb-4 space-y-3">
+          <h3 className="text-sm font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
             Resumen del turno
           </h3>
 
@@ -105,26 +105,26 @@ export function SessionCloseScreen({
         )}
 
         {/* Cash count */}
-        <div className="bg-[#1a1d24] border border-[#2a2f3a] rounded-xl p-5 space-y-4">
-          <div className="text-center py-2 bg-[#12151a] rounded-lg">
-            <p className="text-xs text-[#a8b5c9]">Efectivo esperado</p>
-            <p className="text-2xl font-bold text-[#FEC501]">
+        <div className="bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl p-5 space-y-4">
+          <div className="text-center py-2 bg-[var(--admin-surface)] rounded-lg">
+            <p className="text-xs text-[var(--admin-text-muted)]">Efectivo esperado</p>
+            <p className="text-2xl font-bold text-[var(--admin-accent-text)]">
               {formatPrice(expectedCash)}
             </p>
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-[#a8b5c9]">
+            <label className="text-sm font-semibold text-[var(--admin-text-muted)]">
               Efectivo contado
             </label>
             <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#a8b5c9]" />
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--admin-text-muted)]" />
               <Input
                 type="number"
                 value={actualCash}
                 onChange={(e) => setActualCash(e.target.value)}
                 placeholder="0"
-                className="bg-[#12151a] border-[#2a2f3a] text-[#f0f2f5] text-xl h-16 pl-10 text-center font-bold placeholder:text-[#3a3f4a] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20"
+                className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] text-xl h-16 pl-10 text-center font-bold placeholder:text-[var(--admin-text-placeholder)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
                 autoFocus
               />
             </div>
@@ -165,14 +165,14 @@ export function SessionCloseScreen({
 
           {/* Notes */}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-[#a8b5c9]">
+            <label className="text-sm font-medium text-[var(--admin-text-muted)]">
               Notas (opcional)
             </label>
             <Input
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Observaciones del turno..."
-              className="bg-[#12151a] border-[#2a2f3a] text-[#f0f2f5] text-sm h-10 placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50"
+              className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50"
             />
           </div>
 
@@ -207,8 +207,8 @@ function SummaryItem({
   negative?: boolean
 }) {
   return (
-    <div className="bg-[#12151a] rounded-lg px-3 py-2">
-      <p className="text-[10px] text-[#a8b5c9] flex items-center gap-1">
+    <div className="bg-[var(--admin-surface)] rounded-lg px-3 py-2">
+      <p className="text-xs text-[var(--admin-text-muted)] flex items-center gap-1">
         {icon && <span>{icon}</span>}
         {label}
       </p>
@@ -218,7 +218,7 @@ function SummaryItem({
             ? 'text-green-400'
             : negative
               ? 'text-red-400'
-              : 'text-[#f0f2f5]'
+              : 'text-[var(--admin-text)]'
         }`}
       >
         {value}

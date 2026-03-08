@@ -16,17 +16,17 @@ export default function AdminError({
   }, [error])
 
   return (
-    <div className="min-h-screen bg-[#12151a] flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-[#1a1d24] border border-red-500/30 rounded-xl p-8 text-center space-y-6">
+    <div className="min-h-screen bg-[var(--admin-surface)] flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-[var(--admin-bg)] border border-red-500/30 rounded-xl p-8 text-center space-y-6">
         <div className="w-20 h-20 mx-auto rounded-full bg-red-500/10 flex items-center justify-center">
           <AlertTriangle className="h-10 w-10 text-red-400" />
         </div>
 
         <div>
-          <h2 className="text-2xl font-bold text-[#f0f2f5] mb-2">
+          <h2 className="text-2xl font-bold text-[var(--admin-text)] mb-2">
             Algo salio mal
           </h2>
-          <p className="text-[#a8b5c9] text-sm">
+          <p className="text-[var(--admin-text-muted)] text-sm">
             Ocurrio un error inesperado. Podes intentar de nuevo o volver al dashboard.
           </p>
           {error.message && (
@@ -39,14 +39,14 @@ export default function AdminError({
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
             onClick={reset}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#FEC501] hover:bg-[#E5B001] text-black font-bold rounded-lg transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-bold rounded-lg transition-colors"
           >
             <RotateCcw className="h-4 w-4" />
             Reintentar
           </button>
           <Link
             href="/admin/dashboard"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#252a35] hover:bg-[#2a2f3a] text-[#f0f2f5] font-bold rounded-lg border border-[#2a2f3a] transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[var(--admin-surface-2)] hover:bg-[var(--admin-border)] text-[var(--admin-text)] font-bold rounded-lg border border-[var(--admin-border)] transition-colors"
           >
             <LayoutDashboard className="h-4 w-4" />
             Ir al Dashboard

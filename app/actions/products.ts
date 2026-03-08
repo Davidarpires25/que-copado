@@ -56,6 +56,8 @@ export async function createProduct(formData: FormData) {
   }
 
   const productType = (formData.get('product_type') as string) || 'elaborado'
+  const stationRaw = (formData.get('station') as string) || 'none'
+  const station = stationRaw === 'none' ? null : stationRaw
 
   const { data, error } = await supabase
     .from('products')
@@ -67,6 +69,7 @@ export async function createProduct(formData: FormData) {
       product_type: productType,
       category_id: categoryId,
       image_url: imageUrl?.trim() || null,
+      station,
       is_active: true,
       is_out_of_stock: false,
     })
@@ -89,6 +92,7 @@ export async function updateProduct(productId: string, data: {
   product_type?: string
   category_id?: string
   image_url?: string
+  station?: string | null
   is_active?: boolean
   is_out_of_stock?: boolean
 }) {

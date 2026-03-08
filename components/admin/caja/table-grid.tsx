@@ -45,8 +45,8 @@ export function TableGrid({
 
   if (tables.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-[#a8b5c9]">
-        <LayoutGrid className="h-12 w-12 mb-3 text-[#3a3f4a]" />
+      <div className="flex flex-col items-center justify-center h-full text-[var(--admin-text-muted)]">
+        <LayoutGrid className="h-12 w-12 mb-3 text-[var(--admin-text-placeholder)]" />
         <p className="text-lg font-medium">No hay mesas configuradas</p>
         <p className="text-sm mt-1">
           Configura las mesas desde el panel de administracion
@@ -61,11 +61,11 @@ export function TableGrid({
         <div key={sectionKey}>
           {/* Section header */}
           <div className="flex items-center gap-2 mb-3">
-            <h3 className="text-sm font-semibold text-[#a8b5c9] uppercase tracking-wider">
+            <h3 className="text-sm font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
               {TABLE_SECTION_LABELS[sectionKey] || sectionKey}
             </h3>
-            <div className="flex-1 h-px bg-[#2a2f3a]" />
-            <span className="text-xs text-[#6b7a8d]">
+            <div className="flex-1 h-px bg-[var(--admin-border)]" />
+            <span className="text-xs text-[var(--admin-text-faint)]">
               {sectionTables.length}{' '}
               {sectionTables.length === 1 ? 'mesa' : 'mesas'}
             </span>

@@ -112,12 +112,12 @@ export function TableFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#12151a] border-[#2a2f3a] text-[#f0f2f5] sm:max-w-md shadow-2xl">
+      <DialogContent className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] sm:max-w-md shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-[#f0f2f5]">
+          <DialogTitle className="text-lg font-semibold text-[var(--admin-text)]">
             {isEditing ? 'Editar Mesa' : 'Nueva Mesa'}
           </DialogTitle>
-          <p className="text-[#a8b5c9] text-xs mt-0.5">
+          <p className="text-[var(--admin-text-muted)] text-xs mt-0.5">
             {isEditing ? 'Modifica los datos de la mesa' : 'Agrega una nueva mesa al restaurante'}
           </p>
         </DialogHeader>
@@ -126,7 +126,7 @@ export function TableFormDialog({
           {/* Number + Capacity row */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="number" className="text-[#a8b5c9] text-xs font-semibold uppercase tracking-wide">
+              <Label htmlFor="number" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
                 Número
               </Label>
               <Input
@@ -136,13 +136,13 @@ export function TableFormDialog({
                 value={number}
                 onChange={(e) => setNumber(e.target.value)}
                 placeholder="1"
-                className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 text-sm placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+                className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-10 text-sm placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="capacity" className="text-[#a8b5c9] text-xs font-semibold uppercase tracking-wide">
+              <Label htmlFor="capacity" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
                 Capacidad
               </Label>
               <Input
@@ -153,7 +153,7 @@ export function TableFormDialog({
                 value={capacity}
                 onChange={(e) => setCapacity(e.target.value)}
                 placeholder="4"
-                className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 text-sm placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+                className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-10 text-sm placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all"
                 required
               />
             </div>
@@ -161,19 +161,19 @@ export function TableFormDialog({
 
           {/* Section */}
           <div className="space-y-1.5">
-            <Label htmlFor="section" className="text-[#a8b5c9] text-xs font-semibold uppercase tracking-wide">
+            <Label htmlFor="section" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
               Sección
             </Label>
             <Select value={section} onValueChange={setSection}>
-              <SelectTrigger className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 text-sm focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20">
+              <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-10 text-sm focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20">
                 <SelectValue placeholder="Seleccionar sección" />
               </SelectTrigger>
-              <SelectContent className="bg-[#1a1d24] border-[#2a2f3a]">
+              <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)]">
                 {Object.entries(TABLE_SECTION_LABELS).map(([value, label]) => (
                   <SelectItem
                     key={value}
                     value={value}
-                    className="text-[#f0f2f5] focus:bg-[#2a2f3a] focus:text-[#f0f2f5]"
+                    className="text-[var(--admin-text)] focus:bg-[var(--admin-border)] focus:text-[var(--admin-text)]"
                   >
                     {label}
                   </SelectItem>
@@ -184,7 +184,7 @@ export function TableFormDialog({
 
           {/* Label */}
           <div className="space-y-1.5">
-            <Label htmlFor="label" className="text-[#a8b5c9] text-xs font-semibold uppercase tracking-wide">
+            <Label htmlFor="label" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
               Etiqueta <span className="font-normal normal-case">(opcional)</span>
             </Label>
             <Input
@@ -192,7 +192,7 @@ export function TableFormDialog({
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder="Ej: Ventana, VIP, Esquina"
-              className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 text-sm placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20 transition-all"
+              className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-10 text-sm placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all"
               maxLength={50}
             />
           </div>
@@ -203,7 +203,7 @@ export function TableFormDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1 h-10 text-sm border-[#3a4150] text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#252a35]"
+              className="flex-1 h-10 text-sm border-[#3a4150] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)]"
               disabled={isLoading}
             >
               Cancelar
@@ -212,8 +212,8 @@ export function TableFormDialog({
               type="submit"
               className={`flex-1 h-10 text-sm font-semibold transition-all duration-200 ${
                 isLoading || !isValid
-                  ? 'bg-[#3a3f4a] text-[#6b7a8d] cursor-not-allowed shadow-none'
-                  : 'bg-[#FEC501] hover:bg-[#E5B001] text-black shadow-lg shadow-[#FEC501]/20'
+                  ? 'bg-[var(--admin-text-placeholder)] text-[var(--admin-text-faint)] cursor-not-allowed shadow-none'
+                  : 'bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black shadow-lg shadow-[var(--admin-accent)]/20'
               }`}
               disabled={isLoading || !isValid}
             >

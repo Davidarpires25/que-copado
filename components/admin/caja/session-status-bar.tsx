@@ -23,28 +23,28 @@ export function SessionStatusBar({
   onCloseSession,
 }: SessionStatusBarProps) {
   return (
-    <div className="bg-[#1a1d24] border-t border-[#2a2f3a] px-4 py-3 shrink-0">
+    <div className="bg-[var(--admin-bg)] border-t border-[var(--admin-border)] px-4 py-3 shrink-0">
       <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide">
         {/* Sales */}
         <div className="flex items-center gap-2 shrink-0">
           <TrendingUp className="h-5 w-5 text-green-400" />
           <div>
-            <p className="text-xs text-[#a8b5c9] leading-none font-medium">Ventas</p>
-            <p className="text-base font-bold text-[#f0f2f5] mt-0.5">
+            <p className="text-xs text-[var(--admin-text-muted)] leading-none font-medium">Ventas</p>
+            <p className="text-base font-bold text-[var(--admin-text)] mt-0.5">
               {formatPrice(session.total_sales)}
             </p>
           </div>
         </div>
 
-        <div className="w-px h-10 bg-[#2a2f3a] shrink-0" />
+        <div className="w-px h-10 bg-[var(--admin-border)] shrink-0" />
 
         {/* Orders */}
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-sm font-bold text-[#FEC501]">#{session.total_orders}</span>
-          <p className="text-xs text-[#a8b5c9] font-medium">ventas</p>
+          <span className="text-sm font-bold text-[var(--admin-accent-text)]">#{session.total_orders}</span>
+          <p className="text-xs text-[var(--admin-text-muted)] font-medium">ventas</p>
         </div>
 
-        <div className="w-px h-10 bg-[#2a2f3a] shrink-0" />
+        <div className="w-px h-10 bg-[var(--admin-border)] shrink-0" />
 
         {/* Open tables */}
         {openTablesCount > 0 && (
@@ -52,22 +52,22 @@ export function SessionStatusBar({
             <div className="flex items-center gap-2 shrink-0">
               <UtensilsCrossed className="h-5 w-5 text-orange-400" />
               <div>
-                <p className="text-xs text-[#a8b5c9] leading-none font-medium">Mesas</p>
+                <p className="text-xs text-[var(--admin-text-muted)] leading-none font-medium">Mesas</p>
                 <p className="text-base font-bold text-orange-400 mt-0.5">
                   {openTablesCount}
                 </p>
               </div>
             </div>
-            <div className="w-px h-10 bg-[#2a2f3a] shrink-0" />
+            <div className="w-px h-10 bg-[var(--admin-border)] shrink-0" />
           </>
         )}
 
         {/* Cash in register */}
         <div className="flex items-center gap-2 shrink-0">
-          <DollarSign className="h-5 w-5 text-[#FEC501]" />
+          <DollarSign className="h-5 w-5 text-[var(--admin-accent-text)]" />
           <div>
-            <p className="text-xs text-[#a8b5c9] leading-none font-medium">Efectivo</p>
-            <p className="text-base font-bold text-[#f0f2f5] mt-0.5">
+            <p className="text-xs text-[var(--admin-text-muted)] leading-none font-medium">Efectivo</p>
+            <p className="text-base font-bold text-[var(--admin-text)] mt-0.5">
               {formatPrice(currentCash)}
             </p>
           </div>
@@ -79,7 +79,7 @@ export function SessionStatusBar({
             variant="ghost"
             size="sm"
             onClick={onMovement}
-            className="text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#252a35] h-9 gap-2 text-sm px-3"
+            className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] h-9 gap-2 text-sm px-3"
           >
             <ArrowDownCircle className="h-4 w-4" />
             <span className="hidden sm:inline">Movimiento</span>
@@ -88,7 +88,7 @@ export function SessionStatusBar({
             variant="ghost"
             size="sm"
             onClick={onViewHistory}
-            className="text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#252a35] h-9 gap-2 text-sm px-3"
+            className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] h-9 gap-2 text-sm px-3"
           >
             <ArrowUpCircle className="h-4 w-4" />
             <span className="hidden sm:inline">Ventas</span>

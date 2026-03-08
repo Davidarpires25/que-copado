@@ -62,6 +62,20 @@ export interface CreatePosOrderData {
   session_id: string
 }
 
+// Data to create a mostrador order (goes to kitchen first)
+export interface CreateMostadorOrderData {
+  items: OrderItem[]
+  total: number
+  notes?: string | null
+  session_id: string
+}
+
+// A single payment split (for hybrid payments)
+export interface PaymentSplit {
+  amount: number
+  method: PaymentMethod
+}
+
 // Data to create a cash movement
 export interface CreateCashMovementData {
   session_id: string

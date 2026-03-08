@@ -66,6 +66,7 @@ export interface Database {
           min_stock: number | null
           stock_tracking_enabled: boolean
           auto_disabled: boolean
+          station: string | null
           created_at: string
         }
         Insert: {
@@ -83,6 +84,7 @@ export interface Database {
           min_stock?: number | null
           stock_tracking_enabled?: boolean
           auto_disabled?: boolean
+          station?: string | null
           created_at?: string
         }
         Update: {
@@ -100,6 +102,7 @@ export interface Database {
           min_stock?: number | null
           stock_tracking_enabled?: boolean
           auto_disabled?: boolean
+          station?: string | null
           created_at?: string
         }
       }
@@ -339,6 +342,7 @@ export interface Database {
           quantity: number
           notes: string | null
           status: string
+          sale_tag: string | null
           added_at: string
           added_by: string | null
         }
@@ -351,6 +355,7 @@ export interface Database {
           quantity?: number
           notes?: string | null
           status?: string
+          sale_tag?: string | null
           added_at?: string
           added_by?: string | null
         }
@@ -363,8 +368,96 @@ export interface Database {
           quantity?: number
           notes?: string | null
           status?: string
+          sale_tag?: string | null
           added_at?: string
           added_by?: string | null
+        }
+      }
+      comandas: {
+        Row: {
+          id: string
+          order_id: string
+          station: string
+          status: string
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          station: string
+          status?: string
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          station?: string
+          status?: string
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      comanda_items: {
+        Row: {
+          id: string
+          comanda_id: string
+          order_item_id: string | null
+          product_name: string
+          quantity: number
+          sale_tag: string | null
+          notes: string | null
+        }
+        Insert: {
+          id?: string
+          comanda_id: string
+          order_item_id?: string | null
+          product_name: string
+          quantity: number
+          sale_tag?: string | null
+          notes?: string | null
+        }
+        Update: {
+          id?: string
+          comanda_id?: string
+          order_item_id?: string | null
+          product_name?: string
+          quantity?: number
+          sale_tag?: string | null
+          notes?: string | null
+        }
+      }
+      payment_splits: {
+        Row: {
+          id: string
+          order_id: string
+          sale_tag: string | null
+          amount: number
+          method: string
+          paid_at: string
+          session_id: string | null
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          sale_tag?: string | null
+          amount: number
+          method: string
+          paid_at?: string
+          session_id?: string | null
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          sale_tag?: string | null
+          amount?: number
+          method?: string
+          paid_at?: string
+          session_id?: string | null
         }
       }
       ingredient_categories: {

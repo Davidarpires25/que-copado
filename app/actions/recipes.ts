@@ -5,10 +5,12 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { revalidateRecipes } from '@/lib/server/revalidate'
 import { friendlyError } from '@/lib/server/error-messages'
+import { convertToBaseUnit } from '@/lib/server/unit-conversion'
 
 interface RecipeIngredientItem {
   ingredient_id: string
   quantity: number
+  unit?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -54,6 +56,7 @@ export async function createRecipe(data: {
         recipe_id: recipe.id,
         ingredient_id: item.ingredient_id,
         quantity: item.quantity,
+        unit: item.unit || null,
       }))
     )
 
@@ -127,6 +130,7 @@ export async function updateRecipe(
           recipe_id: id,
           ingredient_id: item.ingredient_id,
           quantity: item.quantity,
+          unit: item.unit || null,
         }))
       )
 
@@ -169,7 +173,7 @@ export async function getRecipeWithIngredients(recipeId: string) {
 
   const { data, error } = await supabase
     .from('recipes')
-    .select('*, recipe_ingredients(*, ingredients(*))')
+    .select('*, recipe_ingredients(*, ingredients(id, name, unit, cost_per_unit, waste_percentage))')
     .eq('id', recipeId)
     .single()
 
@@ -246,7 +250,7 @@ export async function getProductRecipes(productId: string) {
 // Cost calculation helpers
 // ---------------------------------------------------------------------------
 
-/** Recalculate a product's cost from its recipes */
+/** Recalculate a product's cost from its recipes, applying unit conversion and waste */
 export async function recalculateProductCost(supabase: SupabaseClient, productId: string) {
   // Check product type first
   const { data: product } = await supabase
@@ -259,7 +263,7 @@ export async function recalculateProductCost(supabase: SupabaseClient, productId
 
   const { data: productRecipes } = await supabase
     .from('product_recipes')
-    .select('quantity, recipes(recipe_ingredients(quantity, ingredients(cost_per_unit)))')
+    .select('quantity, recipes(recipe_ingredients(quantity, unit, ingredients(unit, cost_per_unit, waste_percentage)))')
     .eq('product_id', productId)
 
   if (!productRecipes || productRecipes.length === 0) {
@@ -271,13 +275,25 @@ export async function recalculateProductCost(supabase: SupabaseClient, productId
   let totalCost = 0
   for (const pr of productRecipes) {
     const recipe = pr.recipes as unknown as {
-      recipe_ingredients: Array<{ quantity: number; ingredients: { cost_per_unit: number } }>
+      recipe_ingredients: Array<{
+        quantity: number
+        unit: string | null
+        ingredients: { unit: string; cost_per_unit: number; waste_percentage: number }
+      }>
     }
     if (recipe?.recipe_ingredients) {
-      const recipeCost = recipe.recipe_ingredients.reduce(
-        (sum, ri) => sum + ri.quantity * ri.ingredients.cost_per_unit,
-        0
-      )
+      let recipeCost = 0
+      for (const ri of recipe.recipe_ingredients) {
+        // 1. Convert quantity to base unit
+        const effectiveUnit = ri.unit ?? ri.ingredients.unit
+        const qtyBase = convertToBaseUnit(ri.quantity, effectiveUnit)
+        // 2. Apply waste percentage
+        const wastePct = ri.ingredients.waste_percentage ?? 0
+        const wasteFactor = 1 - wastePct / 100
+        const actualQty = wasteFactor > 0 ? qtyBase / wasteFactor : qtyBase
+        // 3. Calculate subtotal
+        recipeCost += actualQty * ri.ingredients.cost_per_unit
+      }
       totalCost += recipeCost * pr.quantity
     }
   }

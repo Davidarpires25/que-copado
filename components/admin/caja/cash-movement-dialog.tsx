@@ -67,9 +67,9 @@ export function CashMovementDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] sm:max-w-md">
+      <DialogContent className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] sm:max-w-md shadow-xl shadow-black/10">
         <DialogHeader>
-          <DialogTitle className="text-lg font-bold text-[#f0f2f5]">
+          <DialogTitle className="text-lg font-bold text-[var(--admin-text)]">
             Movimiento de Caja
           </DialogTitle>
         </DialogHeader>
@@ -83,7 +83,7 @@ export function CashMovementDialog({
                 'py-2.5 rounded-xl text-sm font-medium transition-all border',
                 type === 'withdrawal'
                   ? 'bg-red-500/10 border-red-500 text-red-400'
-                  : 'bg-[#12151a] border-[#2a2f3a] text-[#a8b5c9] hover:border-[#3a3f4a]'
+                  : 'bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:border-[var(--admin-text-placeholder)]'
               )}
             >
               Retiro
@@ -94,7 +94,7 @@ export function CashMovementDialog({
                 'py-2.5 rounded-xl text-sm font-medium transition-all border',
                 type === 'deposit'
                   ? 'bg-green-500/10 border-green-500 text-green-400'
-                  : 'bg-[#12151a] border-[#2a2f3a] text-[#a8b5c9] hover:border-[#3a3f4a]'
+                  : 'bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:border-[var(--admin-text-placeholder)]'
               )}
             >
               Ingreso
@@ -103,25 +103,25 @@ export function CashMovementDialog({
 
           {/* Amount */}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-[#a8b5c9]">Monto</label>
+            <label className="text-sm font-medium text-[var(--admin-text-muted)]">Monto</label>
             <Input
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0"
-              className="bg-[#12151a] border-[#2a2f3a] text-[#f0f2f5] text-lg h-10 text-center font-bold placeholder:text-[#3a3f4a] focus:border-[#FEC501]/50"
+              className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] text-lg h-10 text-center font-bold placeholder:text-[var(--admin-text-placeholder)] focus:border-[var(--admin-accent)]/50"
               autoFocus
             />
           </div>
 
           {/* Reason */}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-[#a8b5c9]">Motivo</label>
+            <label className="text-sm font-medium text-[var(--admin-text-muted)]">Motivo</label>
             <Input
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Ej: Pago proveedor, cambio, etc."
-              className="bg-[#12151a] border-[#2a2f3a] text-[#f0f2f5] text-sm h-10 placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50"
+              className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50"
               onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             />
           </div>

@@ -67,15 +67,15 @@ export function OrderDetailsDrawer({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed right-0 top-0 z-50 h-screen w-full max-w-md bg-[#12151a] border-l border-[#2a2f3a] flex flex-col"
+            className="fixed right-0 top-0 z-50 h-screen w-full max-w-md bg-[var(--admin-surface)] border-l border-[var(--admin-border)] flex flex-col"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-[#2a2f3a]">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--admin-border)]">
               <div>
-                <h2 className="text-lg font-bold text-[#f0f2f5]">
+                <h2 className="text-lg font-bold text-[var(--admin-text)]">
                   Pedido #{getShortOrderId(order.id)}
                 </h2>
-                <p className="text-sm text-[#a8b5c9] flex items-center gap-1 mt-0.5">
+                <p className="text-sm text-[var(--admin-text-muted)] flex items-center gap-1 mt-0.5">
                   <Clock className="h-3.5 w-3.5" />
                   {formatDateTime(order.created_at)}
                 </p>
@@ -84,7 +84,7 @@ export function OrderDetailsDrawer({
                 variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="h-9 w-9 text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#252a35]"
+                className="h-9 w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)]"
               >
                 <X className="h-5 w-5" />
               </Button>
@@ -99,29 +99,29 @@ export function OrderDetailsDrawer({
                   variant="outline"
                   size="sm"
                   onClick={() => setShowStatusDialog(true)}
-                  className="border-[#2a2f3a] text-[#c4cdd9] hover:bg-[#252a35] hover:text-[#f0f2f5]"
+                  className="border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-surface-2)] hover:text-[var(--admin-text)]"
                 >
                   Cambiar Estado
                 </Button>
               </div>
 
               {/* Customer Info */}
-              <div className="bg-[#1a1d24] rounded-xl p-4 space-y-3">
-                <h3 className="font-semibold text-[#f0f2f5] mb-3">Cliente</h3>
+              <div className="bg-[var(--admin-bg)] rounded-xl p-4 space-y-3">
+                <h3 className="font-semibold text-[var(--admin-text)] mb-3">Cliente</h3>
 
                 <div className="flex items-start gap-3">
-                  <User className="h-4 w-4 text-[#a8b5c9] mt-0.5" />
+                  <User className="h-4 w-4 text-[var(--admin-text-muted)] mt-0.5" />
                   <div>
-                    <p className="text-[#f0f2f5]">{order.customer_name}</p>
+                    <p className="text-[var(--admin-text)]">{order.customer_name}</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <Phone className="h-4 w-4 text-[#a8b5c9] mt-0.5" />
+                  <Phone className="h-4 w-4 text-[var(--admin-text-muted)] mt-0.5" />
                   <div>
                     <a
                       href={`tel:${order.customer_phone}`}
-                      className="text-[#FEC501] hover:underline"
+                      className="text-[var(--admin-accent-text)] hover:underline"
                     >
                       {order.customer_phone}
                     </a>
@@ -129,11 +129,11 @@ export function OrderDetailsDrawer({
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <MapPin className="h-4 w-4 text-[#a8b5c9] mt-0.5" />
+                  <MapPin className="h-4 w-4 text-[var(--admin-text-muted)] mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-[#f0f2f5]">{order.customer_address}</p>
+                    <p className="text-[var(--admin-text)]">{order.customer_address}</p>
                     {order.delivery_zones && (
-                      <p className="text-sm text-[#a8b5c9] mt-0.5">
+                      <p className="text-sm text-[var(--admin-text-muted)] mt-0.5">
                         Zona: {order.delivery_zones.name}
                       </p>
                     )}
@@ -142,7 +142,7 @@ export function OrderDetailsDrawer({
                         href={googleMapsUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm text-[#FEC501] hover:underline mt-1"
+                        className="inline-flex items-center gap-1 text-sm text-[var(--admin-accent-text)] hover:underline mt-1"
                       >
                         Ver en Google Maps
                         <ExternalLink className="h-3 w-3" />
@@ -152,61 +152,61 @@ export function OrderDetailsDrawer({
                 </div>
 
                 {order.notes && (
-                  <div className="pt-2 border-t border-[#2a2f3a]">
-                    <p className="text-sm text-[#a8b5c9]">Notas:</p>
-                    <p className="text-[#f0f2f5] mt-1">{order.notes}</p>
+                  <div className="pt-2 border-t border-[var(--admin-border)]">
+                    <p className="text-sm text-[var(--admin-text-muted)]">Notas:</p>
+                    <p className="text-[var(--admin-text)] mt-1">{order.notes}</p>
                   </div>
                 )}
               </div>
 
               {/* Order Items */}
-              <div className="bg-[#1a1d24] rounded-xl p-4">
-                <h3 className="font-semibold text-[#f0f2f5] mb-3">Productos</h3>
+              <div className="bg-[var(--admin-bg)] rounded-xl p-4">
+                <h3 className="font-semibold text-[var(--admin-text)] mb-3">Productos</h3>
 
                 <div className="space-y-3">
                   {items.map((item, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <span className="text-[#a8b5c9] text-sm w-6">
+                        <span className="text-[var(--admin-text-muted)] text-sm w-6">
                           {item.quantity}x
                         </span>
-                        <span className="text-[#f0f2f5]">{item.name}</span>
+                        <span className="text-[var(--admin-text)]">{item.name}</span>
                       </div>
-                      <span className="text-[#c4cdd9]">
+                      <span className="text-[var(--admin-text-muted)]">
                         {formatPrice(item.price * item.quantity)}
                       </span>
                     </div>
                   ))}
                 </div>
 
-                <div className="border-t border-[#2a2f3a] mt-4 pt-4 space-y-2">
+                <div className="border-t border-[var(--admin-border)] mt-4 pt-4 space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-[#a8b5c9]">Subtotal</span>
-                    <span className="text-[#c4cdd9]">{formatPrice(subtotal)}</span>
+                    <span className="text-[var(--admin-text-muted)]">Subtotal</span>
+                    <span className="text-[var(--admin-text-muted)]">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-[#a8b5c9] flex items-center gap-1">
+                    <span className="text-[var(--admin-text-muted)] flex items-center gap-1">
                       <Truck className="h-3.5 w-3.5" />
                       Envío
                     </span>
-                    <span className="text-[#c4cdd9]">
+                    <span className="text-[var(--admin-text-muted)]">
                       {order.shipping_cost === 0 ? 'Gratis' : formatPrice(order.shipping_cost)}
                     </span>
                   </div>
                   <div className="flex justify-between font-bold text-lg pt-2">
-                    <span className="text-[#f0f2f5]">Total</span>
-                    <span className="text-[#FEC501]">{formatPrice(order.total)}</span>
+                    <span className="text-[var(--admin-text)]">Total</span>
+                    <span className="text-[var(--admin-accent-text)]">{formatPrice(order.total)}</span>
                   </div>
                 </div>
               </div>
 
               {/* Payment Method */}
-              <div className="bg-[#1a1d24] rounded-xl p-4">
+              <div className="bg-[var(--admin-bg)] rounded-xl p-4">
                 <div className="flex items-center gap-3">
-                  <CreditCard className="h-4 w-4 text-[#a8b5c9]" />
+                  <CreditCard className="h-4 w-4 text-[var(--admin-text-muted)]" />
                   <div>
-                    <p className="text-sm text-[#a8b5c9]">Método de pago</p>
-                    <p className="text-[#f0f2f5]">
+                    <p className="text-sm text-[var(--admin-text-muted)]">Método de pago</p>
+                    <p className="text-[var(--admin-text)]">
                       {getPaymentMethodIcon(order.payment_method)}{' '}
                       {getPaymentMethodLabel(order.payment_method)}
                     </p>
@@ -216,10 +216,10 @@ export function OrderDetailsDrawer({
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-[#2a2f3a]">
+            <div className="p-4 border-t border-[var(--admin-border)]">
               <Button
                 onClick={onClose}
-                className="w-full bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold"
+                className="w-full bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold"
               >
                 Cerrar
               </Button>

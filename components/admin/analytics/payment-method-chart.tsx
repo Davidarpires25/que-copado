@@ -27,7 +27,7 @@ const DEFAULT_COLOR = '#F59E0B'
 export function PaymentMethodChart({ data }: PaymentMethodChartProps) {
   if (!data || data.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[200px] text-[#a8b5c9] gap-2">
+      <div className="flex flex-col items-center justify-center h-[200px] text-[var(--admin-text-muted)] gap-2">
         <Banknote className="h-8 w-8 opacity-50" />
         <p className="text-sm">No hay datos de pagos en este periodo</p>
       </div>
@@ -89,23 +89,23 @@ export function PaymentMethodChart({ data }: PaymentMethodChartProps) {
         {data.map((d) => (
           <div
             key={d.method}
-            className="bg-[#252a35] rounded-lg p-3 border-l-2 hover:bg-[#2a2f3a] transition-colors"
+            className="bg-[var(--admin-surface-2)] rounded-lg p-3 border-l-2 hover:bg-[var(--admin-border)] transition-colors"
             style={{ borderLeftColor: COLORS[d.method] || DEFAULT_COLOR }}
           >
             <div className="flex items-center justify-between mb-0.5">
-              <span className="text-sm font-medium text-[#f0f2f5]">
+              <span className="text-sm font-medium text-[var(--admin-text)]">
                 {d.label}
               </span>
-              <span className="text-xs font-semibold text-[#f0f2f5]">
+              <span className="text-sm font-semibold text-[var(--admin-text)]">
                 {d.percentage}%
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-[#a8b5c9]">
+              <span className="text-xs text-[var(--admin-text-muted)]">
                 {d.orders} pedidos
               </span>
-              <span className="text-xs text-[#a8b5c9]">
-                Ticket prom: <span className="text-[#f0f2f5]">{formatPrice(d.avgTicket)}</span>
+              <span className="text-xs text-[var(--admin-text-muted)]">
+                Ticket prom: <span className="text-[var(--admin-text)]">{formatPrice(d.avgTicket)}</span>
               </span>
             </div>
           </div>

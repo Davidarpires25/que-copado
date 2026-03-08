@@ -4,9 +4,11 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { devError } from '@/lib/server/logger'
 import { friendlyError } from '@/lib/server/error-messages'
-import { revalidateCaja, revalidateOrders, revalidateTables } from '@/lib/server/revalidate'
+import { revalidateCaja, revalidateOrders, revalidateTables, revalidateStock } from '@/lib/server/revalidate'
+import { deductStockForOrder } from '@/lib/server/stock-deduction'
 import type { Order, PaymentMethod } from '@/lib/types/database'
 import type { TableWithOrder, RestaurantTable, OrderItemRow } from '@/lib/types/tables'
+import type { PaymentSplit } from '@/lib/types/cash-register'
 
 // ─── Helpers ────────────────────────────────────────────────
 
@@ -252,7 +254,8 @@ export async function addItemsToOrder(
     product_price: number
     quantity: number
     notes?: string | null
-  }[]
+  }[],
+  saleTag?: string | null
 ): Promise<{
   data: OrderItemRow[] | null
   error: string | null
@@ -281,6 +284,7 @@ export async function addItemsToOrder(
       product_price: item.product_price,
       quantity: item.quantity,
       notes: item.notes || null,
+      sale_tag: saleTag || null,
       status: 'pendiente',
       added_by: user.id,
     }))
@@ -463,7 +467,8 @@ export async function payTableOrder(
   orderId: string,
   tableId: string,
   paymentMethod: PaymentMethod,
-  sessionId: string
+  sessionId: string,
+  splits?: PaymentSplit[]
 ): Promise<{
   data: Order | null
   error: string | null
@@ -485,13 +490,19 @@ export async function payTableOrder(
     }
 
     const orderData = order as Order
+    const isHybrid = splits && splits.length > 1
+
+    // Determine primary method (highest amount for hybrid, or explicit for single)
+    const primaryMethod = isHybrid
+      ? splits.reduce((a, b) => (a.amount >= b.amount ? a : b)).method
+      : paymentMethod
 
     // Update order to pagado
     const { data: paidOrder, error: orderError } = await supabase
       .from('orders')
       .update({
         status: 'pagado',
-        payment_method: paymentMethod,
+        payment_method: primaryMethod,
         updated_at: new Date().toISOString(),
       })
       .eq('id', orderId)
@@ -503,9 +514,19 @@ export async function payTableOrder(
       return { data: null, error: 'Error al procesar pago' }
     }
 
-    // Update session totals (same logic as createPosOrder)
-    const salesField = getSalesField(paymentMethod)
+    // Insert payment_splits rows for hybrid payment
+    if (isHybrid) {
+      await supabase.from('payment_splits').insert(
+        splits.map((sp) => ({
+          order_id: orderId,
+          amount: sp.amount,
+          method: sp.method,
+          session_id: sessionId,
+        }))
+      )
+    }
 
+    // Update session totals — accumulated per method for hybrid
     const { data: currentSession } = await supabase
       .from('cash_register_sessions')
       .select('total_sales, total_orders, total_cash_sales, total_card_sales, total_transfer_sales')
@@ -514,14 +535,32 @@ export async function payTableOrder(
 
     if (currentSession) {
       const s = currentSession as Record<string, number>
-      await supabase
-        .from('cash_register_sessions')
-        .update({
+
+      if (isHybrid) {
+        // Accumulate each split method separately
+        const delta: Record<string, number> = {
           total_sales: (s.total_sales || 0) + orderData.total,
           total_orders: (s.total_orders || 0) + 1,
-          [salesField]: (s[salesField] || 0) + orderData.total,
-        })
-        .eq('id', sessionId)
+          total_cash_sales: s.total_cash_sales || 0,
+          total_card_sales: s.total_card_sales || 0,
+          total_transfer_sales: s.total_transfer_sales || 0,
+        }
+        for (const sp of splits) {
+          const field = getSalesField(sp.method)
+          delta[field] = (delta[field] || 0) + sp.amount
+        }
+        await supabase.from('cash_register_sessions').update(delta).eq('id', sessionId)
+      } else {
+        const salesField = getSalesField(paymentMethod)
+        await supabase
+          .from('cash_register_sessions')
+          .update({
+            total_sales: (s.total_sales || 0) + orderData.total,
+            total_orders: (s.total_orders || 0) + 1,
+            [salesField]: (s[salesField] || 0) + orderData.total,
+          })
+          .eq('id', sessionId)
+      }
     }
 
     // Free the table
@@ -533,8 +572,24 @@ export async function payTableOrder(
       })
       .eq('id', tableId)
 
+    // Best-effort stock deduction — fetch order_items for this order
+    try {
+      const { data: orderItems } = await supabase
+        .from('order_items')
+        .select('product_id, quantity')
+        .eq('order_id', orderId)
+        .eq('status', 'pendiente')
+
+      if (orderItems && orderItems.length > 0) {
+        await deductStockForOrder(supabase, orderItems, orderId, user.id)
+      }
+    } catch (stockError) {
+      devError('Error deducting stock for table order:', stockError)
+    }
+
     revalidateCaja()
     revalidateOrders()
+    revalidateStock()
 
     return { data: paidOrder as Order, error: null }
   } catch (error) {

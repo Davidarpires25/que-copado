@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import { ShoppingCart, ArrowRight } from 'lucide-react'
 import { DeliveryBikeIcon } from '@/components/icons'
 import {
@@ -19,8 +19,11 @@ import { formatPrice } from '@/lib/utils'
 
 export function CartDrawer() {
   const hydrated = useHydrated()
-  const { items, updateQuantity, removeItem, getTotal, getItemCount } =
-    useCartStore()
+  const items = useCartStore((s) => s.items)
+  const updateQuantity = useCartStore((s) => s.updateQuantity)
+  const removeItem = useCartStore((s) => s.removeItem)
+  const getTotal = useCartStore((s) => s.getTotal)
+  const getItemCount = useCartStore((s) => s.getItemCount)
 
   const itemCount = getItemCount()
   const subtotal = getTotal()
@@ -28,20 +31,18 @@ export function CartDrawer() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Button
-            variant="outline"
-            size="icon"
-            className="relative border-2 border-neutral-700 bg-neutral-900 hover:bg-neutral-800 hover:border-[#FEC501] shadow-sm"
-          >
-            <ShoppingCart className="h-5 w-5 text-white" />
-            {hydrated && itemCount > 0 && (
-              <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-[#FEC501] text-black text-xs font-bold border-2 border-black shadow-md">
-                {itemCount}
-              </Badge>
-            )}
-          </Button>
-        </motion.div>
+        <Button
+          variant="outline"
+          size="icon"
+          className="relative border-2 border-neutral-700 bg-neutral-900 hover:bg-neutral-800 hover:border-[#FEC501] shadow-sm hover:scale-105 active:scale-95 transition-all duration-150"
+        >
+          <ShoppingCart className="h-5 w-5 text-white" />
+          {hydrated && itemCount > 0 && (
+            <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-[#FEC501] text-black text-xs font-bold border-2 border-black shadow-md">
+              {itemCount}
+            </Badge>
+          )}
+        </Button>
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-md bg-gradient-to-br from-orange-50 to-amber-50 border-l border-orange-200 p-0 flex flex-col">
         <SheetHeader className="px-4 py-4 border-b border-orange-200 bg-white/80 backdrop-blur-sm">

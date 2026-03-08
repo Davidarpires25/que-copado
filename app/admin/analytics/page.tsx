@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/server'
 import {
   getHourlySales,
@@ -11,7 +12,17 @@ import {
   getPaymentMethodDistribution,
   getProfitabilityReport,
 } from '@/app/actions/analytics'
-import { AnalyticsDashboard } from './analytics-dashboard'
+
+const AnalyticsDashboard = dynamic(
+  () => import('./analytics-dashboard').then((mod) => ({ default: mod.AnalyticsDashboard })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="h-8 w-8 border-2 border-[var(--admin-accent)] border-t-transparent rounded-full animate-spin" />
+      </div>
+    ),
+  }
+)
 
 export default async function AnalyticsPage() {
   const supabase = await createClient()

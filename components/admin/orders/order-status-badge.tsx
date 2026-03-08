@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '@/lib/utils'
 import type { OrderStatus } from '@/lib/types/database'
 import { ORDER_STATUS_CONFIG } from '@/lib/types/orders'

@@ -83,14 +83,14 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
       {categories.map((category, index) => (
         <div
           key={category.id}
-          className="flex items-center gap-3 p-4 bg-[#2a2f3a] rounded-xl border border-[#2a2f3a] hover:border-[#3a4150] transition-colors"
+          className="flex items-center gap-3 p-4 bg-[var(--admin-border)] rounded-xl border border-[var(--admin-border)] hover:border-[var(--admin-accent)]/40 transition-colors"
         >
           {/* Drag Handle / Reorder Buttons */}
           <div className="flex flex-col gap-1">
             <button
               onClick={() => handleMoveUp(index)}
               disabled={index === 0 || movingId === category.id}
-              className="p-1 text-[#a8b5c9] hover:text-[#f0f2f5] disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
               title="Mover arriba"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -100,7 +100,7 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
             <button
               onClick={() => handleMoveDown(index)}
               disabled={index === categories.length - 1 || movingId === category.id}
-              className="p-1 text-[#a8b5c9] hover:text-[#f0f2f5] disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
               title="Mover abajo"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -110,23 +110,23 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
           </div>
 
           {/* Order Number */}
-          <div className="w-8 h-8 rounded-lg bg-[#2a2f3a] flex items-center justify-center text-sm font-medium text-[#a8b5c9]">
+          <div className="w-8 h-8 rounded-lg bg-[var(--admin-border)] flex items-center justify-center text-sm font-medium text-[var(--admin-text-muted)]">
             {index + 1}
           </div>
 
           {/* Category Info */}
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-[#f0f2f5] truncate">
+            <h3 className="font-semibold text-[var(--admin-text)] truncate">
               {category.name}
             </h3>
-            <p className="text-sm text-[#a8b5c9] truncate">
+            <p className="text-sm text-[var(--admin-text-muted)] truncate">
               /{category.slug}
             </p>
           </div>
 
           {/* Loading State */}
           {movingId === category.id && (
-            <Loader2 className="h-4 w-4 text-[#a8b5c9] animate-spin" />
+            <Loader2 className="h-4 w-4 text-[var(--admin-text-muted)] animate-spin" />
           )}
 
           {/* Actions */}
@@ -138,7 +138,7 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
                     variant="ghost"
                     size="icon"
                     onClick={() => onEdit(category)}
-                    className="h-9 w-9 text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#2a2f3a]"
+                    className="h-9 w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)]"
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
@@ -154,7 +154,7 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
                     size="icon"
                     onClick={() => setDeleteTarget(category)}
                     disabled={deletingId === category.id}
-                    className="h-9 w-9 text-[#a8b5c9] hover:text-red-400 hover:bg-red-500/10"
+                    className="h-9 w-9 text-[var(--admin-text-muted)] hover:text-red-400 hover:bg-red-500/10"
                   >
                     {deletingId === category.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

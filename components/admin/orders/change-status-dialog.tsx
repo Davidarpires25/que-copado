@@ -57,10 +57,10 @@ export function ChangeStatusDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#12151a] border-[#2a2f3a] max-w-sm">
+      <DialogContent className="bg-[var(--admin-surface)] border-[var(--admin-border)] max-w-sm shadow-xl shadow-black/10">
         <DialogHeader>
-          <DialogTitle className="text-[#f0f2f5]">Cambiar Estado</DialogTitle>
-          <p className="text-sm text-[#a8b5c9] mt-1">
+          <DialogTitle className="text-[var(--admin-text)]">Cambiar Estado</DialogTitle>
+          <p className="text-sm text-[var(--admin-text-muted)] mt-1">
             Estado actual: <OrderStatusBadge status={currentStatus} size="sm" />
           </p>
         </DialogHeader>
@@ -77,10 +77,10 @@ export function ChangeStatusDialog({
                 variant="outline"
                 disabled={isCurrentStatus || isLoading}
                 onClick={() => handleChangeStatus(status)}
-                className={`justify-start h-12 border-[#2a2f3a] hover:border-[#3a4150] ${
+                className={`justify-start h-12 border-[var(--admin-border)] hover:border-[var(--admin-accent)]/40 ${
                   isCurrentStatus
                     ? 'opacity-50 cursor-not-allowed'
-                    : 'hover:bg-[#252a35]'
+                    : 'hover:bg-[var(--admin-surface-2)]'
                 }`}
               >
                 {isSelected && isLoading ? (
@@ -91,9 +91,9 @@ export function ChangeStatusDialog({
                     style={{ backgroundColor: config.color }}
                   />
                 )}
-                <span className="text-[#f0f2f5]">{config.label}</span>
+                <span className="text-[var(--admin-text)]">{config.label}</span>
                 {isCurrentStatus && (
-                  <span className="ml-auto text-xs text-[#a8b5c9]">Actual</span>
+                  <span className="ml-auto text-xs text-[var(--admin-text-muted)]">Actual</span>
                 )}
               </Button>
             )

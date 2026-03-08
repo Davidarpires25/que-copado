@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { Lock, Mail, Loader2, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,22 +31,16 @@ export default function LoginPage() {
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-600 rounded-full blur-[120px]" />
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 30, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      <div
         className="relative z-10"
       >
         <Card className="w-full max-w-md bg-[#1a1d24]/80 backdrop-blur-xl border-[#252a35] shadow-2xl">
           <CardHeader className="text-center pb-6 space-y-4">
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
+            <div
               className="mx-auto w-20 h-20 bg-[#FEC501] rounded-2xl flex items-center justify-center text-4xl shadow-lg shadow-[#FEC501]/25"
             >
               🍔
-            </motion.div>
+            </div>
             <div>
               <CardTitle className="text-3xl font-bold text-[#f0f2f5] mb-2">
                 Que <span className="text-[#FEC501]">Copado</span>
@@ -130,7 +123,7 @@ export default function LoginPage() {
             </form>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
     </div>
   )
 }

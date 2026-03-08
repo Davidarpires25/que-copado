@@ -24,12 +24,12 @@ export function ChartContainer({
   children,
 }: ChartContainerProps) {
   return (
-    <div className={cn('bg-[#1a1d24] border border-[#2a2f3a] rounded-xl p-6 hover:border-[#3a4150] transition-colors duration-200', className)}>
+    <div className={cn('bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-[var(--admin-accent)]/30 transition-all duration-200', className)}>
       <div className="flex items-start justify-between mb-6 gap-4">
         <div className="min-w-0">
-          <h3 className="text-lg font-semibold text-[#f0f2f5]">{title}</h3>
+          <h3 className="text-lg font-semibold text-[var(--admin-text)]">{title}</h3>
           {subtitle && (
-            <p className="text-sm text-[#a8b5c9] mt-0.5">{subtitle}</p>
+            <p className="text-sm text-[var(--admin-text-muted)] mt-0.5">{subtitle}</p>
           )}
         </div>
         {period && onPeriodChange && (

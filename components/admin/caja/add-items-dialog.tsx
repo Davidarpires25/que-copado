@@ -27,6 +27,7 @@ interface AddItemsDialogProps {
   products: Product[]
   categories: Category[]
   orderId: string
+  saleTag?: string | null
   onClose: () => void
   onItemsAdded: () => void
 }
@@ -36,6 +37,7 @@ export function AddItemsDialog({
   products,
   categories,
   orderId,
+  saleTag,
   onClose,
   onItemsAdded,
 }: AddItemsDialogProps) {
@@ -90,7 +92,7 @@ export function AddItemsDialog({
     if (cart.length === 0) return
 
     setLoading(true)
-    const result = await addItemsToOrder(orderId, cart)
+    const result = await addItemsToOrder(orderId, cart, saleTag)
     setLoading(false)
 
     if (result.error) {
@@ -115,12 +117,17 @@ export function AddItemsDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] max-w-4xl h-[85vh] flex flex-col p-0 gap-0"
+        className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] max-w-4xl h-[85vh] flex flex-col p-0 gap-0 shadow-xl shadow-black/10"
         showCloseButton={true}
       >
         <DialogHeader className="px-5 pt-5 pb-3">
-          <DialogTitle className="text-xl font-bold text-[#f0f2f5]">
+          <DialogTitle className="text-xl font-bold text-[var(--admin-text)] flex items-center gap-2">
             Agregar Productos
+            {saleTag && (
+              <span className="text-sm font-medium bg-[var(--admin-accent)]/20 text-[var(--admin-accent-text)] px-2 py-0.5 rounded-full">
+                {saleTag}
+              </span>
+            )}
           </DialogTitle>
         </DialogHeader>
 
@@ -135,7 +142,7 @@ export function AddItemsDialog({
 
         {/* Mini cart at the bottom */}
         {cart.length > 0 && (
-          <div className="border-t border-[#2a2f3a] bg-[#12151a]">
+          <div className="border-t border-[var(--admin-border)] bg-[var(--admin-surface)]">
             {/* Cart items (scrollable if many) */}
             <div className="max-h-40 overflow-y-auto px-4 py-2 space-y-1">
               {cart.map((item) => (
@@ -143,7 +150,7 @@ export function AddItemsDialog({
                   key={item.product_id}
                   className="flex items-center gap-2 py-1.5"
                 >
-                  <span className="flex-1 text-sm text-[#f0f2f5] truncate">
+                  <span className="flex-1 text-sm text-[var(--admin-text)] truncate">
                     {item.product_name}
                   </span>
 
@@ -155,11 +162,11 @@ export function AddItemsDialog({
                           item.quantity - 1
                         )
                       }
-                      className="h-6 w-6 flex items-center justify-center rounded bg-[#252a35] text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#2a2f3a] transition-colors"
+                      className="h-6 w-6 flex items-center justify-center rounded bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)] transition-colors"
                     >
                       <Minus className="h-3 w-3" />
                     </button>
-                    <span className="w-6 text-center text-sm font-bold text-[#f0f2f5]">
+                    <span className="w-6 text-center text-sm font-bold text-[var(--admin-text)]">
                       {item.quantity}
                     </span>
                     <button
@@ -169,19 +176,19 @@ export function AddItemsDialog({
                           item.quantity + 1
                         )
                       }
-                      className="h-6 w-6 flex items-center justify-center rounded bg-[#252a35] text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#2a2f3a] transition-colors"
+                      className="h-6 w-6 flex items-center justify-center rounded bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)] transition-colors"
                     >
                       <Plus className="h-3 w-3" />
                     </button>
                   </div>
 
-                  <span className="text-sm font-semibold text-[#f0f2f5] w-20 text-right shrink-0">
+                  <span className="text-sm font-semibold text-[var(--admin-text)] w-20 text-right shrink-0">
                     {formatPrice(item.product_price * item.quantity)}
                   </span>
 
                   <button
                     onClick={() => handleRemoveFromCart(item.product_id)}
-                    className="h-6 w-6 flex items-center justify-center rounded text-[#6b7a8d] hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
+                    className="h-6 w-6 flex items-center justify-center rounded text-[var(--admin-text-faint)] hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>
@@ -190,8 +197,8 @@ export function AddItemsDialog({
             </div>
 
             {/* Summary + Submit */}
-            <div className="flex items-center gap-3 px-4 py-3 border-t border-[#2a2f3a]">
-              <div className="flex items-center gap-2 text-[#a8b5c9]">
+            <div className="flex items-center gap-3 px-4 py-3 border-t border-[var(--admin-border)]">
+              <div className="flex items-center gap-2 text-[var(--admin-text-muted)]">
                 <ShoppingCart className="h-4 w-4" />
                 <span className="text-sm font-medium">
                   {cartItemCount}{' '}
@@ -199,14 +206,14 @@ export function AddItemsDialog({
                 </span>
               </div>
 
-              <span className="text-lg font-bold text-[#FEC501]">
+              <span className="text-lg font-bold text-[var(--admin-accent-text)]">
                 {formatPrice(cartTotal)}
               </span>
 
               <Button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="ml-auto h-10 px-6 bg-[#FEC501] hover:bg-[#e5b301] text-black font-bold text-sm active:scale-95 transition-transform"
+                className="ml-auto h-10 px-6 bg-[var(--admin-accent)] hover:bg-[#e5b301] text-black font-bold text-sm active:scale-95 transition-transform"
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { motion } from 'framer-motion'
 import { ProductCard } from './product-card'
 import { CategoryFilter } from './category-filter'
+import { SearchX } from 'lucide-react'
 import type { Category, Product } from '@/lib/types/database'
 
 interface ProductGridProps {
@@ -19,8 +19,11 @@ export function ProductGrid({ products, categories }: ProductGridProps) {
     return products.filter((p) => p.category_id === selectedCategory)
   }, [products, selectedCategory])
 
+  // Find the first category (by sort_order) to mark its first products as "best-seller"
+  const firstCategoryId = categories.length > 0 ? categories[0].id : null
+
   return (
-    <div className="space-y-6 md:space-y-8 pb-24 md:pb-0">
+    <div className="space-y-5 md:space-y-8 pb-28 md:pb-0">
       <CategoryFilter
         categories={categories}
         selectedCategory={selectedCategory}
@@ -28,42 +31,37 @@ export function ProductGrid({ products, categories }: ProductGridProps) {
         typeCategory={'user'}
       />
 
-      <motion.div
-        layout
-        className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6"
-      >
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
         {filteredProducts.map((product, index) => (
-          <motion.div
+          <div
             key={product.id}
-            layout
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.05 }}
+            className="animate-fade-in-up"
+            style={{ animationDelay: `${Math.min(index * 40, 300)}ms` }}
           >
             <ProductCard
               product={product}
-              badge={index < 3 ? 'best-seller' : null}
+              badge={
+                product.category_id === firstCategoryId && index < 4
+                  ? 'best-seller'
+                  : null
+              }
             />
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
       {filteredProducts.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-16 px-4"
-        >
-          <div className="w-24 h-24 mx-auto rounded-full bg-orange-100 flex items-center justify-center mb-4">
-            <span className="text-4xl">😕</span>
+        <div className="text-center py-16 px-4 animate-fade-in-up">
+          <div className="w-20 h-20 mx-auto rounded-full bg-orange-100 flex items-center justify-center mb-4">
+            <SearchX className="h-9 w-9 text-orange-300" />
           </div>
           <p className="text-orange-900 text-lg font-bold mb-2">
             No hay productos disponibles
           </p>
           <p className="text-orange-600/70 text-sm">
-            Probá con otra categoría o volvé más tarde
+            Proba con otra categoria o volve mas tarde
           </p>
-        </motion.div>
+        </div>
       )}
     </div>
   )

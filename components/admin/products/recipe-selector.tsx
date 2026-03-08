@@ -70,9 +70,9 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange }: RecipeSel
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-[#a8b5c9] text-sm font-medium">Recetas</p>
+        <p className="text-[var(--admin-text-muted)] text-sm font-medium">Recetas</p>
         {selectedRecipes.length > 0 && (
-          <Badge variant="outline" className="border-[#FEC501]/30 text-[#FEC501] bg-[#FEC501]/10 text-xs">
+          <Badge variant="outline" className="border-[var(--admin-accent)]/30 text-[var(--admin-accent-text)] bg-[var(--admin-accent)]/10 text-xs">
             Costo total: {formatCost(totalCost)}
           </Badge>
         )}
@@ -89,13 +89,13 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange }: RecipeSel
             return (
               <div
                 key={item.recipe_id}
-                className="flex items-center gap-2 p-2 rounded-lg bg-[#252a35]/50 border border-[#2a2f3a]"
+                className="flex items-center gap-2 p-2 rounded-lg bg-[var(--admin-surface-2)]/50 border border-[var(--admin-border)]"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-[#f0f2f5] font-medium truncate">{recipe.name}</p>
-                  <p className="text-xs text-[#a8b5c9]">
+                  <p className="text-sm text-[var(--admin-text)] font-medium truncate">{recipe.name}</p>
+                  <p className="text-xs text-[var(--admin-text-muted)]">
                     {formatCost(recipeCost)} / unidad
-                    <span className="ml-1 text-[#6b7a8d]">
+                    <span className="ml-1 text-[var(--admin-text-faint)]">
                       ({recipe.recipe_ingredients.length} ing.)
                     </span>
                   </p>
@@ -110,14 +110,14 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange }: RecipeSel
                     onChange={(e) =>
                       handleQuantityChange(item.recipe_id, parseInt(e.target.value) || 1)
                     }
-                    className="w-16 h-8 bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] text-sm text-center focus:border-[#FEC501]/50 focus:ring-1 focus:ring-[#FEC501]/20"
+                    className="w-16 h-8 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm text-center focus:border-[var(--admin-accent)]/50 focus:ring-1 focus:ring-[var(--admin-accent)]/20"
                   />
-                  <Badge variant="outline" className="border-[#2a2f3a] text-[#a8b5c9] text-xs shrink-0">
+                  <Badge variant="outline" className="border-[var(--admin-border)] text-[var(--admin-text-muted)] text-xs shrink-0">
                     x
                   </Badge>
                 </div>
 
-                <p className="text-xs text-[#FEC501] font-medium w-16 text-right shrink-0">
+                <p className="text-xs text-[var(--admin-accent-text)] font-medium w-16 text-right shrink-0">
                   {formatCost(subtotal)}
                 </p>
 
@@ -139,24 +139,24 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange }: RecipeSel
       {/* Add recipe selector */}
       {availableRecipes.length > 0 && (
         <Select onValueChange={handleAdd}>
-          <SelectTrigger className="bg-[#1a1d24] border-[#2a2f3a] border-dashed text-[#a8b5c9] text-sm h-9 focus:ring-2 focus:ring-[#FEC501]/20 focus:border-[#FEC501]/50 [&_svg]:text-[#a8b5c9] [&_svg]:opacity-100">
+          <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] border-dashed text-[var(--admin-text-muted)] text-sm h-9 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 [&_svg]:text-[var(--admin-text-muted)] [&_svg]:opacity-100">
             <div className="flex items-center gap-2">
-              <Plus className="h-3.5 w-3.5" />
-              <span>Agregar receta</span>
+              <Plus className="text-[var(--admin-text)] h-3.5 w-3.5" />
+              <span className="text-[var(--admin-text-muted)]q">Agregar receta</span>
             </div>
           </SelectTrigger>
-          <SelectContent className="bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5]">
+          <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">
             {availableRecipes.map((recipe) => {
               const cost = getRecipeCost(recipe)
               return (
                 <SelectItem
                   key={recipe.id}
                   value={recipe.id}
-                  className="text-[#f0f2f5] focus:bg-[#2a2f3a] focus:text-[#f0f2f5] hover:bg-[#2a2f3a] cursor-pointer"
+                  className="text-[var(--admin-text)] focus:bg-[var(--admin-border)] focus:text-[var(--admin-text)] hover:bg-[var(--admin-border)] cursor-pointer"
                 >
                   <span className="flex items-center gap-2">
                     {recipe.name}
-                    <span className="text-[#a8b5c9] text-xs">({formatCost(cost)})</span>
+                    <span className="text-[var(--admin-text-muted)] text-xs">({formatCost(cost)})</span>
                   </span>
                 </SelectItem>
               )
@@ -166,7 +166,7 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange }: RecipeSel
       )}
 
       {selectedRecipes.length === 0 && (
-        <p className="text-xs text-[#a8b5c9]/60 text-center py-1">
+        <p className="text-xs text-[var(--admin-text-muted)]/60 text-center py-1">
           Sin recetas asignadas. El costo se calculara desde las recetas.
         </p>
       )}
@@ -180,24 +180,24 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange }: RecipeSel
           <div className="space-y-1.5 pl-1">
             <Link
               href="/admin/ingredients"
-              className="flex items-center gap-2 text-xs text-[#a8b5c9] hover:text-[#FEC501] transition-colors group"
+              className="flex items-center gap-2 text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-accent-text)] transition-colors group"
             >
-              <span className="flex items-center justify-center w-4 h-4 rounded-full bg-[#2a2f3a] text-[10px] font-bold text-[#a8b5c9] group-hover:bg-[#FEC501]/20 group-hover:text-[#FEC501] transition-colors">1</span>
+              <span className="flex items-center justify-center w-4 h-4 rounded-full bg-[var(--admin-border)] text-xs font-bold text-[var(--admin-text-muted)] group-hover:bg-[var(--admin-accent)]/20 group-hover:text-[var(--admin-accent-text)] transition-colors">1</span>
               <Wheat className="h-3 w-3" />
               <span>Crear ingredientes</span>
               <ArrowRight className="h-3 w-3 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
             <Link
               href="/admin/recipes"
-              className="flex items-center gap-2 text-xs text-[#a8b5c9] hover:text-[#FEC501] transition-colors group"
+              className="flex items-center gap-2 text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-accent-text)] transition-colors group"
             >
-              <span className="flex items-center justify-center w-4 h-4 rounded-full bg-[#2a2f3a] text-[10px] font-bold text-[#a8b5c9] group-hover:bg-[#FEC501]/20 group-hover:text-[#FEC501] transition-colors">2</span>
+              <span className="flex items-center justify-center w-4 h-4 rounded-full bg-[var(--admin-border)] text-xs font-bold text-[var(--admin-text-muted)] group-hover:bg-[var(--admin-accent)]/20 group-hover:text-[var(--admin-accent-text)] transition-colors">2</span>
               <BookOpen className="h-3 w-3" />
               <span>Armar recetas con esos ingredientes</span>
               <ArrowRight className="h-3 w-3 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
-            <div className="flex items-center gap-2 text-xs text-[#a8b5c9]">
-              <span className="flex items-center justify-center w-4 h-4 rounded-full bg-[#FEC501]/20 text-[10px] font-bold text-[#FEC501]">3</span>
+            <div className="flex items-center gap-2 text-xs text-[var(--admin-text-muted)]">
+              <span className="flex items-center justify-center w-4 h-4 rounded-full bg-[var(--admin-accent)]/20 text-xs font-bold text-[var(--admin-accent-text)]">3</span>
               <Plus className="h-3 w-3" />
               <span>Asignar recetas al producto (aca)</span>
             </div>

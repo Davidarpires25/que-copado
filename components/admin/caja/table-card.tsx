@@ -12,9 +12,6 @@ interface TableCardProps {
   onClick: () => void
 }
 
-/**
- * Calcula el tiempo transcurrido desde opened_at hasta ahora
- */
 function getElapsedInfo(openedAt: string): { label: string; minutes: number } {
   const now = Date.now()
   const opened = new Date(openedAt).getTime()
@@ -69,84 +66,65 @@ export function TableCard({ table, isSelected, onClick }: TableCardProps) {
     <button
       onClick={onClick}
       className={cn(
-        'relative flex flex-col items-center justify-center',
-        'bg-[#12151a] rounded-xl border-2 p-4',
-        'transition-all duration-200 active:scale-95',
-        'min-h-[140px] aspect-square w-full',
-        'hover:bg-[#1e222b]',
-        // Status border color
+        'relative flex flex-col items-center justify-center gap-0.5',
+        'bg-[var(--admin-surface)] rounded-xl border-2 p-3',
+        'transition-all duration-200 active:scale-95 cursor-pointer',
+        'h-[115px] w-full',
+        'hover:bg-[var(--admin-hover)]',
         statusConfig.borderColor,
-        // Selected state: full opacity border
-        isSelected && table.status === 'libre' && 'border-green-500 shadow-lg shadow-green-500/10',
-        isSelected && table.status === 'ocupada' && 'border-[#FEC501] shadow-lg shadow-[#FEC501]/10',
-        isSelected && table.status === 'cuenta_pedida' && 'border-orange-500 shadow-lg shadow-orange-500/10'
+        isSelected && table.status === 'libre' && 'border-green-500 shadow-md shadow-green-500/10',
+        isSelected && table.status === 'ocupada' && 'border-[var(--admin-accent)] shadow-md shadow-[var(--admin-accent)]/10',
+        isSelected && table.status === 'cuenta_pedida' && 'border-orange-500 shadow-md shadow-orange-500/10'
       )}
     >
       {/* Pulsing dot for cuenta_pedida */}
       {table.status === 'cuenta_pedida' && (
-        <span className="absolute top-2.5 right-2.5 flex h-2.5 w-2.5">
+        <span className="absolute top-2 right-2 flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-orange-500" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
         </span>
       )}
 
-      {/* Table icon */}
-      <UtensilsCrossed
-        className={cn('h-5 w-5 mb-1', statusConfig.color)}
-      />
+      {/* Icon */}
+      <UtensilsCrossed className={cn('h-4 w-4', statusConfig.color)} />
 
       {/* Table number */}
-      <span className={cn('text-2xl font-bold', statusConfig.color)}>
+      <span className={cn('text-xl font-bold leading-tight', statusConfig.color)}>
         {table.number}
       </span>
 
       {/* Status label */}
-      <span
-        className={cn(
-          'text-[10px] font-semibold uppercase tracking-wider mt-0.5 mb-2',
-          statusConfig.color
-        )}
-      >
+      <span className={cn('text-xs font-semibold uppercase tracking-wider', statusConfig.color)}>
         {statusConfig.label}
       </span>
 
-      {/* Occupied: elapsed time, total, item count */}
-      {isOccupied && orderInfo && (
-        <div className="w-full space-y-1 mt-auto">
-          {orderInfo.elapsed && (
+      {/* Divider + info row */}
+      {isOccupied && orderInfo ? (
+        <div className="w-full mt-1 pt-1 border-t border-[var(--admin-border)]/60 flex items-center justify-between px-0.5">
+          {/* Time */}
+          {orderInfo.elapsed ? (
             <div className={cn(
-              'flex items-center justify-center gap-1',
-              orderInfo.timeStatus === 'critical' && 'text-red-400 animate-pulse',
+              'flex items-center gap-0.5',
+              orderInfo.timeStatus === 'critical' && 'text-red-400',
               orderInfo.timeStatus === 'warning' && 'text-orange-400',
-              orderInfo.timeStatus === 'normal' && 'text-[#a8b5c9]'
+              orderInfo.timeStatus === 'normal' && 'text-[var(--admin-text-muted)]'
             )}>
-              <Clock className="h-3 w-3" />
-              <span className="text-xs font-semibold">{orderInfo.elapsed}</span>
-              {orderInfo.timeStatus === 'critical' && (
-                <AlertTriangle className="h-3 w-3" />
-              )}
+              <Clock className="h-2.5 w-2.5" />
+              <span className="text-xs font-medium">{orderInfo.elapsed}</span>
+              {orderInfo.timeStatus === 'critical' && <AlertTriangle className="h-2.5 w-2.5" />}
             </div>
-          )}
-          <p className="text-sm font-bold text-[#f0f2f5] text-center">
+          ) : <span />}
+          {/* Total */}
+          <span className="text-xs font-bold text-[var(--admin-text)]">
             {formatPrice(orderInfo.total)}
-          </p>
-          <p className="text-[10px] text-[#a8b5c9] text-center">
-            {orderInfo.itemCount} {orderInfo.itemCount === 1 ? 'item' : 'items'}
-          </p>
+          </span>
         </div>
-      )}
-
-      {/* Free: capacity and section */}
-      {table.status === 'libre' && (
-        <div className="w-full mt-auto text-center">
-          <div className="flex items-center justify-center gap-1 text-[#a8b5c9]">
-            <Users className="h-3 w-3" />
-            <span className="text-xs">
-              {table.capacity} {table.capacity === 1 ? 'persona' : 'personas'}
-            </span>
-          </div>
+      ) : table.status === 'libre' ? (
+        <div className="flex items-center gap-1 text-[var(--admin-text-muted)] mt-1">
+          <Users className="h-2.5 w-2.5" />
+          <span className="text-xs">{table.capacity} pers.</span>
         </div>
-      )}
+      ) : null}
     </button>
   )
 }

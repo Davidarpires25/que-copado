@@ -1,18 +1,31 @@
 'use client'
 
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import dynamic from 'next/dynamic'
 import {
   DollarSign,
   ShoppingBag,
   TrendingUp,
-  Clock,
+  Receipt,
   ArrowRight,
   BarChart3,
+  ClipboardList,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AdminLayout } from '@/components/admin/layout'
-import { StatsCard, SalesChart, TopProductsTable } from '@/components/admin/dashboard'
+import { StatsCard, TopProductsTable } from '@/components/admin/dashboard'
+
+const SalesChart = dynamic(
+  () => import('@/components/admin/dashboard/sales-chart').then((mod) => ({ default: mod.SalesChart })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 shadow-[var(--shadow-card)] w-full h-full flex items-center justify-center min-h-[300px]">
+        <div className="h-6 w-6 border-2 border-[var(--admin-accent)] border-t-transparent rounded-full animate-spin" />
+      </div>
+    ),
+  }
+)
 import { OrderStatusBadge } from '@/components/admin/orders'
 import { formatPrice } from '@/lib/utils'
 import { formatRelativeDate, getShortOrderId, parseOrderItems } from '@/lib/services/order-formatter'
@@ -76,9 +89,9 @@ export function DashboardOverview({
           title="Ticket Promedio"
           value={formatPrice(stats?.averageTicket || 0)}
           subtitle="Este mes"
-          icon={Clock}
-          iconColor="text-[#FEC501]"
-          iconBgColor="bg-[#FEC501]/10"
+          icon={Receipt}
+          iconColor="text-[var(--admin-accent-text)]"
+          iconBgColor="bg-[var(--admin-accent)]/10"
           trend={trends?.averageTicketTrend || undefined}
           delay={0.25}
           href="/admin/analytics"
@@ -86,66 +99,54 @@ export function DashboardOverview({
       </div>
 
       {/* Analytics Quick Link */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.28 }}
+      <div
         className="mb-6"
       >
         <Link href="/admin/analytics">
-          <div className="bg-[#1a1d24] border border-[#2a2f3a] rounded-xl p-4 hover:border-[#FEC501]/30 hover:bg-[#1a1d24]/80 transition-all duration-200 group flex items-center justify-between cursor-pointer">
+          <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-[var(--admin-accent)]/30 transition-all duration-200 group flex items-center justify-between cursor-pointer">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-[#FEC501]/10 rounded-lg flex items-center justify-center group-hover:bg-[#FEC501]/20 transition-colors">
-                <BarChart3 className="h-5 w-5 text-[#FEC501]" />
+              <div className="w-9 h-9 bg-[var(--admin-accent)]/10 rounded-lg flex items-center justify-center group-hover:bg-[var(--admin-accent)]/20 transition-colors">
+                <BarChart3 className="h-5 w-5 text-[var(--admin-accent-text)]" />
               </div>
               <div>
-                <p className="text-sm font-medium text-[#f0f2f5] group-hover:text-[#FEC501] transition-colors">
+                <p className="text-sm font-medium text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors">
                   Ver Analytics completo
                 </p>
-                <p className="text-xs text-[#a8b5c9]">
+                <p className="text-sm text-[var(--admin-text-muted)]">
                   Ventas por hora, día, zona, productos y más
                 </p>
               </div>
             </div>
-            <ArrowRight className="h-4 w-4 text-[#a8b5c9] group-hover:text-[#FEC501] group-hover:translate-x-1 transition-all duration-200" />
+            <ArrowRight className="h-4 w-4 text-[var(--admin-text-muted)] group-hover:text-[var(--admin-accent-text)] group-hover:translate-x-1 transition-all duration-200" />
           </div>
         </Link>
-      </motion.div>
+      </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8 items-stretch">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+        <div
           className="lg:col-span-3 flex"
         >
           <SalesChart data={chartData} />
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
+        <div
           className="lg:col-span-2 flex"
         >
           <TopProductsTable products={topProducts} />
-        </motion.div>
+        </div>
       </div>
 
       {/* Recent Orders */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="bg-[#1a1d24] border border-[#2a2f3a] rounded-xl p-6"
+      <div
+        className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 shadow-[var(--shadow-card)]"
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-[#f0f2f5]">
+          <h3 className="text-lg font-semibold text-[var(--admin-text)]">
             Pedidos Recientes
           </h3>
           <Link href="/admin/orders">
-            <Button variant="ghost" className="text-[#FEC501] hover:text-[#E5B001] hover:bg-[#FEC501]/10">
+            <Button variant="ghost" className="text-[var(--admin-accent-text)] hover:text-[#E5B001] hover:bg-[var(--admin-accent)]/10">
               Ver todos
               <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
@@ -153,9 +154,11 @@ export function DashboardOverview({
         </div>
 
         {recentOrders.length === 0 ? (
-          <p className="text-center text-[#a8b5c9] py-8">
-            No hay pedidos recientes
-          </p>
+          <div className="flex flex-col items-center justify-center py-10 text-center gap-2">
+            <ClipboardList className="h-8 w-8 text-[var(--admin-text-placeholder)]" />
+            <p className="text-sm text-[var(--admin-text-muted)]">No hay pedidos recientes</p>
+            <p className="text-xs text-[var(--admin-text-faint)]">Los pedidos nuevos apareceran aqui</p>
+          </div>
         ) : (
           <div className="space-y-3">
             {recentOrders.map((order) => {
@@ -166,20 +169,20 @@ export function DashboardOverview({
                 <Link
                   key={order.id}
                   href="/admin/orders"
-                  className="flex items-center justify-between p-3 rounded-lg bg-[#252a35] hover:bg-[#2a2f3a] transition-colors group"
+                  className="flex items-center justify-between p-3 rounded-lg bg-[var(--admin-surface-2)] hover:bg-[var(--admin-border)] transition-colors group"
                 >
                   <div className="flex items-center gap-4">
                     <div>
-                      <p className="font-mono text-[#f0f2f5] font-semibold group-hover:text-[#FEC501] transition-colors">
+                      <p className="font-mono text-[var(--admin-text)] font-semibold group-hover:text-[var(--admin-accent-text)] transition-colors">
                         #{getShortOrderId(order.id)}
                       </p>
-                      <p className="text-xs text-[#a8b5c9]">
+                      <p className="text-xs text-[var(--admin-text-muted)]">
                         {formatRelativeDate(order.created_at)}
                       </p>
                     </div>
                     <div className="hidden sm:block">
-                      <p className="text-[#c4cdd9] text-sm">{order.customer_name}</p>
-                      <p className="text-xs text-[#a8b5c9] truncate max-w-[200px]">
+                      <p className="text-[var(--admin-text-muted)] text-sm">{order.customer_name}</p>
+                      <p className="text-xs text-[var(--admin-text-muted)] truncate max-w-[200px]">
                         {itemsSummary}
                       </p>
                     </div>
@@ -187,7 +190,7 @@ export function DashboardOverview({
 
                   <div className="flex items-center gap-4">
                     <OrderStatusBadge status={order.status} size="sm" />
-                    <span className="font-semibold text-[#FEC501] min-w-[80px] text-right">
+                    <span className="font-semibold text-[var(--admin-accent-text)] min-w-[80px] text-right">
                       {formatPrice(order.total)}
                     </span>
                   </div>
@@ -196,7 +199,7 @@ export function DashboardOverview({
             })}
           </div>
         )}
-      </motion.div>
+      </div>
     </AdminLayout>
   )
 }

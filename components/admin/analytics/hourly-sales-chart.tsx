@@ -26,7 +26,7 @@ export function HourlySalesChart({ data }: HourlySalesChartProps) {
 
   if (!hasAnyData) {
     return (
-      <div className="flex flex-col items-center justify-center h-[280px] text-[#a8b5c9] gap-2">
+      <div className="flex flex-col items-center justify-center h-[280px] text-[var(--admin-text-muted)] gap-2">
         <Clock className="h-8 w-8 opacity-50" />
         <p className="text-sm">No hay datos de ventas en este período</p>
       </div>

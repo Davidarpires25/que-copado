@@ -11,7 +11,9 @@ import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/lib/store/cart-store'
 
 export default function CartPage() {
-  const { items, updateQuantity, removeItem } = useCartStore()
+  const items = useCartStore((s) => s.items)
+  const updateQuantity = useCartStore((s) => s.updateQuantity)
+  const removeItem = useCartStore((s) => s.removeItem)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { motion } from 'framer-motion'
 import { Plus, Tag, Search, Layers } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -59,51 +58,42 @@ export function CategoriesDashboard({ initialCategories }: CategoriesDashboardPr
   return (
     <AdminLayout title="Categorías" description="Gestiona las categorías del menú">
       {/* Stats Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="bg-[#1a1d24] border border-[#2a2f3a] rounded-xl p-4 flex items-center gap-3 mb-6 w-fit"
+      <div
+        className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 flex items-center gap-3 mb-6 w-fit shadow-[var(--shadow-card)]"
       >
-        <div className="w-10 h-10 rounded-lg bg-[#FEC501]/10 flex items-center justify-center">
-          <Layers className="h-5 w-5 text-[#FEC501]" />
+        <div className="w-10 h-10 rounded-lg bg-[var(--admin-accent)]/10 flex items-center justify-center">
+          <Layers className="h-5 w-5 text-[var(--admin-accent-text)]" />
         </div>
         <div>
-          <p className="text-2xl font-bold text-[#f0f2f5]">{categories.length}</p>
-          <p className="text-xs text-[#a8b5c9]">{categories.length === 1 ? 'Categoría' : 'Categorías'}</p>
+          <p className="text-2xl font-bold text-[var(--admin-text)]">{categories.length}</p>
+          <p className="text-xs text-[var(--admin-text-muted)]">{categories.length === 1 ? 'Categoría' : 'Categorías'}</p>
         </div>
-      </motion.div>
+      </div>
 
       {/* Search + Actions Bar */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25 }}
+      <div
         className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6"
       >
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#a8b5c9]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar categoría..."
-            className="pl-10 bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50 focus:ring-2 focus:ring-[#FEC501]/20"
+            className="pl-10 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-10 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
           />
         </div>
         <Button
           onClick={() => setIsFormOpen(true)}
-          className="bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold h-10 shrink-0"
+          className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold h-10 shrink-0"
         >
           <Plus className="h-4 w-4 mr-2" />
           Nueva Categoría
         </Button>
-      </motion.div>
+      </div>
 
       {/* Categories List */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+      <div
       >
         <CategoryList
           categories={filteredCategories}
@@ -115,7 +105,7 @@ export function CategoriesDashboard({ initialCategories }: CategoriesDashboardPr
         {searchQuery && filteredCategories.length === 0 && categories.length > 0 && (
           <div className="text-center py-12">
             <Search className="h-10 w-10 mx-auto text-[#3a4150] mb-3" />
-            <p className="text-[#a8b5c9] text-sm">
+            <p className="text-[var(--admin-text-muted)] text-sm">
               No se encontraron categorías para &ldquo;{searchQuery}&rdquo;
             </p>
           </div>
@@ -124,25 +114,25 @@ export function CategoriesDashboard({ initialCategories }: CategoriesDashboardPr
         {/* Empty State */}
         {categories.length === 0 && (
           <div className="text-center py-16">
-            <div className="w-20 h-20 mx-auto rounded-full bg-[#2a2f3a] flex items-center justify-center mb-4">
+            <div className="w-20 h-20 mx-auto rounded-full bg-[var(--admin-border)] flex items-center justify-center mb-4">
               <Tag className="h-10 w-10 text-[#3a4150]" />
             </div>
-            <h3 className="text-lg font-semibold text-[#f0f2f5] mb-2">
+            <h3 className="text-lg font-semibold text-[var(--admin-text)] mb-2">
               No hay categorías
             </h3>
-            <p className="text-[#a8b5c9] mb-6">
+            <p className="text-[var(--admin-text-muted)] mb-6">
               Creá tu primera categoría para organizar el menú
             </p>
             <Button
               onClick={() => setIsFormOpen(true)}
-              className="bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold"
+              className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold"
             >
               <Plus className="h-4 w-4 mr-2" />
               Crear Categoría
             </Button>
           </div>
         )}
-      </motion.div>
+      </div>
 
       {/* Form Dialog */}
       <CategoryFormDialog

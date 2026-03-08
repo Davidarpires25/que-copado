@@ -26,6 +26,7 @@ export interface OrderItemRow {
   quantity: number
   notes: string | null
   status: 'pendiente' | 'cancelado'
+  sale_tag: string | null
   added_at: string
   added_by: string | null
 }

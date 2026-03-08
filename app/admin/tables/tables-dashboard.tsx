@@ -123,28 +123,28 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
       <div className="max-w-3xl mx-auto">
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="bg-[#12151a] border border-[#2a2f3a] rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-[#f0f2f5]">{tables.length}</p>
-            <p className="text-xs text-[#a8b5c9] mt-1">Total</p>
+          <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 text-center">
+            <p className="text-2xl font-bold text-[var(--admin-text)]">{tables.length}</p>
+            <p className="text-xs text-[var(--admin-text-muted)] mt-1">Total</p>
           </div>
-          <div className="bg-[#12151a] border border-[#2a2f3a] rounded-xl p-4 text-center">
+          <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 text-center">
             <p className="text-2xl font-bold text-green-400">{activeCount}</p>
-            <p className="text-xs text-[#a8b5c9] mt-1">Activas</p>
+            <p className="text-xs text-[var(--admin-text-muted)] mt-1">Activas</p>
           </div>
-          <div className="bg-[#12151a] border border-[#2a2f3a] rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-[#a8b5c9]">{inactiveCount}</p>
-            <p className="text-xs text-[#a8b5c9] mt-1">Inactivas</p>
+          <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 text-center">
+            <p className="text-2xl font-bold text-[var(--admin-text-muted)]">{inactiveCount}</p>
+            <p className="text-xs text-[var(--admin-text-muted)] mt-1">Inactivas</p>
           </div>
         </div>
 
         {/* Actions Bar */}
         <div className="flex items-center justify-between mb-6">
-          <p className="text-[#a8b5c9]">
+          <p className="text-[var(--admin-text-muted)]">
             {tables.length} {tables.length === 1 ? 'mesa' : 'mesas'}
           </p>
           <Button
             onClick={() => setIsFormOpen(true)}
-            className="bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold"
+            className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold"
           >
             <Plus className="h-4 w-4 mr-2" />
             Agregar Mesa
@@ -154,7 +154,7 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
         {/* Tables grouped by section */}
         {Object.entries(groupedTables).map(([section, sectionTables]) => (
           <div key={section} className="mb-6">
-            <h3 className="text-sm font-semibold text-[#a8b5c9] uppercase tracking-wider mb-3">
+            <h3 className="text-sm font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider mb-3">
               {TABLE_SECTION_LABELS[section] || section}
             </h3>
             <div className="space-y-2">
@@ -165,8 +165,8 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
                     key={table.id}
                     className={`flex items-center gap-3 p-4 rounded-xl border transition-colors ${
                       table.is_active
-                        ? 'bg-[#12151a] border-[#2a2f3a] hover:border-[#3a4150]'
-                        : 'bg-[#12151a]/50 border-[#2a2f3a]/50 opacity-60'
+                        ? 'bg-[var(--admin-surface)] border-[var(--admin-border)] hover:border-[var(--admin-accent)]/40'
+                        : 'bg-[var(--admin-surface)]/50 border-[var(--admin-border)]/50 opacity-60'
                     }`}
                   >
                     {/* Reorder */}
@@ -174,7 +174,7 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
                       <button
                         onClick={() => handleReorder(table.id, 'up')}
                         disabled={globalIndex === 0 || movingId === table.id}
-                        className="p-1 text-[#a8b5c9] hover:text-[#f0f2f5] disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="p-1 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
                         title="Mover arriba"
                       >
                         <ChevronUp className="w-4 h-4" />
@@ -182,7 +182,7 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
                       <button
                         onClick={() => handleReorder(table.id, 'down')}
                         disabled={globalIndex === tables.length - 1 || movingId === table.id}
-                        className="p-1 text-[#a8b5c9] hover:text-[#f0f2f5] disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="p-1 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
                         title="Mover abajo"
                       >
                         <ChevronDown className="w-4 h-4" />
@@ -190,21 +190,21 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
                     </div>
 
                     {/* Table Number */}
-                    <div className="w-10 h-10 rounded-lg bg-[#2a2f3a] flex items-center justify-center text-sm font-bold text-[#f0f2f5]">
+                    <div className="w-10 h-10 rounded-lg bg-[var(--admin-border)] flex items-center justify-center text-sm font-bold text-[var(--admin-text)]">
                       {table.number}
                     </div>
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-[#f0f2f5] truncate">
+                      <h4 className="font-semibold text-[var(--admin-text)] truncate">
                         Mesa {table.number}
                         {table.label && (
-                          <span className="text-[#a8b5c9] font-normal ml-2">
+                          <span className="text-[var(--admin-text-muted)] font-normal ml-2">
                             ({table.label})
                           </span>
                         )}
                       </h4>
-                      <div className="flex items-center gap-3 text-sm text-[#a8b5c9]">
+                      <div className="flex items-center gap-3 text-sm text-[var(--admin-text-muted)]">
                         <span className="flex items-center gap-1">
                           <Users className="w-3 h-3" />
                           {table.capacity}
@@ -215,7 +215,7 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
 
                     {/* Loading */}
                     {movingId === table.id && (
-                      <Loader2 className="h-4 w-4 text-[#a8b5c9] animate-spin" />
+                      <Loader2 className="h-4 w-4 text-[var(--admin-text-muted)] animate-spin" />
                     )}
 
                     {/* Active toggle */}
@@ -247,7 +247,7 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleEdit(table)}
-                              className="h-9 w-9 text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#2a2f3a]"
+                              className="h-9 w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)]"
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
@@ -263,7 +263,7 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
                               size="icon"
                               onClick={() => setDeleteTarget(table)}
                               disabled={deletingId === table.id}
-                              className="h-9 w-9 text-[#a8b5c9] hover:text-red-400 hover:bg-red-500/10"
+                              className="h-9 w-9 text-[var(--admin-text-muted)] hover:text-red-400 hover:bg-red-500/10"
                             >
                               {deletingId === table.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -286,18 +286,18 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
         {/* Empty State */}
         {tables.length === 0 && (
           <div className="text-center py-16">
-            <div className="w-20 h-20 mx-auto rounded-full bg-[#2a2f3a] flex items-center justify-center mb-4">
+            <div className="w-20 h-20 mx-auto rounded-full bg-[var(--admin-border)] flex items-center justify-center mb-4">
               <UtensilsCrossed className="h-10 w-10 text-[#3a4150]" />
             </div>
-            <h3 className="text-lg font-semibold text-[#f0f2f5] mb-2">
+            <h3 className="text-lg font-semibold text-[var(--admin-text)] mb-2">
               No hay mesas
             </h3>
-            <p className="text-[#a8b5c9] mb-6">
+            <p className="text-[var(--admin-text-muted)] mb-6">
               Agrega tu primera mesa para empezar
             </p>
             <Button
               onClick={() => setIsFormOpen(true)}
-              className="bg-[#FEC501] hover:bg-[#E5B001] text-black font-semibold"
+              className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold"
             >
               <Plus className="h-4 w-4 mr-2" />
               Agregar Mesa

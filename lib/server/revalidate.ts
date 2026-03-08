@@ -46,10 +46,25 @@ export function revalidateIngredients() {
   revalidatePath('/admin/dashboard')
 }
 
+/** Revalida stock + ingredientes + productos + dashboard */
+export function revalidateStock() {
+  revalidatePath('/admin/stock')
+  revalidatePath('/admin/ingredients')
+  revalidatePath('/admin/products')
+  revalidatePath('/admin/dashboard')
+}
+
 /** Revalida recetas + productos (cost recalc) + analytics */
 export function revalidateRecipes() {
   revalidatePath('/admin/recipes')
   revalidatePath('/admin/products')
   revalidatePath('/admin/analytics')
   revalidatePath('/admin/dashboard')
+}
+
+/** Revalida productos + catálogo público + dashboard */
+export function revalidateProducts() {
+  revalidatePath('/admin/products')
+  revalidatePath('/admin/dashboard')
+  revalidatePath('/')
 }

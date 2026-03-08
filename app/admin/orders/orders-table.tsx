@@ -2,8 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Search, Filter, Eye, RefreshCw } from 'lucide-react'
+import { Search, Filter, Eye, RefreshCw, ClipboardList, SearchX } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -109,12 +108,12 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#a8b5c9]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
           <Input
             placeholder="Buscar por nombre, teléfono, dirección..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10 placeholder:text-[#a8b5c9] placeholder:italic"
+            className="pl-10 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-10 placeholder:text-[var(--admin-text-muted)]"
           />
         </div>
 
@@ -123,19 +122,19 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
             value={statusFilter}
             onValueChange={(value) => setStatusFilter(value as OrderStatus | 'all')}
           >
-            <SelectTrigger className="w-[180px] bg-[#1a1d24] border-[#2a2f3a] text-[#f0f2f5] h-10">
-              <Filter className="h-4 w-4 mr-2 text-[#a8b5c9]" />
+            <SelectTrigger className="w-[180px] bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-10">
+              <Filter className="h-4 w-4 mr-2 text-[var(--admin-text-muted)]" />
               <SelectValue placeholder="Filtrar por estado" />
             </SelectTrigger>
-            <SelectContent className="bg-[#1a1d24] border-[#2a2f3a]">
-              <SelectItem value="all" className="text-[#f0f2f5] focus:bg-[#252a35]">
+            <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)]">
+              <SelectItem value="all" className="text-[var(--admin-text)] focus:bg-[var(--admin-surface-2)]">
                 Todos ({statusCounts.all})
               </SelectItem>
               {(Object.keys(ORDER_STATUS_CONFIG) as OrderStatus[]).map((status) => (
                 <SelectItem
                   key={status}
                   value={status}
-                  className="text-[#f0f2f5] focus:bg-[#252a35]"
+                  className="text-[var(--admin-text)] focus:bg-[var(--admin-surface-2)]"
                 >
                   {ORDER_STATUS_CONFIG[status].label} ({statusCounts[status]})
                 </SelectItem>
@@ -149,7 +148,7 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
                 <Button
                   variant="outline"
                   onClick={handleRefresh}
-                  className="border-[#2a2f3a] text-[#c4cdd9] hover:bg-[#252a35] h-10"
+                  className="border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-surface-2)] h-10"
                 >
                   <RefreshCw className="h-4 w-4" />
                 </Button>
@@ -162,32 +161,46 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
 
       {/* Orders Table */}
       {filteredOrders.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-[#2a2f3a] bg-[#1a1d24] p-16 text-center"
-        >
-          <p className="text-[#a8b5c9]">
-            {orders.length === 0
-              ? 'No hay pedidos todavía'
-              : 'No se encontraron pedidos con los filtros aplicados'}
-          </p>
-        </motion.div>
+        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] p-16 flex flex-col items-center justify-center text-center gap-3">
+          {orders.length === 0 ? (
+            <>
+              <ClipboardList className="h-10 w-10 text-[var(--admin-text-placeholder)]" />
+              <div>
+                <p className="text-sm font-medium text-[var(--admin-text-muted)]">No hay pedidos todavía</p>
+                <p className="text-xs text-[var(--admin-text-faint)] mt-1">Los pedidos nuevos aparecerán aquí</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <SearchX className="h-10 w-10 text-[var(--admin-text-placeholder)]" />
+              <div>
+                <p className="text-sm font-medium text-[var(--admin-text-muted)]">Sin resultados</p>
+                <p className="text-xs text-[var(--admin-text-faint)] mt-1">No se encontraron pedidos con los filtros aplicados</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setSearchQuery(''); setStatusFilter('all') }}
+                className="text-[var(--admin-accent-text)] hover:text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 text-xs h-8"
+              >
+                Limpiar filtros
+              </Button>
+            </>
+          )}
+        </div>
       ) : (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-[#2a2f3a] bg-[#1a1d24] overflow-hidden"
+        <div
+          className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden"
         >
           <Table>
-            <TableHeader className="sticky top-0 z-10 bg-[#1a1d24]">
-              <TableRow className="border-[#2a2f3a] hover:bg-[#1a1d24]">
-                <TableHead className="text-[#a8b5c9] font-semibold">Pedido</TableHead>
-                <TableHead className="text-[#a8b5c9] font-semibold">Cliente</TableHead>
-                <TableHead className="text-[#a8b5c9] font-semibold">Productos</TableHead>
-                <TableHead className="text-[#a8b5c9] font-semibold">Total</TableHead>
-                <TableHead className="text-[#a8b5c9] font-semibold">Estado</TableHead>
-                <TableHead className="text-[#a8b5c9] font-semibold text-right">Acciones</TableHead>
+            <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
+              <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
+                <TableHead className="text-[var(--admin-text-muted)] font-semibold">Pedido</TableHead>
+                <TableHead className="text-[var(--admin-text-muted)] font-semibold">Cliente</TableHead>
+                <TableHead className="text-[var(--admin-text-muted)] font-semibold">Productos</TableHead>
+                <TableHead className="text-[var(--admin-text-muted)] font-semibold">Total</TableHead>
+                <TableHead className="text-[var(--admin-text-muted)] font-semibold">Estado</TableHead>
+                <TableHead className="text-[var(--admin-text-muted)] font-semibold text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -198,37 +211,34 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
                   : items.map(i => `${i.quantity}x ${i.name}`).join(', ')
 
                 return (
-                  <motion.tr
+                  <tr
                     key={order.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    className="border-[#2a2f3a] hover:bg-[#252a35] transition-colors group cursor-pointer"
+                    className="border-[var(--admin-border)] hover:bg-[var(--admin-surface-2)] transition-colors group cursor-pointer"
                     onClick={() => handleViewOrder(order)}
                   >
                     <TableCell>
                       <div>
-                        <p className="font-mono text-[#f0f2f5] font-semibold">
+                        <p className="font-mono text-[var(--admin-text)] font-semibold">
                           #{getShortOrderId(order.id)}
                         </p>
-                        <p className="text-xs text-[#a8b5c9]">
+                        <p className="text-xs text-[var(--admin-text-muted)]">
                           {formatRelativeDate(order.created_at)}
                         </p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="text-[#f0f2f5]">{order.customer_name}</p>
-                        <p className="text-xs text-[#a8b5c9]">{order.customer_phone}</p>
+                        <p className="text-[var(--admin-text)]">{order.customer_name}</p>
+                        <p className="text-xs text-[var(--admin-text-muted)]">{order.customer_phone}</p>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <p className="text-[#c4cdd9] text-sm max-w-[200px] truncate">
+                      <p className="text-[var(--admin-text-muted)] text-sm max-w-[200px] truncate">
                         {itemsSummary}
                       </p>
                     </TableCell>
                     <TableCell>
-                      <span className="font-semibold text-[#FEC501]">
+                      <span className="font-semibold text-[var(--admin-accent-text)]">
                         {formatPrice(order.total)}
                       </span>
                     </TableCell>
@@ -246,7 +256,7 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
                                 e.stopPropagation()
                                 handleViewOrder(order)
                               }}
-                              className="h-8 w-8 text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#2a2f3a]"
+                              className="h-8 w-8 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)]"
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -255,12 +265,12 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
                         </Tooltip>
                       </TooltipProvider>
                     </TableCell>
-                  </motion.tr>
+                  </tr>
                 )
               })}
             </TableBody>
           </Table>
-        </motion.div>
+        </div>
       )}
 
       {/* Order Details Drawer */}

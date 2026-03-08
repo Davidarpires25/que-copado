@@ -30,7 +30,9 @@ export function CheckoutSummary({
   isCalculatingShipping = false,
   isPickup = false,
 }: CheckoutSummaryProps) {
-  const { items, getTotal, updateQuantity } = useCartStore()
+  const items = useCartStore((s) => s.items)
+  const getTotal = useCartStore((s) => s.getTotal)
+  const updateQuantity = useCartStore((s) => s.updateQuantity)
   const [showDetails, setShowDetails] = useState(false)
 
   const subtotal = getTotal()

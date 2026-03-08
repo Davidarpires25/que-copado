@@ -1,10 +1,22 @@
 'use client'
 
-import { useState } from 'react'
-import { Package, Search, X } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { Search, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { cn, formatPrice } from '@/lib/utils'
 import type { Category, Product } from '@/lib/types/database'
+
+// Colores por índice de categoría para identificación visual rápida
+const CATEGORY_COLORS = [
+  'border-l-[var(--admin-accent)]',
+  'border-l-blue-400',
+  'border-l-green-400',
+  'border-l-purple-400',
+  'border-l-rose-400',
+  'border-l-cyan-400',
+  'border-l-orange-400',
+  'border-l-teal-400',
+]
 
 interface PosProductGridProps {
   products: Product[]
@@ -34,25 +46,34 @@ export function PosProductGrid({
     ? categories.find((c) => c.id === selectedCategory)?.name
     : null
 
+  // Mapa de categoría → color
+  const categoryColorMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    categories.forEach((cat, i) => {
+      map[cat.id] = CATEGORY_COLORS[i % CATEGORY_COLORS.length]
+    })
+    return map
+  }, [categories])
+
   return (
-    <div className="flex flex-col h-full bg-[#1a1d24]">
+    <div className="flex flex-col h-full bg-[var(--admin-bg)]">
       {/* Search */}
       <div className="px-3 pt-3 pb-2">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#a8b5c9]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar producto..."
-            className="bg-[#12151a] border-[#2a2f3a] text-[#f0f2f5] text-sm h-10 pl-9 pr-9 placeholder:text-[#a8b5c9] focus:border-[#FEC501]/50 focus:ring-1 focus:ring-[#FEC501]/20"
+            className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 pl-9 pr-9 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-1 focus:ring-[var(--admin-accent)]/20"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-[#2a2f3a] transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-[var(--admin-border)] transition-colors"
               aria-label="Limpiar busqueda"
             >
-              <X className="h-3.5 w-3.5 text-[#a8b5c9]" />
+              <X className="h-3.5 w-3.5 text-[var(--admin-text-muted)]" />
             </button>
           )}
         </div>
@@ -65,8 +86,8 @@ export function PosProductGrid({
           className={cn(
             'px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors',
             !selectedCategory
-              ? 'bg-[#FEC501] text-black'
-              : 'bg-[#252a35] text-[#a8b5c9] hover:text-[#f0f2f5]'
+              ? 'bg-[var(--admin-accent)] text-black'
+              : 'bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
           )}
         >
           Todos
@@ -78,8 +99,8 @@ export function PosProductGrid({
             className={cn(
               'px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors',
               selectedCategory === cat.id
-                ? 'bg-[#FEC501] text-black'
-                : 'bg-[#252a35] text-[#a8b5c9] hover:text-[#f0f2f5]'
+                ? 'bg-[var(--admin-accent)] text-black'
+                : 'bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
             )}
           >
             {cat.name}
@@ -92,11 +113,11 @@ export function PosProductGrid({
         <div className="px-3 pb-2 flex items-center justify-between">
           <div className="flex items-center gap-1.5 flex-wrap">
             {selectedCategoryName && (
-              <span className="inline-flex items-center gap-1 bg-[#FEC501]/10 text-[#FEC501] text-xs font-medium px-2 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1 bg-[var(--admin-accent)]/10 text-[var(--admin-accent-text)] text-xs font-medium px-2 py-1 rounded-full">
                 {selectedCategoryName}
                 <button
                   onClick={() => setSelectedCategory(null)}
-                  className="hover:bg-[#FEC501]/20 rounded-full p-0.5 transition-colors"
+                  className="hover:bg-[var(--admin-accent)]/20 rounded-full p-0.5 transition-colors"
                   aria-label="Quitar filtro de categoria"
                 >
                   <X className="h-3 w-3" />
@@ -104,11 +125,11 @@ export function PosProductGrid({
               </span>
             )}
             {search && (
-              <span className="inline-flex items-center gap-1 bg-[#FEC501]/10 text-[#FEC501] text-xs font-medium px-2 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1 bg-[var(--admin-accent)]/10 text-[var(--admin-accent-text)] text-xs font-medium px-2 py-1 rounded-full">
                 &quot;{search}&quot;
                 <button
                   onClick={() => setSearch('')}
-                  className="hover:bg-[#FEC501]/20 rounded-full p-0.5 transition-colors"
+                  className="hover:bg-[var(--admin-accent)]/20 rounded-full p-0.5 transition-colors"
                   aria-label="Quitar filtro de busqueda"
                 >
                   <X className="h-3 w-3" />
@@ -116,7 +137,7 @@ export function PosProductGrid({
               </span>
             )}
           </div>
-          <span className="text-[11px] text-[#a8b5c9] tabular-nums">
+          <span className="text-xs text-[var(--admin-text-muted)] tabular-nums">
             {filtered.length} de {availableProducts.length}
           </span>
         </div>
@@ -124,37 +145,37 @@ export function PosProductGrid({
 
       {/* Products grid */}
       <div className="flex-1 overflow-y-auto px-3 pb-3">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
-          {filtered.map((product) => (
-            <button
-              key={product.id}
-              onClick={() => onAddItem(product)}
-              className="bg-[#12151a] border border-[#2a2f3a] rounded-xl p-4 text-left hover:border-[#FEC501]/50 hover:bg-[#252a35] transition-all active:scale-95 group min-h-[140px] flex flex-col"
-            >
-              <div className="w-full aspect-square rounded-lg bg-[#252a35] mb-3 overflow-hidden flex items-center justify-center">
-                {product.image_url ? (
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
-                  />
-                ) : (
-                  <Package className="h-10 w-10 text-[#3a3f4a]" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5">
+          {filtered.map((product) => {
+            const colorClass = product.category_id
+              ? (categoryColorMap[product.category_id] ?? 'border-l-[var(--admin-border)]')
+              : 'border-l-[var(--admin-border)]'
+
+            return (
+              <button
+                key={product.id}
+                onClick={() => onAddItem(product)}
+                className={cn(
+                  'bg-[var(--admin-surface)] border border-[var(--admin-border)] border-l-4 rounded-lg p-3 text-left',
+                  'hover:bg-[var(--admin-surface-2)] hover:border-[var(--admin-text-placeholder)] active:scale-95',
+                  'transition-all min-h-[72px] flex flex-col justify-between',
+                  colorClass
                 )}
-              </div>
-              <p className="text-sm font-semibold text-[#f0f2f5] truncate mb-1">
-                {product.name}
-              </p>
-              <p className="text-base font-bold text-[#FEC501] mt-auto">
-                {formatPrice(product.price)}
-              </p>
-            </button>
-          ))}
+              >
+                <p className="text-sm font-semibold text-[var(--admin-text)] line-clamp-2 leading-snug">
+                  {product.name}
+                </p>
+                <p className="text-lg font-bold text-[var(--admin-accent-text)] tabular-nums mt-1.5">
+                  {formatPrice(product.price)}
+                </p>
+              </button>
+            )
+          })}
         </div>
 
         {filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 text-[#a8b5c9]">
-            <Package className="h-10 w-10 mb-2 text-[#3a3f4a]" />
+          <div className="flex flex-col items-center justify-center py-12 text-[var(--admin-text-muted)]">
+            <Search className="h-10 w-10 mb-2 text-[var(--admin-text-placeholder)]" />
             <p className="text-sm">No se encontraron productos</p>
           </div>
         )}

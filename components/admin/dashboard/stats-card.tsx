@@ -1,7 +1,5 @@
-'use client'
-
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { TrendingUp, TrendingDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { LucideIcon } from 'lucide-react'
 
@@ -26,38 +24,39 @@ export function StatsCard({
   value,
   subtitle,
   icon: Icon,
-  iconColor = 'text-[#FEC501]',
-  iconBgColor = 'bg-[#FEC501]/10',
+  iconColor = 'text-[var(--admin-accent-text)]',
+  iconBgColor = 'bg-[var(--admin-accent)]/10',
   trend,
   trendLabel = 'vs. periodo anterior',
   delay = 0,
   href,
 }: StatsCardProps) {
   const content = (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay }}
+    <div
       className={cn(
-        "bg-[#1a1d24] backdrop-blur border border-[#2a2f3a] rounded-xl p-6 hover:border-[#3a4150] transition-colors duration-200 h-full",
-        href && "cursor-pointer hover:border-[#FEC501]/30"
+        "bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-[var(--admin-accent)]/40 transition-all duration-200 h-full animate-fade-in-up",
+        href && "cursor-pointer"
       )}
+      style={{ animationDelay: `${delay * 1000}ms` }}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-[#a8b5c9] text-sm font-medium">{title}</p>
-          <p className="text-3xl font-bold text-[#f0f2f5] mt-1">{value}</p>
+          <p className="text-[var(--admin-text-muted)] text-sm font-medium">{title}</p>
+          <p className="text-3xl font-bold text-[var(--admin-text)] mt-1 num-tabular">{value}</p>
           {subtitle && (
-            <p className="text-sm text-[#a8b5c9] mt-1">{subtitle}</p>
+            <p className="text-sm text-[var(--admin-text-muted)] mt-1">{subtitle}</p>
           )}
           {trend && (
             <div className={cn(
               'flex items-center gap-1 mt-2 text-sm font-medium',
               trend.isPositive ? 'text-green-500' : 'text-red-500'
             )}>
-              <span>{trend.isPositive ? '↑' : '↓'}</span>
-              <span>{Math.abs(trend.value)}%</span>
-              <span className="text-[#a8b5c9] font-normal">{trendLabel}</span>
+              {trend.isPositive
+                ? <TrendingUp className="h-3.5 w-3.5 shrink-0" />
+                : <TrendingDown className="h-3.5 w-3.5 shrink-0" />
+              }
+              <span className="num-tabular">{Math.abs(trend.value)}%</span>
+              <span className="text-[var(--admin-text-muted)] font-normal">{trendLabel}</span>
             </div>
           )}
         </div>
@@ -65,7 +64,7 @@ export function StatsCard({
           <Icon className={cn('h-6 w-6', iconColor)} />
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 
   if (href) {

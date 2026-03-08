@@ -20,11 +20,11 @@ export function CancellationCard({ data, loading, period, onPeriodChange }: Canc
     return { bg: 'bg-red-500/10', text: 'text-red-500', border: 'border-red-500/30' }
   }
 
-  const status = data ? getStatusColor(data.rate) : { bg: '', text: '', border: 'border-[#2a2f3a]' }
+  const status = data ? getStatusColor(data.rate) : { bg: '', text: '', border: 'border-[var(--admin-border)]' }
   const isHealthy = data ? data.rate < 3 : true
 
   return (
-    <div className={cn('bg-[#1a1d24] border rounded-xl p-4 hover:border-opacity-50 transition-all duration-200 flex-1', status.border)}>
+    <div className={cn('bg-[var(--admin-surface)] border rounded-xl p-4 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] transition-all duration-200 flex-1', status.border)}>
       {period && onPeriodChange && (
         <div className="flex justify-end mb-2">
           <PeriodSelector value={period} onChange={onPeriodChange} />
@@ -32,11 +32,11 @@ export function CancellationCard({ data, loading, period, onPeriodChange }: Canc
       )}
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 className="text-base font-semibold text-[#f0f2f5]">
+          <h3 className="text-base font-semibold text-[var(--admin-text)]">
             Tasa de Cancelación
           </h3>
           {data && (
-            <p className="text-xs text-[#a8b5c9] mt-0.5">
+            <p className="text-xs text-[var(--admin-text-muted)] mt-0.5">
               {data.totalOrders} pedidos totales
             </p>
           )}
@@ -54,11 +54,11 @@ export function CancellationCard({ data, loading, period, onPeriodChange }: Canc
 
       {loading ? (
         <div className="flex items-center justify-center py-4">
-          <div className="h-10 w-20 bg-[#252a35] rounded animate-pulse" />
+          <div className="h-10 w-20 bg-[var(--admin-surface-2)] rounded animate-pulse" />
         </div>
       ) : !data ? (
         <div className="flex items-center justify-center py-4">
-          <p className="text-[#a8b5c9] text-sm">No hay datos de cancelación</p>
+          <p className="text-[var(--admin-text-muted)] text-sm">No hay datos de cancelación</p>
         </div>
       ) : (
         <div>
@@ -67,18 +67,18 @@ export function CancellationCard({ data, loading, period, onPeriodChange }: Canc
               {data.rate}%
             </span>
             {data.cancelledOrders > 0 && (
-              <span className="text-sm text-[#a8b5c9]">
+              <span className="text-sm text-[var(--admin-text-muted)]">
                 ({data.cancelledOrders} cancelados)
               </span>
             )}
           </div>
 
           {data.trend && (
-            <div className="mt-2 flex items-center gap-1 text-xs bg-[#252a35] rounded-lg px-2.5 py-1 w-fit">
+            <div className="mt-2 flex items-center gap-1 text-xs bg-[var(--admin-surface-2)] rounded-lg px-2.5 py-1 w-fit">
               <span className={data.trend.isPositive ? 'text-red-500' : 'text-green-500'}>
                 {data.trend.isPositive ? '↑' : '↓'} {data.trend.value}%
               </span>
-              <span className="text-[#a8b5c9]">vs. período anterior</span>
+              <span className="text-[var(--admin-text-muted)]">vs. período anterior</span>
             </div>
           )}
 

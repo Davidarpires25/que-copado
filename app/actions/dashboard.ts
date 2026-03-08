@@ -7,13 +7,6 @@ import { parseOrderItems } from '@/lib/services/order-formatter'
 import type { Json } from '@/lib/types/database'
 import type { DashboardStats, TopProduct, SalesChartData } from '@/lib/types/orders'
 
-interface OrderStatsRow {
-  total: number
-  shipping_cost: number
-  created_at: string
-  status: string
-}
-
 interface OrderItemsRow {
   items: unknown
 }
@@ -25,6 +18,7 @@ interface OrderChartRow {
 
 /**
  * Obtener estadísticas del dashboard
+ * Runs 3 parallel queries with SQL date filters instead of fetching all month data
  */
 export async function getDashboardStats(): Promise<{
   data: DashboardStats | null
@@ -51,42 +45,38 @@ export async function getDashboardStats(): Promise<{
 
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
-    const { data: orders, error } = await supabase
-      .from('orders')
-      .select('total, shipping_cost, created_at, status')
-      .gte('created_at', monthStart.toISOString())
-      .neq('status', 'cancelado') as { data: OrderStatsRow[] | null; error: unknown }
+    const [todayResult, weekResult, monthResult] = await Promise.all([
+      supabase
+        .from('orders')
+        .select('total')
+        .gte('created_at', todayStart.toISOString())
+        .neq('status', 'cancelado'),
+      supabase
+        .from('orders')
+        .select('total')
+        .gte('created_at', weekStart.toISOString())
+        .neq('status', 'cancelado'),
+      supabase
+        .from('orders')
+        .select('total')
+        .gte('created_at', monthStart.toISOString())
+        .neq('status', 'cancelado'),
+    ])
 
-    if (error || !orders) {
-      devError('Error fetching stats:', error)
+    if (todayResult.error || weekResult.error || monthResult.error) {
+      devError('Error fetching stats:', todayResult.error ?? weekResult.error ?? monthResult.error)
       return { data: null, error: 'Error al cargar estadísticas' }
     }
 
-    let todayRevenue = 0
-    let todayOrders = 0
-    let weekRevenue = 0
-    let weekOrders = 0
-    let monthRevenue = 0
-    let monthOrders = 0
+    const sumTotal = (rows: { total: number }[]) =>
+      rows.reduce((acc, o) => acc + o.total, 0)
 
-    orders.forEach((order) => {
-      const orderDate = new Date(order.created_at)
-      const revenue = order.total
-
-      monthRevenue += revenue
-      monthOrders++
-
-      if (orderDate >= weekStart) {
-        weekRevenue += revenue
-        weekOrders++
-      }
-
-      if (orderDate >= todayStart) {
-        todayRevenue += revenue
-        todayOrders++
-      }
-    })
-
+    const todayOrders = todayResult.data.length
+    const todayRevenue = sumTotal(todayResult.data)
+    const weekOrders = weekResult.data.length
+    const weekRevenue = sumTotal(weekResult.data)
+    const monthOrders = monthResult.data.length
+    const monthRevenue = sumTotal(monthResult.data)
     const averageTicket = monthOrders > 0 ? monthRevenue / monthOrders : 0
 
     return {

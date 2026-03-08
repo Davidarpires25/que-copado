@@ -1,21 +1,60 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { motion } from 'framer-motion'
+import dynamic from 'next/dynamic'
 import { AdminLayout } from '@/components/admin/layout'
 import {
   ChartContainer,
-  HourlySalesChart,
-  WeekdaySalesChart,
-  ConfigurableSalesChart,
-  TopProductsRevenue,
-  ZoneSalesTable,
-  ShippingAnalysis,
   CancellationCard,
-  PaymentMethodChart,
-  ProfitabilityTable,
   PeriodSelector,
 } from '@/components/admin/analytics'
+
+// Heavy recharts components — lazy-loaded to reduce initial bundle
+function ChartSkeleton({ height = 280 }: { height?: number | string }) {
+  return (
+    <div
+      className="w-full animate-pulse rounded-lg bg-[var(--admin-surface-2)]"
+      style={{ height }}
+    />
+  )
+}
+
+function LoadingPlaceholder({ height }: { height: string }) {
+  return <ChartSkeleton height={height} />
+}
+
+const ConfigurableSalesChart = dynamic(
+  () => import('@/components/admin/analytics/configurable-sales-chart').then((m) => ({ default: m.ConfigurableSalesChart })),
+  { ssr: false, loading: () => <ChartSkeleton height={300} /> }
+)
+const ProfitabilityTable = dynamic(
+  () => import('@/components/admin/analytics/profitability-table').then((m) => ({ default: m.ProfitabilityTable })),
+  { ssr: false, loading: () => <ChartSkeleton height={300} /> }
+)
+const HourlySalesChart = dynamic(
+  () => import('@/components/admin/analytics/hourly-sales-chart').then((m) => ({ default: m.HourlySalesChart })),
+  { ssr: false, loading: () => <ChartSkeleton height={280} /> }
+)
+const WeekdaySalesChart = dynamic(
+  () => import('@/components/admin/analytics/weekday-sales-chart').then((m) => ({ default: m.WeekdaySalesChart })),
+  { ssr: false, loading: () => <ChartSkeleton height={280} /> }
+)
+const TopProductsRevenue = dynamic(
+  () => import('@/components/admin/analytics/top-products-revenue').then((m) => ({ default: m.TopProductsRevenue })),
+  { ssr: false, loading: () => <ChartSkeleton height={300} /> }
+)
+const ZoneSalesTable = dynamic(
+  () => import('@/components/admin/analytics/zone-sales-table').then((m) => ({ default: m.ZoneSalesTable })),
+  { ssr: false, loading: () => <ChartSkeleton height={260} /> }
+)
+const ShippingAnalysis = dynamic(
+  () => import('@/components/admin/analytics/shipping-analysis').then((m) => ({ default: m.ShippingAnalysis })),
+  { ssr: false, loading: () => <ChartSkeleton height={260} /> }
+)
+const PaymentMethodChart = dynamic(
+  () => import('@/components/admin/analytics/payment-method-chart').then((m) => ({ default: m.PaymentMethodChart })),
+  { ssr: false, loading: () => <ChartSkeleton height={260} /> }
+)
 import {
   getHourlySales,
   getWeekdaySales,
@@ -172,10 +211,7 @@ export function AnalyticsDashboard({
   return (
     <AdminLayout title="Analytics" description="Reportes y métricas de tu negocio">
       {/* Row 1: Configurable Sales Chart (full width) */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+      <div
         className="mb-6"
       >
         <ChartContainer
@@ -190,13 +226,10 @@ export function AnalyticsDashboard({
             <ConfigurableSalesChart data={salesChart} />
           )}
         </ChartContainer>
-      </motion.div>
+      </div>
 
       {/* Row 2: Profitability (full width) */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.12 }}
+      <div
         className="mb-6"
       >
         <ChartContainer
@@ -210,19 +243,16 @@ export function AnalyticsDashboard({
           ) : profitability ? (
             <ProfitabilityTable data={profitability} />
           ) : (
-            <p className="text-[#a8b5c9] text-center py-8">
+            <p className="text-[var(--admin-text-muted)] text-center py-8">
               No hay datos de rentabilidad
             </p>
           )}
         </ChartContainer>
-      </motion.div>
+      </div>
 
       {/* Row 3: Hourly + Weekday */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+        <div
           className="flex"
         >
           <ChartContainer
@@ -240,12 +270,9 @@ export function AnalyticsDashboard({
               )}
             </div>
           </ChartContainer>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+        <div
           className="flex"
         >
           <ChartContainer
@@ -263,15 +290,12 @@ export function AnalyticsDashboard({
               )}
             </div>
           </ChartContainer>
-        </motion.div>
+        </div>
       </div>
 
       {/* Row 3: Top Products + Cancellation */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+        <div
           className="lg:col-span-2 flex"
         >
           <ChartContainer
@@ -287,12 +311,9 @@ export function AnalyticsDashboard({
               <TopProductsRevenue data={topProducts} />
             )}
           </ChartContainer>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+        <div
           className="flex"
         >
           <CancellationCard
@@ -301,15 +322,12 @@ export function AnalyticsDashboard({
             period={cancellationPeriod}
             onPeriodChange={handleCancellationPeriodChange}
           />
-        </motion.div>
+        </div>
       </div>
 
       {/* Row 4: Payment Methods + Shipping Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
+        <div
           className="flex"
         >
           <ChartContainer
@@ -325,12 +343,9 @@ export function AnalyticsDashboard({
               <PaymentMethodChart data={paymentMethods} />
             )}
           </ChartContainer>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+        <div
           className="flex"
         >
           <ChartContainer
@@ -345,19 +360,16 @@ export function AnalyticsDashboard({
             ) : shipping ? (
               <ShippingAnalysis data={shipping} />
             ) : (
-              <p className="text-[#a8b5c9] text-center py-8">
+              <p className="text-[var(--admin-text-muted)] text-center py-8">
                 No hay datos de envío
               </p>
             )}
           </ChartContainer>
-        </motion.div>
+        </div>
       </div>
 
       {/* Row 5: Zone Sales (full width - table benefits from space) */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.45 }}
+      <div
       >
         <ChartContainer
           title="Ventas por Zona"
@@ -371,36 +383,8 @@ export function AnalyticsDashboard({
             <ZoneSalesTable data={zoneSales} />
           )}
         </ChartContainer>
-      </motion.div>
+      </div>
     </AdminLayout>
   )
 }
 
-// Skeleton loaders for better UX
-function ChartSkeleton({ height }: { height: string }) {
-  return (
-    <div className="space-y-3" style={{ height }}>
-      <div className="flex items-center justify-between">
-        <div className="h-4 w-32 bg-[#252a35] rounded animate-pulse" />
-        <div className="h-4 w-24 bg-[#252a35] rounded animate-pulse" />
-      </div>
-      <div className="flex items-end justify-between gap-2 h-[calc(100%-2rem)]">
-        {[...Array(8)].map((_, i) => (
-          <div
-            key={i}
-            className="bg-[#252a35] rounded-t animate-pulse"
-            style={{
-              height: `${40 + Math.random() * 60}%`,
-              flex: 1,
-              animationDelay: `${i * 0.1}s`,
-            }}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function LoadingPlaceholder({ height }: { height: string }) {
-  return <ChartSkeleton height={height} />
-}

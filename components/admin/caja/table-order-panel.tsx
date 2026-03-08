@@ -8,6 +8,8 @@ import {
   CreditCard,
   Loader2,
   AlertTriangle,
+  UserPlus,
+  Printer,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
@@ -27,7 +29,7 @@ import type { CashRegisterSession } from '@/lib/types/cash-register'
 interface TableOrderPanelProps {
   table: TableWithOrder
   session: CashRegisterSession
-  onAddItems: () => void
+  onAddItems: (saleTag?: string | null) => void
   onRequestBill: () => void
   onPayOrder: () => void
   onCancelOrder: () => void
@@ -63,6 +65,13 @@ export function TableOrderPanel({
   const [loadingAction, setLoadingAction] = useState<string | null>(null)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
+  // Sale tags (comensales)
+  const [saleTags, setSaleTags] = useState<string[]>([])
+  const [activeSaleTag, setActiveSaleTag] = useState<string | null>(null)
+  const [addingTag, setAddingTag] = useState(false)
+  const [newTagName, setNewTagName] = useState('')
+  const tagInputRef = useRef<HTMLInputElement>(null)
+
   const order = table.orders
   const statusConfig = TABLE_STATUS_CONFIG[table.status]
   const orderStatus = order?.status as 'abierto' | 'cuenta_pedida' | undefined
@@ -73,6 +82,21 @@ export function TableOrderPanel({
     if (!order?.order_items) return []
     return order.order_items.filter((item) => item.status !== 'cancelado')
   }, [order?.order_items])
+
+  // Extract unique sale tags from active items
+  const existingTags = useMemo(() => {
+    const tags = new Set<string>()
+    for (const item of activeItems) {
+      if (item.sale_tag) tags.add(item.sale_tag)
+    }
+    return Array.from(tags)
+  }, [activeItems])
+
+  // Merge existing tags with manually added tags
+  const allTags = useMemo(() => {
+    const merged = new Set([...existingTags, ...saleTags])
+    return Array.from(merged)
+  }, [existingTags, saleTags])
 
   const hasItems = activeItems.length > 0
 
@@ -91,6 +115,10 @@ export function TableOrderPanel({
     el.addEventListener('scroll', checkScroll, { passive: true })
     return () => el.removeEventListener('scroll', checkScroll)
   }, [activeItems])
+
+  useEffect(() => {
+    if (addingTag) tagInputRef.current?.focus()
+  }, [addingTag])
 
   const handleUpdateQuantity = useCallback(
     async (itemId: string, quantity: number) => {
@@ -137,25 +165,53 @@ export function TableOrderPanel({
     }
   }
 
+  const handleAddTag = () => {
+    const name = newTagName.trim()
+    if (!name) { setAddingTag(false); return }
+    if (!saleTags.includes(name)) {
+      setSaleTags((prev) => [...prev, name])
+    }
+    setActiveSaleTag(name)
+    setNewTagName('')
+    setAddingTag(false)
+  }
+
+  const handleRemoveTag = (tag: string) => {
+    setSaleTags((prev) => prev.filter((t) => t !== tag))
+    if (activeSaleTag === tag) setActiveSaleTag(null)
+  }
+
+  // Items filtered by active tag (null = todos)
+  const displayedItems = useMemo(() => {
+    if (!activeSaleTag) return activeItems
+    return activeItems.filter((item) => item.sale_tag === activeSaleTag)
+  }, [activeItems, activeSaleTag])
+
   if (!order) {
     return (
-      <div className="w-80 lg:w-96 border-l border-[#2a2f3a] bg-[#1a1d24] flex flex-col items-center justify-center p-6 text-[#a8b5c9]">
+      <div className="w-80 lg:w-96 border-l border-[var(--admin-border)] bg-[var(--admin-bg)] flex flex-col items-center justify-center p-6 text-[var(--admin-text-muted)]">
         <p className="text-sm">Sin orden activa</p>
       </div>
     )
   }
 
+  // Subtotal for currently displayed items (filtered by tag)
+  const displayTotal = displayedItems.reduce(
+    (s, i) => s + i.product_price * i.quantity,
+    0
+  )
+
   return (
-    <div className="w-80 lg:w-96 border-l border-[#2a2f3a] bg-[#1a1d24] flex flex-col h-full">
+    <div className="w-80 lg:w-96 border-l border-[var(--admin-border)] bg-[var(--admin-bg)] flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#2a2f3a]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--admin-border)]">
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-bold text-[#f0f2f5]">
+          <h2 className="text-lg font-bold text-[var(--admin-text)]">
             Mesa {table.number}
           </h2>
           <span
             className={cn(
-              'px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider',
+              'px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider',
               statusConfig.bgColor,
               statusConfig.color
             )}
@@ -166,14 +222,14 @@ export function TableOrderPanel({
 
         <div className="flex items-center gap-2">
           {order.opened_at && (
-            <span className="text-xs text-[#a8b5c9]">
+            <span className="text-xs text-[var(--admin-text-muted)]">
               {formatElapsedTime(order.opened_at)}
             </span>
           )}
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#252a35]"
+            className="h-8 w-8 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)]"
             onClick={onClose}
           >
             <X className="h-4 w-4" />
@@ -181,19 +237,98 @@ export function TableOrderPanel({
         </div>
       </div>
 
+      {/* Sale tag chips (comensales) */}
+      {(allTags.length > 0 || canModify) && (
+        <div className="px-3 py-2 border-b border-[var(--admin-border)] flex flex-wrap gap-1.5 items-center">
+          {/* "Todos" chip */}
+          <button
+            onClick={() => setActiveSaleTag(null)}
+            className={cn(
+              'px-2.5 py-1 rounded-full text-xs font-semibold transition-colors',
+              !activeSaleTag
+                ? 'bg-[var(--admin-accent)] text-black'
+                : 'bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
+            )}
+          >
+            Todos
+          </button>
+
+          {/* Tag chips */}
+          {allTags.map((tag) => (
+            <div key={tag} className="flex items-center gap-0.5">
+              <button
+                onClick={() => setActiveSaleTag(activeSaleTag === tag ? null : tag)}
+                className={cn(
+                  'px-2.5 py-1 rounded-l-full text-xs font-semibold transition-colors',
+                  activeSaleTag === tag
+                    ? 'bg-[var(--admin-accent)]/80 text-black'
+                    : 'bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
+                )}
+              >
+                {tag}
+              </button>
+              {canModify && !existingTags.includes(tag) && (
+                <button
+                  onClick={() => handleRemoveTag(tag)}
+                  className="h-full px-1.5 rounded-r-full bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+
+          {/* Add tag button */}
+          {canModify && !addingTag && (
+            <button
+              onClick={() => setAddingTag(true)}
+              className="flex items-center gap-1 px-2 py-1 rounded-full text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] bg-[var(--admin-surface-2)] hover:bg-[var(--admin-border)] transition-colors"
+            >
+              <UserPlus className="h-3 w-3" />
+              Comensal
+            </button>
+          )}
+
+          {/* Tag name input */}
+          {addingTag && (
+            <div className="flex items-center gap-1">
+              <input
+                ref={tagInputRef}
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddTag()
+                  if (e.key === 'Escape') { setAddingTag(false); setNewTagName('') }
+                }}
+                placeholder="Nombre..."
+                className="w-20 text-xs px-2 py-1 rounded-full bg-[var(--admin-surface-2)] border border-[var(--admin-accent)]/40 text-[var(--admin-text)] outline-none placeholder:text-[var(--admin-text-muted)]"
+                maxLength={20}
+              />
+              <button
+                onClick={handleAddTag}
+                className="text-xs text-[var(--admin-accent-text)] hover:underline"
+              >
+                OK
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Scrollable item list */}
       <div className="relative flex-1 min-h-0">
         <div ref={scrollRef} className="absolute inset-0 overflow-y-auto py-2">
           {hasItems ? (
             <TableOrderItems
               items={order.order_items}
+              filterTag={activeSaleTag}
               canModify={canModify}
               onUpdateQuantity={handleUpdateQuantity}
               onRemoveItem={handleRemoveItem}
             />
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-[#a8b5c9] px-6">
-              <Receipt className="h-8 w-8 mb-2 text-[#3a3f4a]" />
+            <div className="flex flex-col items-center justify-center h-full text-[var(--admin-text-muted)] px-6">
+              <Receipt className="h-8 w-8 mb-2 text-[var(--admin-text-placeholder)]" />
               <p className="text-sm text-center">
                 Sin productos - Agrega productos al pedido
               </p>
@@ -203,29 +338,39 @@ export function TableOrderPanel({
 
         {/* Scroll fade indicator */}
         {canScrollDown && (
-          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#1a1d24] to-transparent pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[var(--admin-bg)] to-transparent pointer-events-none" />
         )}
       </div>
 
       {/* Add products button */}
       <div className="px-4 py-2">
         <Button
-          onClick={onAddItems}
-          className="w-full h-11 bg-[#FEC501] hover:bg-[#e5b301] text-black font-bold text-sm active:scale-95 transition-transform"
+          onClick={() => onAddItems(activeSaleTag)}
+          className="w-full h-11 bg-[var(--admin-accent)] hover:bg-[#e5b301] text-black font-bold text-sm active:scale-95 transition-transform"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Agregar Productos
+          Agregar Productos{activeSaleTag ? ` (${activeSaleTag})` : ''}
         </Button>
       </div>
 
       {/* Total */}
-      <div className="px-4 py-3 border-t border-[#2a2f3a]">
+      <div className="px-4 py-3 border-t border-[var(--admin-border)]">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-[#a8b5c9]">Total</span>
-          <span className="text-2xl font-bold text-[#f0f2f5]">
-            {formatPrice(order.total)}
+          <span className="text-sm font-medium text-[var(--admin-text-muted)]">
+            {activeSaleTag ? `Subtotal ${activeSaleTag}` : 'Total'}
+          </span>
+          <span className="text-2xl font-bold text-[var(--admin-text)]">
+            {formatPrice(activeSaleTag ? displayTotal : order.total)}
           </span>
         </div>
+        {activeSaleTag && (
+          <div className="flex items-center justify-between mt-0.5">
+            <span className="text-xs text-[var(--admin-text-muted)]">Total mesa</span>
+            <span className="text-sm font-semibold text-[var(--admin-text-muted)]">
+              {formatPrice(order.total)}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Action buttons */}
@@ -267,6 +412,17 @@ export function TableOrderPanel({
             <CreditCard className="h-5 w-5 mr-2" />
             Cobrar
           </Button>
+        )}
+
+        {/* Ticket print */}
+        {(orderStatus === 'cuenta_pedida' || order.status === 'pagado') && (
+          <button
+            onClick={() => window.open(`/admin/caja/ticket/${order.id}/print`, '_blank')}
+            className="w-full flex items-center justify-center gap-2 h-9 rounded-lg text-sm text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] bg-[var(--admin-surface-2)] hover:bg-[var(--admin-border)] transition-colors"
+          >
+            <Printer className="h-4 w-4" />
+            Imprimir Ticket
+          </button>
         )}
 
         {/* Cancel order — visually separated */}

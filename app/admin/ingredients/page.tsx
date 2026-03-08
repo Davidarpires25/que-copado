@@ -10,10 +10,21 @@ export default async function IngredientsPage() {
     redirect('/admin/login')
   }
 
-  const { data: ingredients } = await supabase
-    .from('ingredients')
-    .select('*')
-    .order('name', { ascending: true })
+  const [ingredientsResult, categoriesResult] = await Promise.all([
+    supabase
+      .from('ingredients')
+      .select('*, ingredient_categories(id, name)')
+      .order('name', { ascending: true }),
+    supabase
+      .from('ingredient_categories')
+      .select('*')
+      .order('name', { ascending: true }),
+  ])
 
-  return <IngredientsDashboard initialIngredients={ingredients ?? []} />
+  return (
+    <IngredientsDashboard
+      initialIngredients={ingredientsResult.data ?? []}
+      categories={categoriesResult.data ?? []}
+    />
+  )
 }

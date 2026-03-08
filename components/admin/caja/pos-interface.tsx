@@ -1,28 +1,33 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { Store, UtensilsCrossed } from 'lucide-react'
+import { Store, UtensilsCrossed, History, Clock, Printer } from 'lucide-react'
 import { PosProductGrid } from './product-grid'
 import { OrderBuilder, type PosCartItem } from './order-builder'
 import { PaymentPanel } from './payment-panel'
 import { SessionStatusBar } from './session-status-bar'
 import { CashMovementDialog } from './cash-movement-dialog'
-import { PosOrderHistory } from './pos-order-history'
+import { PosHistorialTab } from './pos-historial-tab'
 import { TableGrid } from './table-grid'
 import { TableOrderPanel } from './table-order-panel'
 import { AddItemsDialog } from './add-items-dialog'
 import { TablePaymentDialog } from './table-payment-dialog'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { createPosOrder, cancelPosOrder } from '@/app/actions/pos-orders'
+import {
+  createMostadorOrder,
+  completeMostadorPayment,
+  cancelPosOrder,
+  getPendingMostadorOrders,
+} from '@/app/actions/pos-orders'
 import { getSessionOrders, getSessionSummary } from '@/app/actions/cash-register'
 import { openTable, getTables } from '@/app/actions/tables'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn, formatPrice } from '@/lib/utils'
 import type { Category, Product, PaymentMethod, Order } from '@/lib/types/database'
-import type { CashRegisterSession, SessionSummary } from '@/lib/types/cash-register'
+import type { CashRegisterSession, SessionSummary, PaymentSplit } from '@/lib/types/cash-register'
 import type { TableWithOrder } from '@/lib/types/tables'
 
-type PosMode = 'mostrador' | 'mesas'
+type PosMode = 'mostrador' | 'mesas' | 'historial'
 
 interface PosInterfaceProps {
   products: Product[]
@@ -51,9 +56,15 @@ export function PosInterface({
   // Mostrador UI state
   const [showPayment, setShowPayment] = useState(false)
   const [showMovement, setShowMovement] = useState(false)
-  const [showHistory, setShowHistory] = useState(false)
-  const [paymentLoading, setPaymentLoading] = useState(false)
+  const [historialLoading, setHistorialLoading] = useState(false)
+  const [confirmLoading, setConfirmLoading] = useState(false)
   const [sessionOrders, setSessionOrders] = useState<Order[]>([])
+
+  // Pending mostrador orders (abierto)
+  const [pendingOrders, setPendingOrders] = useState<Order[]>([])
+  const [pendingLoading, setPendingLoading] = useState(false)
+  const [payingOrder, setPayingOrder] = useState<Order | null>(null)
+  const [payingOrderLoading, setPayingOrderLoading] = useState(false)
 
   // Cancel order confirm
   const [cancelOrderId, setCancelOrderId] = useState<string | null>(null)
@@ -63,6 +74,7 @@ export function PosInterface({
   const [selectedTable, setSelectedTable] = useState<TableWithOrder | null>(null)
   const [showAddItems, setShowAddItems] = useState(false)
   const [showTablePayment, setShowTablePayment] = useState(false)
+  const [addItemsSaleTag, setAddItemsSaleTag] = useState<string | null>(null)
 
   // Computed
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -73,12 +85,11 @@ export function PosInterface({
     session.total_withdrawals
   const openTablesCount = tables.filter((t) => t.status !== 'libre').length
 
-  // ─── Refresh tables from server ─────────────────────────
+  // ─── Refresh ─────────────────────────────────────────────
   const refreshTables = async () => {
     const { data } = await getTables()
     if (data) {
       setTables(data)
-      // Update selected table if it still exists
       if (selectedTable) {
         const updated = data.find((t) => t.id === selectedTable.id)
         if (updated && updated.status !== 'libre') {
@@ -90,7 +101,14 @@ export function PosInterface({
     }
   }
 
-  // ─── Mostrador handlers (unchanged) ─────────────────────
+  const refreshPendingOrders = useCallback(async () => {
+    setPendingLoading(true)
+    const { data } = await getPendingMostadorOrders(session.id)
+    if (data) setPendingOrders(data)
+    setPendingLoading(false)
+  }, [session.id])
+
+  // ─── Mostrador handlers ─────────────────────────────────
   const handleAddItem = useCallback((product: Product) => {
     setItems((prev) => {
       const existing = prev.find((item) => item.id === product.id)
@@ -138,15 +156,17 @@ export function PosInterface({
     setItems((prev) => prev.filter((item) => item.id !== id))
   }, [])
 
+  // "Confirmar pedido" — crea orden abierta y envía a cocina
   const handleCheckout = () => {
     if (items.length === 0) return
-    setShowPayment(true)
+    handleConfirmOrder()
   }
 
-  const handleConfirmPayment = async (method: PaymentMethod) => {
-    setPaymentLoading(true)
+  const handleConfirmOrder = async () => {
+    if (items.length === 0 || confirmLoading) return
+    setConfirmLoading(true)
 
-    const { data, error } = await createPosOrder({
+    const { data, error } = await createMostadorOrder({
       items: items.map(({ id, name, price, quantity }) => ({
         id,
         name,
@@ -154,14 +174,11 @@ export function PosInterface({
         quantity,
       })),
       total: subtotal,
-      payment_method: method,
-      order_type: 'mostrador',
-      table_number: null,
       notes: notes || null,
       session_id: session.id,
     })
 
-    setPaymentLoading(false)
+    setConfirmLoading(false)
 
     if (error) {
       toast.error(error)
@@ -169,33 +186,29 @@ export function PosInterface({
     }
 
     if (data) {
-      toast.success('Venta registrada')
+      toast.success('Pedido enviado a cocina')
       setItems([])
       setNotes('')
-      setShowPayment(false)
-
-      const salesField =
-        method === 'cash'
-          ? 'total_cash_sales'
-          : method === 'card'
-            ? 'total_card_sales'
-            : 'total_transfer_sales'
-
-      onSessionUpdate({
-        ...session,
-        total_sales: session.total_sales + subtotal,
-        total_orders: session.total_orders + 1,
-        [salesField]: (session[salesField as keyof CashRegisterSession] as number) + subtotal,
-      })
+      // Refresh pending orders if we are in mostrador mode
+      await refreshPendingOrders()
     }
   }
 
-  const handleViewHistory = async () => {
+  const handleLoadHistorial = useCallback(async () => {
+    setHistorialLoading(true)
     const { data } = await getSessionOrders(session.id)
-    if (data) {
-      setSessionOrders(data)
-      setShowHistory(true)
-    }
+    if (data) setSessionOrders(data)
+    setHistorialLoading(false)
+  }, [session.id])
+
+  const handleSwitchToHistorial = async () => {
+    setMode('historial')
+    await handleLoadHistorial()
+  }
+
+  const handleSwitchToMostrador = async () => {
+    setMode('mostrador')
+    await refreshPendingOrders()
   }
 
   const handleCancelOrder = async (orderId: string) => {
@@ -205,11 +218,8 @@ export function PosInterface({
       toast.error(error)
       return
     }
-
     toast.success('Venta anulada')
-    const { data } = await getSessionOrders(session.id)
-    if (data) setSessionOrders(data)
-
+    await handleLoadHistorial()
     const { data: summaryData } = await getSessionSummary(session.id)
     if (summaryData) {
       onSessionUpdate(summaryData.session)
@@ -230,6 +240,57 @@ export function PosInterface({
     }
   }
 
+  // ─── Pending mostrador handlers ──────────────────────────
+  const handlePayPendingOrder = async (method: PaymentMethod, splits?: PaymentSplit[]) => {
+    if (!payingOrder) return
+    setPayingOrderLoading(true)
+
+    const { data, error } = await completeMostadorPayment(
+      payingOrder.id,
+      method,
+      session.id,
+      splits
+    )
+
+    setPayingOrderLoading(false)
+
+    if (error) {
+      toast.error(error)
+      return
+    }
+
+    if (data) {
+      toast.success('Pago registrado')
+      setPayingOrder(null)
+      await refreshPendingOrders()
+
+      const orderTotal = payingOrder.total
+      const sessionDelta: Partial<CashRegisterSession> = {
+        total_sales: session.total_sales + orderTotal,
+        total_orders: session.total_orders + 1,
+      }
+
+      if (splits && splits.length > 1) {
+        // Hybrid: accumulate per split method
+        for (const s of splits) {
+          const field =
+            s.method === 'cash' ? 'total_cash_sales'
+            : s.method === 'card' ? 'total_card_sales'
+            : 'total_transfer_sales'
+          sessionDelta[field] = ((sessionDelta[field] as number | undefined) ?? (session[field as keyof CashRegisterSession] as number)) + s.amount
+        }
+      } else {
+        const salesField =
+          method === 'cash' ? 'total_cash_sales'
+          : method === 'card' ? 'total_card_sales'
+          : 'total_transfer_sales'
+        sessionDelta[salesField] = (session[salesField as keyof CashRegisterSession] as number) + orderTotal
+      }
+
+      onSessionUpdate({ ...session, ...sessionDelta })
+    }
+  }
+
   // ─── Table handlers ─────────────────────────────────────
   const handleOpenTable = async (table: TableWithOrder) => {
     const { data, error } = await openTable(table.id, session.id)
@@ -240,7 +301,6 @@ export function PosInterface({
     if (data) {
       toast.success(`Mesa ${table.number} abierta`)
       await refreshTables()
-      // Select the newly opened table
       const { data: updatedTables } = await getTables()
       if (updatedTables) {
         setTables(updatedTables)
@@ -256,6 +316,7 @@ export function PosInterface({
 
   const handleTableItemsAdded = async () => {
     setShowAddItems(false)
+    setAddItemsSaleTag(null)
     await refreshTables()
   }
 
@@ -267,7 +328,6 @@ export function PosInterface({
     setShowTablePayment(false)
     setSelectedTable(null)
     await refreshTables()
-    // Refresh session totals
     const { data: summary } = await getSessionSummary(session.id)
     if (summary) {
       onSessionUpdate(summary.session)
@@ -280,35 +340,57 @@ export function PosInterface({
   }
 
   return (
-    <div className="h-full flex flex-col bg-[#1a1d24]">
+    <div className="h-full flex flex-col bg-[var(--admin-bg)]">
       {/* Mode tabs */}
-      <div className="flex border-b border-[#2a2f3a] bg-[#12151a] shrink-0">
+      <div className="flex border-b border-[var(--admin-border)] bg-[var(--admin-surface)] shrink-0">
         <button
-          onClick={() => setMode('mostrador')}
+          onClick={handleSwitchToMostrador}
           className={cn(
-            'flex items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-colors border-b-2',
+            'flex items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 cursor-pointer',
             mode === 'mostrador'
-              ? 'text-[#FEC501] border-[#FEC501]'
-              : 'text-[#a8b5c9] border-transparent hover:text-[#f0f2f5]'
+              ? 'text-[var(--admin-accent-text)] border-[var(--admin-accent)]'
+              : 'text-[var(--admin-text-muted)] border-transparent hover:text-[var(--admin-text)]'
           )}
         >
           <Store className="h-4 w-4" />
           Mostrador
+          {pendingOrders.length > 0 && (
+            <span className="ml-1 px-1.5 py-0.5 text-xs font-bold bg-amber-500/20 text-amber-400 rounded-full">
+              {pendingOrders.length}
+            </span>
+          )}
         </button>
         <button
           onClick={() => setMode('mesas')}
           className={cn(
-            'flex items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-colors border-b-2',
+            'flex items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 cursor-pointer',
             mode === 'mesas'
-              ? 'text-[#FEC501] border-[#FEC501]'
-              : 'text-[#a8b5c9] border-transparent hover:text-[#f0f2f5]'
+              ? 'text-[var(--admin-accent-text)] border-[var(--admin-accent)]'
+              : 'text-[var(--admin-text-muted)] border-transparent hover:text-[var(--admin-text)]'
           )}
         >
           <UtensilsCrossed className="h-4 w-4" />
           Mesas
           {openTablesCount > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold bg-orange-500/20 text-orange-400 rounded-full">
+            <span className="ml-1 px-1.5 py-0.5 text-xs font-bold bg-orange-500/20 text-orange-400 rounded-full">
               {openTablesCount}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={handleSwitchToHistorial}
+          className={cn(
+            'flex items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 cursor-pointer',
+            mode === 'historial'
+              ? 'text-[var(--admin-accent-text)] border-[var(--admin-accent)]'
+              : 'text-[var(--admin-text-muted)] border-transparent hover:text-[var(--admin-text)]'
+          )}
+        >
+          <History className="h-4 w-4" />
+          Historial
+          {session.total_orders > 0 && (
+            <span className="ml-1 px-1.5 py-0.5 text-xs font-bold bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)] rounded-full num-tabular">
+              {session.total_orders}
             </span>
           )}
         </button>
@@ -318,17 +400,90 @@ export function PosInterface({
       <div className="flex-1 flex overflow-hidden">
         {mode === 'mostrador' && (
           <>
-            {/* Product grid */}
-            <div className="flex-1 min-w-0">
-              <PosProductGrid
-                products={products}
-                categories={categories}
-                onAddItem={handleAddItem}
-              />
+            {/* Left: Product grid + Pending orders */}
+            <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+              {/* Pending orders strip */}
+              {(pendingOrders.length > 0 || pendingLoading) && (
+                <div className="shrink-0 border-b border-[var(--admin-border)] bg-[var(--admin-surface)] px-4 py-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="h-4 w-4 text-amber-400" />
+                    <span className="text-sm font-semibold text-amber-400">
+                      Pendientes ({pendingOrders.length})
+                    </span>
+                  </div>
+                  {pendingLoading ? (
+                    <p className="text-xs text-[var(--admin-text-muted)]">Cargando...</p>
+                  ) : (
+                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                      {pendingOrders.map((order) => {
+                        const orderItems = order.items as { name: string; quantity: number }[]
+                        const diffMs = Date.now() - new Date(order.opened_at || order.created_at).getTime()
+                        const mins = Math.floor(diffMs / 60000)
+                        const timeAgo = mins < 1 ? '<1m' : `${mins}m`
+                        const urgencyClass =
+                          mins < 5
+                            ? 'text-green-400'
+                            : mins < 10
+                              ? 'text-amber-400'
+                              : 'text-red-400'
+                        const urgencyBorder =
+                          mins < 5
+                            ? 'border-green-500/30 hover:border-green-400/60'
+                            : mins < 10
+                              ? 'border-amber-500/30 hover:border-amber-400/60'
+                              : 'border-red-500/40 hover:border-red-400/70'
+                        return (
+                          <div
+                            key={order.id}
+                            className={`shrink-0 bg-[var(--admin-bg)] border ${urgencyBorder} rounded-xl text-left transition-colors min-w-[180px] flex flex-col`}
+                          >
+                            {/* Card header */}
+                            <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5 border-b border-[var(--admin-border)]/40">
+                              <span className={`text-xs font-bold ${urgencyClass}`}>{timeAgo}</span>
+                              <span className="text-sm font-bold text-[var(--admin-accent-text)]">
+                                {formatPrice(order.total)}
+                              </span>
+                            </div>
+                            {/* Items */}
+                            <p className="text-xs text-[var(--admin-text-muted)] px-3 py-2 flex-1 line-clamp-3 leading-relaxed">
+                              {Array.isArray(orderItems)
+                                ? orderItems.map((i) => `${i.quantity}x ${i.name}`).join(' · ')
+                                : '...'}
+                            </p>
+                            {/* Actions */}
+                            <div className="flex items-center gap-1 px-2 pb-2">
+                              <button
+                                onClick={() => setPayingOrder(order)}
+                                className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg bg-green-600 hover:bg-green-500 text-white text-xs font-bold transition-colors active:scale-95 cursor-pointer"
+                              >
+                                Cobrar
+                              </button>
+                              <button
+                                onClick={() => window.open(`/admin/caja/ticket/${order.id}/print`, '_blank')}
+                                className="h-9 w-9 flex items-center justify-center rounded-lg text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer"
+                                aria-label="Imprimir ticket"
+                              >
+                                <Printer className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+              <div className="flex-1 overflow-hidden">
+                <PosProductGrid
+                  products={products}
+                  categories={categories}
+                  onAddItem={handleAddItem}
+                />
+              </div>
             </div>
 
             {/* Order builder (right panel) */}
-            <div className="w-80 lg:w-96 border-l border-[#2a2f3a] shrink-0 hidden md:flex md:flex-col">
+            <div className="w-80 lg:w-96 border-l border-[var(--admin-border)] shrink-0 hidden md:flex md:flex-col">
               <OrderBuilder
                 items={items}
                 notes={notes}
@@ -336,6 +491,7 @@ export function PosInterface({
                 onRemoveItem={handleRemoveItem}
                 onSetNotes={setNotes}
                 onCheckout={handleCheckout}
+                loading={confirmLoading}
               />
             </div>
           </>
@@ -359,7 +515,7 @@ export function PosInterface({
                 <TableOrderPanel
                   table={selectedTable}
                   session={session}
-                  onAddItems={() => setShowAddItems(true)}
+                  onAddItems={(tag) => { setAddItemsSaleTag(tag ?? null); setShowAddItems(true) }}
                   onRequestBill={handleTableBillRequested}
                   onPayOrder={() => setShowTablePayment(true)}
                   onCancelOrder={handleTableOrderCancelled}
@@ -369,6 +525,17 @@ export function PosInterface({
             )}
           </>
         )}
+
+        {mode === 'historial' && (
+          <div className="flex-1 min-w-0">
+            <PosHistorialTab
+              orders={sessionOrders}
+              loading={historialLoading}
+              onRefresh={handleLoadHistorial}
+              onCancelOrder={(orderId) => setCancelOrderId(orderId)}
+            />
+          </div>
+        )}
       </div>
 
       {/* Mobile cart button (mostrador only) */}
@@ -377,9 +544,10 @@ export function PosInterface({
           {items.length > 0 && (
             <button
               onClick={handleCheckout}
-              className="bg-[#FEC501] text-black font-bold px-8 py-4 rounded-full shadow-lg shadow-[#FEC501]/30 flex items-center gap-2 active:scale-95 transition-transform"
+              disabled={confirmLoading}
+              className="bg-[var(--admin-accent)] text-black font-bold px-8 py-4 rounded-full shadow-lg shadow-[var(--admin-accent)]/30 flex items-center gap-2 active:scale-95 transition-transform disabled:opacity-60"
             >
-              Cobrar ({items.length})
+              Confirmar ({items.length})
             </button>
           )}
         </div>
@@ -391,17 +559,18 @@ export function PosInterface({
         currentCash={currentCash}
         openTablesCount={openTablesCount}
         onMovement={() => setShowMovement(true)}
-        onViewHistory={handleViewHistory}
+        onViewHistory={handleSwitchToHistorial}
         onCloseSession={handleCloseSessionClick}
       />
 
       {/* Mostrador dialogs */}
+      {/* Payment panel for pending mostrador order */}
       <PaymentPanel
-        open={showPayment}
-        total={subtotal}
-        loading={paymentLoading}
-        onClose={() => setShowPayment(false)}
-        onConfirm={handleConfirmPayment}
+        open={!!payingOrder}
+        total={payingOrder?.total ?? 0}
+        loading={payingOrderLoading}
+        onClose={() => setPayingOrder(null)}
+        onConfirm={handlePayPendingOrder}
       />
 
       <CashMovementDialog
@@ -409,13 +578,6 @@ export function PosInterface({
         sessionId={session.id}
         onClose={() => setShowMovement(false)}
         onSuccess={handleMovementSuccess}
-      />
-
-      <PosOrderHistory
-        orders={sessionOrders}
-        open={showHistory}
-        onClose={() => setShowHistory(false)}
-        onCancelOrder={(orderId) => setCancelOrderId(orderId)}
       />
 
       {/* Cancel order confirm */}
@@ -436,7 +598,8 @@ export function PosInterface({
             products={products}
             categories={categories}
             orderId={selectedTable.orders.id}
-            onClose={() => setShowAddItems(false)}
+            saleTag={addItemsSaleTag}
+            onClose={() => { setShowAddItems(false); setAddItemsSaleTag(null) }}
             onItemsAdded={handleTableItemsAdded}
           />
 

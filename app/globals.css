@@ -9,6 +9,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-rubik);
   --font-mono: var(--font-geist-mono);
+  --font-admin: var(--font-inter);
   --color-gold: var(--gold);
   --color-gold-hover: var(--gold-hover);
   --color-gold-foreground: var(--gold-foreground);
@@ -280,4 +281,168 @@
 
 [data-slot="select-content"] {
   z-index: 10000 !important;
+}
+
+/* Performance animations - CSS replacements for framer-motion */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out both;
+}
+
+.animate-fade-in-left {
+  animation: fade-in-left 0.4s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-fade-in-left,
+  .animate-scale-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ─── Admin panel typography ──────────────────────────────────────────────────
+   Inter se aplica SOLO dentro del contexto del panel de administración.
+   El store público mantiene Rubik para conservar la identidad de marca.
+
+   Beneficios de Inter en admin:
+   - Figuras tabulares nativas → columnas de precios alineadas
+   - Mayor densidad de información legible por línea
+   - Diseñada para interfaces de alta densidad (dashboards, POS)
+   - Estándar de la industria: Linear, Vercel, Figma usan Inter
+   ─────────────────────────────────────────────────────────────────────────── */
+.admin-layout {
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Números tabulares: todos los valores numéricos en admin se alinean
+   correctamente en columnas (precios, cantidades, estadísticas) */
+.admin-layout .tabular-nums,
+.admin-layout [class*="font-bold"],
+.admin-layout [class*="font-semibold"] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Clase utilitaria para números clave que requieren alineación de columna */
+.num-tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ─── Admin Theme Variables ───────────────────────────────────────────────────
+   Variables definidas en :root para que los portales (Dialog, Select, Tooltip)
+   que se renderizan fuera del .admin-layout también hereden los valores.
+   .admin-layout repite las mismas para mayor especificidad.
+   html.admin-dark activa el dark mode globalmente (incluyendo portales).
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* Light mode — disponible globalmente (portales heredan desde :root) */
+:root {
+  --admin-bg:               #F1F5F9;
+  --admin-surface:          #FFFFFF;
+  --admin-surface-2:        #F3F6FA;
+  --admin-hover:            #EDF1F7;
+  --admin-border:           #CBD5E1;
+  --admin-text:             #0F172A;
+  --admin-text-muted:       #475569;
+  --admin-text-faint:       #94A3B8;
+  --admin-text-placeholder: #CBD5E1;
+  --admin-accent:           #FEC501;
+  --admin-accent-text:      #B45309;
+  --shadow-card:    0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-card-md: 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-card-lg: 0 10px 24px rgba(0, 0, 0, 0.10), 0 4px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Dark mode — aplicado en html por AdminLayout via useEffect */
+html.admin-dark {
+  --admin-bg:               #0F1117;
+  --admin-surface:          #1C2333;
+  --admin-surface-2:        #252B3B;
+  --admin-hover:            #252B3B;
+  --admin-border:           #2D3448;
+  --admin-text:             #F1F3F8;
+  --admin-text-muted:       #8B9BB4;
+  --admin-text-faint:       #5A677D;
+  --admin-text-placeholder: #3A3F4A;
+  --admin-accent:           #FEC501;
+  --admin-accent-text:      #FEC501;
+  --shadow-card:    0 1px 3px rgba(0, 0, 0, 0.30), 0 1px 2px rgba(0, 0, 0, 0.20);
+  --shadow-card-md: 0 4px 12px rgba(0, 0, 0, 0.40), 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-card-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.35);
+  --shadow-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* .admin-layout repite las variables para mayor especificidad dentro del layout */
+.admin-layout {
+  --admin-bg:               #F1F5F9;
+  --admin-surface:          #FFFFFF;
+  --admin-surface-2:        #F3F6FA;
+  --admin-hover:            #EDF1F7;
+  --admin-border:           #CBD5E1;
+  --admin-text:             #0F172A;
+  --admin-text-muted:       #475569;
+  --admin-text-faint:       #94A3B8;
+  --admin-text-placeholder: #CBD5E1;
+  --admin-accent:           #FEC501;
+  --admin-accent-text:      #B45309;
+  --shadow-card:    0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-card-md: 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-card-lg: 0 10px 24px rgba(0, 0, 0, 0.10), 0 4px 8px rgba(0, 0, 0, 0.06);
+}
+
+.admin-layout.dark {
+  --admin-bg:               #0F1117;
+  --admin-surface:          #1C2333;
+  --admin-surface-2:        #252B3B;
+  --admin-hover:            #252B3B;
+  --admin-border:           #2D3448;
+  --admin-text:             #F1F3F8;
+  --admin-text-muted:       #8B9BB4;
+  --admin-text-faint:       #5A677D;
+  --admin-text-placeholder: #3A3F4A;
+  --admin-accent:           #FEC501;
+  --admin-accent-text:      #FEC501;
+  --shadow-card:    0 1px 3px rgba(0, 0, 0, 0.30), 0 1px 2px rgba(0, 0, 0, 0.20);
+  --shadow-card-md: 0 4px 12px rgba(0, 0, 0, 0.40), 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-card-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.35);
+  --shadow-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }

@@ -10,9 +10,8 @@ import { formatPrice } from '@/lib/utils'
 export function FloatingCartButton() {
   const pathname = usePathname()
   const hydrated = useHydrated()
-  const { getTotal, getItemCount } = useCartStore()
-  const itemCount = getItemCount()
-  const total = getTotal()
+  const itemCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.quantity, 0))
+  const total = useCartStore((s) => s.items.reduce((sum, i) => sum + i.product.price * i.quantity, 0))
 
   // No mostrar en checkout, cart o páginas de admin
   const hiddenRoutes = ['/checkout', '/cart', '/admin']

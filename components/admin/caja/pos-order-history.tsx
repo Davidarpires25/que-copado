@@ -37,15 +37,15 @@ export function PosOrderHistory({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-[#1a1d24] border border-[#2a2f3a] rounded-xl w-full max-w-lg max-h-[80vh] flex flex-col shadow-xl">
+      <div className="bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl w-full max-w-lg max-h-[80vh] flex flex-col shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#2a2f3a]">
-          <h2 className="text-lg font-bold text-[#f0f2f5]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--admin-border)]">
+          <h2 className="text-lg font-bold text-[var(--admin-text)]">
             Ventas de la sesion ({orders.length})
           </h2>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#252a35] transition-colors active:scale-95"
+            className="w-9 h-9 rounded-lg flex items-center justify-center text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors active:scale-95"
             aria-label="Cerrar"
           >
             <X className="h-5 w-5" />
@@ -55,7 +55,7 @@ export function PosOrderHistory({
         {/* Orders list */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide">
           {orders.length === 0 ? (
-            <p className="text-center text-[#a8b5c9] py-12 text-sm">
+            <p className="text-center text-[var(--admin-text-muted)] py-12 text-sm">
               No hay ventas en esta sesion
             </p>
           ) : (
@@ -69,7 +69,7 @@ export function PosOrderHistory({
               return (
                 <div
                   key={order.id}
-                  className={`bg-[#12151a] rounded-lg border border-[#2a2f3a] hover:border-[#3a3f4a] transition-colors ${
+                  className={`bg-[var(--admin-surface)] rounded-lg border border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)] transition-colors ${
                     isCancelled ? 'opacity-50' : ''
                   }`}
                 >
@@ -80,11 +80,11 @@ export function PosOrderHistory({
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <ChevronDown
-                        className={`h-3.5 w-3.5 text-[#a8b5c9] shrink-0 transition-transform ${
+                        className={`h-3.5 w-3.5 text-[var(--admin-text-muted)] shrink-0 transition-transform ${
                           isExpanded ? 'rotate-180' : ''
                         }`}
                       />
-                      <span className="text-xs text-[#a8b5c9] shrink-0">
+                      <span className="text-xs text-[var(--admin-text-muted)] shrink-0">
                         {new Date(order.created_at).toLocaleTimeString('es-AR', {
                           hour: '2-digit',
                           minute: '2-digit',
@@ -92,14 +92,14 @@ export function PosOrderHistory({
                       </span>
                       <Badge
                         variant="outline"
-                        className="border-[#2a2f3a] text-[#c4cdd9] bg-[#252a35] text-[10px] shrink-0"
+                        className="border-[var(--admin-border)] text-[var(--admin-text-muted)] bg-[var(--admin-surface-2)] text-xs shrink-0"
                       >
                         {order.order_type === 'mesa'
                           ? `Mesa ${order.table_number || ''}`
                           : 'Mostrador'}
                       </Badge>
                       {paymentConfig && (
-                        <span className="text-xs text-[#a8b5c9] shrink-0 hidden sm:inline">
+                        <span className="text-xs text-[var(--admin-text-muted)] shrink-0 hidden sm:inline">
                           {paymentConfig.icon} {paymentConfig.label}
                         </span>
                       )}
@@ -109,7 +109,7 @@ export function PosOrderHistory({
                         className={`text-sm font-bold ${
                           isCancelled
                             ? 'text-red-400 line-through'
-                            : 'text-[#FEC501]'
+                            : 'text-[var(--admin-accent-text)]'
                         }`}
                       >
                         {formatPrice(order.total)}
@@ -124,7 +124,7 @@ export function PosOrderHistory({
 
                   {/* Detalle expandible */}
                   {isExpanded && (
-                    <div className="border-t border-[#2a2f3a] px-3 pb-3">
+                    <div className="border-t border-[var(--admin-border)] px-3 pb-3">
                       {/* Items */}
                       <div className="py-2 space-y-1.5">
                         {items.length > 0 ? (
@@ -134,33 +134,33 @@ export function PosOrderHistory({
                               className="flex items-center justify-between text-xs"
                             >
                               <div className="flex items-center gap-2 min-w-0">
-                                <span className="text-[#a8b5c9] shrink-0 w-5 text-right">
+                                <span className="text-[var(--admin-text-muted)] shrink-0 w-5 text-right">
                                   {item.quantity}x
                                 </span>
-                                <span className="text-[#f0f2f5] truncate">
+                                <span className="text-[var(--admin-text)] truncate">
                                   {item.name}
                                 </span>
                               </div>
-                              <span className="text-[#a8b5c9] shrink-0 ml-2">
+                              <span className="text-[var(--admin-text-muted)] shrink-0 ml-2">
                                 {formatPrice(item.price * item.quantity)}
                               </span>
                             </div>
                           ))
                         ) : (
-                          <p className="text-xs text-[#a8b5c9]">Sin detalle</p>
+                          <p className="text-xs text-[var(--admin-text-muted)]">Sin detalle</p>
                         )}
                       </div>
 
                       {/* Notas + Anular */}
-                      <div className="flex items-center justify-between pt-2 border-t border-[#2a2f3a]/50">
+                      <div className="flex items-center justify-between pt-2 border-t border-[var(--admin-border)]/50">
                         <div className="flex items-center gap-2">
                           {paymentConfig && (
-                            <span className="text-[10px] text-[#a8b5c9] sm:hidden">
+                            <span className="text-xs text-[var(--admin-text-muted)] sm:hidden">
                               {paymentConfig.icon} {paymentConfig.label}
                             </span>
                           )}
                           {order.notes && (
-                            <span className="text-[10px] text-[#a8b5c9] italic truncate max-w-[200px]">
+                            <span className="text-xs text-[var(--admin-text-muted)] italic truncate max-w-[200px]">
                               {order.notes}
                             </span>
                           )}
