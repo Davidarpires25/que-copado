@@ -10,6 +10,70 @@ import { revalidateOrders } from '@/lib/server/revalidate'
 import type { Order, OrderStatus, OrderWithZone } from '@/lib/types/database'
 import type { CreateOrderData, OrderFilters } from '@/lib/types/orders'
 
+// ─── Stock validation types (exported for client use) ───────────────────────
+
+export interface StockIssue {
+  productId: string
+  productName: string
+  issue: 'not_found' | 'out_of_stock' | 'insufficient_stock'
+  available?: number
+  requested?: number
+}
+
+/**
+ * Validar disponibilidad de stock para un conjunto de items del carrito (público).
+ * Usado en el checkout para early feedback antes de crear la orden.
+ */
+export async function validateCartStock(
+  cartItems: { id: string; name: string; quantity: number }[]
+): Promise<{ issues: StockIssue[]; error: string | null }> {
+  try {
+    const supabase = await createAdminClient()
+    const ids = cartItems.map((i) => i.id)
+
+    const { data: products, error } = await supabase
+      .from('products')
+      .select('id, name, is_active, is_out_of_stock, current_stock, stock_tracking_enabled')
+      .in('id', ids)
+
+    if (error) return { issues: [], error: 'Error al verificar disponibilidad' }
+
+    const issues: StockIssue[] = []
+
+    for (const item of cartItems) {
+      const product = products?.find((p) => p.id === item.id)
+
+      if (!product || !product.is_active) {
+        issues.push({ productId: item.id, productName: item.name, issue: 'not_found' })
+        continue
+      }
+
+      if (product.is_out_of_stock) {
+        issues.push({ productId: item.id, productName: item.name, issue: 'out_of_stock' })
+        continue
+      }
+
+      if (
+        product.stock_tracking_enabled &&
+        product.current_stock !== null &&
+        product.current_stock < item.quantity
+      ) {
+        issues.push({
+          productId: item.id,
+          productName: item.name,
+          issue: 'insufficient_stock',
+          available: product.current_stock,
+          requested: item.quantity,
+        })
+      }
+    }
+
+    return { issues, error: null }
+  } catch {
+    return { issues: [], error: 'Error al verificar disponibilidad' }
+  }
+}
+
 /**
  * Crear una nueva orden (desde checkout - público)
  */
@@ -41,6 +105,43 @@ export async function createOrder(
         return {
           data: null,
           error: `No estamos recibiendo pedidos. ${businessStatus.message}`
+        }
+      }
+    }
+
+    // VALIDACIÓN: Verificar stock de cada producto antes de crear la orden
+    const productIds = data.items.map((i) => i.id)
+    const { data: products, error: stockError } = await supabase
+      .from('products')
+      .select('id, name, is_active, is_out_of_stock, current_stock, stock_tracking_enabled')
+      .in('id', productIds)
+
+    if (stockError) {
+      devError('Error checking stock:', stockError)
+      return { data: null, error: 'Error al verificar disponibilidad de productos' }
+    }
+
+    for (const item of data.items) {
+      const product = products?.find((p) => p.id === item.id)
+
+      if (!product || !product.is_active) {
+        return { data: null, error: `"${item.name}" ya no está disponible` }
+      }
+
+      if (product.is_out_of_stock) {
+        return { data: null, error: `"${item.name}" se agotó. Por favor actualizá tu carrito.` }
+      }
+
+      if (
+        product.stock_tracking_enabled &&
+        product.current_stock !== null &&
+        product.current_stock < item.quantity
+      ) {
+        return {
+          data: null,
+          error: product.current_stock === 0
+            ? `"${item.name}" se agotó. Por favor actualizá tu carrito.`
+            : `Solo quedan ${product.current_stock} unidades de "${item.name}" y pediste ${item.quantity}.`,
         }
       }
     }

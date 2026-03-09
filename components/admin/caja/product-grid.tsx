@@ -5,6 +5,7 @@ import { Search, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { cn, formatPrice } from '@/lib/utils'
 import type { Category, Product } from '@/lib/types/database'
+import type { PosCartItem } from './order-builder'
 
 // Colores por índice de categoría para identificación visual rápida
 const CATEGORY_COLORS = [
@@ -21,12 +22,14 @@ const CATEGORY_COLORS = [
 interface PosProductGridProps {
   products: Product[]
   categories: Category[]
+  cartItems?: PosCartItem[]
   onAddItem: (product: Product) => void
 }
 
 export function PosProductGrid({
   products,
   categories,
+  cartItems = [],
   onAddItem,
 }: PosProductGridProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -54,6 +57,15 @@ export function PosProductGrid({
     })
     return map
   }, [categories])
+
+  // Mapa de producto → cantidad en carrito
+  const cartQtyMap = useMemo(() => {
+    const map: Record<string, number> = {}
+    for (const item of cartItems) {
+      map[item.id] = item.quantity
+    }
+    return map
+  }, [cartItems])
 
   return (
     <div className="flex flex-col h-full bg-[var(--admin-bg)]">
@@ -150,24 +162,46 @@ export function PosProductGrid({
             const colorClass = product.category_id
               ? (categoryColorMap[product.category_id] ?? 'border-l-[var(--admin-border)]')
               : 'border-l-[var(--admin-border)]'
+            const qty = cartQtyMap[product.id] ?? 0
+
+            // Stock bajo: solo reventa con tracking habilitado
+            const isLowStock =
+              product.stock_tracking_enabled &&
+              product.current_stock !== null &&
+              product.current_stock <= (product.min_stock ?? 0)
 
             return (
               <button
                 key={product.id}
                 onClick={() => onAddItem(product)}
                 className={cn(
-                  'bg-[var(--admin-surface)] border border-[var(--admin-border)] border-l-4 rounded-lg p-3 text-left',
-                  'hover:bg-[var(--admin-surface-2)] hover:border-[var(--admin-text-placeholder)] active:scale-95',
+                  'relative bg-[var(--admin-surface)] border border-[var(--admin-border)] border-l-4 rounded-lg p-3 text-left',
+                  'hover:bg-[var(--admin-surface-2)] active:scale-95',
                   'transition-all min-h-[72px] flex flex-col justify-between',
+                  qty > 0
+                    ? 'hover:border-[var(--admin-accent)]/60 border-[var(--admin-accent)]/40 bg-[var(--admin-accent)]/5'
+                    : 'hover:border-[var(--admin-text-placeholder)]',
                   colorClass
                 )}
               >
-                <p className="text-sm font-semibold text-[var(--admin-text)] line-clamp-2 leading-snug">
+                {qty > 0 && (
+                  <span className="absolute top-1.5 right-1.5 min-w-[20px] h-5 px-1 flex items-center justify-center rounded-full bg-[var(--admin-accent)] text-black text-xs font-bold leading-none">
+                    {qty}
+                  </span>
+                )}
+                <p className="text-sm font-semibold text-[var(--admin-text)] line-clamp-2 leading-snug pr-5">
                   {product.name}
                 </p>
-                <p className="text-lg font-bold text-[var(--admin-accent-text)] tabular-nums mt-1.5">
-                  {formatPrice(product.price)}
-                </p>
+                <div className="flex items-end justify-between mt-1.5 gap-1">
+                  <p className="text-lg font-bold text-[var(--admin-accent-text)] tabular-nums">
+                    {formatPrice(product.price)}
+                  </p>
+                  {isLowStock && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 leading-none shrink-0">
+                      {product.current_stock === 0 ? 'Agotado' : `${product.current_stock} u.`}
+                    </span>
+                  )}
+                </div>
               </button>
             )
           })}

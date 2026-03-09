@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   UserPlus,
   Printer,
+  Clock,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
@@ -34,23 +35,35 @@ interface TableOrderPanelProps {
   onPayOrder: () => void
   onCancelOrder: () => void
   onClose: () => void
+  /** Cuando se renderiza dentro de un BottomSheet: sin ancho fijo ni borde lateral */
+  asSheet?: boolean
 }
 
 /**
  * Calcula el tiempo transcurrido desde opened_at
  */
-function formatElapsedTime(openedAt: string): string {
+function getElapsedInfo(openedAt: string): { label: string; minutes: number } {
   const now = Date.now()
   const opened = new Date(openedAt).getTime()
   const diffMs = now - opened
   const diffMin = Math.floor(diffMs / 60000)
 
-  if (diffMin < 1) return '< 1 min'
-  if (diffMin < 60) return `${diffMin} min`
+  let label: string
+  if (diffMin < 1) label = '< 1 min'
+  else if (diffMin < 60) label = `${diffMin} min`
+  else {
+    const hours = Math.floor(diffMin / 60)
+    const mins = diffMin % 60
+    label = mins > 0 ? `${hours}h ${mins}min` : `${hours}h`
+  }
 
-  const hours = Math.floor(diffMin / 60)
-  const mins = diffMin % 60
-  return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`
+  return { label, minutes: diffMin }
+}
+
+function getTimeColorClass(minutes: number): string {
+  if (minutes > 90) return 'text-red-400'
+  if (minutes > 60) return 'text-orange-400'
+  return 'text-[var(--admin-text-muted)]'
 }
 
 export function TableOrderPanel({
@@ -61,6 +74,7 @@ export function TableOrderPanel({
   onPayOrder,
   onCancelOrder,
   onClose,
+  asSheet = false,
 }: TableOrderPanelProps) {
   const [loadingAction, setLoadingAction] = useState<string | null>(null)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
@@ -189,7 +203,10 @@ export function TableOrderPanel({
 
   if (!order) {
     return (
-      <div className="w-80 lg:w-96 border-l border-[var(--admin-border)] bg-[var(--admin-bg)] flex flex-col items-center justify-center p-6 text-[var(--admin-text-muted)]">
+      <div className={cn(
+        'bg-[var(--admin-bg)] flex flex-col items-center justify-center p-6 text-[var(--admin-text-muted)]',
+        !asSheet && 'w-80 lg:w-96 border-l border-[var(--admin-border)]'
+      )}>
         <p className="text-sm">Sin orden activa</p>
       </div>
     )
@@ -202,9 +219,12 @@ export function TableOrderPanel({
   )
 
   return (
-    <div className="w-80 lg:w-96 border-l border-[var(--admin-border)] bg-[var(--admin-bg)] flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--admin-border)]">
+    <div className={cn(
+      'bg-[var(--admin-bg)] flex flex-col',
+      asSheet ? 'min-h-0' : 'w-80 lg:w-96 border-l border-[var(--admin-border)] h-full'
+    )}>
+      {/* Header — oculto en modo sheet (el BottomSheet ya muestra el título) */}
+      {!asSheet && <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--admin-border)]">
         <div className="flex items-center gap-3">
           <h2 className="text-lg font-bold text-[var(--admin-text)]">
             Mesa {table.number}
@@ -221,11 +241,15 @@ export function TableOrderPanel({
         </div>
 
         <div className="flex items-center gap-2">
-          {order.opened_at && (
-            <span className="text-xs text-[var(--admin-text-muted)]">
-              {formatElapsedTime(order.opened_at)}
-            </span>
-          )}
+          {order.opened_at && (() => {
+            const { label, minutes } = getElapsedInfo(order.opened_at)
+            return (
+              <span className={cn('flex items-center gap-1 text-xs font-medium', getTimeColorClass(minutes))}>
+                <Clock className="h-3 w-3" />
+                {label}
+              </span>
+            )
+          })()}
           <Button
             variant="ghost"
             size="icon"
@@ -235,7 +259,31 @@ export function TableOrderPanel({
             <X className="h-4 w-4" />
           </Button>
         </div>
-      </div>
+      </div>}
+
+      {/* Status badge en modo sheet (reemplaza al header completo) */}
+      {asSheet && (
+        <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--admin-border)]">
+          <span
+            className={cn(
+              'px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider',
+              statusConfig.bgColor,
+              statusConfig.color
+            )}
+          >
+            {statusConfig.label}
+          </span>
+          {order.opened_at && (() => {
+            const { label, minutes } = getElapsedInfo(order.opened_at)
+            return (
+              <span className={cn('flex items-center gap-1 text-xs font-medium', getTimeColorClass(minutes))}>
+                <Clock className="h-3 w-3" />
+                {label}
+              </span>
+            )
+          })()}
+        </div>
+      )}
 
       {/* Sale tag chips (comensales) */}
       {(allTags.length > 0 || canModify) && (
@@ -356,18 +404,18 @@ export function TableOrderPanel({
       {/* Total */}
       <div className="px-4 py-3 border-t border-[var(--admin-border)]">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-[var(--admin-text-muted)]">
-            {activeSaleTag ? `Subtotal ${activeSaleTag}` : 'Total'}
-          </span>
+          <span className="text-sm font-medium text-[var(--admin-text-muted)]">Total mesa</span>
           <span className="text-2xl font-bold text-[var(--admin-text)]">
-            {formatPrice(activeSaleTag ? displayTotal : order.total)}
+            {formatPrice(order.total)}
           </span>
         </div>
         {activeSaleTag && (
           <div className="flex items-center justify-between mt-0.5">
-            <span className="text-xs text-[var(--admin-text-muted)]">Total mesa</span>
-            <span className="text-sm font-semibold text-[var(--admin-text-muted)]">
-              {formatPrice(order.total)}
+            <span className="text-xs text-[var(--admin-text-muted)]">
+              {activeSaleTag}
+            </span>
+            <span className="text-sm font-semibold text-[var(--admin-accent-text)]">
+              {formatPrice(displayTotal)}
             </span>
           </div>
         )}
@@ -404,14 +452,19 @@ export function TableOrderPanel({
         )}
 
         {orderStatus === 'cuenta_pedida' && (
-          <Button
-            onClick={onPayOrder}
-            disabled={!hasItems}
-            className="w-full h-12 bg-green-600 hover:bg-green-500 text-white font-bold text-base disabled:opacity-40 shadow-lg shadow-green-600/20"
-          >
-            <CreditCard className="h-5 w-5 mr-2" />
-            Cobrar
-          </Button>
+          <>
+            <p className="text-xs text-[var(--admin-text-muted)] text-center px-1 pb-1">
+              El cliente pidió la cuenta. Aún podés agregar productos antes de cobrar.
+            </p>
+            <Button
+              onClick={onPayOrder}
+              disabled={!hasItems}
+              className="w-full h-12 bg-green-600 hover:bg-green-500 text-white font-bold text-base disabled:opacity-40 shadow-lg shadow-green-600/20"
+            >
+              <CreditCard className="h-5 w-5 mr-2" />
+              Cobrar
+            </Button>
+          </>
         )}
 
         {/* Ticket print */}
@@ -430,7 +483,7 @@ export function TableOrderPanel({
           <button
             onClick={() => setShowCancelConfirm(true)}
             disabled={loadingAction === 'cancel'}
-            className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs text-red-400/60 hover:text-red-400 transition-colors disabled:opacity-40"
+            className="w-full flex items-center justify-center gap-1.5 h-10 text-xs text-red-400/60 hover:text-red-400 transition-colors disabled:opacity-40"
           >
             {loadingAction === 'cancel' ? (
               <Loader2 className="h-3 w-3 animate-spin" />

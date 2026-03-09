@@ -17,7 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { RecipeFormDialog } from '@/components/admin/recipes/recipe-form-dialog'
-import { deleteRecipe, updateRecipe } from '@/app/actions/recipes'
+import { deleteRecipe, updateRecipe, getRecipeWithIngredients } from '@/app/actions/recipes'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
 import type { Ingredient, Recipe, RecipeWithIngredients, IngredientUnit } from '@/lib/types/database'
@@ -43,9 +43,15 @@ export function RecipesDashboard({ initialRecipes, ingredients }: RecipesDashboa
       minimumFractionDigits: 0,
     }).format(cost)
 
+  const UNIT_TO_BASE: Record<string, number> = {
+    kg: 1, g: 0.001, litro: 1, ml: 0.001, unidad: 1,
+  }
+
   const getRecipeCost = (recipe: RecipeWithIngredients) => {
     return recipe.recipe_ingredients.reduce((sum, ri) => {
-      return sum + ri.quantity * ri.ingredients.cost_per_unit
+      const effectiveUnit = ri.unit ?? ri.ingredients.unit
+      const factor = UNIT_TO_BASE[effectiveUnit] ?? 1
+      return sum + ri.quantity * factor * ri.ingredients.cost_per_unit
     }, 0)
   }
 
@@ -66,22 +72,31 @@ export function RecipesDashboard({ initialRecipes, ingredients }: RecipesDashboa
     setEditingRecipe(null)
   }
 
-  const handleCreated = (recipe: Recipe) => {
-    // We need to refetch with ingredients - for now add with empty ingredients
-    // The page will revalidate and show correct data
-    const recipeWithIngredients = { ...recipe, recipe_ingredients: [] } as RecipeWithIngredients
-    setRecipes((prev) => [...prev, recipeWithIngredients].sort((a, b) => a.name.localeCompare(b.name)))
+  const handleCreated = async (recipe: Recipe) => {
     setIsFormOpen(false)
+    const result = await getRecipeWithIngredients(recipe.id)
+    const full = (result.data ?? { ...recipe, recipe_ingredients: [] }) as RecipeWithIngredients
+    setRecipes((prev) => [...prev, full].sort((a, b) => a.name.localeCompare(b.name)))
   }
 
-  const handleUpdated = (updated: Recipe) => {
-    setRecipes((prev) =>
-      prev
-        .map((r) => (r.id === updated.id ? { ...r, ...updated } : r))
-        .sort((a, b) => a.name.localeCompare(b.name))
-    )
+  const handleUpdated = async (updated: Recipe) => {
     setEditingRecipe(null)
     setIsFormOpen(false)
+    const result = await getRecipeWithIngredients(updated.id)
+    if (result.data) {
+      setRecipes((prev) =>
+        prev
+          .map((r) => (r.id === updated.id ? (result.data as RecipeWithIngredients) : r))
+          .sort((a, b) => a.name.localeCompare(b.name))
+      )
+    } else {
+      // fallback: at least update metadata
+      setRecipes((prev) =>
+        prev
+          .map((r) => (r.id === updated.id ? { ...r, ...updated } : r))
+          .sort((a, b) => a.name.localeCompare(b.name))
+      )
+    }
   }
 
   const handleToggleActive = async (recipe: RecipeWithIngredients) => {
@@ -250,13 +265,15 @@ export function RecipesDashboard({ initialRecipes, ingredients }: RecipesDashboa
                           {isExpanded && recipe.recipe_ingredients.length > 0 && (
                             <div className="mt-2 space-y-1">
                               {recipe.recipe_ingredients.map((ri) => {
-                                const unitAbbr = INGREDIENT_UNIT_ABBR[ri.ingredients.unit as IngredientUnit] ?? ri.ingredients.unit
+                                const effectiveUnit = ri.unit ?? ri.ingredients.unit
+                                const factor = UNIT_TO_BASE[effectiveUnit] ?? 1
+                                const unitAbbr = INGREDIENT_UNIT_ABBR[effectiveUnit as IngredientUnit] ?? effectiveUnit
                                 return (
                                   <div key={ri.id} className="flex items-center gap-2 text-xs text-[var(--admin-text-muted)]">
                                     <span className="text-[var(--admin-text-muted)]">{ri.ingredients.name}</span>
                                     <span>{ri.quantity} {unitAbbr}</span>
                                     <span className="text-[var(--admin-accent-text)]">
-                                      {formatCost(ri.quantity * ri.ingredients.cost_per_unit)}
+                                      {formatCost(ri.quantity * factor * ri.ingredients.cost_per_unit)}
                                     </span>
                                   </div>
                                 )

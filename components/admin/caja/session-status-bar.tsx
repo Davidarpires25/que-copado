@@ -1,6 +1,6 @@
 'use client'
 
-import { DollarSign, TrendingUp, ArrowDownCircle, ArrowUpCircle, XCircle, UtensilsCrossed } from 'lucide-react'
+import { DollarSign, TrendingUp, ArrowLeftRight, History, XCircle, UtensilsCrossed } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatPrice } from '@/lib/utils'
 import type { CashRegisterSession } from '@/lib/types/cash-register'
@@ -81,8 +81,8 @@ export function SessionStatusBar({
             onClick={onMovement}
             className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] h-9 gap-2 text-sm px-3"
           >
-            <ArrowDownCircle className="h-4 w-4" />
-            <span className="hidden sm:inline">Movimiento</span>
+            <ArrowLeftRight className="h-4 w-4" />
+            <span>Movimiento</span>
           </Button>
           <Button
             variant="ghost"
@@ -90,8 +90,8 @@ export function SessionStatusBar({
             onClick={onViewHistory}
             className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] h-9 gap-2 text-sm px-3"
           >
-            <ArrowUpCircle className="h-4 w-4" />
-            <span className="hidden sm:inline">Ventas</span>
+            <History className="h-4 w-4" />
+            <span>Ventas</span>
           </Button>
           <Button
             variant="ghost"
@@ -100,7 +100,7 @@ export function SessionStatusBar({
             className="text-red-400 hover:text-red-300 hover:bg-red-950/30 h-9 gap-2 text-sm px-3"
           >
             <XCircle className="h-4 w-4" />
-            <span className="hidden sm:inline">Cerrar Caja</span>
+            <span>Cerrar Caja</span>
           </Button>
         </div>
       </div>

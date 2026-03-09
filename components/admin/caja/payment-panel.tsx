@@ -198,8 +198,8 @@ export function PaymentPanel({
                     />
                   </div>
                   <div className="flex gap-2">
-                    {[Math.ceil(total / 1000) * 1000, Math.ceil(total / 5000) * 5000, Math.ceil(total / 10000) * 10000]
-                      .filter((v, i, a) => a.indexOf(v) === i && v >= total)
+                    {[1000, 2000, 5000, 10000, 20000]
+                      .filter((v) => v >= total)
                       .slice(0, 3)
                       .map((amount) => (
                         <button
@@ -314,7 +314,7 @@ export function PaymentPanel({
                       onClick={handleUseExactRemaining}
                       className="shrink-0 h-10 px-3 rounded-lg bg-[var(--admin-bg)] border border-[var(--admin-border)] text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-text-placeholder)] transition-colors cursor-pointer whitespace-nowrap"
                     >
-                      Exacto
+                      = {formatPrice(remaining)}
                     </button>
                   </div>
 
@@ -383,6 +383,8 @@ export function PaymentPanel({
               splitsComplete
                 ? `Confirmar pago dividido · ${formatPrice(total)}`
                 : `Faltan ${formatPrice(remaining)}`
+            ) : hasStockWarnings ? (
+              `Confirmar con stock insuficiente · ${METHOD_LABEL[method]}`
             ) : (
               `Confirmar ${METHOD_LABEL[method]}`
             )}

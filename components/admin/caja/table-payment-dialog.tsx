@@ -391,12 +391,8 @@ export function TablePaymentDialog({
 
               {/* Quick amounts */}
               <div className="flex gap-2">
-                {[
-                  Math.ceil(total / 1000) * 1000,
-                  Math.ceil(total / 5000) * 5000,
-                  Math.ceil(total / 10000) * 10000,
-                ]
-                  .filter((v, i, a) => a.indexOf(v) === i && v >= total)
+                {[1000, 2000, 5000, 10000, 20000]
+                  .filter((v) => v >= total)
                   .slice(0, 3)
                   .map((amount) => (
                     <button
@@ -453,7 +449,7 @@ export function TablePaymentDialog({
                 ))}
               </ul>
               <p className="text-xs text-amber-200/70">
-                Pods confirmar igual. La venta se registra pero el stock quedar en negativo.
+                Podés confirmar igual. La venta se registra pero el stock quedará en negativo.
               </p>
             </div>
           )}
@@ -472,6 +468,8 @@ export function TablePaymentDialog({
             >
               {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
+              ) : hasStockWarnings ? (
+                `Confirmar con stock insuficiente · ${PAYMENT_OPTIONS.find((o) => o.value === method)?.label}`
               ) : (
                 `Confirmar ${PAYMENT_OPTIONS.find((o) => o.value === method)?.label}`
               )}

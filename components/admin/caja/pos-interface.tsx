@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Store, UtensilsCrossed, History, Clock, Printer } from 'lucide-react'
 import { PosProductGrid } from './product-grid'
 import { OrderBuilder, type PosCartItem } from './order-builder'
@@ -12,6 +13,7 @@ import { TableGrid } from './table-grid'
 import { TableOrderPanel } from './table-order-panel'
 import { AddItemsDialog } from './add-items-dialog'
 import { TablePaymentDialog } from './table-payment-dialog'
+import { BottomSheet } from '@/components/ui/bottom-sheet'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   createMostadorOrder,
@@ -46,6 +48,8 @@ export function PosInterface({
   onCloseSession,
   onSessionUpdate,
 }: PosInterfaceProps) {
+  const router = useRouter()
+
   // Mode
   const [mode, setMode] = useState<PosMode>('mostrador')
 
@@ -68,6 +72,12 @@ export function PosInterface({
 
   // Cancel order confirm
   const [cancelOrderId, setCancelOrderId] = useState<string | null>(null)
+
+  // Mobile cart sheet (Mostrador)
+  const [showMobileCart, setShowMobileCart] = useState(false)
+
+  // Mobile table panel sheet (Mesas)
+  const [showMobileTablePanel, setShowMobileTablePanel] = useState(false)
 
   // Table state
   const [tables, setTables] = useState<TableWithOrder[]>(initialTables)
@@ -107,6 +117,11 @@ export function PosInterface({
     if (data) setPendingOrders(data)
     setPendingLoading(false)
   }, [session.id])
+
+  // Carga inicial de pedidos pendientes al montar (B1)
+  useEffect(() => {
+    void refreshPendingOrders()
+  }, [refreshPendingOrders])
 
   // ─── Mostrador handlers ─────────────────────────────────
   const handleAddItem = useCallback((product: Product) => {
@@ -219,6 +234,7 @@ export function PosInterface({
       return
     }
     toast.success('Venta anulada')
+    router.refresh()
     await handleLoadHistorial()
     const { data: summaryData } = await getSessionSummary(session.id)
     if (summaryData) {
@@ -262,6 +278,7 @@ export function PosInterface({
     if (data) {
       toast.success('Pago registrado')
       setPayingOrder(null)
+      router.refresh()
       await refreshPendingOrders()
 
       const orderTotal = payingOrder.total
@@ -305,13 +322,17 @@ export function PosInterface({
       if (updatedTables) {
         setTables(updatedTables)
         const opened = updatedTables.find((t) => t.id === table.id)
-        if (opened) setSelectedTable(opened)
+        if (opened) {
+          setSelectedTable(opened)
+          setShowMobileTablePanel(true)
+        }
       }
     }
   }
 
   const handleSelectTable = (table: TableWithOrder) => {
     setSelectedTable(table)
+    setShowMobileTablePanel(true)
   }
 
   const handleTableItemsAdded = async () => {
@@ -327,6 +348,7 @@ export function PosInterface({
   const handleTablePaid = async () => {
     setShowTablePayment(false)
     setSelectedTable(null)
+    router.refresh()
     await refreshTables()
     const { data: summary } = await getSessionSummary(session.id)
     if (summary) {
@@ -355,7 +377,7 @@ export function PosInterface({
           <Store className="h-4 w-4" />
           Mostrador
           {pendingOrders.length > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 text-xs font-bold bg-amber-500/20 text-amber-400 rounded-full">
+            <span className="ml-1 px-1.5 py-0.5 text-xs font-bold bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)] rounded-full">
               {pendingOrders.length}
             </span>
           )}
@@ -372,7 +394,7 @@ export function PosInterface({
           <UtensilsCrossed className="h-4 w-4" />
           Mesas
           {openTablesCount > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 text-xs font-bold bg-orange-500/20 text-orange-400 rounded-full">
+            <span className="ml-1 px-1.5 py-0.5 text-xs font-bold bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)] rounded-full">
               {openTablesCount}
             </span>
           )}
@@ -439,7 +461,12 @@ export function PosInterface({
                           >
                             {/* Card header */}
                             <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5 border-b border-[var(--admin-border)]/40">
-                              <span className={`text-xs font-bold ${urgencyClass}`}>{timeAgo}</span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-mono text-[var(--admin-text-muted)]">
+                                  #{order.id.slice(-4).toUpperCase()}
+                                </span>
+                                <span className={`text-xs font-bold ${urgencyClass}`}>{timeAgo}</span>
+                              </div>
                               <span className="text-sm font-bold text-[var(--admin-accent-text)]">
                                 {formatPrice(order.total)}
                               </span>
@@ -477,6 +504,7 @@ export function PosInterface({
                 <PosProductGrid
                   products={products}
                   categories={categories}
+                  cartItems={items}
                   onAddItem={handleAddItem}
                 />
               </div>
@@ -543,15 +571,35 @@ export function PosInterface({
         <div className="md:hidden fixed bottom-20 right-4 z-30">
           {items.length > 0 && (
             <button
-              onClick={handleCheckout}
-              disabled={confirmLoading}
-              className="bg-[var(--admin-accent)] text-black font-bold px-8 py-4 rounded-full shadow-lg shadow-[var(--admin-accent)]/30 flex items-center gap-2 active:scale-95 transition-transform disabled:opacity-60"
+              onClick={() => setShowMobileCart(true)}
+              className="bg-[var(--admin-accent)] text-black font-bold px-6 py-4 rounded-full shadow-lg shadow-[var(--admin-accent)]/30 flex items-center gap-2 active:scale-95 transition-transform"
             >
-              Confirmar ({items.length})
+              <span className="text-base font-black">{items.reduce((s, i) => s + i.quantity, 0)}</span>
+              <span>productos · {formatPrice(subtotal)}</span>
             </button>
           )}
         </div>
       )}
+
+      {/* Mobile cart sheet (Mostrador) */}
+      <BottomSheet
+        open={showMobileCart}
+        onClose={() => setShowMobileCart(false)}
+        title="Venta mostrador"
+      >
+        <OrderBuilder
+          items={items}
+          notes={notes}
+          loading={confirmLoading}
+          onUpdateQuantity={handleUpdateQuantity}
+          onRemoveItem={handleRemoveItem}
+          onSetNotes={setNotes}
+          onCheckout={async () => {
+            await handleConfirmOrder()
+            setShowMobileCart(false)
+          }}
+        />
+      </BottomSheet>
 
       {/* Status bar */}
       <SessionStatusBar
@@ -612,6 +660,35 @@ export function PosInterface({
             onPaid={handleTablePaid}
           />
         </>
+      )}
+
+      {/* Mobile table panel sheet (Mesas) */}
+      {selectedTable?.orders && (
+        <BottomSheet
+          open={showMobileTablePanel}
+          onClose={() => setShowMobileTablePanel(false)}
+          title={`Mesa ${selectedTable.number}`}
+        >
+          <TableOrderPanel
+            table={selectedTable}
+            session={session}
+            asSheet
+            onAddItems={(tag) => {
+              setAddItemsSaleTag(tag ?? null)
+              setShowAddItems(true)
+            }}
+            onRequestBill={handleTableBillRequested}
+            onPayOrder={() => {
+              setShowMobileTablePanel(false)
+              setShowTablePayment(true)
+            }}
+            onCancelOrder={() => {
+              setShowMobileTablePanel(false)
+              handleTableOrderCancelled()
+            }}
+            onClose={() => setShowMobileTablePanel(false)}
+          />
+        </BottomSheet>
       )}
     </div>
   )
