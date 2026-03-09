@@ -90,7 +90,8 @@ function IngredientCombobox({
     (i) => i.name.toLowerCase() === search.toLowerCase()
   )
 
-  const showCreateOption = search.trim().length > 0 && !exactMatch
+  // Show create option always (empty = "Crear nuevo"), or when typed name has no exact match
+  const showCreateOption = !exactMatch
 
   useEffect(() => {
     if (!open) { setSearch(''); return }
@@ -196,7 +197,10 @@ function IngredientCombobox({
                 >
                   <Plus className="h-3.5 w-3.5 shrink-0" />
                   <span>
-                    Crear <span className="font-semibold">&ldquo;{search.trim()}&rdquo;</span>
+                    {search.trim()
+                      ? <>Crear <span className="font-semibold">&ldquo;{search.trim()}&rdquo;</span></>
+                      : 'Crear nuevo ingrediente'
+                    }
                   </span>
                 </button>
               </li>
