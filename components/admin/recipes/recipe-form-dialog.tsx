@@ -79,8 +79,11 @@ function IngredientCombobox({
 }: IngredientComboboxProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  // P1: posición calculada para position:fixed (evita clipping por overflow del Dialog)
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 })
 
   const filtered = availableIngredients.filter((i) =>
     i.name.toLowerCase().includes(search.toLowerCase())
@@ -90,20 +93,44 @@ function IngredientCombobox({
     (i) => i.name.toLowerCase() === search.toLowerCase()
   )
 
-  // Show create option always (empty = "Crear nuevo"), or when typed name has no exact match
+  // P3: separar lógica de empty-state y de create-option
+  const showNoResults = search.trim() !== '' && filtered.length === 0
+  // Create siempre visible cuando no hay coincidencia exacta
   const showCreateOption = !exactMatch
+
+  // P1: calcular posición del dropdown en viewport
+  function recalcPos() {
+    if (!triggerRef.current) return
+    const rect = triggerRef.current.getBoundingClientRect()
+    setDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width })
+  }
 
   useEffect(() => {
     if (!open) { setSearch(''); return }
+    recalcPos()
     setTimeout(() => inputRef.current?.focus(), 50)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
-  // Close on click outside
+  // P1: reposicionar si el Dialog hace scroll o la ventana cambia de tamaño
+  useEffect(() => {
+    if (!open) return
+    window.addEventListener('scroll', recalcPos, true)
+    window.addEventListener('resize', recalcPos)
+    return () => {
+      window.removeEventListener('scroll', recalcPos, true)
+      window.removeEventListener('resize', recalcPos)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
+
+  // Cerrar al hacer click fuera (tanto del trigger como del dropdown fixed)
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
+      const target = e.target as Node
+      const insideTrigger = triggerRef.current?.contains(target)
+      const insideDropdown = containerRef.current?.contains(target)
+      if (!insideTrigger && !insideDropdown) setOpen(false)
     }
     if (open) document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
@@ -117,13 +144,15 @@ function IngredientCombobox({
     }).format(cost)
 
   return (
-    <div ref={containerRef} className="relative">
+    <div className="relative">
+      {/* Trigger */}
       <button
+        ref={triggerRef}
         type="button"
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'w-full flex items-center gap-2 h-9 px-3 rounded-md border border-dashed text-sm transition-colors',
+          'w-full flex items-center gap-2 h-9 px-3 rounded-md border border-dashed text-sm transition-colors cursor-pointer',
           'bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text-muted)]',
           'hover:border-[var(--admin-accent)]/50 hover:text-[var(--admin-text)]',
           'focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50',
@@ -136,16 +165,21 @@ function IngredientCombobox({
         <ChevronDown className={cn('h-3.5 w-3.5 shrink-0 transition-transform', open && 'rotate-180')} />
       </button>
 
+      {/* P1: dropdown con position:fixed para no ser clipeado por overflow del Dialog */}
       {open && (
-        <div className="absolute z-50 left-0 right-0 top-full mt-1 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] shadow-xl overflow-hidden">
-          {/* Search input */}
+        <div
+          ref={containerRef}
+          className="fixed rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] shadow-xl overflow-hidden"
+          style={{ zIndex: 10001, top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
+        >
+          {/* Buscador */}
           <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--admin-border)]">
             <Search className="h-3.5 w-3.5 text-[var(--admin-text-muted)] shrink-0" />
             <input
               ref={inputRef}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar ingrediente..."
+              placeholder="Buscar o escribir nuevo nombre..."
               className="flex-1 bg-transparent text-sm text-[var(--admin-text)] placeholder:text-[var(--admin-text-muted)] outline-none"
             />
             {search && (
@@ -159,22 +193,31 @@ function IngredientCombobox({
             )}
           </div>
 
-          {/* Results list */}
+          {/* Lista */}
           <ul className="max-h-48 overflow-y-auto py-1">
-            {filtered.length === 0 && !showCreateOption && (
+            {/* P3: empty state correcto — solo cuando hay búsqueda sin resultados */}
+            {showNoResults && !showCreateOption && (
               <li className="px-3 py-2 text-xs text-[var(--admin-text-muted)] text-center">
-                No hay ingredientes disponibles
+                Sin resultados para &ldquo;{search}&rdquo;
               </li>
             )}
+            {showNoResults && showCreateOption && (
+              <li className="px-3 py-2 text-xs text-[var(--admin-text-muted)] text-center">
+                No existe ese ingrediente — podés crearlo ↓
+              </li>
+            )}
+            {!showNoResults && filtered.length === 0 && !search && (
+              <li className="px-3 py-2 text-xs text-[var(--admin-text-muted)] text-center">
+                Todos los ingredientes ya están en la receta
+              </li>
+            )}
+
             {filtered.map((ing) => (
               <li key={ing.id}>
                 <button
                   type="button"
-                  onClick={() => {
-                    onSelect(ing.id)
-                    setOpen(false)
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 text-sm text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors text-left"
+                  onClick={() => { onSelect(ing.id); setOpen(false) }}
+                  className="w-full flex items-center justify-between px-3 py-2 text-sm text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors text-left cursor-pointer"
                 >
                   <span className="truncate">{ing.name}</span>
                   <span className="text-xs text-[var(--admin-text-muted)] shrink-0 ml-2">
@@ -184,16 +227,13 @@ function IngredientCombobox({
               </li>
             ))}
 
-            {/* Create option */}
+            {/* Opción crear — siempre visible al final */}
             {showCreateOption && (
               <li className="border-t border-[var(--admin-border)] mt-1 pt-1">
                 <button
                   type="button"
-                  onClick={() => {
-                    setOpen(false)
-                    onCreateRequest(search.trim())
-                  }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 transition-colors text-left"
+                  onClick={() => { setOpen(false); onCreateRequest(search.trim()) }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 transition-colors text-left cursor-pointer"
                 >
                   <Plus className="h-3.5 w-3.5 shrink-0" />
                   <span>
@@ -266,7 +306,8 @@ function CreateIngredientDialog({
       }
 
       if (result.data) {
-        toast.success(`Ingrediente "${result.data.name}" creado`)
+        // P5: toast con detalle del auto-add
+        toast.success(`"${result.data.name}" creado y agregado a la receta`)
         onCreated(result.data as Ingredient)
         onOpenChange(false)
       }
@@ -277,6 +318,10 @@ function CreateIngredientDialog({
     }
   }
 
+  // P4: advertencia costo cero
+  const costValue = costRaw === '' ? 0 : parseFloat(costRaw)
+  const showZeroCostWarning = !isNaN(costValue) && costValue === 0
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] sm:max-w-sm shadow-2xl">
@@ -284,12 +329,9 @@ function CreateIngredientDialog({
           <DialogTitle className="text-base font-semibold text-[var(--admin-text)]">
             Nuevo Ingrediente
           </DialogTitle>
-          <p className="text-[var(--admin-text-muted)] text-xs mt-0.5">
-            Se creará y agregará a la receta automáticamente
-          </p>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-3 mt-3">
+        <form onSubmit={handleSubmit} className="space-y-3 mt-1">
           {/* Name */}
           <div className="space-y-1.5">
             <Label htmlFor="ing-name" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
@@ -331,6 +373,10 @@ function CreateIngredientDialog({
                 ))}
               </SelectContent>
             </Select>
+            {/* P6: helper text de unidad base */}
+            <p className="text-xs text-[var(--admin-text-muted)]/70">
+              Define cómo se registra el precio. Ej: $1000/kg → elegir kg.
+            </p>
           </div>
 
           {/* Cost */}
@@ -353,6 +399,13 @@ function CreateIngredientDialog({
                 className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-9 text-sm pl-7 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
               />
             </div>
+            {/* P4: advertencia costo cero */}
+            {showZeroCostWarning && (
+              <p className="text-xs text-amber-400/80 flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3 shrink-0" />
+                Sin costo, no sumará al total de la receta. Podés editarlo después.
+              </p>
+            )}
           </div>
 
           <div className="flex gap-2 pt-1">
