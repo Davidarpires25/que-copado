@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { createPortal } from 'react-dom'
 import { Loader2, AlertTriangle, Plus, X, RefreshCw, Search, ChevronDown } from 'lucide-react'
 import {
   Dialog,
@@ -172,8 +171,8 @@ function IngredientCombobox({
         <ChevronDown className={cn('h-3.5 w-3.5 shrink-0 transition-transform', open && 'rotate-180')} />
       </button>
 
-      {/* Portal al body: evita que el transform del DialogContent rompa position:fixed */}
-      {open && createPortal(
+      {/* P1: dropdown con position:fixed para no ser clipeado por overflow del Dialog */}
+      {open && (
         <div
           ref={containerRef}
           className="fixed rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] shadow-xl overflow-hidden"
@@ -253,8 +252,7 @@ function IngredientCombobox({
               </li>
             )}
           </ul>
-        </div>,
-        document.body
+        </div>
       )}
     </div>
   )
