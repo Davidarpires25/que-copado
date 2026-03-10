@@ -107,7 +107,9 @@ function IngredientCombobox({
 
   useEffect(() => {
     if (!open) { setSearch(''); return }
+    recalcPos()
     setTimeout(() => inputRef.current?.focus(), 50)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   // P1: reposicionar si el Dialog hace scroll o la ventana cambia de tamaño
@@ -148,15 +150,7 @@ function IngredientCombobox({
         ref={triggerRef}
         type="button"
         disabled={disabled}
-        onClick={() => {
-          // Calcular posición ANTES de abrir: React 18 batea ambos setState
-          // en un solo render → dropdown aparece con dimensiones correctas desde el inicio
-          if (!open && triggerRef.current) {
-            const rect = triggerRef.current.getBoundingClientRect()
-            setDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width })
-          }
-          setOpen((v) => !v)
-        }}
+        onClick={() => setOpen((v) => !v)}
         className={cn(
           'w-full flex items-center gap-2 h-9 px-3 rounded-md border border-dashed text-sm transition-colors cursor-pointer',
           'bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text-muted)]',
