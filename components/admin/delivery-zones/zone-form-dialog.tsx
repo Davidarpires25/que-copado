@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MapPin, CircleDot, Hexagon } from 'lucide-react'
+import { MapPin, CircleDot, Hexagon, Info } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -175,17 +175,13 @@ function ZoneFormContent({ zone, drawnGeometry, onZoneUpdated, onZoneCreated, on
           )}
         </div>
       ) : (
-        <div className="rounded-xl border border-amber-600/50 bg-gradient-to-br from-amber-900/20 to-orange-900/20 p-4">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-              <MapPin className="h-4 w-4 text-amber-400" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-amber-300 mb-1">Área de cobertura requerida</p>
-              <p className="text-xs text-amber-400/80">
-                Dibuja un <strong>polígono</strong> o un <strong>círculo</strong> en el mapa para definir el área
-              </p>
-            </div>
+        <div className="flex items-start gap-3 rounded-lg border border-sky-700/40 bg-sky-950/40 px-4 py-3">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+          <div>
+            <p className="text-sm font-medium text-sky-300 mb-0.5">Área de cobertura requerida</p>
+            <p className="text-xs text-sky-300/70">
+              Dibuja un <strong>polígono</strong> o un <strong>círculo</strong> en el mapa para definir el área
+            </p>
           </div>
         </div>
       )}

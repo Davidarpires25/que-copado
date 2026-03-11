@@ -76,6 +76,11 @@ export interface PaymentSplit {
   method: PaymentMethod
 }
 
+// Order with its payment splits (for historial)
+export interface OrderWithSplits extends Order {
+  payment_splits: Array<{ amount: number; method: string }> | null
+}
+
 // Data to create a cash movement
 export interface CreateCashMovementData {
   session_id: string

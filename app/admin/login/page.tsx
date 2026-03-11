@@ -36,11 +36,11 @@ export default function LoginPage() {
       >
         <Card className="w-full max-w-md bg-[#1a1d24]/80 backdrop-blur-xl border-[#252a35] shadow-2xl">
           <CardHeader className="text-center pb-6 space-y-4">
-            <div
-              className="mx-auto w-20 h-20 bg-[#FEC501] rounded-2xl flex items-center justify-center text-4xl shadow-lg shadow-[#FEC501]/25"
-            >
-              🍔
-            </div>
+            <img
+              src="/logo.svg"
+              alt="Que Copado"
+              className="mx-auto w-20 h-20 object-contain drop-shadow-lg"
+            />
             <div>
               <CardTitle className="text-3xl font-bold text-[#f0f2f5] mb-2">
                 Que <span className="text-[#FEC501]">Copado</span>

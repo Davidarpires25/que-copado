@@ -212,7 +212,7 @@ export function PaymentPanel({
                       ))}
                   </div>
                   {cashAmount > 0 && (
-                    <div className={cn('text-center py-2 rounded-lg', change >= 0 ? 'bg-green-950/30 text-green-400' : 'bg-red-950/30 text-red-400')}>
+                    <div className={cn('text-center py-2 rounded-lg border', change >= 0 ? 'bg-green-950/40 border-green-800/40 text-green-300' : 'bg-red-950/40 border-red-800/40 text-red-300')}>
                       <p className="text-sm">Vuelto</p>
                       <p className="text-2xl font-bold">{formatPrice(Math.max(0, change))}</p>
                     </div>
@@ -346,7 +346,7 @@ export function PaymentPanel({
             </div>
           )}
           {!stockChecking && hasStockWarnings && (
-            <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 space-y-2">
+            <div className="rounded-xl bg-amber-950/50 border border-amber-500/40 px-4 py-3 space-y-2">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
                 <p className="text-sm font-semibold text-amber-300">Stock insuficiente para este pedido</p>

@@ -127,7 +127,7 @@ export function CategoryFormDialog({
           {/* Name */}
           <div className="space-y-1.5">
             <Label htmlFor="name" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
-              Nombre <span className="text-red-400 ml-0.5">*</span>
+              Nombre <span className="text-red-300 ml-0.5">*</span>
             </Label>
             <Input
               id="name"
@@ -143,7 +143,7 @@ export function CategoryFormDialog({
               maxLength={100}
             />
             {nameError && (
-              <p className="text-xs text-red-400 flex items-center gap-1">
+              <p className="text-xs text-red-300 flex items-center gap-1">
                 {nameError}
               </p>
             )}

@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Minus, Plus, Trash2, ShoppingCart, Loader2 } from 'lucide-react'
+import { Minus, Plus, Trash2, ShoppingCart, Loader2, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { formatPrice } from '@/lib/utils'
@@ -15,9 +16,11 @@ interface OrderBuilderProps {
   items: PosCartItem[]
   notes: string
   loading?: boolean
+  hasKitchenItems?: boolean
   onUpdateQuantity: (id: string, delta: number) => void
   onRemoveItem: (id: string) => void
   onSetNotes: (notes: string) => void
+  onSetItemNotes: (id: string, notes: string) => void
   onCheckout: () => void
 }
 
@@ -25,11 +28,24 @@ export function OrderBuilder({
   items,
   notes,
   loading = false,
+  hasKitchenItems = true,
   onUpdateQuantity,
   onRemoveItem,
   onSetNotes,
+  onSetItemNotes,
   onCheckout,
 }: OrderBuilderProps) {
+  const [notesOpen, setNotesOpen] = useState<Set<string>>(new Set())
+
+  const toggleNote = (id: string) => {
+    setNotesOpen((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
 
@@ -62,15 +78,47 @@ export function OrderBuilder({
           items.map((item) => (
             <div
               key={item.id}
-              className="flex items-center gap-3 bg-[var(--admin-surface)] rounded-lg p-3 border border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)] transition-colors"
+              className="flex items-start gap-3 bg-[var(--admin-surface)] rounded-lg p-3 border border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)] transition-colors"
             >
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[var(--admin-text)] truncate">
                   {item.name}
                 </p>
-                <p className="text-xs text-[var(--admin-accent-text)] font-bold mt-0.5">
-                  {formatPrice(item.price * item.quantity)}
-                </p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <p className="text-xs text-[var(--admin-accent-text)] font-bold">
+                    {formatPrice(item.price * item.quantity)}
+                  </p>
+                  <button
+                    onClick={() => toggleNote(item.id)}
+                    className="flex items-center gap-0.5 text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-accent-text)] transition-colors"
+                  >
+                    <MessageSquare className="h-3 w-3" />
+                    {!item.notes && !notesOpen.has(item.id) && (
+                      <span>nota</span>
+                    )}
+                  </button>
+                </div>
+                {item.notes && !notesOpen.has(item.id) && (
+                  <p
+                    className="text-xs italic text-[var(--admin-text-muted)] mt-0.5 cursor-pointer"
+                    onClick={() => toggleNote(item.id)}
+                  >
+                    {item.notes}
+                  </p>
+                )}
+                {notesOpen.has(item.id) && (
+                  <input
+                    autoFocus
+                    value={item.notes ?? ''}
+                    onChange={(e) => onSetItemNotes(item.id, e.target.value)}
+                    onBlur={() => {
+                      // hide input if empty on blur
+                      if (!item.notes) toggleNote(item.id)
+                    }}
+                    placeholder="sin queso, sin lechuga..."
+                    className="mt-1 w-full text-xs bg-transparent border-b border-[var(--admin-border)] focus:border-[var(--admin-accent)]/50 text-[var(--admin-text)] placeholder:text-[var(--admin-text-faint)] outline-none py-0.5"
+                  />
+                )}
               </div>
 
               <div className="flex items-center gap-1.5">
@@ -143,8 +191,10 @@ export function OrderBuilder({
         >
           {loading ? (
             <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
+          ) : hasKitchenItems ? (
             'Confirmar pedido'
+          ) : (
+            'Confirmar y cobrar'
           )}
         </Button>
       </div>

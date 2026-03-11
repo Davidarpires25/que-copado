@@ -4,6 +4,7 @@ import { Footer } from '@/components/footer'
 import { HeroSection } from '@/components/home/hero-section'
 import { SideDeals } from '@/components/home/side-deals'
 import { ProductGrid } from '@/components/product-grid'
+import { calcElaboradoStock } from '@/lib/server/stock-deduction'
 import type { Category, Product } from '@/lib/types/database'
 
 export const revalidate = 60
@@ -34,6 +35,29 @@ export default async function HomePage() {
     return a.name.localeCompare(b.name)
   })
 
+  // Compute available quantities for products with stock tracking.
+  // Used to: (1) show urgency badge, (2) override is_out_of_stock when DB flag
+  // hasn't been synced yet (e.g. stock manually set to 0 from admin panel).
+  const stockMap: Record<string, number> = {}
+  await Promise.all(
+    (products).map(async (p) => {
+      if (p.product_type === 'reventa' && p.stock_tracking_enabled && p.current_stock !== null) {
+        stockMap[p.id] = Math.max(0, Math.floor(Number(p.current_stock)))
+      } else if (p.product_type === 'elaborado') {
+        const qty = await calcElaboradoStock(supabase, p.id)
+        if (qty !== null) stockMap[p.id] = Math.max(0, qty)
+      }
+    })
+  )
+
+  // Override is_out_of_stock based on real-time computed stock so the cart
+  // button is always correct, even when the DB flag hasn't been synced yet.
+  const productsWithStock = products.map(p =>
+    p.id in stockMap && stockMap[p.id] === 0
+      ? { ...p, is_out_of_stock: true }
+      : p
+  )
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
       <Header />
@@ -63,7 +87,7 @@ export default async function HomePage() {
               </p>
             </div>
 
-            <ProductGrid products={products ?? []} categories={categories ?? []} />
+            <ProductGrid products={productsWithStock} categories={categories ?? []} stockMap={stockMap} />
           </div>
         </section>
       </main>

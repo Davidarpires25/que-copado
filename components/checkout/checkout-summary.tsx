@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Shield, ImageOff, AlertTriangle, MapPin, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
@@ -34,6 +34,7 @@ export function CheckoutSummary({
   const getTotal = useCartStore((s) => s.getTotal)
   const updateQuantity = useCartStore((s) => s.updateQuantity)
   const [showDetails, setShowDetails] = useState(false)
+  const shouldReduceMotion = useReducedMotion()
 
   const subtotal = getTotal()
 
@@ -61,7 +62,7 @@ export function CheckoutSummary({
     <>
       {/* Desktop Version - Card sticky */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="hidden lg:block bg-white rounded-2xl border border-orange-100 shadow-warm-lg overflow-hidden sticky top-24"
       >
@@ -115,6 +116,7 @@ export function CheckoutSummary({
                       updateQuantity(item.product.id, item.quantity - 1)
                     }
                     size="sm"
+                    productName={item.product.name}
                   />
                 </div>
               </div>
@@ -208,8 +210,11 @@ export function CheckoutSummary({
               disabled={isLoading || items.length === 0 || isBlocked}
               className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6 shadow-lg hover:shadow-xl transition-all rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <WhatsAppIcon className="mr-2 h-5 w-5" />
-              {isLoading ? 'Enviando...' : 'Pedir por WhatsApp'}
+              {isLoading ? (
+                <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Procesando...</>
+              ) : (
+                <><WhatsAppIcon className="mr-2 h-5 w-5" />Pedir por WhatsApp</>
+              )}
             </Button>
           )}
 
@@ -223,7 +228,7 @@ export function CheckoutSummary({
 
       {/* Mobile Version - Floating bottom bar */}
       <motion.div
-        initial={{ y: 100, opacity: 0 }}
+        initial={shouldReduceMotion ? false : { y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-orange-100 shadow-warm-xl"
       >
@@ -231,9 +236,9 @@ export function CheckoutSummary({
         <AnimatePresence>
           {showDetails && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
+              initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+              animate={shouldReduceMotion ? { opacity: 1 } : { height: 'auto', opacity: 1 }}
+              exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="overflow-hidden border-b border-orange-100"
             >
@@ -323,8 +328,11 @@ export function CheckoutSummary({
               disabled={isLoading || items.length === 0 || isBlocked}
               className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-4 shadow-lg rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <WhatsAppIcon className="mr-2 h-5 w-5" />
-              {isLoading ? 'Enviando...' : 'Pedir por WhatsApp'}
+              {isLoading ? (
+                <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Procesando...</>
+              ) : (
+                <><WhatsAppIcon className="mr-2 h-5 w-5" />Pedir por WhatsApp</>
+              )}
             </Button>
           )}
         </div>

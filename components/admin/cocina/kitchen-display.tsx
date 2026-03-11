@@ -7,10 +7,8 @@ import { getActiveComandas } from '@/app/actions/comandas'
 import { ComandaCard } from './comanda-card'
 import { cn } from '@/lib/utils'
 import type { Comanda } from '@/lib/types/comandas'
-import type { Station } from '@/lib/types/comandas'
 
 type ComandaWithOrder = Comanda & { order_type: string | null; table_number: number | null }
-type StationFilter = 'all' | Station
 
 interface KitchenDisplayProps {
   initialComandas: ComandaWithOrder[]
@@ -18,7 +16,6 @@ interface KitchenDisplayProps {
 
 export function KitchenDisplay({ initialComandas }: KitchenDisplayProps) {
   const [comandas, setComandas] = useState<ComandaWithOrder[]>(initialComandas)
-  const [filter, setFilter] = useState<StationFilter>('all')
   const [lastUpdated, setLastUpdated] = useState(new Date())
   const [refreshing, setRefreshing] = useState(false)
 
@@ -57,10 +54,6 @@ export function KitchenDisplay({ initialComandas }: KitchenDisplayProps) {
     }
   }, [refresh])
 
-  const filtered = filter === 'all'
-    ? comandas
-    : comandas.filter((c) => c.station === filter)
-
   const pendingCount = comandas.filter((c) => c.status === 'pendiente').length
   const inPrepCount = comandas.filter((c) => c.status === 'en_preparacion').length
 
@@ -87,23 +80,6 @@ export function KitchenDisplay({ initialComandas }: KitchenDisplayProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Station filter */}
-          <div className="flex gap-1">
-            {(['all', 'cocina', 'barra'] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => setFilter(s)}
-                className={cn(
-                  'px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors',
-                  filter === s
-                    ? 'bg-[var(--admin-accent)] text-black'
-                    : 'bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
-                )}
-              >
-                {s === 'all' ? 'Todas' : s === 'cocina' ? 'Cocina' : 'Barra'}
-              </button>
-            ))}
-          </div>
 
           <button
             onClick={refresh}
@@ -122,7 +98,7 @@ export function KitchenDisplay({ initialComandas }: KitchenDisplayProps) {
 
       {/* Comandas grid */}
       <div className="flex-1 p-6 overflow-y-auto">
-        {filtered.length === 0 ? (
+        {comandas.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-[var(--admin-text-muted)]">
             <span className="text-5xl mb-4">✅</span>
             <p className="text-lg font-semibold">Sin comandas activas</p>
@@ -130,7 +106,7 @@ export function KitchenDisplay({ initialComandas }: KitchenDisplayProps) {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-max">
-            {filtered.map((comanda) => (
+            {comandas.map((comanda) => (
               <ComandaCard key={comanda.id} comanda={comanda} />
             ))}
           </div>

@@ -13,6 +13,7 @@ import type {
   SessionSummary,
 } from '@/lib/types/cash-register'
 import type { Order } from '@/lib/types/database'
+import type { OrderWithSplits } from '@/lib/types/cash-register'
 
 /**
  * Abrir una nueva sesion de caja
@@ -155,7 +156,7 @@ export async function closeSession(
  */
 export async function getSessionOrders(
   sessionId: string
-): Promise<{ data: Order[] | null; error: string | null }> {
+): Promise<{ data: OrderWithSplits[] | null; error: string | null }> {
   try {
     const supabase = await createAdminClient()
     const user = await getAuthUser(supabase)
@@ -163,7 +164,7 @@ export async function getSessionOrders(
 
     const { data, error } = await supabase
       .from('orders')
-      .select('*')
+      .select('*, payment_splits (amount, method)')
       .eq('cash_register_session_id', sessionId)
       .order('created_at', { ascending: false })
 
@@ -172,7 +173,7 @@ export async function getSessionOrders(
       return { data: null, error: 'Error al cargar ordenes' }
     }
 
-    return { data: data as Order[], error: null }
+    return { data: data as OrderWithSplits[], error: null }
   } catch (error) {
     devError('Error in getSessionOrders:', error)
     return { data: null, error: 'Error inesperado' }

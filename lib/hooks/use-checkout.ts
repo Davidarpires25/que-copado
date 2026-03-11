@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/lib/store/cart-store'
 import { getActiveDeliveryZones } from '@/app/actions/delivery-zones'
 import { calculateShippingCost } from '@/app/actions/shipping'
@@ -12,6 +13,7 @@ import { toast } from 'sonner'
 import type { DeliveryZone, ShippingResult } from '@/lib/types/database'
 import type { DeliveryFormData, DeliveryType, PaymentMethod } from '@/components/checkout/delivery-form'
 import type { OrderItem } from '@/lib/types/orders'
+import type { PendingOrder } from '@/app/order-confirmation/page'
 
 const SHIPPING_CALC_DEBOUNCE_MS = 300
 
@@ -30,7 +32,8 @@ const PICKUP_SHIPPING: ShippingResult = {
 }
 
 export function useCheckout() {
-  const { items, getTotal, clearCart } = useCartStore()
+  const router = useRouter()
+  const { items, getTotal } = useCartStore()
 
   // Form state
   const [deliveryType, setDeliveryType] = useState<DeliveryType | null>(null)
@@ -45,6 +48,7 @@ export function useCheckout() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash')
   const [cashAmount, setCashAmount] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<'name' | 'phone' | 'address', string>>>({})
 
   // Business status
   const [isAcceptingOrders, setIsAcceptingOrders] = useState(true)
@@ -154,24 +158,20 @@ export function useCheckout() {
       return
     }
 
-    if (!deliveryData.name.trim()) {
-      toast.error('Por favor ingresá tu nombre')
+    // Accumulative field validation
+    const errors: Partial<Record<'name' | 'phone' | 'address', string>> = {}
+    if (!deliveryData.name.trim()) errors.name = 'Ingresá tu nombre'
+    if (!deliveryData.phone.trim()) errors.phone = 'Ingresá tu teléfono'
+    if (deliveryType === 'delivery' && !deliveryData.address.trim()) errors.address = 'Ingresá tu dirección'
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
       return
     }
-    if (!deliveryData.phone.trim()) {
-      toast.error('Por favor ingresá tu teléfono')
-      return
-    }
+    setFieldErrors({})
 
-    if (deliveryType === 'delivery') {
-      if (!deliveryData.address.trim()) {
-        toast.error('Por favor ingresá tu dirección')
-        return
-      }
-      if (shippingResult.isOutOfCoverage && zones.length > 0) {
-        toast.error('Tu ubicación está fuera de nuestra zona de cobertura')
-        return
-      }
+    if (deliveryType === 'delivery' && shippingResult.isOutOfCoverage && zones.length > 0) {
+      toast.error('Tu ubicación está fuera de nuestra zona de cobertura')
+      return
     }
 
     setIsLoading(true)
@@ -300,9 +300,13 @@ export function useCheckout() {
         process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5491100000000'
       const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
 
-      window.open(whatsappUrl, '_blank')
-      clearCart()
-      toast.success('Pedido enviado! Te redirigimos a WhatsApp')
+      const pendingOrder: PendingOrder = {
+        whatsappUrl,
+        customerName: deliveryData.name,
+        itemCount: items.reduce((acc, i) => acc + i.quantity, 0),
+      }
+      sessionStorage.setItem('qc_pending_order', JSON.stringify(pendingOrder))
+      router.push('/order-confirmation')
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
         console.error('Error en checkout:', error)
@@ -313,8 +317,17 @@ export function useCheckout() {
     }
   }, [
     isAcceptingOrders, businessMessage, deliveryType, deliveryData,
-    shippingResult, zones, items, getTotal, clearCart, paymentMethod, cashAmount,
+    shippingResult, zones, items, getTotal, paymentMethod, cashAmount, router,
   ])
+
+  const clearFieldError = useCallback((field: 'name' | 'phone' | 'address') => {
+    setFieldErrors(prev => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }, [])
 
   return {
     // Cart
@@ -326,6 +339,7 @@ export function useCheckout() {
     paymentMethod,
     cashAmount,
     isLoading,
+    fieldErrors,
 
     // Business status
     isAcceptingOrders,
@@ -344,5 +358,6 @@ export function useCheckout() {
     onPaymentMethodChange: setPaymentMethod,
     onCashAmountChange: setCashAmount,
     onCheckout: handleCheckout,
+    clearFieldError,
   }
 }

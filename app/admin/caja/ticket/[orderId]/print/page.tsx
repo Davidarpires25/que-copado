@@ -5,12 +5,25 @@ import type { Order } from '@/lib/types/database'
 
 interface PageProps {
   params: Promise<{ orderId: string }>
-  searchParams: Promise<{ cash?: string }>
+  searchParams: Promise<{ cash?: string; kitchen?: string; tag?: string }>
+}
+
+export async function generateMetadata({ params, searchParams }: PageProps) {
+  const { orderId } = await params
+  const { kitchen } = await searchParams
+  const isKitchen = kitchen === '1'
+  return {
+    title: isKitchen
+      ? `Cocina #${orderId.slice(-8).toUpperCase()}`
+      : `Ticket #${orderId.slice(-8).toUpperCase()}`,
+  }
 }
 
 export default async function TicketPrintPage({ params, searchParams }: PageProps) {
   const { orderId } = await params
-  const { cash } = await searchParams
+  const { cash, kitchen, tag } = await searchParams
+  const isKitchen = kitchen === '1'
+  const guestTag = tag ?? null
 
   const supabase = await createAdminClient()
 
@@ -22,48 +35,51 @@ export default async function TicketPrintPage({ params, searchParams }: PageProp
 
   if (error || !order) notFound()
 
-  // Try to get normalized items from order_items, fallback to JSON items
+  // Fetch order_items with product_type and sale_tag for filtering
   const { data: orderItemRows } = await supabase
     .from('order_items')
-    .select('product_name, quantity, product_price, status')
+    .select('product_name, quantity, product_price, notes, status, sale_tag, products(product_type)')
     .eq('order_id', orderId)
-    .eq('status', 'pendiente')
+    .neq('status', 'cancelado')
 
-  const items = orderItemRows && orderItemRows.length > 0
-    ? orderItemRows.map((i) => ({
+  let items: { name: string; quantity: number; price: number; notes?: string | null }[] = []
+
+  if (orderItemRows && orderItemRows.length > 0) {
+    items = orderItemRows
+      .filter((i) => {
+        if (isKitchen) {
+          const product = i.products as unknown as { product_type: string | null } | null
+          return product?.product_type === 'elaborado'
+        }
+        if (guestTag) return i.sale_tag === guestTag
+        return true
+      })
+      .map((i) => ({
         name: i.product_name,
         quantity: i.quantity,
         price: i.product_price,
+        notes: i.notes ?? null,
       }))
-    : (Array.isArray(order.items)
-        ? (order.items as { name?: string; quantity?: number; price?: number }[]).map((i) => ({
-            name: i.name ?? '',
-            quantity: i.quantity ?? 1,
-            price: i.price ?? 0,
-          }))
-        : [])
+  } else if (!isKitchen && !guestTag) {
+    // Fallback to JSON items only for full customer ticket
+    items = Array.isArray(order.items)
+      ? (order.items as { name?: string; quantity?: number; price?: number }[]).map((i) => ({
+          name: i.name ?? '',
+          quantity: i.quantity ?? 1,
+          price: i.price ?? 0,
+        }))
+      : []
+  }
 
   const cashReceived = cash ? parseFloat(cash) : undefined
 
   return (
-    <html>
-      <head>
-        <title>Ticket #{orderId.slice(-8).toUpperCase()}</title>
-        <style>{`
-          @media print {
-            @page { margin: 0; size: 80mm auto; }
-            body { margin: 0; }
-          }
-          body { font-family: 'Courier New', monospace; }
-        `}</style>
-      </head>
-      <body>
-        <TicketPrintLayout
-          order={order as Order}
-          items={items}
-          cashReceived={cashReceived}
-        />
-      </body>
-    </html>
+    <TicketPrintLayout
+      order={order as Order}
+      items={items}
+      cashReceived={cashReceived}
+      isKitchen={isKitchen}
+      guestName={guestTag ?? undefined}
+    />
   )
 }

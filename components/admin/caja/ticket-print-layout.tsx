@@ -8,12 +8,15 @@ interface TicketItem {
   name: string
   quantity: number
   price: number
+  notes?: string | null
 }
 
 interface TicketPrintLayoutProps {
   order: Order
   items: TicketItem[]
   cashReceived?: number
+  isKitchen?: boolean
+  guestName?: string
 }
 
 const PAYMENT_LABELS: Record<string, string> = {
@@ -23,8 +26,19 @@ const PAYMENT_LABELS: Record<string, string> = {
   mercadopago: 'Mercado Pago',
 }
 
-export function TicketPrintLayout({ order, items, cashReceived }: TicketPrintLayoutProps) {
+const PRINT_STYLES = `
+  @media print {
+    @page { margin: 0; size: 80mm auto; }
+    body > *:not(#ticket-root) { display: none !important; }
+    body { margin: 0; background: white; }
+  }
+  #ticket-root { font-family: 'Courier New', monospace; }
+`
+
+export function TicketPrintLayout({ order, items, cashReceived, isKitchen = false, guestName }: TicketPrintLayoutProps) {
   useEffect(() => {
+    // When loaded inside a hidden iframe, the parent controls printing
+    if (window.self !== window.top) return
     const timer = setTimeout(() => window.print(), 400)
     return () => clearTimeout(timer)
   }, [])
@@ -37,24 +51,69 @@ export function TicketPrintLayout({ order, items, cashReceived }: TicketPrintLay
     : 'Mostrador'
 
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0)
-  const change = cashReceived ? cashReceived - order.total : 0
+  const displayTotal = guestName ? subtotal : order.total
+  const change = cashReceived ? cashReceived - displayTotal : 0
+
+  if (isKitchen) {
+    return (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: PRINT_STYLES }} />
+      <div id="ticket-root" className="w-[300px] font-mono text-sm leading-snug p-2">
+        {/* Kitchen header */}
+        <div className="text-center border-b-2 border-black pb-2 mb-3">
+          <p className="font-bold text-2xl tracking-widest">COCINA</p>
+          <p className="text-xs">──────────────────────</p>
+          <p className="font-bold text-base">{orderLabel}</p>
+          <p className="text-xs">{dateStr} · {timeStr}</p>
+          <p className="text-xs opacity-60 mt-0.5">#{order.id.slice(-8).toUpperCase()}</p>
+        </div>
+
+        {/* Items — large, no prices */}
+        {items.length === 0 ? (
+          <p className="text-center text-sm opacity-60 py-2">Sin items de cocina</p>
+        ) : (
+          <div className="space-y-2 mb-2">
+            {items.map((item, i) => (
+              <div key={i} className="mb-1">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-bold text-lg w-8 shrink-0">{item.quantity}x</span>
+                  <span className="text-base font-semibold">{item.name}</span>
+                </div>
+                {item.notes && (
+                  <p className="ml-10 text-sm italic">→ {item.notes}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      </>
+    )
+  }
 
   return (
-    <div className="w-[300px] font-mono text-sm leading-snug p-2">
+    <>
+      <style dangerouslySetInnerHTML={{ __html: PRINT_STYLES }} />
+    <div id="ticket-root" className="w-[300px] font-mono text-sm leading-snug p-2">
       {/* Header */}
       <div className="text-center border-b border-dashed border-black pb-2 mb-2">
-        <p className="font-bold text-base">QUE COPADO 🍔</p>
+        <p className="font-bold text-base">QUE COPADO</p>
         <p className="text-xs">──────────────────────</p>
-        <p className="text-sm">{orderLabel}</p>
+        <p className="text-sm">{orderLabel}{guestName ? ` · ${guestName}` : ''}</p>
         <p className="text-xs">{dateStr} · {timeStr}</p>
       </div>
 
       {/* Items */}
       <div className="space-y-1 mb-2">
         {items.map((item, i) => (
-          <div key={i} className="flex justify-between gap-2">
-            <span>{item.quantity}x {item.name}</span>
-            <span className="shrink-0">{formatPrice(item.price * item.quantity)}</span>
+          <div key={i}>
+            <div className="flex justify-between gap-2">
+              <span>{item.quantity}x {item.name}</span>
+              <span className="shrink-0">{formatPrice(item.price * item.quantity)}</span>
+            </div>
+            {item.notes && (
+              <p className="ml-4 text-xs italic opacity-70">→ {item.notes}</p>
+            )}
           </div>
         ))}
       </div>
@@ -75,7 +134,7 @@ export function TicketPrintLayout({ order, items, cashReceived }: TicketPrintLay
         )}
         <div className="flex justify-between font-bold">
           <span>TOTAL</span>
-          <span>{formatPrice(order.total)}</span>
+          <span>{formatPrice(displayTotal)}</span>
         </div>
       </div>
 
@@ -83,7 +142,7 @@ export function TicketPrintLayout({ order, items, cashReceived }: TicketPrintLay
       <div className="border-t border-dashed border-black pt-2 space-y-1">
         <div className="flex justify-between">
           <span>{PAYMENT_LABELS[order.payment_method] ?? order.payment_method}</span>
-          <span>{cashReceived ? formatPrice(cashReceived) : formatPrice(order.total)}</span>
+          <span>{cashReceived ? formatPrice(cashReceived) : formatPrice(displayTotal)}</span>
         </div>
         {cashReceived && change > 0 && (
           <div className="flex justify-between">
@@ -95,9 +154,10 @@ export function TicketPrintLayout({ order, items, cashReceived }: TicketPrintLay
 
       {/* Footer */}
       <div className="text-center text-xs mt-3 pt-2 border-t border-dashed border-black">
-        <p>¡Gracias! 🙌</p>
+        <p>Gracias!</p>
         <p className="text-xs opacity-60">#{order.id.slice(-8).toUpperCase()}</p>
       </div>
     </div>
+    </>
   )
 }

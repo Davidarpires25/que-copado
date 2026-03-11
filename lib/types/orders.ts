@@ -6,7 +6,9 @@ export interface OrderItem {
   name: string
   price: number
   quantity: number
+  notes?: string | null
   image_url?: string | null
+  product_type?: string | null
 }
 
 // Datos para crear una orden desde el checkout

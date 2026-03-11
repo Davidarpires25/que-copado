@@ -302,29 +302,47 @@ export function TableOrderPanel({
           </button>
 
           {/* Tag chips */}
-          {allTags.map((tag) => (
-            <div key={tag} className="flex items-center gap-0.5">
-              <button
-                onClick={() => setActiveSaleTag(activeSaleTag === tag ? null : tag)}
-                className={cn(
-                  'px-2.5 py-1 rounded-l-full text-xs font-semibold transition-colors',
-                  activeSaleTag === tag
-                    ? 'bg-[var(--admin-accent)]/80 text-black'
-                    : 'bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
-                )}
-              >
-                {tag}
-              </button>
-              {canModify && !existingTags.includes(tag) && (
+          {allTags.map((tag) => {
+            const canPrint = orderStatus === 'cuenta_pedida' || order.status === 'pagado'
+            const hasRight = canModify && !existingTags.includes(tag)
+            const roundedRight = !canPrint && !hasRight ? 'rounded-r-full' : ''
+            return (
+              <div key={tag} className="flex items-center gap-0.5">
                 <button
-                  onClick={() => handleRemoveTag(tag)}
-                  className="h-full px-1.5 rounded-r-full bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  onClick={() => setActiveSaleTag(activeSaleTag === tag ? null : tag)}
+                  className={cn(
+                    'px-2.5 py-1 rounded-l-full text-xs font-semibold transition-colors',
+                    roundedRight,
+                    activeSaleTag === tag
+                      ? 'bg-[var(--admin-accent)]/80 text-black'
+                      : 'bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
+                  )}
                 >
-                  ×
+                  {tag}
                 </button>
-              )}
-            </div>
-          ))}
+                {canPrint && (
+                  <button
+                    onClick={() => window.open(`/admin/caja/ticket/${order.id}/print?tag=${encodeURIComponent(tag)}`, '_blank')}
+                    className={cn(
+                      'h-full px-1.5 bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)] transition-colors',
+                      !hasRight && 'rounded-r-full'
+                    )}
+                    aria-label={`Imprimir ticket de ${tag}`}
+                  >
+                    <Printer className="h-3 w-3" />
+                  </button>
+                )}
+                {hasRight && (
+                  <button
+                    onClick={() => handleRemoveTag(tag)}
+                    className="h-full px-1.5 rounded-r-full bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            )
+          })}
 
           {/* Add tag button */}
           {canModify && !addingTag && (

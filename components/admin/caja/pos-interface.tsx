@@ -1,8 +1,21 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
+
+function printInBackground(url: string) {
+  const iframe = document.createElement('iframe')
+  iframe.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:0;left:0;'
+  iframe.src = url
+  document.body.appendChild(iframe)
+  iframe.addEventListener('load', () => {
+    setTimeout(() => {
+      iframe.contentWindow?.print()
+      setTimeout(() => document.body.removeChild(iframe), 3000)
+    }, 400)
+  })
+}
 import { useRouter } from 'next/navigation'
-import { Store, UtensilsCrossed, History, Clock, Printer } from 'lucide-react'
+import { Store, UtensilsCrossed, History, Clock, Printer, ChefHat, X } from 'lucide-react'
 import { PosProductGrid } from './product-grid'
 import { OrderBuilder, type PosCartItem } from './order-builder'
 import { PaymentPanel } from './payment-panel'
@@ -19,6 +32,7 @@ import {
   createMostadorOrder,
   completeMostadorPayment,
   cancelPosOrder,
+  cancelMostadorOrder,
   getPendingMostadorOrders,
 } from '@/app/actions/pos-orders'
 import { getSessionOrders, getSessionSummary } from '@/app/actions/cash-register'
@@ -26,7 +40,7 @@ import { openTable, getTables } from '@/app/actions/tables'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import type { Category, Product, PaymentMethod, Order } from '@/lib/types/database'
-import type { CashRegisterSession, SessionSummary, PaymentSplit } from '@/lib/types/cash-register'
+import type { CashRegisterSession, SessionSummary, PaymentSplit, OrderWithSplits } from '@/lib/types/cash-register'
 import type { TableWithOrder } from '@/lib/types/tables'
 
 type PosMode = 'mostrador' | 'mesas' | 'historial'
@@ -62,7 +76,7 @@ export function PosInterface({
   const [showMovement, setShowMovement] = useState(false)
   const [historialLoading, setHistorialLoading] = useState(false)
   const [confirmLoading, setConfirmLoading] = useState(false)
-  const [sessionOrders, setSessionOrders] = useState<Order[]>([])
+  const [sessionOrders, setSessionOrders] = useState<OrderWithSplits[]>([])
 
   // Pending mostrador orders (abierto)
   const [pendingOrders, setPendingOrders] = useState<Order[]>([])
@@ -88,6 +102,7 @@ export function PosInterface({
 
   // Computed
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const hasKitchenItems = items.some((item) => item.product_type === 'elaborado')
   const currentCash =
     session.opening_balance +
     session.total_cash_sales +
@@ -150,6 +165,7 @@ export function PosInterface({
           price: product.price,
           quantity: 1,
           image_url: product.image_url,
+          product_type: product.product_type ?? null,
         },
       ]
     })
@@ -171,6 +187,14 @@ export function PosInterface({
     setItems((prev) => prev.filter((item) => item.id !== id))
   }, [])
 
+  const handleSetItemNotes = useCallback((id: string, itemNotes: string) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, notes: itemNotes || null } : item
+      )
+    )
+  }, [])
+
   // "Confirmar pedido" — crea orden abierta y envía a cocina
   const handleCheckout = () => {
     if (items.length === 0) return
@@ -182,11 +206,12 @@ export function PosInterface({
     setConfirmLoading(true)
 
     const { data, error } = await createMostadorOrder({
-      items: items.map(({ id, name, price, quantity }) => ({
+      items: items.map(({ id, name, price, quantity, notes }) => ({
         id,
         name,
         price,
         quantity,
+        notes: notes || null,
       })),
       total: subtotal,
       notes: notes || null,
@@ -201,11 +226,19 @@ export function PosInterface({
     }
 
     if (data) {
-      toast.success('Pedido enviado a cocina')
-      setItems([])
-      setNotes('')
-      // Refresh pending orders if we are in mostrador mode
-      await refreshPendingOrders()
+      if (hasKitchenItems) {
+        printInBackground(`/admin/caja/ticket/${data.id}/print?kitchen=1`)
+        toast.success('Pedido enviado a cocina')
+        setItems([])
+        setNotes('')
+        await refreshPendingOrders()
+      } else {
+        // Solo reventa: cobro inmediato sin pasar por la tarjeta
+        toast.success('Pedido registrado')
+        setItems([])
+        setNotes('')
+        setPayingOrder(data)
+      }
     }
   }
 
@@ -226,19 +259,23 @@ export function PosInterface({
     await refreshPendingOrders()
   }
 
-  const handleCancelOrder = async (orderId: string) => {
+  const handleCancelOrder = async (orderId: string, isMostrador = false) => {
     setCancelOrderId(null)
-    const { error } = await cancelPosOrder(orderId)
+    const { error } = isMostrador
+      ? await cancelMostadorOrder(orderId)
+      : await cancelPosOrder(orderId)
     if (error) {
       toast.error(error)
       return
     }
-    toast.success('Venta anulada')
-    router.refresh()
-    await handleLoadHistorial()
-    const { data: summaryData } = await getSessionSummary(session.id)
-    if (summaryData) {
-      onSessionUpdate(summaryData.session)
+    toast.success('Pedido cancelado')
+    if (isMostrador) {
+      await refreshPendingOrders()
+    } else {
+      router.refresh()
+      await handleLoadHistorial()
+      const { data: summaryData } = await getSessionSummary(session.id)
+      if (summaryData) onSessionUpdate(summaryData.session)
     }
   }
 
@@ -457,10 +494,10 @@ export function PosInterface({
                         return (
                           <div
                             key={order.id}
-                            className={`shrink-0 bg-[var(--admin-bg)] border ${urgencyBorder} rounded-xl text-left transition-colors min-w-[180px] flex flex-col`}
+                            className={`shrink-0 bg-[var(--admin-bg)] border ${urgencyBorder} rounded-xl text-left transition-colors w-[200px] h-[130px] flex flex-col`}
                           >
                             {/* Card header */}
-                            <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5 border-b border-[var(--admin-border)]/40">
+                            <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5 border-b border-[var(--admin-border)]/40 shrink-0">
                               <div className="flex items-center gap-1.5">
                                 <span className="text-xs font-mono text-[var(--admin-text-muted)]">
                                   #{order.id.slice(-4).toUpperCase()}
@@ -472,13 +509,13 @@ export function PosInterface({
                               </span>
                             </div>
                             {/* Items */}
-                            <p className="text-xs text-[var(--admin-text-muted)] px-3 py-2 flex-1 line-clamp-3 leading-relaxed">
+                            <p className="text-xs text-[var(--admin-text-muted)] px-3 py-1.5 flex-1 overflow-hidden line-clamp-2 leading-relaxed">
                               {Array.isArray(orderItems)
                                 ? orderItems.map((i) => `${i.quantity}x ${i.name}`).join(' · ')
                                 : '...'}
                             </p>
                             {/* Actions */}
-                            <div className="flex items-center gap-1 px-2 pb-2">
+                            <div className="flex items-center gap-1 px-2 pb-2 shrink-0">
                               <button
                                 onClick={() => setPayingOrder(order)}
                                 className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg bg-green-600 hover:bg-green-500 text-white text-xs font-bold transition-colors active:scale-95 cursor-pointer"
@@ -486,11 +523,25 @@ export function PosInterface({
                                 Cobrar
                               </button>
                               <button
+                                onClick={() => window.open(`/admin/caja/ticket/${order.id}/print?kitchen=1`, '_blank')}
+                                className="h-9 w-9 flex items-center justify-center rounded-lg text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer"
+                                aria-label="Imprimir ticket cocina"
+                              >
+                                <ChefHat className="h-3.5 w-3.5" />
+                              </button>
+                              <button
                                 onClick={() => window.open(`/admin/caja/ticket/${order.id}/print`, '_blank')}
                                 className="h-9 w-9 flex items-center justify-center rounded-lg text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer"
-                                aria-label="Imprimir ticket"
+                                aria-label="Imprimir ticket cliente"
                               >
                                 <Printer className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={() => setCancelOrderId(`mostrador:${order.id}`)}
+                                className="h-9 w-9 flex items-center justify-center rounded-lg text-red-500/50 hover:text-red-400 hover:bg-red-950/30 transition-colors cursor-pointer"
+                                aria-label="Cancelar pedido"
+                              >
+                                <X className="h-3.5 w-3.5" />
                               </button>
                             </div>
                           </div>
@@ -515,9 +566,11 @@ export function PosInterface({
               <OrderBuilder
                 items={items}
                 notes={notes}
+                hasKitchenItems={hasKitchenItems}
                 onUpdateQuantity={handleUpdateQuantity}
                 onRemoveItem={handleRemoveItem}
                 onSetNotes={setNotes}
+                onSetItemNotes={handleSetItemNotes}
                 onCheckout={handleCheckout}
                 loading={confirmLoading}
               />
@@ -594,6 +647,7 @@ export function PosInterface({
           onUpdateQuantity={handleUpdateQuantity}
           onRemoveItem={handleRemoveItem}
           onSetNotes={setNotes}
+          onSetItemNotes={handleSetItemNotes}
           onCheckout={async () => {
             await handleConfirmOrder()
             setShowMobileCart(false)
@@ -635,7 +689,12 @@ export function PosInterface({
         title="Anular venta"
         description="¿Estás seguro de anular esta venta? Esta acción no se puede deshacer."
         confirmLabel="Anular"
-        onConfirm={() => cancelOrderId && handleCancelOrder(cancelOrderId)}
+        onConfirm={() => {
+          if (!cancelOrderId) return
+          const isMostrador = cancelOrderId.startsWith('mostrador:')
+          const id = isMostrador ? cancelOrderId.replace('mostrador:', '') : cancelOrderId
+          void handleCancelOrder(id, isMostrador)
+        }}
       />
 
       {/* Table dialogs */}

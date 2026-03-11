@@ -168,7 +168,7 @@ export function IngredientFormDialog({
           {/* Nombre */}
           <div className="space-y-1.5">
             <Label htmlFor="ing-name" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
-              Nombre <span className="text-red-400 ml-0.5">*</span>
+              Nombre <span className="text-red-300 ml-0.5">*</span>
             </Label>
             <Input
               id="ing-name"
@@ -183,7 +183,7 @@ export function IngredientFormDialog({
                   : 'bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20'
               }`}
             />
-            {nameError && <p className="text-xs text-red-400">{nameError}</p>}
+            {nameError && <p className="text-xs text-red-300">{nameError}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -213,7 +213,7 @@ export function IngredientFormDialog({
             {/* Costo */}
             <div className="space-y-1.5">
               <Label htmlFor="ing-cost" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
-                Costo / Unidad <span className="text-red-400 ml-0.5">*</span>
+                Costo / Unidad <span className="text-red-300 ml-0.5">*</span>
               </Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold">$</span>
@@ -234,7 +234,7 @@ export function IngredientFormDialog({
                   }`}
                 />
               </div>
-              {costError && <p className="text-xs text-red-400">{costError}</p>}
+              {costError && <p className="text-xs text-red-300">{costError}</p>}
             </div>
           </div>
 
@@ -301,9 +301,9 @@ export function IngredientFormDialog({
           </div>
 
           {isEditing && (
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-950/20 border border-amber-500/20">
-              <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-              <p className="text-sm text-amber-400/80">
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-950/30 border border-amber-500/50">
+              <AlertTriangle className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
+              <p className="text-sm text-amber-200">
                 Al cambiar el costo se recalcularan automaticamente los productos que usen este ingrediente.
               </p>
             </div>

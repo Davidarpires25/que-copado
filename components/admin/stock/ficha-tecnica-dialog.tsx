@@ -124,11 +124,11 @@ function ShoppingRow({
   const isShort = delta !== null && delta < 0
 
   return (
-    <TableRow className={`border-[var(--admin-border)] hover:bg-[var(--admin-surface-2)] ${isShort ? 'bg-red-500/5' : ''}`}>
+    <TableRow className={`border-[var(--admin-border)] hover:bg-[var(--admin-surface-2)] ${isShort ? 'bg-amber-500/5' : ''}`}>
       <TableCell>
         <div className="flex items-center gap-2">
-          {isShort && <AlertTriangle className="h-3.5 w-3.5 text-red-400 shrink-0" />}
-          <span className={`text-sm font-medium ${isShort ? 'text-red-300' : 'text-[var(--admin-text)]'}`}>
+          {isShort && <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />}
+          <span className={`text-sm font-medium ${isShort ? 'text-amber-300' : 'text-[var(--admin-text)]'}`}>
             {item.name}
           </span>
         </div>
@@ -152,9 +152,9 @@ function ShoppingRow({
             Sin tracking
           </Badge>
         ) : isShort ? (
-          <span className="text-red-400 font-bold text-xs">
+          <span className="text-amber-300 font-bold text-xs">
             {formatQty(item.current_stock, item.unit)}{' '}
-            <span className="text-red-500">(falta {formatQty(Math.abs(delta!), item.unit)})</span>
+            <span className="text-amber-400/80">(falta {formatQty(Math.abs(delta!), item.unit)})</span>
           </span>
         ) : (
           <span className="text-green-400 text-xs">{formatQty(item.current_stock, item.unit)} ✓</span>

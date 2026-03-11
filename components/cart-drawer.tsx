@@ -104,14 +104,6 @@ export function CartDrawer() {
 
               {/* Summary */}
               <div className="border-t border-orange-200 bg-white/90 backdrop-blur-sm p-4 space-y-4">
-                {/* Shipping info */}
-                <div className="flex items-center gap-2 text-sm">
-                  <DeliveryBikeIcon className="h-4 w-4 text-orange-500" />
-                  <span className="text-orange-700/70">
-                    Envío se calcula según tu ubicación
-                  </span>
-                </div>
-
                 {/* Totals */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
@@ -121,15 +113,12 @@ export function CartDrawer() {
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-orange-700/70">Envío</span>
-                    <span className="font-medium text-orange-600">
-                      Según ubicación
+                    <span className="text-orange-700/70 flex items-center gap-1">
+                      <DeliveryBikeIcon className="h-3.5 w-3.5" />
+                      Envío
                     </span>
-                  </div>
-                  <div className="border-t border-dashed border-orange-200 pt-2 flex justify-between">
-                    <span className="text-orange-900 font-bold">Subtotal</span>
-                    <span className="text-xl font-black bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-                      {formatPrice(subtotal)}
+                    <span className="font-medium text-orange-500 text-xs">
+                      Se calcula al ingresar tu dirección
                     </span>
                   </div>
                 </div>

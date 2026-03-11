@@ -2,7 +2,7 @@
 
 import { memo, useState, useCallback } from 'react'
 import Image from 'next/image'
-import { Plus, Check, Heart, Star, UtensilsCrossed } from 'lucide-react'
+import { Plus, Check, Star, UtensilsCrossed } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useCartStore } from '@/lib/store/cart-store'
@@ -15,9 +15,15 @@ interface ProductCardProps {
   badge?: 'best-seller' | 'promo' | null
   showRating?: boolean
   rating?: number
+  /** Available units to produce/sell. Shown as urgency badge when ≤ 5. */
+  availableQty?: number
 }
 
-export const ProductCard = memo(function ProductCard({ product, badge, showRating = false, rating = 4.5 }: ProductCardProps) {
+/** Show urgency badge when quantity is low but not zero (zero = auto-disabled) */
+const LOW_STOCK_THRESHOLD = 5
+
+export const ProductCard = memo(function ProductCard({ product, badge, showRating = false, rating = 4.5, availableQty }: ProductCardProps) {
+  const isLowStock = availableQty !== undefined && availableQty > 0 && availableQty <= LOW_STOCK_THRESHOLD
   const addItem = useCartStore((state) => state.addItem)
   const [justAdded, setJustAdded] = useState(false)
 
@@ -59,13 +65,15 @@ export const ProductCard = memo(function ProductCard({ product, badge, showRatin
             </Badge>
           )}
 
-          {/* Favorite Button - Desktop only */}
-          <button
-            className="hidden md:flex absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm items-center justify-center shadow-md hover:bg-white hover:scale-110 transition-all"
-            aria-label="Agregar a favoritos"
-          >
-            <Heart className="h-5 w-5 text-orange-400 hover:text-orange-600" />
-          </button>
+{/* Low stock urgency indicator */}
+          {isLowStock && !product.is_out_of_stock && (
+            <div className="absolute bottom-2 left-2">
+              <span className="inline-flex items-center gap-1 rounded-full bg-orange-500 px-2 py-0.5 text-[10px] md:text-xs font-bold text-white shadow-md">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                Últimas unidades
+              </span>
+            </div>
+          )}
 
           {/* Out of Stock Overlay */}
           {product.is_out_of_stock && (
@@ -88,7 +96,7 @@ export const ProductCard = memo(function ProductCard({ product, badge, showRatin
           )}
 
           {/* Name */}
-          <h3 className="font-bold text-[13px] md:text-lg text-orange-900 mb-0.5 md:mb-1 leading-tight line-clamp-2">
+          <h3 className="font-bold text-sm md:text-lg text-orange-900 mb-0.5 md:mb-1 leading-tight line-clamp-2">
             {product.name}
           </h3>
 
@@ -101,7 +109,7 @@ export const ProductCard = memo(function ProductCard({ product, badge, showRatin
 
           {/* Price & Add Button */}
           <div className="flex items-center justify-between gap-1.5 mt-auto pt-1.5 md:pt-2">
-            <span className="text-sm md:text-2xl font-black bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+            <span className="text-base md:text-2xl font-black bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
               {formatPrice(product.price)}
             </span>
             <Button

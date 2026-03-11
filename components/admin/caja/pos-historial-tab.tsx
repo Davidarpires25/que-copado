@@ -17,8 +17,9 @@ import {
 import { Button } from '@/components/ui/button'
 import { formatPrice } from '@/lib/utils'
 import { PAYMENT_METHOD_CONFIG } from '@/lib/types/orders'
-import type { Order, PaymentMethod, Json } from '@/lib/types/database'
+import type { PaymentMethod, Json } from '@/lib/types/database'
 import type { OrderItem } from '@/lib/types/orders'
+import type { OrderWithSplits } from '@/lib/types/cash-register'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -26,7 +27,7 @@ type PaymentFilter = 'all' | PaymentMethod
 type StatusFilter = 'all' | 'activa' | 'anulada'
 
 interface PosHistorialTabProps {
-  orders: Order[]
+  orders: OrderWithSplits[]
   loading: boolean
   onRefresh: () => Promise<void>
   onCancelOrder: (orderId: string) => void
@@ -58,7 +59,7 @@ const PAYMENT_BADGE_CONFIG: Record<
   mercadopago: { label: 'M. Pago',  icon: ArrowLeftRight, textClass: 'text-sky-400',     bgClass: 'bg-sky-400/10 border-sky-400/20' },
 }
 
-function PaymentMethodBadge({ method }: { method: PaymentMethod }) {
+function PaymentMethodBadge({ method, amount }: { method: PaymentMethod; amount?: number }) {
   const config = PAYMENT_BADGE_CONFIG[method]
   if (!config) return <span className="text-xs text-[var(--admin-text-muted)]">{method}</span>
   const Icon = config.icon
@@ -66,6 +67,9 @@ function PaymentMethodBadge({ method }: { method: PaymentMethod }) {
     <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium border ${config.textClass} ${config.bgClass}`}>
       <Icon className="h-3 w-3 shrink-0" />
       {config.label}
+      {amount !== undefined && (
+        <span className="opacity-70">{formatPrice(amount)}</span>
+      )}
     </span>
   )
 }
@@ -100,7 +104,7 @@ function OrderRow({
   order,
   onCancelOrder,
 }: {
-  order: Order
+  order: OrderWithSplits
   onCancelOrder: (id: string) => void
 }) {
   const [expanded, setExpanded] = useState(false)
@@ -160,8 +164,14 @@ function OrderRow({
         </div>
 
         {/* Columna 4: Método de pago */}
-        <div>
-          <PaymentMethodBadge method={order.payment_method as PaymentMethod} />
+        <div className="flex flex-col gap-0.5">
+          {order.payment_splits && order.payment_splits.length > 1 ? (
+            order.payment_splits.map((s, i) => (
+              <PaymentMethodBadge key={i} method={s.method as PaymentMethod} />
+            ))
+          ) : (
+            <PaymentMethodBadge method={order.payment_method as PaymentMethod} />
+          )}
         </div>
 
         {/* Columna 5: Total */}
@@ -209,7 +219,16 @@ function OrderRow({
 
           {/* Notas y acciones */}
           <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-[var(--admin-border)]/40 pl-[76px]">
-            <div>
+            <div className="space-y-0.5">
+              {order.payment_splits && order.payment_splits.length > 1 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  {order.payment_splits.map((s, i) => (
+                    <span key={i} className="text-xs text-[var(--admin-text-muted)]">
+                      <PaymentMethodBadge method={s.method as PaymentMethod} amount={s.amount} />
+                    </span>
+                  ))}
+                </div>
+              )}
               {order.notes && (
                 <p className="text-xs text-[var(--admin-text-muted)]">
                   Nota: {order.notes}
@@ -292,14 +311,18 @@ export function PosHistorialTab({
   // Filtrado reactivo
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
-      const matchesPayment =
-        paymentFilter === 'all' || order.payment_method === paymentFilter
       const isCancelled = order.status === 'cancelado'
       const matchesStatus =
         statusFilter === 'all' ||
         (statusFilter === 'anulada' && isCancelled) ||
         (statusFilter === 'activa' && !isCancelled)
-      return matchesPayment && matchesStatus
+      if (!matchesStatus) return false
+      if (paymentFilter === 'all') return true
+      // Para órdenes híbridas, matchear si alguno de los splits usa el método
+      if (order.payment_splits && order.payment_splits.length > 1) {
+        return order.payment_splits.some((s) => s.method === paymentFilter)
+      }
+      return order.payment_method === paymentFilter
     })
   }, [orders, paymentFilter, statusFilter])
 
@@ -308,10 +331,22 @@ export function PosHistorialTab({
     const active = filteredOrders.filter((o) => o.status !== 'cancelado')
     const totals: Record<string, { total: number; count: number }> = {}
     for (const order of active) {
-      const key = order.payment_method
-      if (!totals[key]) totals[key] = { total: 0, count: 0 }
-      totals[key].total += order.total
-      totals[key].count += 1
+      if (order.payment_splits && order.payment_splits.length > 1) {
+        // Pago híbrido: acumular por split
+        for (const split of order.payment_splits) {
+          if (!totals[split.method]) totals[split.method] = { total: 0, count: 0 }
+          totals[split.method].total += split.amount
+        }
+        // Contar la orden una sola vez en el método primario
+        const primary = order.payment_method
+        if (!totals[primary]) totals[primary] = { total: 0, count: 0 }
+        totals[primary].count += 1
+      } else {
+        const key = order.payment_method
+        if (!totals[key]) totals[key] = { total: 0, count: 0 }
+        totals[key].total += order.total
+        totals[key].count += 1
+      }
     }
     return totals
   }, [filteredOrders])

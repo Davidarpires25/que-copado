@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Loader2, TrendingUp, ArrowRight } from 'lucide-react'
+import { Loader2, TrendingUp, ArrowRight, PackageOpen } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -265,9 +265,10 @@ export function BulkPriceUpdateDialog({
           )}
 
           {selectedCategoryId && affectedIngredients.length === 0 && (
-            <div className="p-4 rounded-lg bg-amber-950/20 border border-amber-500/20 text-center">
-              <p className="text-amber-400/80 text-sm">
-                No hay ingredientes en esta categoria para actualizar.
+            <div className="flex flex-col items-center justify-center gap-2 py-6">
+              <PackageOpen className="h-8 w-8 text-slate-600" />
+              <p className="text-sm text-slate-400">
+                No hay ingredientes en esta categoría para actualizar.
               </p>
             </div>
           )}

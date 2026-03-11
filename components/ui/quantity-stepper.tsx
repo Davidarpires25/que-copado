@@ -11,6 +11,7 @@ interface QuantityStepperProps {
   min?: number
   max?: number
   size?: 'sm' | 'md' | 'lg'
+  productName?: string
 }
 
 export function QuantityStepper({
@@ -20,6 +21,7 @@ export function QuantityStepper({
   min = 1,
   max = 99,
   size = 'md',
+  productName,
 }: QuantityStepperProps) {
   const sizeClasses = {
     sm: {
@@ -46,6 +48,8 @@ export function QuantityStepper({
 
   return (
     <div
+      role="group"
+      aria-label={productName ? `Cantidad de ${productName}` : 'Cantidad'}
       className={`inline-flex items-center bg-orange-50 rounded-full ${classes.container}`}
     >
       <motion.div whileTap={{ scale: 0.9 }}>
@@ -54,6 +58,7 @@ export function QuantityStepper({
           size="icon"
           onClick={onDecrement}
           disabled={quantity <= min}
+          aria-label={productName ? `Quitar una unidad de ${productName}` : 'Quitar una unidad'}
           className={`rounded-full bg-white border border-orange-200 hover:bg-orange-100 hover:border-orange-300 disabled:opacity-50 ${classes.button}`}
         >
           <Minus className={`text-orange-600 ${classes.icon}`} />
@@ -61,6 +66,8 @@ export function QuantityStepper({
       </motion.div>
 
       <span
+        aria-live="polite"
+        aria-atomic="true"
         className={`font-bold text-orange-900 text-center select-none ${classes.text}`}
       >
         {quantity}
@@ -72,6 +79,7 @@ export function QuantityStepper({
           size="icon"
           onClick={onIncrement}
           disabled={quantity >= max}
+          aria-label={productName ? `Agregar una unidad de ${productName}` : 'Agregar una unidad'}
           className={`rounded-full bg-[#FEC501] hover:bg-[#E5B001] text-black disabled:opacity-50 ${classes.button}`}
         >
           <Plus className={`${classes.icon}`} />

@@ -239,6 +239,7 @@ export async function createMostadorOrder(
       product_name: item.name,
       product_price: item.price,
       quantity: item.quantity,
+      notes: item.notes || null,
       status: 'pendiente',
       added_by: user.id,
     }))
@@ -432,5 +433,51 @@ function getSalesField(paymentMethod: string): string {
       return 'total_transfer_sales'
     default:
       return 'total_cash_sales'
+  }
+}
+
+/**
+ * Cancela una orden mostrador pendiente (abierto -> cancelado).
+ * Restaura el stock descontado.
+ */
+export async function cancelMostadorOrder(
+  orderId: string
+): Promise<{ error: string | null }> {
+  try {
+    const supabase = await createAdminClient()
+    const user = await getAuthUser(supabase)
+    if (!user) return { error: 'No autenticado' }
+
+    const { data: order } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', orderId)
+      .eq('order_type', 'mostrador')
+      .eq('status', 'abierto')
+      .single()
+
+    if (!order) return { error: 'Orden no encontrada o ya procesada' }
+
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: 'cancelado', updated_at: new Date().toISOString() })
+      .eq('id', orderId)
+
+    if (error) {
+      devError('Error cancelling mostrador order:', error)
+      return { error: 'Error al cancelar el pedido' }
+    }
+
+    // Restore stock
+    await restoreStockForOrder(supabase, orderId, user.id)
+
+    revalidateCaja()
+    revalidateOrders()
+    revalidateStock()
+
+    return { error: null }
+  } catch (err) {
+    devError('Error in cancelMostadorOrder:', err)
+    return { error: 'Error inesperado' }
   }
 }

@@ -169,11 +169,16 @@ export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCo
       )}
     >
       {/* Logo */}
-      <div className="h-16 flex items-center px-4 border-b border-[#2a2f3a]">
+      <div className="h-20 flex items-center px-4 border-b border-[#2a2f3a]">
         <Link href="/admin/dashboard" className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="w-10 h-10 bg-[#FEC501] rounded-xl flex items-center justify-center text-xl shrink-0">
-            🍔
-          </div>
+          <img
+            src="/logo.svg"
+            alt="Que Copado"
+            className={cn(
+              'shrink-0 rounded-xl object-contain transition-all duration-300',
+              collapsed ? 'w-11 h-11' : 'w-14 h-14'
+            )}
+          />
           {!collapsed && (
             <motion.div
               initial={{ opacity: 0, x: -10 }}
@@ -286,11 +291,13 @@ export function MobileSidebar({ open, onClose, stockAlertCount = 0 }: MobileSide
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed left-0 top-0 z-50 h-screen w-72 bg-[#1a1d24] border-r border-[#2a2f3a] flex flex-col lg:hidden"
           >
-            <div className="h-16 flex items-center justify-between px-4 border-b border-[#2a2f3a]">
+            <div className="h-20 flex items-center justify-between px-4 border-b border-[#2a2f3a]">
               <Link href="/admin/dashboard" className="flex items-center gap-3" onClick={onClose}>
-                <div className="w-10 h-10 bg-[#FEC501] rounded-xl flex items-center justify-center text-xl">
-                  🍔
-                </div>
+                <img
+                    src="/logo.svg"
+                    alt="Que Copado"
+                    className="w-14 h-14 shrink-0 rounded-xl object-contain"
+                  />
                 <div>
                   <span className="text-lg font-bold text-[#f0f2f5]">
                     Que <span className="text-[#FEC501]">Copado</span>

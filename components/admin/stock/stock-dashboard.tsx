@@ -83,6 +83,9 @@ export function StockDashboard({
     [elaboradoProducts, theoreticalStocks]
   )
 
+  const ingredientAlerts = useMemo(() => alerts.filter((a) => a.type === 'ingredient'), [alerts])
+  const productAlerts = useMemo(() => alerts.filter((a) => a.type === 'product'), [alerts])
+
   const lastMovementDate = useMemo(() => {
     if (movements.length === 0) return null
     return new Date(movements[0].created_at)
@@ -138,8 +141,10 @@ export function StockDashboard({
               </p>
               {(alerts.length > 0 || elaboradosAgotados > 0) && (
                 <p className="text-sm text-red-400 mt-0.5 font-medium leading-tight">
-                  {alerts.length > 0 && `${alerts.length} ingrediente${alerts.length !== 1 ? 's' : ''} bajo`}
-                  {alerts.length > 0 && elaboradosAgotados > 0 && ' · '}
+                  {ingredientAlerts.length > 0 && `${ingredientAlerts.length} ingrediente${ingredientAlerts.length !== 1 ? 's' : ''} bajo`}
+                  {ingredientAlerts.length > 0 && (productAlerts.length > 0 || elaboradosAgotados > 0) && ' · '}
+                  {productAlerts.length > 0 && `${productAlerts.length} reventa${productAlerts.length !== 1 ? 's' : ''} bajo`}
+                  {productAlerts.length > 0 && elaboradosAgotados > 0 && ' · '}
                   {elaboradosAgotados > 0 && `${elaboradosAgotados} elaborado${elaboradosAgotados !== 1 ? 's' : ''} agotado`}
                 </p>
               )}

@@ -2,7 +2,7 @@
 
 import { memo } from 'react'
 import Image from 'next/image'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Trash2, ImageOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { QuantityStepper } from '@/components/ui/quantity-stepper'
@@ -22,12 +22,13 @@ export const CartItem = memo(function CartItem({
   onRemove,
   showImage = true,
 }: CartItemProps) {
+  const shouldReduceMotion = useReducedMotion()
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, x: 20 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
+      exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -20 }}
       className="flex gap-3 md:gap-4 p-3 md:p-4 bg-white rounded-2xl border border-orange-100 shadow-sm hover:shadow-md transition-shadow"
     >
       {/* Image */}
@@ -81,6 +82,7 @@ export const CartItem = memo(function CartItem({
             onIncrement={() => onUpdateQuantity(item.quantity + 1)}
             onDecrement={() => onUpdateQuantity(item.quantity - 1)}
             size="sm"
+            productName={item.product.name}
           />
         </div>
       </div>

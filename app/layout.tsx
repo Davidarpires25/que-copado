@@ -28,10 +28,15 @@ export const metadata: Metadata = {
   title: "Que Copado - Las mejores hamburguesas",
   description: "Las mejores hamburguesas de la zona. Pedí ahora por WhatsApp!",
   keywords: ["hamburguesas", "delivery", "comida", "fast food"],
+  icons: {
+    icon: "/logo.svg",
+    apple: "/logo.svg",
+  },
   openGraph: {
     title: "Que Copado - Las mejores hamburguesas",
     description: "Las mejores hamburguesas de la zona. Pedí ahora por WhatsApp!",
     type: "website",
+    images: ["/logo.svg"],
   },
 };
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { Loader2, ShoppingCart, Minus, Plus, Trash2 } from 'lucide-react'
+import { Loader2, ShoppingCart, Minus, Plus, Trash2, MessageSquare } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -20,6 +20,7 @@ interface CartItem {
   product_name: string
   product_price: number
   quantity: number
+  notes?: string
 }
 
 interface AddItemsDialogProps {
@@ -43,6 +44,24 @@ export function AddItemsDialog({
 }: AddItemsDialogProps) {
   const [cart, setCart] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(false)
+  const [notesOpen, setNotesOpen] = useState<Set<string>>(new Set())
+
+  const toggleNote = (productId: string) => {
+    setNotesOpen((prev) => {
+      const next = new Set(prev)
+      if (next.has(productId)) next.delete(productId)
+      else next.add(productId)
+      return next
+    })
+  }
+
+  const handleSetItemNotes = (productId: string, notes: string) => {
+    setCart((prev) =>
+      prev.map((item) =>
+        item.product_id === productId ? { ...item, notes } : item
+      )
+    )
+  }
 
   const cartTotal = cart.reduce(
     (sum, item) => sum + item.product_price * item.quantity,
@@ -92,7 +111,17 @@ export function AddItemsDialog({
     if (cart.length === 0) return
 
     setLoading(true)
-    const result = await addItemsToOrder(orderId, cart, saleTag)
+    const result = await addItemsToOrder(
+      orderId,
+      cart.map((item) => ({
+        product_id: item.product_id,
+        product_name: item.product_name,
+        product_price: item.product_price,
+        quantity: item.quantity,
+        notes: item.notes || null,
+      })),
+      saleTag
+    )
     setLoading(false)
 
     if (result.error) {
@@ -148,11 +177,44 @@ export function AddItemsDialog({
               {cart.map((item) => (
                 <div
                   key={item.product_id}
-                  className="flex items-center gap-2 py-1.5"
+                  className="flex items-start gap-2 py-1.5"
                 >
-                  <span className="flex-1 text-sm text-[var(--admin-text)] truncate">
-                    {item.product_name}
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm text-[var(--admin-text)] truncate block">
+                      {item.product_name}
+                    </span>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <button
+                        onClick={() => toggleNote(item.product_id)}
+                        className="flex items-center gap-0.5 text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-accent-text)] transition-colors"
+                      >
+                        <MessageSquare className="h-3 w-3" />
+                        {!item.notes && !notesOpen.has(item.product_id) && (
+                          <span>nota</span>
+                        )}
+                      </button>
+                      {item.notes && !notesOpen.has(item.product_id) && (
+                        <span
+                          className="text-xs italic text-[var(--admin-text-muted)] cursor-pointer truncate"
+                          onClick={() => toggleNote(item.product_id)}
+                        >
+                          {item.notes}
+                        </span>
+                      )}
+                    </div>
+                    {notesOpen.has(item.product_id) && (
+                      <input
+                        autoFocus
+                        value={item.notes ?? ''}
+                        onChange={(e) => handleSetItemNotes(item.product_id, e.target.value)}
+                        onBlur={() => {
+                          if (!item.notes) toggleNote(item.product_id)
+                        }}
+                        placeholder="sin queso, sin lechuga..."
+                        className="mt-1 w-full text-xs bg-transparent border-b border-[var(--admin-border)] focus:border-[var(--admin-accent)]/50 text-[var(--admin-text)] placeholder:text-[var(--admin-text-faint)] outline-none py-0.5"
+                      />
+                    )}
+                  </div>
 
                   <div className="flex items-center gap-1 shrink-0">
                     <button

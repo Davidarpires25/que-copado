@@ -1,7 +1,8 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { MapPin, User, Phone, MessageSquare, Truck, Check, Loader2, Store } from 'lucide-react'
+import { useRef, useEffect } from 'react'
+import { MapPin, User, Phone, MessageSquare, Truck, Check, Loader2, Store, AlertCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -51,6 +52,8 @@ interface DeliveryFormProps {
   shippingResult?: ShippingResult
   hasZones?: boolean
   isCalculatingShipping?: boolean
+  fieldErrors?: Partial<Record<'name' | 'phone' | 'address', string>>
+  clearFieldError?: (field: 'name' | 'phone' | 'address') => void
 }
 
 // Configuración del local - TODO: mover a env o base de datos
@@ -191,8 +194,32 @@ export function DeliveryForm({
   onCashAmountChange,
   shippingResult,
   hasZones = false,
-  isCalculatingShipping = false
+  isCalculatingShipping = false,
+  fieldErrors,
+  clearFieldError,
 }: DeliveryFormProps) {
+  const nameRef = useRef<HTMLInputElement>(null)
+  const phoneRef = useRef<HTMLInputElement>(null)
+  const addressContainerRef = useRef<HTMLDivElement>(null)
+
+  // Focus first errored field when fieldErrors changes
+  useEffect(() => {
+    if (!fieldErrors || Object.keys(fieldErrors).length === 0) return
+    if (fieldErrors.name && nameRef.current) {
+      nameRef.current.focus()
+      nameRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    } else if (fieldErrors.phone && phoneRef.current) {
+      phoneRef.current.focus()
+      phoneRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    } else if (fieldErrors.address && addressContainerRef.current) {
+      const input = addressContainerRef.current.querySelector('input')
+      if (input) {
+        input.focus()
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }
+  }, [fieldErrors])
+
   const updateField = (field: keyof DeliveryFormData, value: string) => {
     onChange({ ...data, [field]: value })
   }
@@ -231,8 +258,8 @@ export function DeliveryForm({
           <User className="h-4 w-4 lg:h-5 lg:w-5 text-black" />
         </div>
         <div>
-          <h2 className="font-bold text-orange-900 text-sm lg:text-base">Datos del Pedido</h2>
-          <p className="text-xs lg:text-sm text-orange-600/70">
+          <h2 className="font-bold text-orange-900 text-base lg:text-lg">Datos del Pedido</h2>
+          <p className="text-sm text-orange-600/70">
             Completá tus datos para continuar
           </p>
         </div>
@@ -252,12 +279,19 @@ export function DeliveryForm({
               Nombre completo
             </Label>
             <Input
+              ref={nameRef}
               id="name"
               placeholder="Nombre y apellido"
               value={data.name}
-              onChange={(e) => updateField('name', e.target.value)}
-              className="input-large border-orange-200"
+              onChange={(e) => { updateField('name', e.target.value); if (clearFieldError) clearFieldError('name') }}
+              className={`input-large ${fieldErrors?.name ? 'border-red-400 focus-visible:ring-red-400' : 'border-orange-200'}`}
+              aria-invalid={!!fieldErrors?.name}
             />
+            {fieldErrors?.name && (
+              <p className="text-xs text-red-500 flex items-center gap-1 mt-1" role="alert">
+                <AlertCircle className="h-3 w-3 shrink-0" /> {fieldErrors.name}
+              </p>
+            )}
           </div>
 
           {/* Phone */}
@@ -270,13 +304,20 @@ export function DeliveryForm({
               Teléfono
             </Label>
             <Input
+              ref={phoneRef}
               id="phone"
               type="tel"
               placeholder="Ej: 11 2345-6789"
               value={data.phone}
-              onChange={(e) => updateField('phone', e.target.value)}
-              className="input-large border-orange-200"
+              onChange={(e) => { updateField('phone', e.target.value); if (clearFieldError) clearFieldError('phone') }}
+              className={`input-large ${fieldErrors?.phone ? 'border-red-400 focus-visible:ring-red-400' : 'border-orange-200'}`}
+              aria-invalid={!!fieldErrors?.phone}
             />
+            {fieldErrors?.phone && (
+              <p className="text-xs text-red-500 flex items-center gap-1 mt-1" role="alert">
+                <AlertCircle className="h-3 w-3 shrink-0" /> {fieldErrors.phone}
+              </p>
+            )}
           </div>
         </div>
 
@@ -308,7 +349,7 @@ export function DeliveryForm({
                 <p className={`font-semibold ${deliveryType === 'delivery' ? 'text-orange-900' : 'text-orange-700'}`}>
                   Delivery
                 </p>
-                <p className="text-xs text-orange-600/70">Te lo llevamos</p>
+                <p className="text-sm text-orange-600/70">Te lo llevamos</p>
               </div>
               {deliveryType === 'delivery' && (
                 <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FEC501] flex items-center justify-center">
@@ -339,7 +380,7 @@ export function DeliveryForm({
                 <p className={`font-semibold ${deliveryType === 'pickup' ? 'text-orange-900' : 'text-orange-700'}`}>
                   Retiro
                 </p>
-                <p className="text-xs text-green-600 font-medium">¡Envío gratis!</p>
+                <p className="text-sm text-green-600 font-medium">¡Envío gratis!</p>
               </div>
               {deliveryType === 'pickup' && (
                 <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FEC501] flex items-center justify-center">
@@ -354,14 +395,21 @@ export function DeliveryForm({
         {deliveryType === 'delivery' && (
           <>
             {/* Address Autocomplete */}
-            <AddressAutocomplete
-              value={data.address}
-              onChange={handleAddressChange}
-              onSelect={handleAddressSelect}
-              label="Dirección"
-              placeholder="Calle y número, barrio o localidad"
-              required
-            />
+            <div ref={addressContainerRef}>
+              <AddressAutocomplete
+                value={data.address}
+                onChange={(v, c) => { handleAddressChange(v, c); if (clearFieldError) clearFieldError('address') }}
+                onSelect={handleAddressSelect}
+                label="Dirección"
+                placeholder="Calle y número, barrio o localidad"
+                required
+              />
+              {fieldErrors?.address && (
+                <p className="text-xs text-red-500 flex items-center gap-1 mt-1" role="alert">
+                  <AlertCircle className="h-3 w-3 shrink-0" /> {fieldErrors.address}
+                </p>
+              )}
+            </div>
 
             {/* Map Preview - Siempre visible en delivery */}
             <div className="space-y-2">
@@ -446,12 +494,12 @@ export function DeliveryForm({
                   </div>
 
                   {/* Label */}
-                  <span className={`text-xs sm:text-sm font-semibold text-center ${isSelected ? 'text-orange-900' : 'text-orange-700'}`}>
+                  <span className={`text-sm font-semibold text-center ${isSelected ? 'text-orange-900' : 'text-orange-700'}`}>
                     {method.label}
                   </span>
 
                   {/* Description */}
-                  <span className="text-[10px] sm:text-xs text-orange-500 text-center mt-0.5 hidden sm:block">
+                  <span className="text-xs text-orange-500 text-center mt-0.5 hidden sm:block">
                     {method.description}
                   </span>
                 </button>
@@ -470,9 +518,11 @@ export function DeliveryForm({
                 <Input
                   id="cashAmount"
                   type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   placeholder="Ej: 10000"
                   value={cashAmount}
-                  onChange={(e) => onCashAmountChange(e.target.value)}
+                  onChange={(e) => onCashAmountChange(e.target.value.replace(/[^0-9]/g, ''))}
                   className="input-large !pl-9 border-orange-200 bg-white"
                 />
               </div>

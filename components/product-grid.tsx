@@ -9,9 +9,10 @@ import type { Category, Product } from '@/lib/types/database'
 interface ProductGridProps {
   products: Product[]
   categories: Category[]
+  stockMap?: Record<string, number>
 }
 
-export function ProductGrid({ products, categories }: ProductGridProps) {
+export function ProductGrid({ products, categories, stockMap = {} }: ProductGridProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   const filteredProducts = useMemo(() => {
@@ -45,6 +46,7 @@ export function ProductGrid({ products, categories }: ProductGridProps) {
                   ? 'best-seller'
                   : null
               }
+              availableQty={stockMap[product.id]}
             />
           </div>
         ))}

@@ -293,7 +293,7 @@ function CreateIngredientDialog({
           {/* Name */}
           <div className="space-y-1.5">
             <Label htmlFor="ing-name" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
-              Nombre <span className="text-red-400 ml-0.5">*</span>
+              Nombre <span className="text-red-300 ml-0.5">*</span>
             </Label>
             <Input
               id="ing-name"
@@ -309,7 +309,7 @@ function CreateIngredientDialog({
           {/* Unit */}
           <div className="space-y-1.5">
             <Label className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
-              Unidad base <span className="text-red-400 ml-0.5">*</span>
+              Unidad base <span className="text-red-300 ml-0.5">*</span>
             </Label>
             <Select
               value={unit}
@@ -596,7 +596,7 @@ export function RecipeFormDialog({
             {/* Name */}
             <div className="space-y-1.5">
               <Label htmlFor="recipe-name" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
-                Nombre <span className="text-red-400 ml-0.5">*</span>
+                Nombre <span className="text-red-300 ml-0.5">*</span>
               </Label>
               <Input
                 id="recipe-name"
@@ -611,7 +611,7 @@ export function RecipeFormDialog({
                     : 'bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20'
                 }`}
               />
-              {nameError && <p className="text-xs text-red-400">{nameError}</p>}
+              {nameError && <p className="text-xs text-red-300">{nameError}</p>}
             </div>
 
             {/* Description */}
@@ -632,7 +632,7 @@ export function RecipeFormDialog({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
-                  Ingredientes <span className="text-red-400 ml-0.5">*</span>
+                  Ingredientes <span className="text-red-300 ml-0.5">*</span>
                 </Label>
                 {recipeItems.length > 0 && (
                   <Badge variant="outline" className="border-[var(--admin-accent)]/30 text-[var(--admin-accent-text)] bg-[var(--admin-accent)]/10 text-xs">
@@ -781,16 +781,16 @@ export function RecipeFormDialog({
                     </p>
                   )}
                   {ingredientsError && (
-                    <p className="text-xs text-red-400">{ingredientsError}</p>
+                    <p className="text-xs text-red-300">{ingredientsError}</p>
                   )}
                 </>
               )}
             </div>
 
             {isEditing && (
-              <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-950/20 border border-amber-500/20">
-                <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-                <p className="text-xs text-amber-400/80">
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-950/30 border border-amber-500/50">
+                <AlertTriangle className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
+                <p className="text-xs text-amber-200">
                   Al modificar la receta se recalcularan los costos de todos los productos que la usen.
                 </p>
               </div>

@@ -18,10 +18,10 @@ export async function sendToKitchen(orderId: string): Promise<{
     const user = await getAuthUser(supabase)
     if (!user) return { data: [], error: 'No autenticado' }
 
-    // Fetch order_items with their product station
+    // Fetch order_items with their product station and type
     const { data: items, error: itemsError } = await supabase
       .from('order_items')
-      .select('id, product_id, product_name, quantity, notes, sale_tag, products(station)')
+      .select('id, product_id, product_name, quantity, notes, sale_tag, products(station, product_type)')
       .eq('order_id', orderId)
       .eq('status', 'pendiente')
 
@@ -47,9 +47,10 @@ export async function sendToKitchen(orderId: string): Promise<{
     const grouped = new Map<Station, ItemWithStation[]>()
 
     for (const item of items) {
-      const product = item.products as unknown as { station: string | null } | null
+      const product = item.products as unknown as { station: string | null; product_type: string | null } | null
+      if (product?.product_type === 'reventa') continue // reventa products never go to kitchen
       const station = product?.station as Station | null
-      if (!station) continue // skip bebidas/reventa
+      if (!station) continue // skip items without station
 
       if (!grouped.has(station)) grouped.set(station, [])
       grouped.get(station)!.push({

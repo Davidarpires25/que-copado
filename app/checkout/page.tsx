@@ -17,6 +17,7 @@ export default function CheckoutPage() {
     paymentMethod,
     cashAmount,
     isLoading,
+    fieldErrors,
     isAcceptingOrders,
     businessMessage,
     checkingBusiness,
@@ -29,6 +30,7 @@ export default function CheckoutPage() {
     onPaymentMethodChange,
     onCashAmountChange,
     onCheckout,
+    clearFieldError,
   } = useCheckout()
 
   if (items.length === 0) {
@@ -124,7 +126,7 @@ export default function CheckoutPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8">
             {/* Forms */}
-            <div className="lg:col-span-7">
+            <div className="lg:col-span-7 pb-32 lg:pb-0">
               <DeliveryForm
                 data={deliveryData}
                 onChange={onDeliveryDataChange}
@@ -137,6 +139,8 @@ export default function CheckoutPage() {
                 shippingResult={shippingResult}
                 hasZones={zones.length > 0}
                 isCalculatingShipping={isCalculatingShipping}
+                fieldErrors={fieldErrors}
+                clearFieldError={clearFieldError}
               />
             </div>
 

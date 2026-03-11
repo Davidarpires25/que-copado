@@ -84,8 +84,8 @@ export function OrderSummary({
               <DeliveryBikeIcon className="h-4 w-4" />
               Envío
             </span>
-            <span className="font-medium text-orange-600 text-xs lg:text-sm">
-              Según ubicación
+            <span className="font-medium text-orange-500 text-xs lg:text-sm">
+              Se calcula al ingresar tu dirección
             </span>
           </div>
 
@@ -106,9 +106,9 @@ export function OrderSummary({
           </div>
         </div>
 
-        {/* Shipping Note - Oculto en móvil */}
-        <p className="hidden lg:block text-xs text-orange-600/70 text-center">
-          El costo de envío se calcula en el checkout según tu ubicación
+        {/* Shipping Note */}
+        <p className="text-xs text-orange-600/70 text-center">
+          * El envío se calcula en el siguiente paso según tu dirección
         </p>
 
         {/* Checkout Button */}

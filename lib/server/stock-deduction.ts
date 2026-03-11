@@ -43,7 +43,7 @@ export async function deductStockForOrder(
   supabase: SupabaseClient,
   items: StockDeductionItem[],
   orderId: string,
-  userId: string
+  userId: string | null
 ): Promise<void> {
   for (const item of items) {
     if (item.quantity <= 0) continue
@@ -98,7 +98,7 @@ export async function deductStockForOrder(
 export async function restoreStockForOrder(
   supabase: SupabaseClient,
   orderId: string,
-  userId: string
+  userId: string | null
 ): Promise<void> {
   try {
     // Get all sale movements for this order
@@ -205,7 +205,7 @@ async function deductReventaStock(
   product: { id: string; current_stock: number; stock_tracking_enabled: boolean },
   quantity: number,
   orderId: string,
-  userId: string
+  userId: string | null
 ): Promise<void> {
   if (!product.stock_tracking_enabled) return
 
@@ -261,7 +261,7 @@ async function deductIngredientCascade(
   quantityInRecipeUnit: number,
   recipeUnit: string,
   orderId: string,
-  userId: string,
+  userId: string | null,
   visited: Set<string>
 ): Promise<void> {
   // Cycle detection
@@ -440,6 +440,17 @@ async function syncElaboradoAvailability(supabase: SupabaseClient): Promise<void
 
 type IngReq = Map<string, { requiredQty: number; currentStock: number; trackingEnabled: boolean }>
 
+/**
+ * Computes the maximum number of units of an elaborado product that can be
+ * produced given the current ingredient stock. Returns null if no ingredient
+ * tracking is enabled (meaning there's no practical limit).
+ *
+ * Exported so the public page can display urgency indicators.
+ */
+export async function calcElaboradoStock(supabase: SupabaseClient, productId: string): Promise<number | null> {
+  return _calcTheoreticalStock(supabase, productId)
+}
+
 async function _calcTheoreticalStock(supabase: SupabaseClient, productId: string): Promise<number | null> {
   const { data: productRecipes, error } = await supabase
     .from('product_recipes')
@@ -563,7 +574,7 @@ async function deductElaboradoStock(
   productId: string,
   orderQuantity: number,
   orderId: string,
-  userId: string
+  userId: string | null
 ): Promise<void> {
   // Fetch all recipe ingredients for this product in one query
   const { data: productRecipes, error: prError } = await supabase
