@@ -52,11 +52,13 @@ export default async function HomePage() {
 
   // Override is_out_of_stock based on real-time computed stock so the cart
   // button is always correct, even when the DB flag hasn't been synced yet.
-  const productsWithStock = products.map(p =>
-    p.id in stockMap && stockMap[p.id] === 0
-      ? { ...p, is_out_of_stock: true }
-      : p
-  )
+  const productsWithStock = products.map(p => {
+    if (!(p.id in stockMap)) return p
+    if (stockMap[p.id] === 0) return { ...p, is_out_of_stock: true }
+    // Stock available: clear stale out-of-stock flag from DB if needed
+    if (p.is_out_of_stock) return { ...p, is_out_of_stock: false }
+    return p
+  })
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">

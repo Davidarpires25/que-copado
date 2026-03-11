@@ -519,10 +519,16 @@ export async function adjustStock(
     }
   }
 
-  // Sync availability for reventa products (best-effort)
+  // Sync availability (best-effort)
   if (data.type === 'product') {
+    // Reventa: sync this product's is_out_of_stock flag directly
     try {
       await _syncReventaProduct(supabase, data.id, newStock)
+    } catch { /* best effort */ }
+  } else {
+    // Ingredient: re-evaluate all elaborado products that depend on it
+    try {
+      await _syncElaboradoAvailability(supabase)
     } catch { /* best effort */ }
   }
 
@@ -610,6 +616,11 @@ export async function registerPurchase(
       } catch { /* best effort */ }
     }
   }
+
+  // Ingredient stock increased: re-evaluate elaborado product availability (best-effort)
+  try {
+    await _syncElaboradoAvailability(supabase)
+  } catch { /* best effort */ }
 
   revalidateStock()
   return { data: true, error: null }
@@ -823,14 +834,24 @@ export async function syncElaboradoAvailabilityAction(): Promise<{ data: boolean
   const user = await getAuthUser(supabase)
   if (!user) return { data: null, error: 'No autorizado' }
 
+  await _syncElaboradoAvailability(supabase)
+  revalidateStock()
+  return { data: true, error: null }
+}
+
+/**
+ * Re-evaluates all elaborado product availability based on current ingredient stock.
+ * Updates is_out_of_stock / auto_disabled flags and revalidates the public storefront.
+ * Best-effort: call from any action that changes ingredient stock.
+ */
+async function _syncElaboradoAvailability(supabase: SupabaseAdminClient): Promise<void> {
   const { data: products, error: prodError } = await supabase
     .from('products')
     .select('id, is_out_of_stock, auto_disabled')
     .eq('product_type', 'elaborado')
     .eq('is_active', true)
 
-  if (prodError) return devError(prodError)
-  if (!products || products.length === 0) return { data: true, error: null }
+  if (prodError || !products || products.length === 0) return
 
   let anyChanged = false
 
@@ -860,8 +881,6 @@ export async function syncElaboradoAvailabilityAction(): Promise<{ data: boolean
   }
 
   if (anyChanged) revalidateProducts()
-  revalidateStock()
-  return { data: true, error: null }
 }
 
 /**
