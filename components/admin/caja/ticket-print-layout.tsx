@@ -48,9 +48,11 @@ export function TicketPrintLayout({ order, items, cashReceived, isKitchen = fals
     return () => clearTimeout(timer)
   }, [])
 
-  const date = new Date()
-  const dateStr = date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-  const timeStr = date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+  const date = new Date(order.created_at)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const dateStr = `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`
+  const timeStr = `${pad(date.getHours())}:${pad(date.getMinutes())}`
+
   const orderLabel = order.order_type === 'mesa' && order.table_number
     ? `Mesa ${order.table_number}`
     : 'Mostrador'
@@ -63,7 +65,7 @@ export function TicketPrintLayout({ order, items, cashReceived, isKitchen = fals
     return (
       <>
         <style dangerouslySetInnerHTML={{ __html: PRINT_STYLES }} />
-        <div id="ticket-root" className="w-[300px] font-mono text-sm leading-snug p-2">
+        <div id="ticket-root" className="w-[76mm] font-mono text-sm leading-snug p-1">
           <div className="text-center border-b-2 border-black pb-2 mb-3">
             <p className="font-bold text-2xl tracking-widest">COCINA</p>
             <p className="text-xs">──────────────────────</p>
@@ -97,8 +99,7 @@ export function TicketPrintLayout({ order, items, cashReceived, isKitchen = fals
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: PRINT_STYLES }} />
-      <div id="ticket-root" className="w-[300px] font-mono text-sm leading-snug p-2">
-
+      <div id="ticket-root" className="w-[76mm] font-mono text-sm leading-snug p-1">
         {/* Header */}
         <div className="text-center border-b border-dashed border-black pb-2 mb-2">
           <p className="font-bold text-base">QUE COPADO</p>
@@ -161,7 +162,6 @@ export function TicketPrintLayout({ order, items, cashReceived, isKitchen = fals
           <p>Gracias!</p>
           <p className="text-xs opacity-60">#{order.id.slice(-8).toUpperCase()}</p>
         </div>
-
       </div>
     </>
   )
