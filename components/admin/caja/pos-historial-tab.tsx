@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { printClientTicketAction } from '@/app/actions/print'
 import {
   ChevronDown,
   Banknote,
@@ -14,6 +15,7 @@ import {
   MessageSquare,
   Printer,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { formatPrice } from '@/lib/utils'
 import { PAYMENT_METHOD_CONFIG } from '@/lib/types/orders'
@@ -240,7 +242,7 @@ function OrderRow({
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
-                    window.open(`/admin/caja/ticket/${order.id}/print`, '_blank')
+                    printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })
                   }}
                   className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] bg-[var(--admin-surface-2)] hover:bg-[var(--admin-border)] transition-colors"
                 >

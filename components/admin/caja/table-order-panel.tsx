@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { printClientTicketAction } from '@/app/actions/print'
 import {
   X,
   Plus,
@@ -322,7 +323,7 @@ export function TableOrderPanel({
                 </button>
                 {canPrint && (
                   <button
-                    onClick={() => window.open(`/admin/caja/ticket/${order.id}/print?tag=${encodeURIComponent(tag)}`, '_blank')}
+                    onClick={() => printClientTicketAction(order.id, { guestTag: tag }).then(r => { if (r.error) toast.error(r.error) })}
                     className={cn(
                       'h-full px-1.5 bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)] transition-colors',
                       !hasRight && 'rounded-r-full'
@@ -488,7 +489,7 @@ export function TableOrderPanel({
         {/* Ticket print */}
         {(orderStatus === 'cuenta_pedida' || order.status === 'pagado') && (
           <button
-            onClick={() => window.open(`/admin/caja/ticket/${order.id}/print`, '_blank')}
+            onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
             className="w-full flex items-center justify-center gap-2 h-9 rounded-lg text-sm text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] bg-[var(--admin-surface-2)] hover:bg-[var(--admin-border)] transition-colors"
           >
             <Printer className="h-4 w-4" />

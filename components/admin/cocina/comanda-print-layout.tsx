@@ -27,7 +27,6 @@ export function ComandaPrintLayout({ comanda }: ComandaPrintLayoutProps) {
     <div className="w-[300px] font-mono text-sm leading-snug p-2">
       <div className="text-center border-b border-dashed border-black pb-2 mb-2">
         <p className="font-bold text-base">{stationLabel}</p>
-        <p className="text-xs">──────────────────────</p>
         <p className="font-semibold">{orderLabel}</p>
         <p className="text-xs">{timeStr} hs · {dateStr}</p>
       </div>

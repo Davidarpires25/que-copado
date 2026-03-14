@@ -1,20 +1,8 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-
-function printInBackground(url: string) {
-  const iframe = document.createElement('iframe')
-  iframe.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:0;left:0;'
-  iframe.src = url
-  document.body.appendChild(iframe)
-  iframe.addEventListener('load', () => {
-    setTimeout(() => {
-      iframe.contentWindow?.print()
-      setTimeout(() => document.body.removeChild(iframe), 3000)
-    }, 400)
-  })
-}
 import { useRouter } from 'next/navigation'
+import { printClientTicketAction, printKitchenTicketAction } from '@/app/actions/print'
 import { Store, UtensilsCrossed, History, Clock, Printer, ChefHat, X } from 'lucide-react'
 import { PosProductGrid } from './product-grid'
 import { OrderBuilder, type PosCartItem } from './order-builder'
@@ -227,7 +215,9 @@ export function PosInterface({
 
     if (data) {
       if (hasKitchenItems) {
-        printInBackground(`/admin/caja/ticket/${data.id}/print?kitchen=1`)
+        printKitchenTicketAction(data.id).then(r => {
+          if (r.error) toast.error(r.error)
+        })
         toast.success('Pedido enviado a cocina')
         setItems([])
         setNotes('')
@@ -523,14 +513,14 @@ export function PosInterface({
                                 Cobrar
                               </button>
                               <button
-                                onClick={() => window.open(`/admin/caja/ticket/${order.id}/print?kitchen=1`, '_blank')}
+                                onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
                                 className="h-9 w-9 flex items-center justify-center rounded-lg text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer"
                                 aria-label="Imprimir ticket cocina"
                               >
                                 <ChefHat className="h-3.5 w-3.5" />
                               </button>
                               <button
-                                onClick={() => window.open(`/admin/caja/ticket/${order.id}/print`, '_blank')}
+                                onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
                                 className="h-9 w-9 flex items-center justify-center rounded-lg text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer"
                                 aria-label="Imprimir ticket cliente"
                               >
