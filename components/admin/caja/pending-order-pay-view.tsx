@@ -3,13 +3,15 @@
 import { useState, useRef, useEffect } from 'react'
 import {
   Printer, Banknote, CreditCard, Zap, QrCode,
-  Loader2, AlertTriangle, Check,
+  Loader2, AlertTriangle, Check, ChefHat,
 } from 'lucide-react'
 import { cn, formatPrice } from '@/lib/utils'
 import type { PaymentMethod, Order } from '@/lib/types/database'
 import type { PaymentSplit } from '@/lib/types/cash-register'
 import { checkStockForItems } from '@/app/actions/stock'
 import type { StockWarning } from '@/app/actions/stock'
+import { printKitchenTicketAction } from '@/app/actions/print'
+import { toast } from 'sonner'
 
 const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ElementType }[] = [
   { value: 'cash',        label: 'Efectivo',     icon: Banknote },
@@ -156,13 +158,23 @@ export function PendingOrderPayView({ order, loading, onBack, onPrint, onConfirm
         <span className="text-[15px] font-bold text-[var(--admin-text)]">
           Pedido <span className="text-[var(--admin-accent-text)]">#{orderNum}</span>
         </span>
-        <button
-          onClick={onPrint}
-          className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer p-1"
-          aria-label="Imprimir ticket"
-        >
-          <Printer className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
+            className="text-[var(--admin-text-muted)] hover:text-orange-400 transition-colors cursor-pointer p-1"
+            aria-label="Imprimir comanda cocina"
+            title="Comanda cocina"
+          >
+            <ChefHat className="h-4 w-4" />
+          </button>
+          <button
+            onClick={onPrint}
+            className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer p-1"
+            aria-label="Imprimir ticket"
+          >
+            <Printer className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {/* Items — read-only, inset borders, takes remaining space */}

@@ -197,18 +197,36 @@ export function TableOrderPanel({
 
       {/* Sheet mode: compact header */}
       {asSheet && (
-        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[var(--admin-border)]">
-          <span className={cn(
-            'px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider',
-            statusConfig.bgColor, statusConfig.color
-          )}>
-            {statusConfig.label}
-          </span>
-          {totalItemCount > 0 && (
-            <span className="text-xs text-[var(--admin-text-muted)] tabular-nums">
-              {totalItemCount} items · {formatPrice(order.total)}
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--admin-border)]">
+          <div className="flex items-center gap-2">
+            <span className={cn(
+              'px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider',
+              statusConfig.bgColor, statusConfig.color
+            )}>
+              {statusConfig.label}
             </span>
-          )}
+            {totalItemCount > 0 && (
+              <span className="text-xs text-[var(--admin-text-muted)] tabular-nums">
+                {totalItemCount} items · {formatPrice(order.total)}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
+              className="text-[var(--admin-text-muted)] hover:text-orange-400 transition-colors cursor-pointer p-1"
+              title="Comanda cocina"
+            >
+              <ChefHat className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
+              className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer p-1"
+              title="Ticket cliente"
+            >
+              <Printer className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       )}
 
