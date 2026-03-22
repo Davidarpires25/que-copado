@@ -74,18 +74,18 @@ function IngredientRow({
         {/* Name + badges */}
         <div className="flex-1 min-w-0 flex items-center gap-2 mr-3">
           <span className={cn(
-            'text-[13px] truncate',
+            'text-sm truncate',
             depth === 0 ? 'font-medium text-[var(--admin-text)]' : 'text-[var(--admin-text-muted)]'
           )}>
             {ing.name}
           </span>
           {hasChildren && (
-            <span className="shrink-0 text-[10px] font-semibold text-[var(--admin-accent-text)] bg-[var(--admin-accent)]/10 px-1.5 py-0.5 rounded border border-[var(--admin-accent)]/20">
+            <span className="shrink-0 text-xs font-semibold text-[var(--admin-accent-text)] bg-[var(--admin-accent)]/10 px-1.5 py-0.5 rounded border border-[var(--admin-accent)]/20">
               compuesto
             </span>
           )}
           {ing.waste_pct > 0 && (
-            <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold text-red-500 bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded">
+            <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-red-500 bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded">
               <TrendingDown className="h-2.5 w-2.5" />
               {ing.waste_pct}%
             </span>
@@ -152,7 +152,7 @@ function ShoppingRow({ item, quantity, isEven }: {
       {/* Name */}
       <div className="flex-1 min-w-0 mr-3">
         <span className={cn(
-          'text-[13px] font-medium truncate',
+          'text-sm font-medium truncate',
           isShort ? 'text-amber-500' : 'text-[var(--admin-text)]'
         )}>
           {item.name}
@@ -331,7 +331,7 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
                     value={inputStr}
                     onChange={(e) => handleInputChange(e.target.value)}
                     onBlur={handleInputBlur}
-                    className="w-16 h-8 text-center text-[13px] font-bold tabular-nums rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] text-[var(--admin-text)] outline-none focus:border-[var(--admin-accent)]/60 focus:ring-1 focus:ring-[var(--admin-accent)]/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-16 h-10 text-center text-sm font-bold tabular-nums rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] text-[var(--admin-text)] outline-none focus:border-[var(--admin-accent)]/60 focus:ring-1 focus:ring-[var(--admin-accent)]/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                   <span className="text-[12px] text-[var(--admin-text-muted)]">ud</span>
                 </div>
@@ -426,11 +426,11 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
                       style={{ height: 40 }}
                     >
                       <ChevronDown className="h-3.5 w-3.5 text-[var(--admin-accent-text)] shrink-0" />
-                      <span className="text-[13px] font-semibold text-[var(--admin-text)]">
+                      <span className="text-sm font-semibold text-[var(--admin-text)]">
                         Receta: {recipe.recipe_name}
                       </span>
                       {recipe.multiplier !== 1 && (
-                        <span className="text-[10px] font-bold text-[var(--admin-accent-text)] bg-[var(--admin-accent)]/10 border border-[var(--admin-accent)]/20 px-2 py-0.5 rounded">
+                        <span className="text-xs font-bold text-[var(--admin-accent-text)] bg-[var(--admin-accent)]/10 border border-[var(--admin-accent)]/20 px-2 py-0.5 rounded">
                           ×{recipe.multiplier}
                         </span>
                       )}

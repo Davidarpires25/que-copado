@@ -571,7 +571,7 @@ export function ProductsDashboard({
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  className="h-8 w-8 text-green-500 hover:text-green-400 hover:bg-green-950/30 transition-colors"
+                                  className="h-9 w-9 text-green-500 hover:text-green-400 hover:bg-green-950/30 transition-colors"
                                   onClick={() => handlePriceSave(product.id)}
                                 >
                                   <Check className="h-3.5 w-3.5" />
@@ -579,7 +579,7 @@ export function ProductsDashboard({
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  className="h-8 w-8 text-red-500 hover:text-red-400 hover:bg-red-950/30 transition-colors"
+                                  className="h-9 w-9 text-red-500 hover:text-red-400 hover:bg-red-950/30 transition-colors"
                                   onClick={() => setEditingPrice(null)}
                                 >
                                   <X className="h-3.5 w-3.5" />
@@ -641,14 +641,14 @@ export function ProductsDashboard({
                             </TooltipProvider>
                           </TableCell>
                           <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-0.5">
+                            <div className="flex items-center justify-end gap-2">
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button
                                       size="icon"
                                       variant="ghost"
-                                      className="h-8 w-8 lg:h-9 lg:w-9 transition-all duration-200 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)]"
+                                      className="h-9 w-9 lg:h-10 lg:w-10 transition-all duration-200 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)]"
                                       onClick={() => router.push(`/admin/products/${product.id}/edit`)}
                                     >
                                       <Pencil className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
@@ -663,7 +663,7 @@ export function ProductsDashboard({
                                     <Button
                                       size="icon"
                                       variant="ghost"
-                                      className="h-8 w-8 lg:h-9 lg:w-9 text-red-500 hover:text-red-400 hover:bg-red-950/30 transition-all duration-200"
+                                      className="h-9 w-9 lg:h-10 lg:w-10 text-red-500 hover:text-red-400 hover:bg-red-950/30 transition-all duration-200"
                                       onClick={() => setDeleteTarget(product.id)}
                                     >
                                       <Trash2 className="h-3.5 w-3.5 lg:h-4 lg:w-4" />

@@ -339,7 +339,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                       </TooltipProvider>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-0.5">
+                      <div className="flex items-center justify-end gap-2">
                         {ingredient.is_active && (
                           <TooltipProvider>
                             <Tooltip>
@@ -347,7 +347,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  className="h-8 w-8 lg:h-9 lg:w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 transition-all"
+                                  className="h-9 w-9 lg:h-10 lg:w-10 text-[var(--admin-text-muted)] hover:text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 transition-all"
                                   onClick={() => setSubRecipeTarget(ingredient)}
                                 >
                                   <GitBranch className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
@@ -363,7 +363,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="h-8 w-8 lg:h-9 lg:w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-all"
+                                className="h-9 w-9 lg:h-10 lg:w-10 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-all"
                                 onClick={() => router.push(`/admin/ingredients/${ingredient.id}/edit`)}
                               >
                                 <Pencil className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
@@ -378,7 +378,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="h-8 w-8 lg:h-9 lg:w-9 text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all"
+                                className="h-9 w-9 lg:h-10 lg:w-10 text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all"
                                 onClick={() => setDeleteTarget(ingredient.id)}
                               >
                                 <Trash2 className="h-3.5 w-3.5 lg:h-4 lg:w-4" />

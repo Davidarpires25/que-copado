@@ -73,8 +73,8 @@ export function ConsumptionTab({ initialData, initialPeriod = '30d' }: Consumpti
             onClick={() => handlePeriodChange(p)}
             className={
               period === p
-                ? 'bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)] border border-[var(--admin-accent)]/30 h-8 px-3 text-xs font-semibold'
-                : 'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] h-8 px-3 text-xs'
+                ? 'bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)] border border-[var(--admin-accent)]/30 h-9 px-3 text-xs font-semibold'
+                : 'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] h-9 px-3 text-xs'
             }
           >
             {PERIOD_LABELS[p]}
