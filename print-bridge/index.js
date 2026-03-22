@@ -176,27 +176,29 @@ async function main() {
     console.log('📋  Sin jobs pendientes')
   }
 
-  // 2. Polling cada 3 segundos por jobs nuevos
-  const POLL_INTERVAL_MS = 3000
-  console.log(`✅  Polling activo (cada ${POLL_INTERVAL_MS / 1000}s) — esperando jobs de impresión...\n`)
-
-  setInterval(async () => {
-    const { data: jobs, error } = await supabase
-      .from('print_jobs')
-      .select('*')
-      .eq('status', 'pending')
-      .order('created_at')
-
-    if (error) {
-      console.error('❌  Error consultando jobs:', error.message)
-      return
-    }
-
-    for (const job of jobs ?? []) {
-      console.log(`\n📄  Nuevo job: ${job.id.slice(-8)} (${job.type})`)
-      await processJob(job)
-    }
-  }, POLL_INTERVAL_MS)
+  // 2. Suscribirse a nuevos jobs via Realtime
+  supabase
+    .channel('print_jobs_channel')
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'print_jobs' },
+      async ({ new: job }) => {
+        if (job.status !== 'pending') return
+        console.log(`\n📄  Nuevo job: ${job.id.slice(-8)} (${job.type})`)
+        await processJob(job)
+      }
+    )
+    .subscribe((status, err) => {
+      if (status === 'SUBSCRIBED') {
+        console.log('✅  Realtime activo — esperando jobs de impresión...\n')
+      } else if (status === 'CHANNEL_ERROR') {
+        console.error('❌  Realtime error:', err?.message || err)
+      } else if (status === 'TIMED_OUT') {
+        console.error('❌  Realtime timeout — reintentando...')
+      } else {
+        console.log(`ℹ️   Realtime status: ${status}`)
+      }
+    })
 }
 
 main().catch((err) => {
