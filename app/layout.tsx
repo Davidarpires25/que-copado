@@ -25,7 +25,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("http://localhost:3000"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
   title: "Que Copado - Las mejores hamburguesas",
   description: "Las mejores hamburguesas de la zona. Pedí ahora por WhatsApp!",
   keywords: ["hamburguesas", "delivery", "comida", "fast food"],

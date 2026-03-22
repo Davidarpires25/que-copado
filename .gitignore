@@ -1,5 +1,10 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# print bridge secrets
+/print-bridge/.env
+/print-bridge/node_modules
+/print-bridge/dist/
+
 # dependencies
 /node_modules
 /.pnp

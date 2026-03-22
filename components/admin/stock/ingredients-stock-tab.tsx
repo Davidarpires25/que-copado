@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, Pencil, AlertTriangle } from 'lucide-react'
+import { Pencil, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -27,6 +26,7 @@ interface IngredientsStockTabProps {
   alerts: StockAlert[]
   onAlertsChange: (alerts: StockAlert[]) => void
   forecastMap?: Map<string, StockForecastItem>
+  searchQuery: string
 }
 
 export function IngredientsStockTab({
@@ -35,8 +35,8 @@ export function IngredientsStockTab({
   alerts,
   onAlertsChange,
   forecastMap,
+  searchQuery,
 }: IngredientsStockTabProps) {
-  const [searchQuery, setSearchQuery] = useState('')
   const [adjustTarget, setAdjustTarget] = useState<IngredientWithStock | null>(null)
 
   const filteredIngredients = useMemo(() => {
@@ -127,51 +127,19 @@ export function IngredientsStockTab({
 
   return (
     <>
-      {/* Search Bar */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar ingrediente..."
-            className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-9 pl-9 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
-            aria-label="Buscar ingrediente por nombre"
-          />
-        </div>
-        <p className="text-[var(--admin-text-muted)] text-sm hidden sm:block">
-          {filteredIngredients.length} {filteredIngredients.length === 1 ? 'ingrediente' : 'ingredientes'}
-        </p>
-      </div>
-
-      {/* Alert Banner */}
-      {alerts.filter((a) => a.type === 'ingredient').length > 0 && (
-        <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
-          <AlertTriangle className="h-5 w-5 text-red-400 shrink-0" />
-          <p className="text-sm text-red-300">
-            <span className="font-semibold">{alerts.filter((a) => a.type === 'ingredient').length}</span>{' '}
-            ingrediente{alerts.filter((a) => a.type === 'ingredient').length !== 1 ? 's' : ''} con stock bajo.
-            Revisa los items marcados en la tabla.
-          </p>
-        </div>
-      )}
-
       {/* Table */}
       {ingredients.length === 0 ? (
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
-          <div className="p-16 text-center">
-            <div className="w-20 h-20 bg-[var(--admin-surface-2)] rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Search className="h-10 w-10 text-slate-600" />
-            </div>
-            <h3 className="text-xl font-semibold text-[var(--admin-text)] mb-2">No hay ingredientes</h3>
-            <p className="text-[var(--admin-text-muted)] mb-6 max-w-sm mx-auto">
-              Agrega ingredientes desde la seccion de Ingredientes para poder controlar su stock.
-            </p>
+        <div className="p-16 text-center">
+          <div className="w-20 h-20 bg-[var(--admin-surface-2)] rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <AlertTriangle className="h-10 w-10 text-[var(--admin-text-faint)]" />
           </div>
+          <h3 className="text-xl font-semibold text-[var(--admin-text)] mb-2">No hay ingredientes</h3>
+          <p className="text-[var(--admin-text-muted)] max-w-sm mx-auto">
+            Agrega ingredientes desde la seccion de Ingredientes para poder controlar su stock.
+          </p>
         </div>
       ) : (
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="overflow-x-auto">
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
                 <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
@@ -295,7 +263,6 @@ export function IngredientsStockTab({
               </TableBody>
             </Table>
           </div>
-        </div>
       )}
 
       {adjustTarget && (

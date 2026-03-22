@@ -2,13 +2,14 @@
 
 import { useMemo } from 'react'
 import {
-  AreaChart,
-  Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from 'recharts'
 import { formatPrice } from '@/lib/utils'
 import { useThemeStore } from '@/lib/store/theme-store'
@@ -56,14 +57,8 @@ export function SalesChart({ data }: SalesChartProps) {
 
       <div className="h-[250px] flex-1 min-h-[250px]">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={formattedData}>
-            <defs>
-              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#FEC501" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#FEC501" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+          <BarChart data={formattedData} barCategoryGap="30%">
+            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
             <XAxis
               dataKey="dateLabel"
               stroke={axisColor}
@@ -101,16 +96,14 @@ export function SalesChart({ data }: SalesChartProps) {
                   </div>
                 )
               }}
+              cursor={{ fill: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)' }}
             />
-            <Area
-              type="monotone"
-              dataKey="revenue"
-              stroke="#FEC501"
-              strokeWidth={2}
-              fillOpacity={1}
-              fill="url(#colorRevenue)"
-            />
-          </AreaChart>
+            <Bar dataKey="revenue" radius={[4, 4, 0, 0]}>
+              {formattedData.map((_, index) => (
+                <Cell key={index} fill="#FEC501" fillOpacity={0.85} />
+              ))}
+            </Bar>
+          </BarChart>
         </ResponsiveContainer>
       </div>
     </div>

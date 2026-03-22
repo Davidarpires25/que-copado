@@ -13,10 +13,23 @@ export default async function CategoriesPage() {
   }
 
   const adminSupabase = await createAdminClient()
-  const { data: categories } = await adminSupabase
-    .from('categories')
-    .select('*')
-    .order('sort_order', { ascending: true })
+  const [{ data: categories }, { data: productCounts }] = await Promise.all([
+    adminSupabase.from('categories').select('*').order('sort_order', { ascending: true }),
+    adminSupabase.from('products').select('category_id'),
+  ])
 
-  return <CategoriesDashboard initialCategories={(categories as Category[]) ?? []} />
+  // Build a map of category_id → product count
+  const countMap: Record<string, number> = {}
+  for (const p of productCounts ?? []) {
+    if (p.category_id) {
+      countMap[p.category_id] = (countMap[p.category_id] ?? 0) + 1
+    }
+  }
+
+  return (
+    <CategoriesDashboard
+      initialCategories={(categories as Category[]) ?? []}
+      productCountMap={countMap}
+    />
+  )
 }

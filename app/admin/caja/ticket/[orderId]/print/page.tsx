@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { TicketPrintLayout } from '@/components/admin/caja/ticket-print-layout'
 import type { Order } from '@/lib/types/database'
-
 interface PageProps {
   params: Promise<{ orderId: string }>
   searchParams: Promise<{ cash?: string; kitchen?: string; tag?: string }>

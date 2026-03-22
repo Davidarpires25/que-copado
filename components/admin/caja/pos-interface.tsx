@@ -3,17 +3,19 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { printClientTicketAction, printKitchenTicketAction } from '@/app/actions/print'
-import { Store, UtensilsCrossed, History, Clock, Printer, ChefHat, X } from 'lucide-react'
+import { Store, UtensilsCrossed, History, Printer, X } from 'lucide-react'
 import { PosProductGrid } from './product-grid'
 import { OrderBuilder, type PosCartItem } from './order-builder'
-import { PaymentPanel } from './payment-panel'
+import { PendingOrderPayView } from './pending-order-pay-view'
 import { SessionStatusBar } from './session-status-bar'
 import { CashMovementDialog } from './cash-movement-dialog'
 import { PosHistorialTab } from './pos-historial-tab'
 import { TableGrid } from './table-grid'
 import { TableOrderPanel } from './table-order-panel'
-import { AddItemsDialog } from './add-items-dialog'
-import { TablePaymentDialog } from './table-payment-dialog'
+import { AddItemsView } from './add-items-view'
+import { TablePayView } from './table-pay-view'
+import { TABLE_SECTION_LABELS } from '@/lib/types/tables'
+// TablePaymentDialog kept as file — no longer rendered here
 import { BottomSheet } from '@/components/ui/bottom-sheet'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
@@ -85,7 +87,7 @@ export function PosInterface({
   const [tables, setTables] = useState<TableWithOrder[]>(initialTables)
   const [selectedTable, setSelectedTable] = useState<TableWithOrder | null>(null)
   const [showAddItems, setShowAddItems] = useState(false)
-  const [showTablePayment, setShowTablePayment] = useState(false)
+  const [payingTable, setPayingTable] = useState<TableWithOrder | null>(null)
   const [addItemsSaleTag, setAddItemsSaleTag] = useState<string | null>(null)
 
   // Computed
@@ -222,6 +224,7 @@ export function PosInterface({
         setItems([])
         setNotes('')
         await refreshPendingOrders()
+        setPayingOrder(data)
       } else {
         // Solo reventa: cobro inmediato sin pasar por la tarjeta
         toast.success('Pedido registrado')
@@ -373,7 +376,7 @@ export function PosInterface({
   }
 
   const handleTablePaid = async () => {
-    setShowTablePayment(false)
+    setPayingTable(null)
     setSelectedTable(null)
     router.refresh()
     await refreshTables()
@@ -449,98 +452,9 @@ export function PosInterface({
       <div className="flex-1 flex overflow-hidden">
         {mode === 'mostrador' && (
           <>
-            {/* Left: Product grid + Pending orders */}
+            {/* Left: Product grid + Pending orders strip */}
             <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
-              {/* Pending orders strip */}
-              {(pendingOrders.length > 0 || pendingLoading) && (
-                <div className="shrink-0 border-b border-[var(--admin-border)] bg-[var(--admin-surface)] px-4 py-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="h-4 w-4 text-amber-400" />
-                    <span className="text-sm font-semibold text-amber-400">
-                      Pendientes ({pendingOrders.length})
-                    </span>
-                  </div>
-                  {pendingLoading ? (
-                    <p className="text-xs text-[var(--admin-text-muted)]">Cargando...</p>
-                  ) : (
-                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                      {pendingOrders.map((order) => {
-                        const orderItems = order.items as { name: string; quantity: number }[]
-                        const diffMs = Date.now() - new Date(order.opened_at || order.created_at).getTime()
-                        const mins = Math.floor(diffMs / 60000)
-                        const timeAgo = mins < 1 ? '<1m' : `${mins}m`
-                        const urgencyClass =
-                          mins < 5
-                            ? 'text-green-400'
-                            : mins < 10
-                              ? 'text-amber-400'
-                              : 'text-red-400'
-                        const urgencyBorder =
-                          mins < 5
-                            ? 'border-green-500/30 hover:border-green-400/60'
-                            : mins < 10
-                              ? 'border-amber-500/30 hover:border-amber-400/60'
-                              : 'border-red-500/40 hover:border-red-400/70'
-                        return (
-                          <div
-                            key={order.id}
-                            className={`shrink-0 bg-[var(--admin-bg)] border ${urgencyBorder} rounded-xl text-left transition-colors w-[200px] h-[130px] flex flex-col`}
-                          >
-                            {/* Card header */}
-                            <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5 border-b border-[var(--admin-border)]/40 shrink-0">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-xs font-mono text-[var(--admin-text-muted)]">
-                                  #{order.id.slice(-4).toUpperCase()}
-                                </span>
-                                <span className={`text-xs font-bold ${urgencyClass}`}>{timeAgo}</span>
-                              </div>
-                              <span className="text-sm font-bold text-[var(--admin-accent-text)]">
-                                {formatPrice(order.total)}
-                              </span>
-                            </div>
-                            {/* Items */}
-                            <p className="text-xs text-[var(--admin-text-muted)] px-3 py-1.5 flex-1 overflow-hidden line-clamp-2 leading-relaxed">
-                              {Array.isArray(orderItems)
-                                ? orderItems.map((i) => `${i.quantity}x ${i.name}`).join(' · ')
-                                : '...'}
-                            </p>
-                            {/* Actions */}
-                            <div className="flex items-center gap-1 px-2 pb-2 shrink-0">
-                              <button
-                                onClick={() => setPayingOrder(order)}
-                                className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg bg-green-600 hover:bg-green-500 text-white text-xs font-bold transition-colors active:scale-95 cursor-pointer"
-                              >
-                                Cobrar
-                              </button>
-                              <button
-                                onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
-                                className="h-9 w-9 flex items-center justify-center rounded-lg text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer"
-                                aria-label="Imprimir ticket cocina"
-                              >
-                                <ChefHat className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
-                                className="h-9 w-9 flex items-center justify-center rounded-lg text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer"
-                                aria-label="Imprimir ticket cliente"
-                              >
-                                <Printer className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                onClick={() => setCancelOrderId(`mostrador:${order.id}`)}
-                                className="h-9 w-9 flex items-center justify-center rounded-lg text-red-500/50 hover:text-red-400 hover:bg-red-950/30 transition-colors cursor-pointer"
-                                aria-label="Cancelar pedido"
-                              >
-                                <X className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Product grid */}
               <div className="flex-1 overflow-hidden">
                 <PosProductGrid
                   products={products}
@@ -549,52 +463,133 @@ export function PosInterface({
                   onAddItem={handleAddItem}
                 />
               </div>
+
+              {/* Pending orders strip — bottom */}
+              <div className="shrink-0 border-t border-[var(--admin-border)] flex items-center gap-2.5 px-4 overflow-x-auto scrollbar-hide" style={{ height: 52, paddingTop: 10, paddingBottom: 10 }}>
+                <span className="text-[12px] font-medium text-[var(--admin-text-muted)] shrink-0">
+                  Pendientes:
+                </span>
+                {pendingLoading ? (
+                  <span className="text-[13px] text-[var(--admin-text-muted)]">...</span>
+                ) : pendingOrders.length === 0 ? (
+                  <span className="text-[13px] text-[var(--admin-text-faint)]">—</span>
+                ) : (
+                  pendingOrders.map((order) => {
+                    const isSelected = payingOrder?.id === order.id
+                    return (
+                      <button
+                        key={order.id}
+                        onClick={() => {
+                          if (isSelected) { setPayingOrder(null); return }
+                          setPayingOrder(order)
+                          setShowMobileCart(true)
+                        }}
+                        className={cn(
+                          'shrink-0 flex items-center px-4 text-[13px] font-semibold transition-all cursor-pointer tabular-nums',
+                          isSelected
+                            ? 'bg-[var(--admin-accent)]/20 border border-[var(--admin-accent)]/60 text-[var(--admin-accent-text)]'
+                            : 'bg-amber-400 border border-amber-400 text-black hover:bg-amber-300'
+                        )}
+                        style={{ height: 32, borderRadius: 8 }}
+                      >
+                        #{order.id.slice(-4).toUpperCase()} — {formatPrice(order.total)}
+                      </button>
+                    )
+                  })
+                )}
+                {payingOrder && (
+                  <button
+                    onClick={() => setPayingOrder(null)}
+                    className="shrink-0 flex items-center px-4 text-[13px] font-semibold text-black bg-[var(--admin-accent)] border border-[var(--admin-accent)] hover:bg-amber-300 transition-colors cursor-pointer"
+                    style={{ height: 32, borderRadius: 8 }}
+                  >
+                    + Nuevo pedido
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Order builder (right panel) */}
-            <div className="w-80 lg:w-96 border-l border-[var(--admin-border)] shrink-0 hidden md:flex md:flex-col">
-              <OrderBuilder
-                items={items}
-                notes={notes}
-                hasKitchenItems={hasKitchenItems}
-                onUpdateQuantity={handleUpdateQuantity}
-                onRemoveItem={handleRemoveItem}
-                onSetNotes={setNotes}
-                onSetItemNotes={handleSetItemNotes}
-                onCheckout={handleCheckout}
-                loading={confirmLoading}
-              />
+            {/* Right panel — order builder or payment view */}
+            <div className="w-[380px] shrink-0 hidden md:flex md:flex-col border-l border-[var(--admin-border)]">
+              {payingOrder ? (
+                <PendingOrderPayView
+                  order={payingOrder}
+                  loading={payingOrderLoading}
+                  onBack={() => setPayingOrder(null)}
+                  onPrint={() => printClientTicketAction(payingOrder.id).then(r => { if (r.error) toast.error(r.error) })}
+                  onConfirm={handlePayPendingOrder}
+                />
+              ) : (
+                <OrderBuilder
+                  items={items}
+                  notes={notes}
+                  hasKitchenItems={hasKitchenItems}
+                  onUpdateQuantity={handleUpdateQuantity}
+                  onRemoveItem={handleRemoveItem}
+                  onSetNotes={setNotes}
+                  onSetItemNotes={handleSetItemNotes}
+                  onCheckout={handleCheckout}
+                  loading={confirmLoading}
+                />
+              )}
             </div>
           </>
         )}
 
         {mode === 'mesas' && (
-          <>
-            {/* Table grid */}
-            <div className="flex-1 min-w-0">
-              <TableGrid
-                tables={tables}
-                selectedTableId={selectedTable?.id ?? null}
-                onSelectTable={handleSelectTable}
-                onOpenTable={handleOpenTable}
-              />
-            </div>
-
-            {/* Table order panel (right) */}
-            {selectedTable && selectedTable.orders && (
-              <div className="shrink-0 hidden md:block">
-                <TableOrderPanel
-                  table={selectedTable}
-                  session={session}
-                  onAddItems={(tag) => { setAddItemsSaleTag(tag ?? null); setShowAddItems(true) }}
-                  onRequestBill={handleTableBillRequested}
-                  onPayOrder={() => setShowTablePayment(true)}
-                  onCancelOrder={handleTableOrderCancelled}
-                  onClose={() => setSelectedTable(null)}
+          payingTable && payingTable.orders ? (
+            <TablePayView
+              order={payingTable.orders}
+              table={payingTable}
+              session={session}
+              sectionLabel={TABLE_SECTION_LABELS[payingTable.section] || payingTable.section}
+              onBack={() => setPayingTable(null)}
+              onPaid={() => {
+                const tableNum = payingTable.number
+                setPayingTable(null)
+                setSelectedTable(null)
+                toast.success(`Mesa ${tableNum} cobrada`)
+                void handleTablePaid()
+              }}
+            />
+          ) : showAddItems && selectedTable?.orders ? (
+            <AddItemsView
+              products={products}
+              categories={categories}
+              table={selectedTable}
+              orderId={selectedTable.orders.id}
+              saleTag={addItemsSaleTag}
+              onClose={() => { setShowAddItems(false); setAddItemsSaleTag(null) }}
+              onItemsAdded={handleTableItemsAdded}
+            />
+          ) : (
+            <>
+              {/* Table grid */}
+              <div className="flex-1 min-w-0">
+                <TableGrid
+                  tables={tables}
+                  selectedTableId={selectedTable?.id ?? null}
+                  onSelectTable={handleSelectTable}
+                  onOpenTable={handleOpenTable}
                 />
               </div>
-            )}
-          </>
+
+              {/* Table order panel (right) */}
+              {selectedTable && selectedTable.orders && (
+                <div className="shrink-0 hidden md:block">
+                  <TableOrderPanel
+                    table={selectedTable}
+                    session={session}
+                    onAddItems={(tag) => { setAddItemsSaleTag(tag ?? null); setShowAddItems(true) }}
+                    onRequestBill={handleTableBillRequested}
+                    onPayOrder={() => setPayingTable(selectedTable)}
+                    onCancelOrder={handleTableOrderCancelled}
+                    onClose={() => setSelectedTable(null)}
+                  />
+                </div>
+              )}
+            </>
+          )
         )}
 
         {mode === 'historial' && (
@@ -624,25 +619,38 @@ export function PosInterface({
         </div>
       )}
 
-      {/* Mobile cart sheet (Mostrador) */}
+      {/* Mobile cart / payment sheet (Mostrador) */}
       <BottomSheet
         open={showMobileCart}
-        onClose={() => setShowMobileCart(false)}
-        title="Venta mostrador"
+        onClose={() => { setShowMobileCart(false); if (payingOrder) setPayingOrder(null) }}
+        title={payingOrder ? `Cobrar #${payingOrder.id.slice(-4).toUpperCase()}` : 'Venta mostrador'}
       >
-        <OrderBuilder
-          items={items}
-          notes={notes}
-          loading={confirmLoading}
-          onUpdateQuantity={handleUpdateQuantity}
-          onRemoveItem={handleRemoveItem}
-          onSetNotes={setNotes}
-          onSetItemNotes={handleSetItemNotes}
-          onCheckout={async () => {
-            await handleConfirmOrder()
-            setShowMobileCart(false)
-          }}
-        />
+        {payingOrder ? (
+          <PendingOrderPayView
+            order={payingOrder}
+            loading={payingOrderLoading}
+            onBack={() => { setPayingOrder(null); setShowMobileCart(false) }}
+            onPrint={() => printClientTicketAction(payingOrder.id).then(r => { if (r.error) toast.error(r.error) })}
+            onConfirm={async (method, splits) => {
+              await handlePayPendingOrder(method, splits)
+              setShowMobileCart(false)
+            }}
+          />
+        ) : (
+          <OrderBuilder
+            items={items}
+            notes={notes}
+            loading={confirmLoading}
+            onUpdateQuantity={handleUpdateQuantity}
+            onRemoveItem={handleRemoveItem}
+            onSetNotes={setNotes}
+            onSetItemNotes={handleSetItemNotes}
+            onCheckout={async () => {
+              await handleConfirmOrder()
+              setShowMobileCart(false)
+            }}
+          />
+        )}
       </BottomSheet>
 
       {/* Status bar */}
@@ -653,16 +661,6 @@ export function PosInterface({
         onMovement={() => setShowMovement(true)}
         onViewHistory={handleSwitchToHistorial}
         onCloseSession={handleCloseSessionClick}
-      />
-
-      {/* Mostrador dialogs */}
-      {/* Payment panel for pending mostrador order */}
-      <PaymentPanel
-        open={!!payingOrder}
-        total={payingOrder?.total ?? 0}
-        loading={payingOrderLoading}
-        onClose={() => setPayingOrder(null)}
-        onConfirm={handlePayPendingOrder}
       />
 
       <CashMovementDialog
@@ -687,29 +685,6 @@ export function PosInterface({
         }}
       />
 
-      {/* Table dialogs */}
-      {selectedTable?.orders && (
-        <>
-          <AddItemsDialog
-            open={showAddItems}
-            products={products}
-            categories={categories}
-            orderId={selectedTable.orders.id}
-            saleTag={addItemsSaleTag}
-            onClose={() => { setShowAddItems(false); setAddItemsSaleTag(null) }}
-            onItemsAdded={handleTableItemsAdded}
-          />
-
-          <TablePaymentDialog
-            open={showTablePayment}
-            order={selectedTable.orders}
-            table={selectedTable}
-            sessionId={session.id}
-            onClose={() => setShowTablePayment(false)}
-            onPaid={handleTablePaid}
-          />
-        </>
-      )}
 
       {/* Mobile table panel sheet (Mesas) */}
       {selectedTable?.orders && (
@@ -729,7 +704,7 @@ export function PosInterface({
             onRequestBill={handleTableBillRequested}
             onPayOrder={() => {
               setShowMobileTablePanel(false)
-              setShowTablePayment(true)
+              setPayingTable(selectedTable)
             }}
             onCancelOrder={() => {
               setShowMobileTablePanel(false)

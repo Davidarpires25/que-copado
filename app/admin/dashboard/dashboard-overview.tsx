@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import {
   DollarSign,
@@ -8,8 +9,9 @@ import {
   TrendingUp,
   Receipt,
   ArrowRight,
-  BarChart3,
   ClipboardList,
+  UtensilsCrossed,
+  AlertTriangle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AdminLayout } from '@/components/admin/layout'
@@ -32,6 +34,13 @@ import { formatRelativeDate, getShortOrderId, parseOrderItems } from '@/lib/serv
 import type { DashboardStats, TopProduct, SalesChartData } from '@/lib/types/orders'
 import type { OrderWithZone } from '@/lib/types/database'
 import type { ComparativeStats } from '@/app/actions/analytics'
+import type { StockAlert } from '@/lib/types/stock'
+
+interface OperationalStatus {
+  openTables: number
+  activeOrders: number
+  stockAlerts: StockAlert[]
+}
 
 interface DashboardOverviewProps {
   stats: DashboardStats | null
@@ -39,6 +48,7 @@ interface DashboardOverviewProps {
   chartData: SalesChartData[]
   recentOrders: OrderWithZone[]
   trends?: ComparativeStats | null
+  operationalStatus: OperationalStatus
 }
 
 export function DashboardOverview({
@@ -47,10 +57,80 @@ export function DashboardOverview({
   chartData,
   recentOrders,
   trends,
+  operationalStatus,
 }: DashboardOverviewProps) {
+  const router = useRouter()
   return (
     <AdminLayout title="Dashboard" description="Resumen de tu negocio">
+      {/* Operational Status */}
+      {(operationalStatus.openTables > 0 || operationalStatus.activeOrders > 0 || operationalStatus.stockAlerts.length > 0) && (
+        <>
+          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--admin-text-muted)] mb-3">Estado Operativo</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+
+            <Link href="/admin/tables" className="group block">
+              <div className="flex items-center gap-3 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl px-4 py-3.5 shadow-[var(--shadow-card)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer">
+                <div className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${operationalStatus.openTables > 0 ? 'bg-emerald-500/10' : 'bg-[var(--admin-surface-2)]'}`}>
+                  <UtensilsCrossed className={`h-[18px] w-[18px] ${operationalStatus.openTables > 0 ? 'text-emerald-500' : 'text-[var(--admin-text-placeholder)]'}`} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-[var(--admin-text-muted)] leading-none mb-1">Mesas ocupadas</p>
+                  <p className={`text-xl font-bold leading-none num-tabular ${operationalStatus.openTables > 0 ? 'text-emerald-500' : 'text-[var(--admin-text-muted)]'}`}>
+                    {operationalStatus.openTables}
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-[var(--admin-text-placeholder)] opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </Link>
+
+            <Link href="/admin/orders" className="group block">
+              <div className="flex items-center gap-3 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl px-4 py-3.5 shadow-[var(--shadow-card)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer">
+                <div className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${operationalStatus.activeOrders > 0 ? 'bg-blue-500/10' : 'bg-[var(--admin-surface-2)]'}`}>
+                  <ClipboardList className={`h-[18px] w-[18px] ${operationalStatus.activeOrders > 0 ? 'text-blue-500' : 'text-[var(--admin-text-placeholder)]'}`} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-[var(--admin-text-muted)] leading-none mb-1">Pedidos activos</p>
+                  <p className={`text-xl font-bold leading-none num-tabular ${operationalStatus.activeOrders > 0 ? 'text-blue-500' : 'text-[var(--admin-text-muted)]'}`}>
+                    {operationalStatus.activeOrders}
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-[var(--admin-text-placeholder)] opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </Link>
+
+            <Link href="/admin/stock" className="group block">
+              <div className="flex items-center gap-3 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl px-4 py-3.5 shadow-[var(--shadow-card)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer">
+                <div className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${
+                  operationalStatus.stockAlerts.length > 3 ? 'bg-red-500/10'
+                  : operationalStatus.stockAlerts.length > 0 ? 'bg-amber-500/10'
+                  : 'bg-[var(--admin-surface-2)]'
+                }`}>
+                  <AlertTriangle className={`h-[18px] w-[18px] ${
+                    operationalStatus.stockAlerts.length > 3 ? 'text-red-500'
+                    : operationalStatus.stockAlerts.length > 0 ? 'text-amber-500'
+                    : 'text-[var(--admin-text-placeholder)]'
+                  }`} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-[var(--admin-text-muted)] leading-none mb-1">Alertas de stock</p>
+                  <p className={`text-xl font-bold leading-none num-tabular ${
+                    operationalStatus.stockAlerts.length > 3 ? 'text-red-500'
+                    : operationalStatus.stockAlerts.length > 0 ? 'text-amber-500'
+                    : 'text-[var(--admin-text-muted)]'
+                  }`}>
+                    {operationalStatus.stockAlerts.length}
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-[var(--admin-text-placeholder)] opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </Link>
+
+          </div>
+        </>
+      )}
+
       {/* Stats Grid */}
+      <p className="text-xs font-semibold uppercase tracking-widest text-[var(--admin-text-muted)] mb-3">Resumen de Ventas</p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatsCard
           title="Ventas Hoy"
@@ -98,31 +178,8 @@ export function DashboardOverview({
         />
       </div>
 
-      {/* Analytics Quick Link */}
-      <div
-        className="mb-6"
-      >
-        <Link href="/admin/analytics">
-          <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-[var(--admin-accent)]/30 transition-all duration-200 group flex items-center justify-between cursor-pointer">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-[var(--admin-accent)]/10 rounded-lg flex items-center justify-center group-hover:bg-[var(--admin-accent)]/20 transition-colors">
-                <BarChart3 className="h-5 w-5 text-[var(--admin-accent-text)]" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors">
-                  Ver Analytics completo
-                </p>
-                <p className="text-sm text-[var(--admin-text-muted)]">
-                  Ventas por hora, día, zona, productos y más
-                </p>
-              </div>
-            </div>
-            <ArrowRight className="h-4 w-4 text-[var(--admin-text-muted)] group-hover:text-[var(--admin-accent-text)] group-hover:translate-x-1 transition-all duration-200" />
-          </div>
-        </Link>
-      </div>
-
       {/* Charts Row */}
+      <p className="text-xs font-semibold uppercase tracking-widest text-[var(--admin-text-muted)] mb-3">Rendimiento</p>
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8 items-stretch">
         <div
           className="lg:col-span-3 flex"
@@ -138,65 +195,80 @@ export function DashboardOverview({
       </div>
 
       {/* Recent Orders */}
+      <p className="text-xs font-semibold uppercase tracking-widest text-[var(--admin-text-muted)] mb-3">Actividad Reciente</p>
       <div
-        className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 shadow-[var(--shadow-card)]"
+        className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl shadow-[var(--shadow-card)] overflow-hidden"
       >
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-[var(--admin-text)]">
-            Pedidos Recientes
+        <div className="flex items-center justify-between p-6 pb-4">
+          <h3 className="text-base font-semibold text-[var(--admin-text)]">
+            Últimos Pedidos
           </h3>
           <Link href="/admin/orders">
-            <Button variant="ghost" className="text-[var(--admin-accent-text)] hover:text-[#E5B001] hover:bg-[var(--admin-accent)]/10">
+            <Button variant="ghost" size="sm" className="text-[var(--admin-accent-text)] hover:text-[#E5B001] hover:bg-[var(--admin-accent)]/10 h-8 text-xs">
               Ver todos
-              <ArrowRight className="h-4 w-4 ml-1" />
+              <ArrowRight className="h-3.5 w-3.5 ml-1" />
             </Button>
           </Link>
         </div>
 
         {recentOrders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 text-center gap-2">
+          <div className="flex flex-col items-center justify-center py-10 text-center gap-2 px-6 pb-6">
             <ClipboardList className="h-8 w-8 text-[var(--admin-text-placeholder)]" />
             <p className="text-sm text-[var(--admin-text-muted)]">No hay pedidos recientes</p>
-            <p className="text-xs text-[var(--admin-text-faint)]">Los pedidos nuevos apareceran aqui</p>
+            <p className="text-xs text-[var(--admin-text-faint)]">Los pedidos nuevos aparecerán aquí</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {recentOrders.map((order) => {
-              const items = parseOrderItems(order.items)
-              const itemsSummary = items.slice(0, 2).map(i => `${i.quantity}x ${i.name}`).join(', ')
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-t border-[var(--admin-border)]">
+                  <th className="text-left text-xs font-semibold text-[var(--admin-text-muted)] px-6 py-3">ID</th>
+                  <th className="text-left text-xs font-semibold text-[var(--admin-text-muted)] px-4 py-3">Cliente</th>
+                  <th className="text-left text-xs font-semibold text-[var(--admin-text-muted)] px-4 py-3 hidden sm:table-cell">Hora</th>
+                  <th className="text-left text-xs font-semibold text-[var(--admin-text-muted)] px-4 py-3 hidden md:table-cell">Items</th>
+                  <th className="text-right text-xs font-semibold text-[var(--admin-text-muted)] px-4 py-3">Total</th>
+                  <th className="text-right text-xs font-semibold text-[var(--admin-text-muted)] px-6 py-3">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentOrders.map((order) => {
+                  const items = parseOrderItems(order.items)
+                  const orderDate = new Date(order.created_at)
+                  const timeStr = orderDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false })
 
-              return (
-                <Link
-                  key={order.id}
-                  href="/admin/orders"
-                  className="flex items-center justify-between p-3 rounded-lg bg-[var(--admin-surface-2)] hover:bg-[var(--admin-border)] transition-colors group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div>
-                      <p className="font-mono text-[var(--admin-text)] font-semibold group-hover:text-[var(--admin-accent-text)] transition-colors">
-                        #{getShortOrderId(order.id)}
-                      </p>
-                      <p className="text-xs text-[var(--admin-text-muted)]">
-                        {formatRelativeDate(order.created_at)}
-                      </p>
-                    </div>
-                    <div className="hidden sm:block">
-                      <p className="text-[var(--admin-text-muted)] text-sm">{order.customer_name}</p>
-                      <p className="text-xs text-[var(--admin-text-muted)] truncate max-w-[200px]">
-                        {itemsSummary}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <OrderStatusBadge status={order.status} size="sm" />
-                    <span className="font-semibold text-[var(--admin-accent-text)] min-w-[80px] text-right">
-                      {formatPrice(order.total)}
-                    </span>
-                  </div>
-                </Link>
-              )
-            })}
+                  return (
+                      <tr
+                        key={order.id}
+                        onClick={() => router.push('/admin/orders')}
+                        className="border-t border-[var(--admin-border)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer group"
+                      >
+                        <td className="px-6 py-3.5">
+                          <span className="font-mono text-sm font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors">
+                            #{getShortOrderId(order.id)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <span className="text-sm text-[var(--admin-text)]">{order.customer_name}</span>
+                        </td>
+                        <td className="px-4 py-3.5 hidden sm:table-cell">
+                          <span className="text-sm text-[var(--admin-text-muted)]">{timeStr}</span>
+                        </td>
+                        <td className="px-4 py-3.5 hidden md:table-cell">
+                          <span className="text-sm text-[var(--admin-text-muted)]">{items.length}</span>
+                        </td>
+                        <td className="px-4 py-3.5 text-right">
+                          <span className="text-sm font-semibold text-[var(--admin-accent-text)]">
+                            {formatPrice(order.total)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-3.5 text-right">
+                          <OrderStatusBadge status={order.status} size="sm" />
+                        </td>
+                      </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

@@ -14,9 +14,10 @@ interface CategoryListProps {
   categories: Category[]
   onEdit: (category: Category) => void
   onDeleted: (categoryId: string) => void
+  productCountMap?: Record<string, number>
 }
 
-export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProps) {
+export function CategoryList({ categories, onEdit, onDeleted, productCountMap = {} }: CategoryListProps) {
   const router = useRouter()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [movingId, setMovingId] = useState<string | null>(null)
@@ -79,96 +80,117 @@ export function CategoryList({ categories, onEdit, onDeleted }: CategoryListProp
   }
 
   return (
-    <div className="space-y-2">
-      {categories.map((category, index) => (
-        <div
-          key={category.id}
-          className="flex items-center gap-3 p-4 bg-[var(--admin-border)] rounded-xl border border-[var(--admin-border)] hover:border-[var(--admin-accent)]/40 transition-colors"
-        >
-          {/* Drag Handle / Reorder Buttons */}
-          <div className="flex flex-col gap-1">
-            <button
-              onClick={() => handleMoveUp(index)}
-              disabled={index === 0 || movingId === category.id}
-              className="p-1 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
-              title="Mover arriba"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-              </svg>
-            </button>
-            <button
-              onClick={() => handleMoveDown(index)}
-              disabled={index === categories.length - 1 || movingId === category.id}
-              className="p-1 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
-              title="Mover abajo"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Order Number */}
-          <div className="w-8 h-8 rounded-lg bg-[var(--admin-border)] flex items-center justify-center text-sm font-medium text-[var(--admin-text-muted)]">
-            {index + 1}
-          </div>
-
-          {/* Category Info */}
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-[var(--admin-text)] truncate">
-              {category.name}
-            </h3>
-            <p className="text-sm text-[var(--admin-text-muted)] truncate">
-              /{category.slug}
-            </p>
-          </div>
-
-          {/* Loading State */}
-          {movingId === category.id && (
-            <Loader2 className="h-4 w-4 text-[var(--admin-text-muted)] animate-spin" />
-          )}
-
-          {/* Actions */}
-          <div className="flex items-center gap-1">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onEdit(category)}
-                    className="h-9 w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)]"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Editar</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setDeleteTarget(category)}
-                    disabled={deletingId === category.id}
-                    className="h-9 w-9 text-[var(--admin-text-muted)] hover:text-red-400 hover:bg-red-500/10"
-                  >
-                    {deletingId === category.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
+    <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-[var(--admin-border)]">
+            <th className="text-left text-xs font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider px-4 py-3 w-24">Orden</th>
+            <th className="text-left text-xs font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider px-4 py-3">Nombre</th>
+            <th className="text-left text-xs font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider px-4 py-3 hidden md:table-cell">Slug</th>
+            <th className="text-left text-xs font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider px-4 py-3 hidden sm:table-cell">Productos</th>
+            <th className="text-right text-xs font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider px-4 py-3">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {categories.map((category, index) => {
+            const count = productCountMap[category.id] ?? 0
+            return (
+              <tr
+                key={category.id}
+                className="border-t border-[var(--admin-border)] hover:bg-[var(--admin-surface-2)] transition-colors group"
+              >
+                {/* Orden */}
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        onClick={() => handleMoveUp(index)}
+                        disabled={index === 0 || movingId === category.id}
+                        className="p-0.5 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleMoveDown(index)}
+                        disabled={index === categories.length - 1 || movingId === category.id}
+                        className="p-0.5 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                    <span className="text-sm font-medium text-[var(--admin-text-muted)]">{index + 1}</span>
+                    {movingId === category.id && (
+                      <Loader2 className="h-3.5 w-3.5 text-[var(--admin-text-muted)] animate-spin" />
                     )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Eliminar</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </div>
-      ))}
+                  </div>
+                </td>
+
+                {/* Nombre */}
+                <td className="px-4 py-3">
+                  <span className="font-semibold text-sm text-[var(--admin-text)]">{category.name}</span>
+                </td>
+
+                {/* Slug */}
+                <td className="px-4 py-3 hidden md:table-cell">
+                  <span className="text-xs text-[var(--admin-text-muted)] font-mono">/{category.slug}</span>
+                </td>
+
+                {/* Productos count */}
+                <td className="px-4 py-3 hidden sm:table-cell">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)]">
+                    {count} {count === 1 ? 'producto' : 'productos'}
+                  </span>
+                </td>
+
+                {/* Acciones */}
+                <td className="px-4 py-3">
+                  <div className="flex items-center justify-end gap-1">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onEdit(category)}
+                            className="h-8 w-8 text-[var(--admin-text-muted)] hover:text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Editar</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleteTarget(category)}
+                            disabled={deletingId === category.id}
+                            className="h-8 w-8 text-[var(--admin-text-muted)] hover:text-red-400 hover:bg-red-500/10"
+                          >
+                            {deletingId === category.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Eliminar</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
 
       <ConfirmDialog
         open={!!deleteTarget}

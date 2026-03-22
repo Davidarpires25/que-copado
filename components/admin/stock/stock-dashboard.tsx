@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Package, AlertTriangle, ArrowRightLeft, ShoppingCart, UtensilsCrossed } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { cn } from '@/lib/utils'
 import { AdminLayout } from '@/components/admin/layout/admin-layout'
 import { IngredientsStockTab } from './ingredients-stock-tab'
 import { ProductsStockTab } from './products-stock-tab'
@@ -51,6 +51,8 @@ export function StockDashboard({
   const [elaboradoProducts, setElaboradoProducts] = useState(initialElaboradoProducts)
   const [theoreticalStocks] = useState(initialTheoreticalStocks)
   const [purchaseOpen, setPurchaseOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'ingredientes' | 'productos' | 'movimientos' | 'consumo'>('ingredientes')
+  const [ingredientSearch, setIngredientSearch] = useState('')
 
   // Build maps for fast lookup
   const forecastMap = useMemo(
@@ -106,7 +108,7 @@ export function StockDashboard({
   }
 
   return (
-    <AdminLayout title="Control de Stock" description="Gestiona el inventario de ingredientes y productos">
+    <AdminLayout title="Stock e Inventario" description="Control de inventario de materias primas">
       {/* Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         {/* Tracked Items */}
@@ -127,7 +129,7 @@ export function StockDashboard({
 
         {/* Stock Alerts */}
         <div
-          className={`bg-[var(--admin-bg)] border rounded-xl p-4 lg:p-6 transition-colors ${
+          className={`bg-[var(--admin-surface)] border rounded-xl p-4 lg:p-6 transition-colors ${
             alerts.length > 0 || elaboradosAgotados > 0
               ? 'border-red-500/30 hover:border-red-500/50'
               : 'border-[var(--admin-border)] hover:border-green-500/30'
@@ -165,7 +167,7 @@ export function StockDashboard({
 
         {/* Reserved (En mesas) */}
         <div
-          className={`bg-[var(--admin-bg)] border rounded-xl p-4 lg:p-6 transition-colors ${
+          className={`bg-[var(--admin-surface)] border rounded-xl p-4 lg:p-6 transition-colors ${
             reservedTotal > 0 ? 'border-yellow-500/30 hover:border-yellow-500/50' : 'border-[var(--admin-border)] hover:border-[var(--admin-border)]'
           }`}
         >
@@ -184,7 +186,7 @@ export function StockDashboard({
         </div>
 
         {/* Last Movement */}
-        <div className="bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 hover:border-blue-500/30 transition-colors">
+        <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 hover:border-blue-500/30 transition-colors">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[var(--admin-text-muted)] text-sm font-medium">Ultimo Movimiento</p>
@@ -204,58 +206,99 @@ export function StockDashboard({
         </div>
       </div>
 
-      {/* Action Button + Tabs */}
-      <div className="flex items-center justify-between mb-4">
-        <div /> {/* Spacer */}
-        <Button
-          onClick={() => setPurchaseOpen(true)}
-          className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all hover:scale-105 active:scale-95"
-        >
-          <ShoppingCart className="h-4 w-4 mr-2" />
-          <span className="hidden sm:inline">Registrar Compra</span>
-          <span className="sm:hidden">Compra</span>
-        </Button>
+      {/* Search + action button (only for tabs that have search) */}
+      {(activeTab === 'ingredientes') && (
+        <div className="flex items-center gap-3 mb-4">
+          <div className="relative flex-1 max-w-xs">
+            <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
+            <input
+              value={ingredientSearch}
+              onChange={(e) => setIngredientSearch(e.target.value)}
+              placeholder="Buscar ingrediente..."
+              className="w-full bg-[var(--admin-bg)] border border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-9 pl-9 pr-3 rounded-md placeholder:text-[var(--admin-text-muted)] focus:outline-none focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
+            />
+          </div>
+          <div className="ml-auto">
+            <Button
+              onClick={() => setPurchaseOpen(true)}
+              className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all hover:scale-105 active:scale-95"
+            >
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Registrar Compra</span>
+              <span className="sm:hidden">Compra</span>
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {activeTab !== 'ingredientes' && (
+        <div className="flex justify-end mb-4">
+          <Button
+            onClick={() => setPurchaseOpen(true)}
+            className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all hover:scale-105 active:scale-95"
+          >
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">Registrar Compra</span>
+            <span className="sm:hidden">Compra</span>
+          </Button>
+        </div>
+      )}
+
+      {/* Alert banner (ingredient alerts, shown above tabs) */}
+      {activeTab === 'ingredientes' && ingredientAlerts.length > 0 && (
+        <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 text-red-400 shrink-0" />
+          <p className="text-sm text-red-600 dark:text-red-300">
+            <span className="font-semibold">{ingredientAlerts.length}</span>{' '}
+            ingrediente{ingredientAlerts.length !== 1 ? 's' : ''} con stock bajo. Revisá los items marcados en la tabla.
+          </p>
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div className="flex items-center gap-0 border-b border-[var(--admin-border)] mb-0 overflow-x-auto no-scrollbar">
+        {([
+          { key: 'ingredientes', label: 'Stock Actual' },
+          { key: 'productos', label: 'Alertas', alert: (alerts.length + elaboradosAgotados) > 0 },
+          { key: 'movimientos', label: 'Reservas' },
+          { key: 'consumo', label: 'Consumo Histórico' },
+        ] as const).map(({ key, label, ...rest }) => {
+          const alert = 'alert' in rest ? rest.alert : undefined
+          return (
+          <button
+            key={key}
+            onClick={() => setActiveTab(key)}
+            className={cn(
+              'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors flex items-center gap-1.5',
+              activeTab === key
+                ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
+                : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
+            )}
+          >
+            {label}
+            {alert && (
+              <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+            )}
+          </button>
+          )
+        })}
       </div>
 
-      <Tabs defaultValue="ingredientes" className="space-y-4">
-        <TabsList className="bg-[var(--admin-bg)] border border-[var(--admin-border)] p-1 h-auto flex-wrap">
-          <TabsTrigger
-            value="ingredientes"
-            className="data-[state=active]:bg-[var(--admin-accent)]/15 data-[state=active]:text-[var(--admin-accent-text)] text-[var(--admin-text-muted)] px-4 py-2 text-sm font-medium transition-colors"
-          >
-            Ingredientes
-          </TabsTrigger>
-          <TabsTrigger
-            value="productos"
-            className="data-[state=active]:bg-[var(--admin-accent)]/15 data-[state=active]:text-[var(--admin-accent-text)] text-[var(--admin-text-muted)] px-4 py-2 text-sm font-medium transition-colors"
-          >
-            Productos
-          </TabsTrigger>
-          <TabsTrigger
-            value="movimientos"
-            className="data-[state=active]:bg-[var(--admin-accent)]/15 data-[state=active]:text-[var(--admin-accent-text)] text-[var(--admin-text-muted)] px-4 py-2 text-sm font-medium transition-colors"
-          >
-            Movimientos
-          </TabsTrigger>
-          <TabsTrigger
-            value="consumo"
-            className="data-[state=active]:bg-[var(--admin-accent)]/15 data-[state=active]:text-[var(--admin-accent-text)] text-[var(--admin-text-muted)] px-4 py-2 text-sm font-medium transition-colors"
-          >
-            Consumo
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="ingredientes">
+      {/* Tab content — Stock Actual uses connected panel, others render with top spacing */}
+      {activeTab === 'ingredientes' && (
+        <div className="rounded-b-xl border border-t-0 border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           <IngredientsStockTab
             ingredients={ingredients}
             onIngredientsChange={setIngredients}
             alerts={alerts}
             onAlertsChange={setAlerts}
             forecastMap={forecastMap}
+            searchQuery={ingredientSearch}
           />
-        </TabsContent>
-
-        <TabsContent value="productos">
+        </div>
+      )}
+      {activeTab === 'productos' && (
+        <div className="mt-6">
           <ProductsStockTab
             products={products}
             onProductsChange={setProducts}
@@ -270,16 +313,18 @@ export function StockDashboard({
             theoreticalStocks={theoreticalStocks}
             reservedMap={reservedMap}
           />
-        </TabsContent>
-
-        <TabsContent value="movimientos">
+        </div>
+      )}
+      {activeTab === 'movimientos' && (
+        <div className="mt-6">
           <MovementsTab initialMovements={movements} />
-        </TabsContent>
-
-        <TabsContent value="consumo">
+        </div>
+      )}
+      {activeTab === 'consumo' && (
+        <div className="mt-6">
           <ConsumptionTab initialData={initialConsumption ?? []} />
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
 
       <PurchaseDialog
         open={purchaseOpen}

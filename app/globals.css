@@ -376,17 +376,19 @@
 
 /* Light mode — disponible globalmente (portales heredan desde :root) */
 :root {
-  --admin-bg:               #F1F5F9;
+  --admin-bg:               #F3F4F8;
   --admin-surface:          #FFFFFF;
-  --admin-surface-2:        #F3F6FA;
-  --admin-hover:            #EDF1F7;
-  --admin-border:           #CBD5E1;
+  --admin-surface-2:        #F5F6FA;
+  --admin-hover:            #ECEDF2;
+  --admin-border:           #E0E2EA;
+  --admin-sidebar-bg:       #FFFFFF;
+  --admin-sidebar-border:   #ECEDF2;
   --admin-text:             #0F172A;
   --admin-text-muted:       #475569;
   --admin-text-faint:       #94A3B8;
   --admin-text-placeholder: #CBD5E1;
   --admin-accent:           #FEC501;
-  --admin-accent-text:      #B45309;
+  --admin-accent-text:      #FEC501;
   --shadow-card:    0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-card-md: 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
   --shadow-card-lg: 0 10px 24px rgba(0, 0, 0, 0.10), 0 4px 8px rgba(0, 0, 0, 0.06);
@@ -399,6 +401,8 @@ html.admin-dark {
   --admin-surface-2:        #252B3B;
   --admin-hover:            #252B3B;
   --admin-border:           #2D3448;
+  --admin-sidebar-bg:       #161B2C;
+  --admin-sidebar-border:   #2D3448;
   --admin-text:             #F1F3F8;
   --admin-text-muted:       #8B9BB4;
   --admin-text-faint:       #5A677D;
@@ -413,17 +417,19 @@ html.admin-dark {
 
 /* .admin-layout repite las variables para mayor especificidad dentro del layout */
 .admin-layout {
-  --admin-bg:               #F1F5F9;
+  --admin-bg:               #F3F4F8;
   --admin-surface:          #FFFFFF;
-  --admin-surface-2:        #F3F6FA;
-  --admin-hover:            #EDF1F7;
-  --admin-border:           #CBD5E1;
+  --admin-surface-2:        #F5F6FA;
+  --admin-hover:            #ECEDF2;
+  --admin-border:           #E0E2EA;
+  --admin-sidebar-bg:       #FFFFFF;
+  --admin-sidebar-border:   #ECEDF2;
   --admin-text:             #0F172A;
   --admin-text-muted:       #475569;
   --admin-text-faint:       #94A3B8;
   --admin-text-placeholder: #CBD5E1;
   --admin-accent:           #FEC501;
-  --admin-accent-text:      #B45309;
+  --admin-accent-text:      #FEC501;
   --shadow-card:    0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-card-md: 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
   --shadow-card-lg: 0 10px 24px rgba(0, 0, 0, 0.10), 0 4px 8px rgba(0, 0, 0, 0.06);
@@ -435,6 +441,8 @@ html.admin-dark {
   --admin-surface-2:        #252B3B;
   --admin-hover:            #252B3B;
   --admin-border:           #2D3448;
+  --admin-sidebar-bg:       #161B2C;
+  --admin-sidebar-border:   #2D3448;
   --admin-text:             #F1F3F8;
   --admin-text-muted:       #8B9BB4;
   --admin-text-faint:       #5A677D;

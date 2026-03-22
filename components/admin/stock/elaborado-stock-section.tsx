@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { Search, AlertTriangle, ChefHat, ExternalLink, PowerOff, Power, ClipboardList } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,7 +23,6 @@ import {
 import { toggleElaboradoAvailability } from '@/app/actions/stock'
 import { toast } from 'sonner'
 import type { Product } from '@/lib/types/database'
-import { FichaTecnicaDialog } from './ficha-tecnica-dialog'
 
 export interface ElaboradoStockSectionProps {
   products: Product[]
@@ -88,9 +88,9 @@ export function ElaboradoStockSection({
   theoreticalStocks,
   onProductChange,
 }: ElaboradoStockSectionProps) {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [loadingId, setLoadingId] = useState<string | null>(null)
-  const [fichaTarget, setFichaTarget] = useState<Product | null>(null)
 
   const filtered = useMemo(() => {
     if (!searchQuery.trim()) return products
@@ -167,7 +167,7 @@ export function ElaboradoStockSection({
 
       {/* Tabla o empty state */}
       {products.length === 0 ? (
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+        <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           <div className="p-12 text-center">
             <div className="w-16 h-16 bg-[var(--admin-surface-2)] rounded-2xl flex items-center justify-center mx-auto mb-4">
               <ChefHat className="h-8 w-8 text-slate-600" />
@@ -181,7 +181,7 @@ export function ElaboradoStockSection({
           </div>
         </div>
       ) : (
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+        <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
@@ -279,7 +279,7 @@ export function ElaboradoStockSection({
                                 size="icon"
                                 variant="ghost"
                                 className="h-8 w-8 lg:h-9 lg:w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 transition-all"
-                                onClick={() => setFichaTarget(product)}
+                                onClick={() => router.push(`/admin/stock/ficha/${product.id}`)}
                                 aria-label={`Ficha técnica de ${product.name}`}
                               >
                                 <ClipboardList className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
@@ -337,13 +337,6 @@ export function ElaboradoStockSection({
         </div>
       )}
 
-      {fichaTarget && (
-        <FichaTecnicaDialog
-          open={!!fichaTarget}
-          onOpenChange={(open) => { if (!open) setFichaTarget(null) }}
-          product={fichaTarget}
-        />
-      )}
     </div>
   )
 }

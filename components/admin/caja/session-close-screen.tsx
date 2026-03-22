@@ -1,12 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { DollarSign, Loader2, ArrowLeft, CheckCircle, AlertTriangle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import {
+  Loader2, ArrowLeft, CheckCircle, AlertTriangle,
+  Banknote, CreditCard, Zap, QrCode,
+  CircleArrowUp, CircleArrowDown, TriangleAlert,
+} from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { closeSession } from '@/app/actions/cash-register'
 import { toast } from 'sonner'
-import { formatPrice } from '@/lib/utils'
+import { cn, formatPrice } from '@/lib/utils'
 import type { SessionSummary } from '@/lib/types/cash-register'
 
 interface SessionCloseScreenProps {
@@ -27,202 +30,327 @@ export function SessionCloseScreen({
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const s = summary.session
   const expectedCash = summary.currentCash
   const enteredCash = parseFloat(actualCash) || 0
   const difference = enteredCash - expectedCash
   const hasEntered = actualCash !== ''
 
-  const handleClose = async () => {
-    if (!hasEntered) {
-      toast.error('Ingresa el efectivo contado')
-      return
-    }
+  // Session duration
+  const openedAt = new Date(s.opened_at)
+  const now = new Date()
+  const durationMs = now.getTime() - openedAt.getTime()
+  const durationH = Math.floor(durationMs / 3600000)
+  const durationM = Math.floor((durationMs % 3600000) / 60000)
+  const durationStr = durationH > 0 ? `${durationH}h ${durationM}m` : `${durationM}m`
+  const openedStr = openedAt.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) + ' hs'
+  const nowStr = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) + ' hs'
 
+  // Ticket promedio
+  const avgTicket = s.total_orders > 0 ? s.total_sales / s.total_orders : 0
+
+  // Payment bars
+  const total = s.total_sales || 1
+  const cashPct   = Math.round((s.total_cash_sales / total) * 100)
+  const cardPct   = Math.round((s.total_card_sales / total) * 100)
+  const transf    = s.total_transfer_sales
+  const transPct  = Math.round((transf / total) * 100)
+
+  const handleClose = async () => {
+    if (!hasEntered) { toast.error('Ingresa el efectivo contado'); return }
     setLoading(true)
-    const { error } = await closeSession(summary.session.id, {
+    const { error } = await closeSession(s.id, {
       actual_cash: enteredCash,
       notes: notes || undefined,
     })
     setLoading(false)
-
-    if (error) {
-      toast.error(error)
-      return
-    }
-
+    if (error) { toast.error(error); return }
     toast.success('Caja cerrada correctamente')
     onClosed()
   }
 
   return (
-    <div className="h-full bg-[var(--admin-bg)] flex items-center justify-center p-4 overflow-y-auto">
-      <div className="w-full max-w-lg">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <button
-            onClick={onBack}
-            className="w-10 h-10 rounded-xl bg-[var(--admin-bg)] border border-[var(--admin-border)] flex items-center justify-center text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors"
+    <div className="h-full flex flex-col bg-[var(--admin-bg)]">
+
+      {/* Top bar — Pencil style */}
+      <div className="shrink-0 flex items-center justify-between px-8 border-b border-[var(--admin-sidebar-border)] bg-[var(--admin-sidebar-bg)]" style={{ height: 56 }}>
+        {/* Left: logo + session */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--admin-accent)]">
+            <span className="text-[13px] font-black text-black">QC</span>
+          </div>
+          <span className="text-[16px] font-bold text-[var(--admin-text)]">Que Copado</span>
+          <div className="w-px h-5 bg-[var(--admin-border)]" />
+          <span className="text-[13px] font-medium text-[var(--admin-text-muted)]">
+            Sesión #{s.id.slice(-4).toUpperCase()}
+          </span>
+        </div>
+        {/* Right: back */}
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-[var(--admin-accent-text)] hover:opacity-80 transition-opacity cursor-pointer"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="text-[13px] font-medium">Volver al POS</span>
+        </button>
+      </div>
+
+      {/* Scrollable body */}
+      <div className="flex-1 overflow-y-auto py-8 px-4 flex justify-center">
+        <div className="w-full" style={{ maxWidth: 640 }}>
+
+          {/* Card */}
+          <div
+            className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-2xl overflow-hidden"
+            style={{ boxShadow: 'var(--shadow-card-lg)' }}
           >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <div>
-            <h1 className="text-xl font-bold text-[var(--admin-text)]">Cerrar Caja</h1>
-            <p className="text-sm text-[var(--admin-text-muted)]">Arqueo de cierre</p>
-          </div>
-        </div>
-
-        {/* Session summary */}
-        <div className="bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl p-5 mb-4 space-y-3">
-          <h3 className="text-sm font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
-            Resumen del turno
-          </h3>
-
-          <div className="grid grid-cols-2 gap-3">
-            <SummaryItem label="Ventas totales" value={formatPrice(summary.session.total_sales)} />
-            <SummaryItem label="Cantidad de ventas" value={summary.session.total_orders.toString()} />
-            <SummaryItem label="Efectivo" value={formatPrice(summary.session.total_cash_sales)} icon="💵" />
-            <SummaryItem label="Tarjeta" value={formatPrice(summary.session.total_card_sales)} icon="💳" />
-            <SummaryItem label="Transferencia" value={formatPrice(summary.session.total_transfer_sales)} icon="🏦" />
-            <SummaryItem label="Retiros" value={`-${formatPrice(summary.session.total_withdrawals)}`} negative />
-            <SummaryItem label="Ingresos" value={`+${formatPrice(summary.session.total_deposits)}`} positive />
-            <SummaryItem label="Apertura" value={formatPrice(summary.session.opening_balance)} />
-          </div>
-        </div>
-
-        {/* Open tables warning */}
-        {hasOpenTables && (
-          <div className="bg-orange-950/30 border border-orange-500/30 rounded-xl p-4 mb-4 flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-orange-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-semibold text-orange-400">
-                Hay {openTablesCount} {openTablesCount === 1 ? 'mesa abierta' : 'mesas abiertas'}
-              </p>
-              <p className="text-xs text-orange-400/70 mt-1">
-                Cobra o cancela todas las mesas antes de cerrar la caja
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Cash count */}
-        <div className="bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl p-5 space-y-4">
-          <div className="text-center py-2 bg-[var(--admin-surface)] rounded-lg">
-            <p className="text-xs text-[var(--admin-text-muted)]">Efectivo esperado</p>
-            <p className="text-2xl font-bold text-[var(--admin-accent-text)]">
-              {formatPrice(expectedCash)}
-            </p>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-semibold text-[var(--admin-text-muted)]">
-              Efectivo contado
-            </label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--admin-text-muted)]" />
-              <Input
-                type="number"
-                value={actualCash}
-                onChange={(e) => setActualCash(e.target.value)}
-                placeholder="0"
-                className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] text-xl h-16 pl-10 text-center font-bold placeholder:text-[var(--admin-text-placeholder)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
-                autoFocus
-              />
-            </div>
-          </div>
-
-          {/* Difference */}
-          {hasEntered && (
-            <div
-              className={`text-center py-3 rounded-lg flex items-center justify-center gap-2 ${
-                difference === 0
-                  ? 'bg-green-950/30 text-green-400'
-                  : difference > 0
-                    ? 'bg-blue-950/30 text-blue-400'
-                    : 'bg-red-950/30 text-red-400'
-              }`}
-            >
-              {difference === 0 ? (
-                <CheckCircle className="h-5 w-5" />
-              ) : (
-                <AlertTriangle className="h-5 w-5" />
+            {/* ── Card header ── */}
+            <div className="flex items-center justify-between px-7 pt-6 pb-4">
+              <h1 className="text-[22px] font-bold text-[var(--admin-text)]">Cierre de Sesión</h1>
+              {hasOpenTables && (
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30">
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
+                  <span className="text-[11px] font-semibold text-amber-400">
+                    {openTablesCount} mesa{openTablesCount > 1 ? 's' : ''} abierta{openTablesCount > 1 ? 's' : ''}
+                  </span>
+                </div>
               )}
-              <div>
-                <p className="text-sm">
-                  {difference === 0
-                    ? 'Sin diferencia'
-                    : difference > 0
-                      ? 'Sobrante'
-                      : 'Faltante'}
-                </p>
-                {difference !== 0 && (
-                  <p className="text-xl font-bold">
-                    {difference > 0 ? '+' : ''}{formatPrice(difference)}
-                  </p>
-                )}
+            </div>
+
+            <div className="h-px bg-[var(--admin-border)]" />
+
+            {/* ── Time section ── */}
+            <div className="px-7 py-5 space-y-3">
+              <SectionLabel>Tiempo de sesión</SectionLabel>
+              <div className="grid grid-cols-3 gap-2.5">
+                <InfoCell label="Apertura" value={openedStr} />
+                <InfoCell label="Cierre"   value={nowStr} />
+                <InfoCell label="Duración" value={durationStr} accent />
               </div>
             </div>
-          )}
 
-          {/* Notes */}
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-[var(--admin-text-muted)]">
-              Notas (opcional)
-            </label>
-            <Input
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Observaciones del turno..."
-              className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50"
-            />
+            <div className="h-px bg-[var(--admin-border)]" />
+
+            {/* ── Sales summary ── */}
+            <div className="px-7 py-5 space-y-3">
+              <SectionLabel>Resumen de ventas</SectionLabel>
+              <div className="grid grid-cols-3 gap-2.5">
+                <InfoCell label="Total ventas"   value={formatPrice(s.total_sales)}        accent large />
+                <InfoCell label="Total pedidos"  value={s.total_orders.toString()}          large />
+                <InfoCell label="Ticket promedio" value={formatPrice(avgTicket)}            large />
+              </div>
+            </div>
+
+            <div className="h-px bg-[var(--admin-border)]" />
+
+            {/* ── Payment methods ── */}
+            <div className="px-7 py-5 space-y-3">
+              <SectionLabel>Métodos de pago</SectionLabel>
+              <div className="space-y-3">
+                <PayBar
+                  label="Efectivo"
+                  value={s.total_cash_sales}
+                  pct={cashPct}
+                  color="bg-green-500"
+                  textColor="text-green-400"
+                />
+                <PayBar
+                  label="Tarjeta"
+                  value={s.total_card_sales}
+                  pct={cardPct}
+                  color="bg-blue-500"
+                  textColor="text-blue-400"
+                />
+                <PayBar
+                  label="Transferencia / MP"
+                  value={transf}
+                  pct={transPct}
+                  color="bg-amber-500"
+                  textColor="text-amber-400"
+                />
+              </div>
+            </div>
+
+            <div className="h-px bg-[var(--admin-border)]" />
+
+            {/* ── Movements ── */}
+            {(s.total_deposits > 0 || s.total_withdrawals > 0) && (
+              <>
+                <div className="px-7 py-5 space-y-3">
+                  <SectionLabel>Movimientos de caja</SectionLabel>
+                  <div className="space-y-2">
+                    {s.total_deposits > 0 && (
+                      <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[var(--admin-surface-2)] border border-[var(--admin-border)]">
+                        <div className="flex items-center gap-2.5">
+                          <CircleArrowUp className="h-4 w-4 text-green-400 shrink-0" />
+                          <span className="text-[13px] text-[var(--admin-text)]">Ingresos</span>
+                        </div>
+                        <span className="text-[13px] font-semibold text-green-400">+{formatPrice(s.total_deposits)}</span>
+                      </div>
+                    )}
+                    {s.total_withdrawals > 0 && (
+                      <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[var(--admin-surface-2)] border border-[var(--admin-border)]">
+                        <div className="flex items-center gap-2.5">
+                          <CircleArrowDown className="h-4 w-4 text-red-400 shrink-0" />
+                          <span className="text-[13px] text-[var(--admin-text)]">Retiros</span>
+                        </div>
+                        <span className="text-[13px] font-semibold text-red-400">-{formatPrice(s.total_withdrawals)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="h-px bg-[var(--admin-border)]" />
+              </>
+            )}
+
+            {/* ── Conciliación de efectivo ── */}
+            <div className="px-7 py-5 space-y-3">
+              <SectionLabel>Conciliación de efectivo</SectionLabel>
+
+              {/* Esperado */}
+              <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[var(--admin-surface-2)] border border-[var(--admin-border)]">
+                <span className="text-[13px] text-[var(--admin-text-muted)]">Efectivo esperado</span>
+                <span className="text-[16px] font-bold tabular-nums text-[var(--admin-text)]">{formatPrice(expectedCash)}</span>
+              </div>
+
+              {/* Contado — input */}
+              <div className="relative flex items-center rounded-xl bg-[var(--admin-surface-2)] border border-[var(--admin-accent)]/40" style={{ height: 40 }}>
+                <span className="absolute left-3 text-[13px] font-medium text-[var(--admin-text-muted)]">Efectivo contado</span>
+                <Input
+                  type="number"
+                  value={actualCash}
+                  onChange={(e) => setActualCash(e.target.value)}
+                  placeholder="0"
+                  autoFocus
+                  onKeyDown={(e) => e.key === 'Enter' && handleClose()}
+                  className="absolute inset-0 bg-transparent border-0 text-right font-bold text-[16px] text-[var(--admin-text)] px-3 focus:ring-0 focus-visible:ring-0 shadow-none"
+                />
+              </div>
+
+              {/* Diferencia */}
+              {hasEntered && (
+                <div className={cn(
+                  'flex items-center justify-between px-3 py-2.5 rounded-xl border',
+                  difference === 0
+                    ? 'bg-green-500/10 border-green-500/25 text-green-400'
+                    : difference > 0
+                      ? 'bg-blue-500/10 border-blue-500/25 text-blue-400'
+                      : 'bg-red-500/10 border-red-500/25 text-red-400'
+                )}>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 shrink-0" />
+                    <span className="text-[13px] font-semibold">
+                      {difference === 0 ? 'Diferencia' : difference > 0 ? 'Sobrante' : 'Faltante'}
+                    </span>
+                  </div>
+                  <span className="text-[16px] font-bold tabular-nums">
+                    {difference === 0
+                      ? formatPrice(0)
+                      : `${difference > 0 ? '+' : ''}${formatPrice(difference)}`}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="h-px bg-[var(--admin-border)]" />
+
+            {/* ── Notes ── */}
+            <div className="px-7 py-5 space-y-2">
+              <span className="text-[13px] font-semibold text-[var(--admin-text-muted)]">Notas de cierre</span>
+              <Input
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Agregar observaciones del turno..."
+                className="bg-[var(--admin-surface-2)] border-[var(--admin-border)] text-[var(--admin-text)] text-[13px] h-12 rounded-xl placeholder:text-[var(--admin-text-placeholder)] focus:border-[var(--admin-accent)]/50"
+              />
+            </div>
+
+            {/* ── Buttons — Pencil: Cancelar outlined + Confirmar gold ── */}
+            <div className="flex items-center justify-end gap-3 px-7 pb-7">
+              <button
+                onClick={onBack}
+                className="h-11 px-6 rounded-xl border border-[var(--admin-border)] text-[14px] font-semibold text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-text-placeholder)] transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleClose}
+                disabled={loading || !hasEntered || hasOpenTables}
+                className="h-11 px-6 rounded-xl bg-[var(--admin-accent)] text-black text-[14px] font-bold flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 active:brightness-95 transition-all cursor-pointer"
+              >
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <TriangleAlert className="h-4 w-4" />
+                    Confirmar Cierre
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
-          <Button
-            onClick={handleClose}
-            disabled={loading || !hasEntered || hasOpenTables}
-            className="w-full h-12 bg-red-600 hover:bg-red-500 text-white font-bold text-base disabled:opacity-40"
-          >
-            {loading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              'Cerrar Caja'
-            )}
-          </Button>
         </div>
       </div>
     </div>
   )
 }
 
-function SummaryItem({
-  label,
-  value,
-  icon,
-  positive,
-  negative,
+/* ── Sub-components ── */
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[11px] font-semibold tracking-widest uppercase text-[var(--admin-text-faint)]">
+      {children}
+    </p>
+  )
+}
+
+function InfoCell({
+  label, value, accent, large,
 }: {
   label: string
   value: string
-  icon?: string
-  positive?: boolean
-  negative?: boolean
+  accent?: boolean
+  large?: boolean
 }) {
   return (
-    <div className="bg-[var(--admin-surface)] rounded-lg px-3 py-2">
-      <p className="text-xs text-[var(--admin-text-muted)] flex items-center gap-1">
-        {icon && <span>{icon}</span>}
-        {label}
-      </p>
-      <p
-        className={`text-sm font-bold ${
-          positive
-            ? 'text-green-400'
-            : negative
-              ? 'text-red-400'
-              : 'text-[var(--admin-text)]'
-        }`}
-      >
+    <div className="flex flex-col gap-1 bg-[var(--admin-surface-2)] border border-[var(--admin-border)] rounded-xl px-3 py-2.5">
+      <span className="text-[11px] font-medium text-[var(--admin-text-faint)]">{label}</span>
+      <span className={cn(
+        'font-bold tabular-nums leading-tight',
+        large ? 'text-[20px]' : 'text-[15px]',
+        accent ? 'text-[var(--admin-accent-text)]' : 'text-[var(--admin-text)]'
+      )}>
         {value}
-      </p>
+      </span>
+    </div>
+  )
+}
+
+function PayBar({
+  label, value, pct, color, textColor,
+}: {
+  label: string
+  value: number
+  pct: number
+  color: string
+  textColor: string
+}) {
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <span className="text-[13px] font-medium text-[var(--admin-text)]">{label}</span>
+        <span className={cn('text-[13px] font-semibold tabular-nums', textColor)}>
+          {formatPrice(value)} ({pct}%)
+        </span>
+      </div>
+      <div className="h-1.5 rounded-full bg-[var(--admin-surface-2)] border border-[var(--admin-border)] overflow-hidden">
+        <div
+          className={cn('h-full rounded-full transition-all', color)}
+          style={{ width: `${Math.min(pct, 100)}%` }}
+        />
+      </div>
     </div>
   )
 }

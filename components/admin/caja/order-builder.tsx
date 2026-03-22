@@ -1,10 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Minus, Plus, Trash2, ShoppingCart, Loader2, MessageSquare } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Minus, Plus, ShoppingCart, Loader2, ChefHat, CreditCard, Printer, Trash2, MessageSquare } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import type { OrderItem } from '@/lib/types/orders'
 
@@ -26,7 +24,6 @@ interface OrderBuilderProps {
 
 export function OrderBuilder({
   items,
-  notes,
   loading = false,
   hasKitchenItems = true,
   onUpdateQuantity,
@@ -35,10 +32,13 @@ export function OrderBuilder({
   onSetItemNotes,
   onCheckout,
 }: OrderBuilderProps) {
-  const [notesOpen, setNotesOpen] = useState<Set<string>>(new Set())
+  const [confirmClear, setConfirmClear] = useState(false)
+  const [showNotes, setShowNotes] = useState(false)
+  const [notesLocal, setNotesLocal] = useState('')
+  const [itemNotesOpen, setItemNotesOpen] = useState<Set<string>>(new Set())
 
-  const toggleNote = (id: string) => {
-    setNotesOpen((prev) => {
+  const toggleItemNote = (id: string) => {
+    setItemNotesOpen((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
@@ -46,158 +46,223 @@ export function OrderBuilder({
     })
   }
 
+  const handleClearCart = () => {
+    if (confirmClear) {
+      items.forEach((item) => onRemoveItem(item.id))
+      setConfirmClear(false)
+    } else {
+      setConfirmClear(true)
+      setTimeout(() => setConfirmClear(false), 2500)
+    }
+  }
+
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
 
   return (
-    <div className="flex flex-col h-full bg-[var(--admin-bg)]">
+    <div className="flex flex-col h-full bg-[var(--admin-surface)]">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-[var(--admin-border)]">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-[var(--admin-text)] flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5 text-[var(--admin-accent-text)]" />
-            Venta Mostrador
+      <div className="flex items-center justify-between px-5 shrink-0 h-[52px] border-b border-[var(--admin-border)]">
+        <div className="flex items-center gap-2">
+          <h2 className="text-[15px] font-bold text-[var(--admin-text)]">
+            {items.length === 0 ? 'Sin pedido' : 'Pedido actual'}
           </h2>
           {totalItems > 0 && (
-            <span className="text-xs bg-[var(--admin-accent)] text-black font-bold px-2 py-0.5 rounded-full">
+            <span className="text-xs font-black px-2 py-0.5 rounded-full tabular-nums bg-[var(--admin-accent)] text-black">
               {totalItems}
             </span>
           )}
         </div>
-      </div>
-
-      {/* Items list */}
-      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2 scrollbar-hide">
-        {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-[var(--admin-text-muted)]">
-            <ShoppingCart className="h-12 w-12 mb-3 text-[var(--admin-text-placeholder)]" />
-            <p className="text-sm font-medium">Agrega productos</p>
-            <p className="text-xs text-[var(--admin-text-faint)] mt-1">Selecciona del menu</p>
-          </div>
-        ) : (
-          items.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-start gap-3 bg-[var(--admin-surface)] rounded-lg p-3 border border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)] transition-colors"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[var(--admin-text)] truncate">
-                  {item.name}
-                </p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <p className="text-xs text-[var(--admin-accent-text)] font-bold">
-                    {formatPrice(item.price * item.quantity)}
-                  </p>
-                  <button
-                    onClick={() => toggleNote(item.id)}
-                    className="flex items-center gap-0.5 text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-accent-text)] transition-colors"
-                  >
-                    <MessageSquare className="h-3 w-3" />
-                    {!item.notes && !notesOpen.has(item.id) && (
-                      <span>nota</span>
-                    )}
-                  </button>
-                </div>
-                {item.notes && !notesOpen.has(item.id) && (
-                  <p
-                    className="text-xs italic text-[var(--admin-text-muted)] mt-0.5 cursor-pointer"
-                    onClick={() => toggleNote(item.id)}
-                  >
-                    {item.notes}
-                  </p>
-                )}
-                {notesOpen.has(item.id) && (
-                  <input
-                    autoFocus
-                    value={item.notes ?? ''}
-                    onChange={(e) => onSetItemNotes(item.id, e.target.value)}
-                    onBlur={() => {
-                      // hide input if empty on blur
-                      if (!item.notes) toggleNote(item.id)
-                    }}
-                    placeholder="sin queso, sin lechuga..."
-                    className="mt-1 w-full text-xs bg-transparent border-b border-[var(--admin-border)] focus:border-[var(--admin-accent)]/50 text-[var(--admin-text)] placeholder:text-[var(--admin-text-faint)] outline-none py-0.5"
-                  />
-                )}
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => onUpdateQuantity(item.id, -1)}
-                  className="w-9 h-9 rounded-lg bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)] flex items-center justify-center transition-colors active:scale-95"
-                  aria-label="Disminuir cantidad"
-                >
-                  <Minus className="h-4 w-4" />
-                </button>
-                <motion.span
-                  key={item.quantity}
-                  initial={{ scale: 1.4 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.2 }}
-                  className="w-8 text-center text-base font-bold text-[var(--admin-text)]"
-                >
-                  {item.quantity}
-                </motion.span>
-                <button
-                  onClick={() => onUpdateQuantity(item.id, 1)}
-                  className="w-9 h-9 rounded-lg bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)] flex items-center justify-center transition-colors active:scale-95"
-                  aria-label="Aumentar cantidad"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
-              </div>
-
-              <button
-                onClick={() => onRemoveItem(item.id)}
-                className="w-9 h-9 rounded-lg text-red-500/70 hover:text-red-400 hover:bg-red-950/30 flex items-center justify-center transition-colors active:scale-95"
-                aria-label="Eliminar producto"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-          ))
+        {items.length > 0 && (
+          <button
+            onClick={handleClearCart}
+            className={`flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+              confirmClear
+                ? 'bg-red-500/10 text-red-400'
+                : 'text-[var(--admin-text-faint)] hover:text-red-400 hover:bg-red-500/10'
+            }`}
+          >
+            <Trash2 className="h-3 w-3" />
+            {confirmClear ? 'Confirmar' : 'Limpiar'}
+          </button>
         )}
       </div>
 
-      {/* Notes */}
+      {/* Items list */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide px-5">
+        {items.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-2 text-[var(--admin-text-faint)]">
+            <ShoppingCart className="h-10 w-10" />
+            <p className="text-sm font-medium">Sin productos</p>
+            <p className="text-xs">Seleccioná del menú</p>
+          </div>
+        ) : (
+          <AnimatePresence initial={false}>
+            {items.map((item) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: 16 }}
+                transition={{ duration: 0.12 }}
+                className="flex items-center justify-between py-2.5 border-b border-[var(--admin-border)]"
+              >
+                {/* Left: name + price per unit + note */}
+                <div className="flex-1 min-w-0 mr-3">
+                  <p className="text-[13px] font-medium text-[var(--admin-text)] truncate leading-tight">
+                    {item.name}
+                  </p>
+                  <p className="text-[11px] mt-0.5 text-[var(--admin-text-faint)]">
+                    {formatPrice(item.price)} c/u
+                  </p>
+                  <button
+                    onClick={() => toggleItemNote(item.id)}
+                    className="flex items-center gap-1 mt-0.5 text-[11px] text-[var(--admin-text-faint)] hover:text-[var(--admin-accent-text)] transition-colors cursor-pointer"
+                  >
+                    <MessageSquare className="h-3 w-3" />
+                    <span className="truncate max-w-[100px]">{item.notes ? item.notes : 'nota'}</span>
+                  </button>
+                  {itemNotesOpen.has(item.id) && (
+                    <input
+                      autoFocus
+                      value={item.notes ?? ''}
+                      onChange={(e) => onSetItemNotes?.(item.id, e.target.value)}
+                      onBlur={() => { if (!item.notes) toggleItemNote(item.id) }}
+                      placeholder="sin queso, sin lechuga..."
+                      className="mt-1 w-full text-[11px] bg-transparent border-b border-[var(--admin-border)] focus:border-[var(--admin-accent)]/50 text-[var(--admin-text)] placeholder:text-[var(--admin-text-faint)] outline-none py-0.5"
+                    />
+                  )}
+                </div>
+
+                {/* Qty control */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={() => onUpdateQuantity(item.id, -1)}
+                    className="flex items-center justify-center rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-accent)]/40 transition-all active:scale-90 cursor-pointer"
+                    style={{ width: 26, height: 26 }}
+                    aria-label="Disminuir"
+                  >
+                    <Minus className="h-3 w-3 text-[var(--admin-text-muted)]" />
+                  </button>
+                  <motion.span
+                    key={item.quantity}
+                    initial={{ scale: 1.3 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.1 }}
+                    className="text-[13px] font-semibold tabular-nums text-center text-[var(--admin-text)]"
+                    style={{ width: 18 }}
+                  >
+                    {item.quantity}
+                  </motion.span>
+                  <button
+                    onClick={() => onUpdateQuantity(item.id, 1)}
+                    className="flex items-center justify-center rounded-md bg-[var(--admin-accent)] hover:opacity-90 active:scale-90 transition-all cursor-pointer"
+                    style={{ width: 26, height: 26 }}
+                    aria-label="Aumentar"
+                  >
+                    <Plus className="h-3 w-3 text-black" />
+                  </button>
+                </div>
+
+                {/* Line total */}
+                <p className="text-[13px] font-semibold tabular-nums text-right ml-3 shrink-0 text-[var(--admin-text)]"
+                   style={{ width: 52 }}>
+                  {formatPrice(item.price * item.quantity)}
+                </p>
+
+                {/* Remove item */}
+                <button
+                  onClick={() => onRemoveItem(item.id)}
+                  className="ml-2 text-[var(--admin-text-faint)] hover:text-red-400 transition-colors cursor-pointer shrink-0"
+                  aria-label="Eliminar producto"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        )}
+      </div>
+
+      {/* Notes — minimal */}
       {items.length > 0 && (
-        <div className="px-4 py-2">
-          <Input
-            value={notes}
-            onChange={(e) => onSetNotes(e.target.value)}
-            placeholder="Notas (opcional)"
-            className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-9 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50"
-          />
+        <div className="px-5 pb-3 shrink-0">
+          {showNotes ? (
+            <input
+              autoFocus
+              value={notesLocal}
+              onChange={(e) => { setNotesLocal(e.target.value); onSetNotes(e.target.value) }}
+              onBlur={() => { if (!notesLocal) setShowNotes(false) }}
+              placeholder="Nota del pedido..."
+              className="w-full text-xs py-1.5 bg-transparent outline-none border-b border-[var(--admin-border)] focus:border-[var(--admin-accent)]/50 text-[var(--admin-text)] placeholder:text-[var(--admin-text-faint)]"
+            />
+          ) : (
+            <button
+              onClick={() => setShowNotes(true)}
+              className="text-xs cursor-pointer transition-colors text-[var(--admin-text-faint)] hover:text-[var(--admin-text-muted)]"
+            >
+              + Agregar nota
+            </button>
+          )}
         </div>
       )}
 
-      {/* Total + checkout button */}
-      <div className="px-4 py-4 border-t border-[var(--admin-border)] space-y-3 bg-[var(--admin-bg)]">
-        <div className="flex justify-between items-center bg-gradient-to-r from-[var(--admin-accent)]/5 to-transparent rounded-lg p-3 border-l-4 border-[var(--admin-accent)]">
-          <span className="text-xs text-[var(--admin-text-muted)] font-semibold uppercase tracking-wide">Total a cobrar</span>
-          <motion.span
-            key={subtotal}
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-            className="text-3xl font-black text-[var(--admin-accent-text)] tabular-nums"
-          >
-            {formatPrice(subtotal)}
-          </motion.span>
+      {/* Totals */}
+      {items.length > 0 && (
+        <div className="px-5 py-4 space-y-2.5 shrink-0 border-t border-[var(--admin-border)]">
+          <div className="flex items-center justify-between">
+            <span className="text-[14px] text-[var(--admin-text-muted)]">Subtotal</span>
+            <span className="text-[14px] tabular-nums text-[var(--admin-text)]">
+              {formatPrice(subtotal)}
+            </span>
+          </div>
+          <div className="h-px bg-[var(--admin-border)]" />
+          <div className="flex items-center justify-between">
+            <span className="text-[18px] font-bold text-[var(--admin-text)]">Total</span>
+            <motion.span
+              key={subtotal}
+              initial={{ scale: 1.06 }}
+              animate={{ scale: 1 }}
+              className="text-[18px] font-bold tabular-nums text-[var(--admin-accent-text)]"
+            >
+              {formatPrice(subtotal)}
+            </motion.span>
+          </div>
         </div>
-        <Button
-          onClick={onCheckout}
-          disabled={items.length === 0 || loading}
-          className="w-full h-14 bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-bold text-lg shadow-lg shadow-[var(--admin-accent)]/25 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-transform"
-        >
-          {loading ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : hasKitchenItems ? (
-            'Confirmar pedido'
-          ) : (
-            'Confirmar y cobrar'
-          )}
-        </Button>
-      </div>
+      )}
+
+      {/* Print ticket row — bg-sidebar, centered */}
+      {items.length > 0 && (
+        <div className="flex items-center justify-center gap-2 shrink-0 bg-[var(--admin-surface-2)] border-t border-[var(--admin-border)]"
+             style={{ height: 44 }}>
+          <Printer className="h-4 w-4 text-[var(--admin-text-muted)]" />
+          <span className="text-[13px] font-medium text-[var(--admin-text-muted)]">
+            Imprimir Ticket
+          </span>
+        </div>
+      )}
+
+      {/* Cobrar / Enviar a cocina — flush, full width */}
+      <button
+        onClick={onCheckout}
+        disabled={items.length === 0 || loading}
+        className="flex items-center justify-center gap-2 shrink-0 font-bold text-base transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 active:brightness-95 bg-[var(--admin-accent)] text-black"
+        style={{ height: 52 }}
+      >
+        {loading ? (
+          <Loader2 className="h-5 w-5 animate-spin" />
+        ) : hasKitchenItems ? (
+          <>
+            <ChefHat className="h-5 w-5" />
+            {items.length > 0 ? `Enviar a cocina · ${formatPrice(subtotal)}` : 'Enviar a cocina'}
+          </>
+        ) : (
+          <>
+            <CreditCard className="h-5 w-5" />
+            {items.length > 0 ? `Cobrar ${formatPrice(subtotal)}` : 'Cobrar'}
+          </>
+        )}
+      </button>
     </div>
   )
 }

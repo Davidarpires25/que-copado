@@ -86,7 +86,7 @@ export function ConsumptionTab({ initialData, initialPeriod = '30d' }: Consumpti
       </div>
 
       {data.length === 0 ? (
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+        <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           <div className="p-16 text-center">
             <div className="w-20 h-20 bg-[var(--admin-surface-2)] rounded-2xl flex items-center justify-center mx-auto mb-6">
               <TrendingDown className="h-10 w-10 text-slate-600" />
@@ -99,7 +99,7 @@ export function ConsumptionTab({ initialData, initialPeriod = '30d' }: Consumpti
           </div>
         </div>
       ) : (
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+        <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">

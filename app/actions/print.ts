@@ -1,7 +1,6 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
-import { printClientTicket, printKitchenTicket } from '@/lib/services/thermal-printer'
 
 const PAYMENT_LABELS: Record<string, string> = {
   cash: 'Efectivo',
@@ -55,23 +54,31 @@ export async function printClientTicketAction(
     const total = options.guestTag ? subtotal : order.total
     const { dateStr, timeStr } = now()
 
-    await printClientTicket({
-      orderId,
-      orderLabel:
-        order.order_type === 'mesa' && order.table_number
-          ? `Mesa ${order.table_number}`
-          : 'Mostrador',
-      dateStr,
-      timeStr,
-      items: mapped,
-      total,
-      subtotal,
-      shippingCost: order.shipping_cost ?? 0,
-      paymentLabel: PAYMENT_LABELS[order.payment_method] ?? order.payment_method,
-      cashReceived: options.cashReceived,
-      change: options.cashReceived ? options.cashReceived - total : undefined,
-      guestName: options.guestTag ?? undefined,
+    const { error: insertError } = await supabase.from('print_jobs').insert({
+      type: 'client_ticket',
+      data: {
+        orderId,
+        orderLabel:
+          order.order_type === 'mesa' && order.table_number
+            ? `Mesa ${order.table_number}`
+            : 'Mostrador',
+        dateStr,
+        timeStr,
+        items: mapped,
+        total,
+        subtotal,
+        shippingCost: order.shipping_cost ?? 0,
+        paymentLabel: PAYMENT_LABELS[order.payment_method] ?? order.payment_method,
+        cashReceived: options.cashReceived ?? null,
+        change: options.cashReceived ? options.cashReceived - total : null,
+        guestName: options.guestTag ?? null,
+      },
     })
+
+    if (insertError) {
+      console.error('printClientTicketAction insert:', insertError)
+      return { error: 'Error al encolar el ticket de impresión.' }
+    }
 
     return {}
   } catch (err) {
@@ -111,16 +118,24 @@ export async function printKitchenTicketAction(orderId: string): Promise<{ error
 
     const { dateStr, timeStr } = now()
 
-    await printKitchenTicket({
-      orderId,
-      orderLabel:
-        order.order_type === 'mesa' && order.table_number
-          ? `Mesa ${order.table_number}`
-          : 'Mostrador',
-      dateStr,
-      timeStr,
-      items,
+    const { error: insertError } = await supabase.from('print_jobs').insert({
+      type: 'kitchen_ticket',
+      data: {
+        orderId,
+        orderLabel:
+          order.order_type === 'mesa' && order.table_number
+            ? `Mesa ${order.table_number}`
+            : 'Mostrador',
+        dateStr,
+        timeStr,
+        items,
+      },
     })
+
+    if (insertError) {
+      console.error('printKitchenTicketAction insert:', insertError)
+      return { error: 'Error al encolar el ticket de cocina.' }
+    }
 
     return {}
   } catch (err) {

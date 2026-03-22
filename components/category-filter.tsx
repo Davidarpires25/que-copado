@@ -55,10 +55,10 @@ export function CategoryFilter({
     <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide snap-x">
       <button
         onClick={() => onSelectCategory(null)}
-        className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shrink-0 snap-start active:scale-95 ${
+        className={`inline-flex items-center px-4 py-2 text-xs font-semibold transition-all duration-200 shrink-0 snap-start whitespace-nowrap ${
           selectedCategory === null
-            ? 'bg-[#FEC501] text-black shadow-md shadow-[#FEC501]/20'
-            : 'bg-[#252a35] border border-[#2a2f3a] text-[#a8b5c9] hover:bg-[#2a2f3a] hover:text-[#f0f2f5] hover:border-[#3a3f4a]'
+            ? 'bg-[var(--admin-accent)] text-black'
+            : 'bg-transparent border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-text-muted)]'
         }`}
       >
         Todos
@@ -71,10 +71,10 @@ export function CategoryFilter({
           <button
             key={category.id}
             onClick={() => onSelectCategory(category.id)}
-            className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shrink-0 snap-start whitespace-nowrap active:scale-95 ${
+            className={`inline-flex items-center px-4 py-2 text-xs font-semibold transition-all duration-200 shrink-0 snap-start whitespace-nowrap ${
               isActive
-                ? 'bg-[#FEC501] text-black shadow-md shadow-[#FEC501]/20'
-                : 'bg-[#252a35] border border-[#2a2f3a] text-[#a8b5c9] hover:bg-[#2a2f3a] hover:text-[#f0f2f5] hover:border-[#3a3f4a]'
+                ? 'bg-[var(--admin-accent)] text-black'
+                : 'bg-transparent border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-text-muted)]'
             }`}
           >
             {category.name}

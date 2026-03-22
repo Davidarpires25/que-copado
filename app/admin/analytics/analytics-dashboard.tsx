@@ -209,7 +209,7 @@ export function AnalyticsDashboard({
   }, [])
 
   return (
-    <AdminLayout title="Analytics" description="Reportes y métricas de tu negocio">
+    <AdminLayout title="Analytics" description="Análisis detallado del rendimiento del negocio">
       {/* Row 1: Configurable Sales Chart (full width) */}
       <div
         className="mb-6"

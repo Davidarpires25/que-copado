@@ -1,0 +1,25 @@
+{
+  "name": "que-copado-print-bridge",
+  "version": "1.0.0",
+  "description": "Local bridge: watches Supabase print_jobs and sends ESC/POS to thermal printer via TCP",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "build:win":   "pkg index.js --target node18-win-x64   --output dist/print-bridge-windows.exe",
+    "build:linux": "pkg index.js --target node18-linux-x64 --output dist/print-bridge-linux",
+    "build:mac":   "pkg index.js --target node18-macos-x64 --output dist/print-bridge-mac",
+    "build:all":   "npm run build:win && npm run build:linux && npm run build:mac"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2",
+    "dotenv": "^16",
+    "node-thermal-printer": "^4"
+  },
+  "devDependencies": {
+    "pkg": "^5"
+  },
+  "pkg": {
+    "assets": [],
+    "targets": ["node18-win-x64"]
+  }
+}

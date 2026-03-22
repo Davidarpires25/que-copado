@@ -1,7 +1,6 @@
 'use client'
 
-import { DollarSign, TrendingUp, ArrowLeftRight, History, XCircle, UtensilsCrossed } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Receipt, Wallet, LayoutGrid, ArrowLeftRight, LogOut } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import type { CashRegisterSession } from '@/lib/types/cash-register'
 
@@ -19,90 +18,63 @@ export function SessionStatusBar({
   currentCash,
   openTablesCount = 0,
   onMovement,
-  onViewHistory,
   onCloseSession,
 }: SessionStatusBarProps) {
   return (
-    <div className="bg-[var(--admin-bg)] border-t border-[var(--admin-border)] px-4 py-3 shrink-0">
-      <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide">
-        {/* Sales */}
-        <div className="flex items-center gap-2 shrink-0">
-          <TrendingUp className="h-5 w-5 text-green-400" />
-          <div>
-            <p className="text-xs text-[var(--admin-text-muted)] leading-none font-medium">Ventas</p>
-            <p className="text-base font-bold text-[var(--admin-text)] mt-0.5">
-              {formatPrice(session.total_sales)}
-            </p>
-          </div>
+    <div className="flex items-center justify-between px-4 lg:px-6 shrink-0 overflow-x-auto scrollbar-hide bg-[var(--admin-sidebar-bg)] border-t border-[var(--admin-border)]"
+         style={{ height: 48 }}>
+      {/* Left: stats inline — Pencil style */}
+      <div className="flex items-center gap-5 shrink-0">
+        <div className="flex items-center gap-1.5 text-[var(--admin-text-muted)]">
+          <Receipt className="h-3.5 w-3.5" />
+          <span className="text-[13px]">
+            Ventas:{' '}
+            <span className="font-semibold text-[var(--admin-text)] tabular-nums">
+              {session.total_orders}
+            </span>
+          </span>
         </div>
-
-        <div className="w-px h-10 bg-[var(--admin-border)] shrink-0" />
-
-        {/* Orders */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-sm font-bold text-[var(--admin-accent-text)]">#{session.total_orders}</span>
-          <p className="text-xs text-[var(--admin-text-muted)] font-medium">ventas</p>
-        </div>
-
-        <div className="w-px h-10 bg-[var(--admin-border)] shrink-0" />
-
-        {/* Open tables */}
-        {openTablesCount > 0 && (
-          <>
-            <div className="flex items-center gap-2 shrink-0">
-              <UtensilsCrossed className="h-5 w-5 text-orange-400" />
-              <div>
-                <p className="text-xs text-[var(--admin-text-muted)] leading-none font-medium">Mesas</p>
-                <p className="text-base font-bold text-orange-400 mt-0.5">
-                  {openTablesCount}
-                </p>
-              </div>
-            </div>
-            <div className="w-px h-10 bg-[var(--admin-border)] shrink-0" />
-          </>
-        )}
-
-        {/* Cash in register */}
-        <div className="flex items-center gap-2 shrink-0">
-          <DollarSign className="h-5 w-5 text-[var(--admin-accent-text)]" />
-          <div>
-            <p className="text-xs text-[var(--admin-text-muted)] leading-none font-medium">Efectivo</p>
-            <p className="text-base font-bold text-[var(--admin-text)] mt-0.5">
+        <div className="flex items-center gap-1.5 text-[var(--admin-text-muted)]">
+          <Wallet className="h-3.5 w-3.5" />
+          <span className="text-[13px]">
+            Efectivo:{' '}
+            <span className="font-semibold text-[var(--admin-text)] tabular-nums">
               {formatPrice(currentCash)}
-            </p>
+            </span>
+          </span>
+        </div>
+        {openTablesCount > 0 && (
+          <div className="flex items-center gap-1.5 text-[var(--admin-text-muted)] hidden sm:flex">
+            <LayoutGrid className="h-3.5 w-3.5" />
+            <span className="text-[13px]">
+              Mesas:{' '}
+              <span className="font-semibold text-[var(--admin-text)] tabular-nums">
+                {openTablesCount}
+              </span>
+            </span>
           </div>
-        </div>
+        )}
+      </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2 ml-auto shrink-0">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onMovement}
-            className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] h-9 gap-2 text-sm px-3"
-          >
-            <ArrowLeftRight className="h-4 w-4" />
-            <span>Movimiento</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onViewHistory}
-            className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] h-9 gap-2 text-sm px-3"
-          >
-            <History className="h-4 w-4" />
-            <span>Ventas</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onCloseSession}
-            className="text-red-400 hover:text-red-300 hover:bg-red-950/30 h-9 gap-2 text-sm px-3"
-          >
-            <XCircle className="h-4 w-4" />
-            <span>Cerrar Caja</span>
-          </Button>
-        </div>
+      {/* Right: action buttons — outlined, Pencil style */}
+      <div className="flex items-center gap-2.5 shrink-0">
+        <button
+          onClick={onMovement}
+          className="flex items-center gap-1.5 px-3 rounded-md text-[12px] font-medium transition-colors cursor-pointer text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] bg-[var(--admin-bg)] border border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)]"
+          style={{ height: 32 }}
+        >
+          <ArrowLeftRight className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Movimiento de Caja</span>
+          <span className="sm:hidden">Movimiento</span>
+        </button>
+        <button
+          onClick={onCloseSession}
+          className="flex items-center gap-1.5 px-3 rounded-md text-[12px] font-medium transition-colors cursor-pointer text-red-400 hover:text-red-300 bg-red-500/10 border border-red-500/20 hover:bg-red-500/15 hover:border-red-500/30"
+          style={{ height: 32 }}
+        >
+          <LogOut className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Cerrar Caja</span>
+        </button>
       </div>
     </div>
   )

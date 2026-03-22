@@ -101,7 +101,7 @@ export function MovementsTab({ initialMovements }: MovementsTabProps) {
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 p-4 rounded-xl bg-[var(--admin-bg)] border border-[var(--admin-border)]">
+      <div className="flex flex-wrap gap-3 mb-2">
         <Select value={filterType} onValueChange={(v) => setFilterType(v as StockMovementType | 'all')}>
           <SelectTrigger className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] w-44 h-9 text-sm focus:border-[var(--admin-accent)]/50">
             <Filter className="h-3.5 w-3.5 text-[var(--admin-text-muted)] mr-1" />
@@ -155,7 +155,7 @@ export function MovementsTab({ initialMovements }: MovementsTabProps) {
 
       {/* Skeleton while lazy loading */}
       {loading && (
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+        <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-[var(--admin-border)]/50 last:border-0">
               <div className="h-3 w-24 bg-[var(--admin-border)] rounded animate-pulse" />
@@ -169,7 +169,7 @@ export function MovementsTab({ initialMovements }: MovementsTabProps) {
 
       {/* Table */}
       {!loading && movements.length === 0 ? (
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] p-16 text-center">
+        <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] p-16 text-center">
           <ArrowRightLeft className="h-10 w-10 text-slate-600 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-[var(--admin-text)] mb-1">Sin movimientos</h3>
           <p className="text-[var(--admin-text-muted)] text-sm">
@@ -177,7 +177,7 @@ export function MovementsTab({ initialMovements }: MovementsTabProps) {
           </p>
         </div>
       ) : !loading && (
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+        <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="border-b border-[var(--admin-border)] bg-[var(--admin-bg)]">

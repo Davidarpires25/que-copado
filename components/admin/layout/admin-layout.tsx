@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Menu } from 'lucide-react'
+import { Menu, ChefHat } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AdminSidebar, MobileSidebar } from './admin-sidebar'
 import { cn } from '@/lib/utils'
@@ -12,9 +12,10 @@ interface AdminLayoutProps {
   children: React.ReactNode
   title: string
   description?: string
+  hidePageHeader?: boolean
 }
 
-export function AdminLayout({ children, title, description }: AdminLayoutProps) {
+export function AdminLayout({ children, title, description, hidePageHeader }: AdminLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [stockAlertCount, setStockAlertCount] = useState(0)
@@ -91,8 +92,8 @@ export function AdminLayout({ children, title, description }: AdminLayoutProps) 
           </Button>
 
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-[var(--admin-accent)] rounded-lg flex items-center justify-center text-lg">
-              🍔
+            <div className="w-9 h-9 bg-[var(--admin-accent)] rounded-lg flex items-center justify-center">
+              <ChefHat className="h-5 w-5 text-black" />
             </div>
             <div>
               <span className="text-base font-bold text-[var(--admin-text)]">
@@ -105,12 +106,14 @@ export function AdminLayout({ children, title, description }: AdminLayoutProps) 
         {/* Page Content */}
         <main id="main-content" className="p-4 md:p-6 lg:p-8">
           {/* Page Header */}
-          <div className="mb-6 md:mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-[var(--admin-text)]">{title}</h1>
-            {description && (
-              <p className="text-[var(--admin-text-muted)] text-sm mt-1">{description}</p>
-            )}
-          </div>
+          {!hidePageHeader && (
+            <div className="mb-6 md:mb-8">
+              <h1 className="text-2xl md:text-3xl font-bold text-[var(--admin-text)]">{title}</h1>
+              {description && (
+                <p className="text-[var(--admin-text-muted)] text-sm mt-1">{description}</p>
+              )}
+            </div>
+          )}
 
           {/* Page Content */}
           {children}

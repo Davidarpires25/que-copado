@@ -1,59 +1,46 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Plus, BookOpen, Check, X, Pencil, Trash2, Search, ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { AdminLayout } from '@/components/admin/layout'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
-import { RecipeFormDialog } from '@/components/admin/recipes/recipe-form-dialog'
-import { deleteRecipe, updateRecipe, getRecipeWithIngredients } from '@/app/actions/recipes'
+import { deleteRecipe, updateRecipe } from '@/app/actions/recipes'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
-import type { Ingredient, Recipe, RecipeWithIngredients, IngredientUnit } from '@/lib/types/database'
+import type { RecipeWithIngredients, IngredientUnit } from '@/lib/types/database'
 import { INGREDIENT_UNIT_ABBR } from '@/lib/types/database'
 
 interface RecipesDashboardProps {
   initialRecipes: RecipeWithIngredients[]
-  ingredients: Ingredient[]
 }
 
-export function RecipesDashboard({ initialRecipes, ingredients }: RecipesDashboardProps) {
+const UNIT_TO_BASE: Record<string, number> = {
+  kg: 1, g: 0.001, litro: 1, ml: 0.001, unidad: 1,
+}
+
+const formatCost = (cost: number) =>
+  new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(cost)
+
+export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
+  const router = useRouter()
   const [recipes, setRecipes] = useState(initialRecipes)
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
 
-  const formatCost = (cost: number) =>
-    new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      minimumFractionDigits: 0,
-    }).format(cost)
-
-  const UNIT_TO_BASE: Record<string, number> = {
-    kg: 1, g: 0.001, litro: 1, ml: 0.001, unidad: 1,
-  }
-
-  const getRecipeCost = (recipe: RecipeWithIngredients) => {
-    return recipe.recipe_ingredients.reduce((sum, ri) => {
+  const getRecipeCost = (recipe: RecipeWithIngredients) =>
+    recipe.recipe_ingredients.reduce((sum, ri) => {
       const effectiveUnit = ri.unit ?? ri.ingredients.unit
       const factor = UNIT_TO_BASE[effectiveUnit] ?? 1
       return sum + ri.quantity * factor * ri.ingredients.cost_per_unit
     }, 0)
-  }
 
   const filteredRecipes = recipes.filter(
     (r) => !searchQuery || r.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -62,50 +49,13 @@ export function RecipesDashboard({ initialRecipes, ingredients }: RecipesDashboa
   const activeCount = recipes.filter((r) => r.is_active).length
   const inactiveCount = recipes.length - activeCount
 
-  const handleEdit = (recipe: RecipeWithIngredients) => {
-    setEditingRecipe(recipe)
-    setIsFormOpen(true)
-  }
-
-  const handleCloseForm = () => {
-    setIsFormOpen(false)
-    setEditingRecipe(null)
-  }
-
-  const handleCreated = async (recipe: Recipe) => {
-    setIsFormOpen(false)
-    const result = await getRecipeWithIngredients(recipe.id)
-    const full = (result.data ?? { ...recipe, recipe_ingredients: [] }) as RecipeWithIngredients
-    setRecipes((prev) => [...prev, full].sort((a, b) => a.name.localeCompare(b.name)))
-  }
-
-  const handleUpdated = async (updated: Recipe) => {
-    setEditingRecipe(null)
-    setIsFormOpen(false)
-    const result = await getRecipeWithIngredients(updated.id)
-    if (result.data) {
-      setRecipes((prev) =>
-        prev
-          .map((r) => (r.id === updated.id ? (result.data as RecipeWithIngredients) : r))
-          .sort((a, b) => a.name.localeCompare(b.name))
-      )
-    } else {
-      // fallback: at least update metadata
-      setRecipes((prev) =>
-        prev
-          .map((r) => (r.id === updated.id ? { ...r, ...updated } : r))
-          .sort((a, b) => a.name.localeCompare(b.name))
-      )
-    }
-  }
-
   const handleToggleActive = async (recipe: RecipeWithIngredients) => {
     const newValue = !recipe.is_active
-    setRecipes((prev) => prev.map((r) => (r.id === recipe.id ? { ...r, is_active: newValue } : r)))
+    setRecipes((prev) => prev.map((r) => r.id === recipe.id ? { ...r, is_active: newValue } : r))
     const result = await updateRecipe(recipe.id, { is_active: newValue })
     if (result.error) {
       toast.error(result.error)
-      setRecipes((prev) => prev.map((r) => (r.id === recipe.id ? { ...r, is_active: !newValue } : r)))
+      setRecipes((prev) => prev.map((r) => r.id === recipe.id ? { ...r, is_active: !newValue } : r))
     } else {
       toast.success(newValue ? 'Receta activada' : 'Receta desactivada')
     }
@@ -128,62 +78,38 @@ export function RecipesDashboard({ initialRecipes, ingredients }: RecipesDashboa
     <AdminLayout title="Recetas" description="Crea recetas reutilizables para calcular costos de productos">
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div
-          className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-[var(--admin-accent)]/30 transition-all"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[var(--admin-text-muted)] text-sm font-medium">Total</p>
-              <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{recipes.length}</p>
-            </div>
-            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-[var(--admin-accent)]/10 rounded-xl flex items-center justify-center">
-              <BookOpen className="h-5 w-5 lg:h-6 lg:w-6 text-[var(--admin-accent-text)]" />
-            </div>
-          </div>
-        </div>
-        <div
-          className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-green-500/30 transition-all"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[var(--admin-text-muted)] text-sm font-medium">Activas</p>
-              <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{activeCount}</p>
-            </div>
-            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
-              <Check className="h-5 w-5 lg:h-6 lg:w-6 text-green-500" />
+        {[
+          { label: 'Total', value: recipes.length, icon: BookOpen, color: 'text-[var(--admin-accent-text)]', bg: 'bg-[var(--admin-accent)]/10', border: 'hover:border-[var(--admin-accent)]/30' },
+          { label: 'Activas', value: activeCount, icon: Check, color: 'text-green-600 dark:text-green-500', bg: 'bg-green-500/10', border: 'hover:border-green-500/30' },
+          { label: 'Inactivas', value: inactiveCount, icon: X, color: 'text-red-500', bg: 'bg-red-500/10', border: 'hover:border-red-500/30' },
+        ].map(({ label, value, icon: Icon, color, bg, border }) => (
+          <div key={label} className={`bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] ${border} transition-all`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[var(--admin-text-muted)] text-sm font-medium">{label}</p>
+                <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{value}</p>
+              </div>
+              <div className={`w-10 h-10 lg:w-12 lg:h-12 ${bg} rounded-xl flex items-center justify-center`}>
+                <Icon className={`h-5 w-5 lg:h-6 lg:w-6 ${color}`} />
+              </div>
             </div>
           </div>
-        </div>
-        <div
-          className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-red-500/30 transition-all"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[var(--admin-text-muted)] text-sm font-medium">Inactivas</p>
-              <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{inactiveCount}</p>
-            </div>
-            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-500/10 rounded-xl flex items-center justify-center">
-              <X className="h-5 w-5 lg:h-6 lg:w-6 text-red-500" />
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
       {recipes.length === 0 ? (
-        <div
-          className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden"
-        >
+        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           <div className="p-16 text-center">
             <div className="w-20 h-20 bg-[var(--admin-surface-2)] rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <BookOpen className="h-10 w-10 text-slate-600" />
+              <BookOpen className="h-10 w-10 text-[var(--admin-text-faint)]" />
             </div>
-            <h3 className="text-xl font-semibold text-[var(--admin-text)] mb-2">No hay recetas todavia</h3>
+            <h3 className="text-xl font-semibold text-[var(--admin-text)] mb-2">No hay recetas todavía</h3>
             <p className="text-[var(--admin-text-muted)] mb-6 max-w-md mx-auto">
-              Crea recetas reutilizables como &quot;Medallon 120g&quot; o &quot;Salsa Especial&quot; y
-              asignalas a tus productos para calcular costos automaticamente.
+              Crea recetas reutilizables como &quot;Medallón 120g&quot; o &quot;Salsa Especial&quot; y
+              asignalas a tus productos para calcular costos automáticamente.
             </p>
             <Button
-              onClick={() => setIsFormOpen(true)}
+              onClick={() => router.push('/admin/recipes/new')}
               className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/25"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -209,7 +135,7 @@ export function RecipesDashboard({ initialRecipes, ingredients }: RecipesDashboa
             </p>
             <div className="ml-auto">
               <Button
-                onClick={() => setIsFormOpen(true)}
+                onClick={() => router.push('/admin/recipes/new')}
                 className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all hover:scale-105 active:scale-95"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -220,21 +146,19 @@ export function RecipesDashboard({ initialRecipes, ingredients }: RecipesDashboa
           </div>
 
           {/* Table */}
-          <div
-            className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden"
-          >
+          <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
                 <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold">Receta</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold hidden sm:table-cell">Ingredientes</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold">Costo</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center hidden sm:table-cell">Activa</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold text-right">Acciones</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Receta</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold hidden sm:table-cell">Ingredientes</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Costo</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center hidden sm:table-cell">Activa</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRecipes.map((recipe, index) => {
+                {filteredRecipes.map((recipe) => {
                   const recipeCost = getRecipeCost(recipe)
                   const isExpanded = expandedId === recipe.id
 
@@ -252,27 +176,26 @@ export function RecipesDashboard({ initialRecipes, ingredients }: RecipesDashboa
                             <p className="font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors text-sm lg:text-base">
                               {recipe.name}
                             </p>
-                            {isExpanded ? (
-                              <ChevronUp className="h-3.5 w-3.5 text-[var(--admin-text-muted)]" />
-                            ) : (
-                              <ChevronDown className="h-3.5 w-3.5 text-[var(--admin-text-muted)]" />
-                            )}
+                            {isExpanded
+                              ? <ChevronUp className="h-3.5 w-3.5 text-[var(--admin-text-muted)]" />
+                              : <ChevronDown className="h-3.5 w-3.5 text-[var(--admin-text-muted)]" />
+                            }
                           </button>
                           {recipe.description && (
                             <p className="text-xs text-[var(--admin-text-muted)] mt-0.5">{recipe.description}</p>
                           )}
-                          {/* Expanded ingredient details */}
                           {isExpanded && recipe.recipe_ingredients.length > 0 && (
-                            <div className="mt-2 space-y-1">
+                            <div className="mt-2 space-y-1 pl-1">
                               {recipe.recipe_ingredients.map((ri) => {
                                 const effectiveUnit = ri.unit ?? ri.ingredients.unit
                                 const factor = UNIT_TO_BASE[effectiveUnit] ?? 1
                                 const unitAbbr = INGREDIENT_UNIT_ABBR[effectiveUnit as IngredientUnit] ?? effectiveUnit
                                 return (
                                   <div key={ri.id} className="flex items-center gap-2 text-xs text-[var(--admin-text-muted)]">
-                                    <span className="text-[var(--admin-text-muted)]">{ri.ingredients.name}</span>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--admin-text-faint)] shrink-0" />
+                                    <span className="text-[var(--admin-text)]">{ri.ingredients.name}</span>
                                     <span>{ri.quantity} {unitAbbr}</span>
-                                    <span className="text-[var(--admin-accent-text)]">
+                                    <span className="text-[var(--admin-accent-text)] font-medium ml-auto">
                                       {formatCost(ri.quantity * factor * ri.ingredients.cost_per_unit)}
                                     </span>
                                   </div>
@@ -282,16 +205,19 @@ export function RecipesDashboard({ initialRecipes, ingredients }: RecipesDashboa
                           )}
                         </div>
                       </TableCell>
+
                       <TableCell className="hidden sm:table-cell">
-                        <Badge variant="outline" className="border-[var(--admin-border)] text-[var(--admin-text-muted)] bg-[var(--admin-surface-2)] font-medium">
-                          {recipe.recipe_ingredients.length}
-                        </Badge>
+                        <span className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium border border-[var(--admin-border)] text-[var(--admin-text-muted)] bg-[var(--admin-surface-2)]">
+                          {recipe.recipe_ingredients.length} {recipe.recipe_ingredients.length === 1 ? 'ingrediente' : 'ingredientes'}
+                        </span>
                       </TableCell>
+
                       <TableCell>
                         <span className="text-[var(--admin-accent-text)] font-semibold text-sm lg:text-base">
                           {formatCost(recipeCost)}
                         </span>
                       </TableCell>
+
                       <TableCell className="text-center hidden sm:table-cell">
                         <TooltipProvider>
                           <Tooltip>
@@ -305,22 +231,20 @@ export function RecipesDashboard({ initialRecipes, ingredients }: RecipesDashboa
                                 />
                               </div>
                             </TooltipTrigger>
-                            <TooltipContent side="top">
-                              {recipe.is_active ? 'Activa' : 'Inactiva'}
-                            </TooltipContent>
+                            <TooltipContent>{recipe.is_active ? 'Activa' : 'Inactiva'}</TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                       </TableCell>
+
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-0.5">
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-8 w-8 lg:h-9 lg:w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)] transition-all"
-                                  onClick={() => handleEdit(recipe)}
+                                  size="icon" variant="ghost"
+                                  className="h-8 w-8 lg:h-9 lg:w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-all"
+                                  onClick={() => router.push(`/admin/recipes/${recipe.id}/edit`)}
                                 >
                                   <Pencil className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                                 </Button>
@@ -332,9 +256,8 @@ export function RecipesDashboard({ initialRecipes, ingredients }: RecipesDashboa
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-8 w-8 lg:h-9 lg:w-9 text-red-500 hover:text-red-400 hover:bg-red-950/30 transition-all"
+                                  size="icon" variant="ghost"
+                                  className="h-8 w-8 lg:h-9 lg:w-9 text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all"
                                   onClick={() => setDeleteTarget(recipe.id)}
                                 >
                                   <Trash2 className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
@@ -354,20 +277,11 @@ export function RecipesDashboard({ initialRecipes, ingredients }: RecipesDashboa
         </>
       )}
 
-      <RecipeFormDialog
-        open={isFormOpen}
-        onOpenChange={handleCloseForm}
-        recipe={editingRecipe}
-        ingredients={ingredients}
-        onCreated={handleCreated}
-        onUpdated={handleUpdated}
-      />
-
       <ConfirmDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         title="Eliminar receta"
-        description="Esta accion no se puede deshacer. Si la receta esta en uso en productos, no se podra eliminar."
+        description="Esta acción no se puede deshacer. Si la receta está en uso en productos, no se podrá eliminar."
         confirmLabel="Eliminar"
         onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
       />

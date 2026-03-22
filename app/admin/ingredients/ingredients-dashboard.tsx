@@ -8,13 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { cn } from '@/lib/utils'
 import { AdminLayout } from '@/components/admin/layout'
 import {
   Table,
@@ -24,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { IngredientFormDialog } from '@/components/admin/ingredients/ingredient-form-dialog'
 import { BulkPriceUpdateDialog } from '@/components/admin/ingredients/bulk-price-update-dialog'
 import { CategoryManagerDialog } from '@/components/admin/ingredients/category-manager-dialog'
 import { IngredientSubRecipeDialog } from '@/components/admin/ingredients/ingredient-sub-recipe-dialog'
@@ -45,8 +38,6 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
   const router = useRouter()
   const [ingredients, setIngredients] = useState(initialIngredients)
   const [categories, setCategories] = useState(initialCategories)
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [editingIngredient, setEditingIngredient] = useState<IngredientWithCategory | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterCategory, setFilterCategory] = useState('')
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
@@ -72,29 +63,6 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
 
   const activeCount = ingredients.filter((i) => i.is_active).length
   const inactiveCount = ingredients.length - activeCount
-
-  const handleEdit = (ingredient: IngredientWithCategory) => {
-    setEditingIngredient(ingredient)
-    setIsFormOpen(true)
-  }
-
-  const handleCloseForm = () => {
-    setIsFormOpen(false)
-    setEditingIngredient(null)
-  }
-
-  const handleCreated = (ingredient: IngredientWithCategory) => {
-    setIngredients((prev) => [...prev, ingredient].sort((a, b) => a.name.localeCompare(b.name)))
-    setIsFormOpen(false)
-  }
-
-  const handleUpdated = (updated: IngredientWithCategory) => {
-    setIngredients((prev) =>
-      prev.map((i) => (i.id === updated.id ? updated : i)).sort((a, b) => a.name.localeCompare(b.name))
-    )
-    setEditingIngredient(null)
-    setIsFormOpen(false)
-  }
 
   const handleToggleActive = async (ingredient: IngredientWithCategory) => {
     const newValue = !ingredient.is_active
@@ -178,7 +146,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
               Comienza agregando ingredientes para armar las recetas de tus productos.
             </p>
             <Button
-              onClick={() => setIsFormOpen(true)}
+              onClick={() => router.push('/admin/ingredients/new')}
               className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/25"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -189,9 +157,8 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
       ) : (
         <>
           {/* Header toolbar */}
-          <div className="flex flex-wrap items-center gap-2 mb-4">
-            {/* Search */}
-            <div className="relative flex-1 min-w-[160px] max-w-xs">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="relative flex-1 max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
               <Input
                 value={searchQuery}
@@ -200,42 +167,9 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                 className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-9 pl-9 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
               />
             </div>
-
-            {/* Category filter */}
-            {categories.length > 0 && (
-              <Select
-                value={filterCategory || ALL_CATEGORIES_VALUE}
-                onValueChange={(v) => setFilterCategory(v === ALL_CATEGORIES_VALUE ? '' : v)}
-              >
-                <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-9 text-sm w-auto min-w-[160px] focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 data-[placeholder]:text-[var(--admin-text-muted)] [&_svg]:text-[var(--admin-text-muted)] [&_svg]:opacity-100">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">
-                  <SelectItem
-                    value={ALL_CATEGORIES_VALUE}
-                    className="text-[var(--admin-text-muted)] focus:bg-[var(--admin-border)] focus:text-[var(--admin-text)] hover:bg-[var(--admin-border)] cursor-pointer"
-                  >
-                    Todas las categorias
-                  </SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem
-                      key={cat.id}
-                      value={cat.id}
-                      className="text-[var(--admin-text)] focus:bg-[var(--admin-border)] focus:text-[var(--admin-text)] hover:bg-[var(--admin-border)] cursor-pointer"
-                    >
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            {/* Count */}
             <p className="text-[var(--admin-text-muted)] text-sm hidden sm:block">
               {filteredIngredients.length} {filteredIngredients.length === 1 ? 'ingrediente' : 'ingredientes'}
             </p>
-
-            {/* Action buttons */}
             <div className="ml-auto flex items-center gap-2">
               <TooltipProvider>
                 <Tooltip>
@@ -253,7 +187,6 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                   <TooltipContent>Gestionar categorias</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -270,9 +203,8 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                   <TooltipContent>Actualizar precios por categoria</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-
               <Button
-                onClick={() => setIsFormOpen(true)}
+                onClick={() => router.push('/admin/ingredients/new')}
                 className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all hover:scale-105 active:scale-95 h-9"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -282,17 +214,73 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
             </div>
           </div>
 
+          {/* Category tabs */}
+          {categories.length > 0 && (
+            <div className="flex items-center gap-0 border-b border-[var(--admin-border)] mb-0 overflow-x-auto no-scrollbar">
+              <button
+                onClick={() => setFilterCategory('')}
+                className={cn(
+                  'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
+                  !filterCategory || filterCategory === ALL_CATEGORIES_VALUE
+                    ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
+                    : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
+                )}
+              >
+                Todos
+                <span className={cn(
+                  'ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-medium',
+                  !filterCategory || filterCategory === ALL_CATEGORIES_VALUE
+                    ? 'bg-[var(--admin-accent)]/20 text-[var(--admin-accent-text)]'
+                    : 'bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)]'
+                )}>
+                  {ingredients.length}
+                </span>
+              </button>
+              {categories.map((cat) => {
+                const count = ingredients.filter((i) => i.ingredient_categories?.id === cat.id).length
+                const isActive = filterCategory === cat.id
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setFilterCategory(cat.id)}
+                    className={cn(
+                      'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
+                      isActive
+                        ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
+                        : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
+                    )}
+                  >
+                    {cat.name}
+                    {count > 0 && (
+                      <span className={cn(
+                        'ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-medium',
+                        isActive
+                          ? 'bg-[var(--admin-accent)]/20 text-[var(--admin-accent-text)]'
+                          : 'bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)]'
+                      )}>
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
           {/* Table */}
-          <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+          <div className={categories.length > 0
+            ? "rounded-b-xl border border-t-0 border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden"
+            : "rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden"
+          }>
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
                 <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold">Nombre</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold hidden md:table-cell">Categoria</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold">Unidad</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold">Costo / Unidad</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center hidden sm:table-cell">Activo</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold text-right">Acciones</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Nombre</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold hidden md:table-cell">Categoría</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Unidad</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Costo / Unidad</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center hidden sm:table-cell">Activo</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -375,8 +363,8 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="h-8 w-8 lg:h-9 lg:w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)] transition-all"
-                                onClick={() => handleEdit(ingredient)}
+                                className="h-8 w-8 lg:h-9 lg:w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-all"
+                                onClick={() => router.push(`/admin/ingredients/${ingredient.id}/edit`)}
                               >
                                 <Pencil className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                               </Button>
@@ -390,7 +378,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="h-8 w-8 lg:h-9 lg:w-9 text-red-500 hover:text-red-400 hover:bg-red-950/30 transition-all"
+                                className="h-8 w-8 lg:h-9 lg:w-9 text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all"
                                 onClick={() => setDeleteTarget(ingredient.id)}
                               >
                                 <Trash2 className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
@@ -438,15 +426,6 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
           </div>
         </>
       )}
-
-      <IngredientFormDialog
-        open={isFormOpen}
-        onOpenChange={handleCloseForm}
-        ingredient={editingIngredient}
-        onCreated={handleCreated}
-        onUpdated={handleUpdated}
-        categories={categories}
-      />
 
       <BulkPriceUpdateDialog
         open={isBulkPriceOpen}

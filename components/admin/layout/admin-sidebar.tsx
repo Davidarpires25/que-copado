@@ -34,42 +34,46 @@ interface NavItem {
 }
 
 interface NavGroup {
-  title: string
+  title?: string
   items: NavItem[]
 }
 
 const navGroups: NavGroup[] = [
   {
-    title: 'Operacion',
     items: [
-      { href: '/admin/caja', label: 'Caja', icon: CreditCard },
-      { href: '/admin/cocina', label: 'Cocina', icon: ChefHat },
-      { href: '/admin/tables', label: 'Mesas', icon: UtensilsCrossed },
-      { href: '/admin/orders', label: 'Pedidos', icon: ClipboardList },
+      { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     ],
   },
   {
-    title: 'Catalogo',
+    title: 'Operación',
+    items: [
+      { href: '/admin/caja', label: 'Caja', icon: CreditCard },
+      { href: '/admin/tables', label: 'Mesas', icon: UtensilsCrossed },
+      { href: '/admin/orders', label: 'Pedidos', icon: ClipboardList },
+      { href: '/admin/cocina', label: 'Cocina', icon: ChefHat },
+      { href: '/admin/stock', label: 'Stock', icon: Boxes },
+    ],
+  },
+  {
+    title: 'Catálogo',
     items: [
       { href: '/admin/products', label: 'Productos', icon: Package },
+      { href: '/admin/categories', label: 'Categorías', icon: Tag },
       { href: '/admin/recipes', label: 'Recetas', icon: BookOpen },
       { href: '/admin/ingredients', label: 'Ingredientes', icon: Wheat },
-      { href: '/admin/categories', label: 'Categorias', icon: Tag },
-      { href: '/admin/stock', label: 'Stock', icon: Boxes },
     ],
   },
   {
     title: 'Reportes',
     items: [
-      { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
     ],
   },
   {
-    title: 'Ajustes',
+    title: 'Configuración',
     items: [
-      { href: '/admin/delivery-zones', label: 'Zonas de Envio', icon: MapPin },
-      { href: '/admin/settings', label: 'Configuracion', icon: Settings },
+      { href: '/admin/delivery-zones', label: 'Zonas de Envío', icon: MapPin },
+      { href: '/admin/settings', label: 'Ajustes', icon: Settings },
     ],
   },
 ]
@@ -101,19 +105,19 @@ function NavItemLink({
           'flex items-center gap-3 px-3 rounded-lg transition-all duration-200 group relative',
           pyClass,
           isActive
-            ? 'bg-[#FEC501]/15 text-[#FEC501]'
-            : 'text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#252a35]'
+            ? 'bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)]'
+            : 'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)]'
         )}
       >
         {isActive && (
           <motion.div
             layoutId="activeIndicator"
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#FEC501] rounded-r-full"
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[var(--admin-accent)] rounded-r-full"
           />
         )}
 
         <div className="relative shrink-0">
-          <Icon className={cn('h-5 w-5', isActive && 'text-[#FEC501]')} />
+          <Icon className={cn('h-5 w-5', isActive && 'text-[var(--admin-accent-text)]')} />
           {hasBadge && (
             <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
               {(item.badgeCount ?? 0) > 99 ? '99+' : item.badgeCount}
@@ -122,7 +126,7 @@ function NavItemLink({
         </div>
 
         {!collapsed && (
-          <span className={cn('font-medium text-sm flex-1', isActive && 'text-[#FEC501]')}>
+          <span className={cn('font-medium text-sm flex-1', isActive && 'text-[var(--admin-accent-text)]')}>
             {item.label}
           </span>
         )}
@@ -134,7 +138,7 @@ function NavItemLink({
         )}
 
         {collapsed && (
-          <div className="absolute left-full ml-2 px-2 py-1 bg-[#252a35] text-[#f0f2f5] text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 border border-[#2a2f3a]">
+          <div className="absolute left-full ml-2 px-2 py-1 bg-[var(--admin-sidebar-bg)] text-[var(--admin-text)] text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 border border-[var(--admin-sidebar-border)] shadow-[var(--shadow-card-md)]">
             {item.label}
             {hasBadge && (
               <span className="ml-2 px-1.5 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
@@ -156,20 +160,30 @@ interface AdminSidebarProps {
   collapsed?: boolean
   onToggleCollapse?: () => void
   stockAlertCount?: number
+  userName?: string
+  userRole?: string
 }
 
-export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCount = 0 }: AdminSidebarProps) {
+export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCount = 0, userName = 'Admin', userRole = 'Administrador' }: AdminSidebarProps) {
   const pathname = usePathname()
 
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 h-screen bg-[#1a1d24] border-r border-[#2a2f3a] transition-all duration-300 flex flex-col',
+        'group/sidebar fixed left-0 top-0 z-40 h-screen bg-[var(--admin-sidebar-bg)] border-r border-[var(--admin-sidebar-border)] transition-all duration-300 flex flex-col',
         collapsed ? 'w-[72px]' : 'w-64'
       )}
     >
+      {/* Hover collapse handle */}
+      <button
+        onClick={onToggleCollapse}
+        aria-label={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
+        className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[var(--admin-sidebar-bg)] border border-[var(--admin-sidebar-border)] rounded-full items-center justify-center shadow-[var(--shadow-card)] hidden lg:flex opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200 z-50 text-[var(--admin-text-faint)] hover:text-[var(--admin-text)] hover:border-[var(--admin-border)]"
+      >
+        {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+      </button>
       {/* Logo */}
-      <div className="h-20 flex items-center px-4 border-b border-[#2a2f3a]">
+      <div className="h-20 flex items-center px-4 border-b border-[var(--admin-sidebar-border)]">
         <Link href="/admin/dashboard" className="flex items-center gap-3 flex-1 min-w-0">
           <img
             src="/logo.svg"
@@ -186,10 +200,10 @@ export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCo
               exit={{ opacity: 0, x: -10 }}
               className="min-w-0"
             >
-              <span className="text-lg font-bold text-[#f0f2f5]">
-                Que <span className="text-[#FEC501]">Copado</span>
+              <span className="text-lg font-bold text-[var(--admin-text)]">
+                Que <span className="text-[var(--admin-accent-text)]">Copado</span>
               </span>
-              <span className="block text-xs text-[#a8b5c9] font-medium">Panel Admin</span>
+              <span className="block text-xs text-[var(--admin-text-muted)] font-medium">Panel Admin</span>
             </motion.div>
           )}
         </Link>
@@ -198,11 +212,11 @@ export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCo
       {/* Navigation */}
       <nav className="flex-1 py-3 px-3 overflow-y-auto">
         {navGroups.map((group, groupIndex) => (
-          <div key={group.title} className={cn(groupIndex > 0 && 'mt-2')}>
-            {groupIndex > 0 && <div className="h-px bg-[#2a2f3a] mx-2 mb-2" />}
+          <div key={group.title ?? groupIndex} className={cn(groupIndex > 0 && 'mt-2')}>
+            {groupIndex > 0 && <div className="h-px bg-[var(--admin-sidebar-border)] mx-2 mb-2" />}
 
-            {!collapsed && (
-              <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-widest text-[#6b7a8d]">
+            {!collapsed && group.title && (
+              <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-widest text-[var(--admin-text-muted)]">
                 {group.title}
               </p>
             )}
@@ -222,38 +236,38 @@ export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCo
       </nav>
 
       {/* Bottom section */}
-      <div className="p-3 border-t border-[#2a2f3a] space-y-2">
-        <Button
-          variant="ghost"
-          onClick={onToggleCollapse}
-          className={cn(
-            'hidden lg:flex w-full text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#252a35] h-10',
-            collapsed ? 'justify-center px-0' : 'justify-start gap-3'
+      <div className="border-t border-[var(--admin-sidebar-border)]">
+        {/* User profile */}
+        <div className={cn(
+          'flex items-center gap-3 px-4 py-3',
+          collapsed && 'justify-center px-3'
+        )}>
+          <div className="w-8 h-8 rounded-full bg-[var(--admin-accent)] flex items-center justify-center shrink-0 text-sm font-bold text-black">
+            {userName.charAt(0).toUpperCase()}
+          </div>
+          {!collapsed && (
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-[var(--admin-text)] truncate">{userName}</p>
+              <p className="text-xs text-[var(--admin-text-muted)] truncate">{userRole}</p>
+            </div>
           )}
-        >
-          {collapsed ? (
-            <ChevronRight className="h-5 w-5" />
-          ) : (
-            <>
-              <ChevronLeft className="h-5 w-5" />
-              <span className="font-medium text-sm">Contraer</span>
-            </>
-          )}
-        </Button>
+        </div>
 
-        <form action={signOut}>
-          <Button
-            type="submit"
-            variant="ghost"
-            className={cn(
-              'w-full text-[#a8b5c9] hover:text-[#ef4444] hover:bg-[#ef4444]/10 h-10',
-              collapsed ? 'justify-center px-0' : 'justify-start gap-3'
-            )}
-          >
-            <LogOut className="h-5 w-5 shrink-0" />
-            {!collapsed && <span className="font-medium text-sm">Cerrar Sesion</span>}
-          </Button>
-        </form>
+        <div className="px-3 pb-3">
+          <form action={signOut}>
+            <Button
+              type="submit"
+              variant="ghost"
+              className={cn(
+                'w-full text-[var(--admin-text-muted)] hover:text-red-500 hover:bg-red-500/10 h-9',
+                collapsed ? 'justify-center px-0' : 'justify-start gap-3'
+              )}
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              {!collapsed && <span className="font-medium text-sm">Cerrar Sesión</span>}
+            </Button>
+          </form>
+        </div>
       </div>
     </aside>
   )
@@ -289,9 +303,9 @@ export function MobileSidebar({ open, onClose, stockAlertCount = 0 }: MobileSide
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed left-0 top-0 z-50 h-screen w-72 bg-[#1a1d24] border-r border-[#2a2f3a] flex flex-col lg:hidden"
+            className="fixed left-0 top-0 z-50 h-screen w-72 bg-[var(--admin-sidebar-bg)] border-r border-[var(--admin-sidebar-border)] flex flex-col lg:hidden"
           >
-            <div className="h-20 flex items-center justify-between px-4 border-b border-[#2a2f3a]">
+            <div className="h-20 flex items-center justify-between px-4 border-b border-[var(--admin-sidebar-border)]">
               <Link href="/admin/dashboard" className="flex items-center gap-3" onClick={onClose}>
                 <img
                     src="/logo.svg"
@@ -299,10 +313,10 @@ export function MobileSidebar({ open, onClose, stockAlertCount = 0 }: MobileSide
                     className="w-14 h-14 shrink-0 rounded-xl object-contain"
                   />
                 <div>
-                  <span className="text-lg font-bold text-[#f0f2f5]">
-                    Que <span className="text-[#FEC501]">Copado</span>
+                  <span className="text-lg font-bold text-[var(--admin-text)]">
+                    Que <span className="text-[var(--admin-accent-text)]">Copado</span>
                   </span>
-                  <span className="block text-xs text-[#a8b5c9] font-medium">Panel Admin</span>
+                  <span className="block text-xs text-[var(--admin-text-muted)] font-medium">Panel Admin</span>
                 </div>
               </Link>
 
@@ -310,7 +324,7 @@ export function MobileSidebar({ open, onClose, stockAlertCount = 0 }: MobileSide
                 variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="h-9 w-9 text-[#a8b5c9] hover:text-[#f0f2f5] hover:bg-[#252a35]"
+                className="h-9 w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)]"
               >
                 <X className="h-5 w-5" />
               </Button>
@@ -318,11 +332,13 @@ export function MobileSidebar({ open, onClose, stockAlertCount = 0 }: MobileSide
 
             <nav className="flex-1 py-3 px-3 overflow-y-auto">
               {navGroups.map((group, groupIndex) => (
-                <div key={group.title} className={cn(groupIndex > 0 && 'mt-2')}>
-                  {groupIndex > 0 && <div className="h-px bg-[#2a2f3a] mx-2 mb-2" />}
-                  <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-widest text-[#6b7a8d]">
-                    {group.title}
-                  </p>
+                <div key={group.title ?? groupIndex} className={cn(groupIndex > 0 && 'mt-2')}>
+                  {groupIndex > 0 && <div className="h-px bg-[var(--admin-sidebar-border)] mx-2 mb-2" />}
+                  {group.title && (
+                    <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-widest text-[var(--admin-text-muted)]">
+                      {group.title}
+                    </p>
+                  )}
                   <div className="space-y-0.5">
                     {group.items.map((item) => (
                       <NavItemLink
@@ -338,12 +354,12 @@ export function MobileSidebar({ open, onClose, stockAlertCount = 0 }: MobileSide
               ))}
             </nav>
 
-            <div className="p-3 border-t border-[#2a2f3a]">
+            <div className="p-3 border-t border-[var(--admin-sidebar-border)]">
               <form action={signOut}>
                 <Button
                   type="submit"
                   variant="ghost"
-                  className="w-full justify-start gap-3 text-[#a8b5c9] hover:text-[#ef4444] hover:bg-[#ef4444]/10 h-10"
+                  className="w-full justify-start gap-3 text-[var(--admin-text-muted)] hover:text-red-500 hover:bg-red-500/10 h-10"
                 >
                   <LogOut className="h-5 w-5" />
                   <span className="font-medium">Cerrar Sesion</span>
