@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import { PosProductGrid } from './product-grid'
 import { addItemsToOrder } from '@/app/actions/tables'
+import { printKitchenTicketAction } from '@/app/actions/print'
 import type { Product, Category } from '@/lib/types/database'
 import type { RestaurantTable } from '@/lib/types/tables'
 
@@ -14,6 +15,7 @@ interface CartItem {
   product_id: string
   product_name: string
   product_price: number
+  product_type?: string | null
   quantity: number
   notes?: string
 }
@@ -56,6 +58,7 @@ export function AddItemsView({
         product_id: product.id,
         product_name: product.name,
         product_price: product.price,
+        product_type: product.product_type,
         quantity: 1,
       }]
     })
@@ -106,6 +109,10 @@ export function AddItemsView({
     )
     setLoading(false)
     if (result.error) { toast.error(result.error); return }
+    const hasKitchenItems = cart.some((i) => i.product_type === 'elaborado')
+    if (hasKitchenItems) {
+      printKitchenTicketAction(orderId).then((r) => { if (r.error) toast.error(r.error) })
+    }
     toast.success(`${cartItemCount} ${cartItemCount === 1 ? 'producto agregado' : 'productos agregados'}`)
     onItemsAdded()
   }

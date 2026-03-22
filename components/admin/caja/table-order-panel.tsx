@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
-import { printClientTicketAction } from '@/app/actions/print'
+import { printClientTicketAction, printKitchenTicketAction } from '@/app/actions/print'
 import {
-  Plus, Receipt, CreditCard, Loader2, AlertTriangle, Printer,
+  Plus, Receipt, CreditCard, Loader2, AlertTriangle, Printer, ChefHat,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
@@ -173,14 +173,25 @@ export function TableOrderPanel({
               </div>
             )}
           </div>
-          {/* Right: printer */}
-          <button
-            onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
-            className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer p-1"
-            aria-label="Imprimir ticket"
-          >
-            <Printer className="h-4 w-4" />
-          </button>
+          {/* Right: print buttons */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
+              className="text-[var(--admin-text-muted)] hover:text-orange-400 transition-colors cursor-pointer p-1"
+              aria-label="Imprimir comanda cocina"
+              title="Comanda cocina"
+            >
+              <ChefHat className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
+              className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer p-1"
+              aria-label="Imprimir ticket cliente"
+              title="Ticket cliente"
+            >
+              <Printer className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       )}
 
@@ -337,14 +348,24 @@ export function TableOrderPanel({
             <span className="text-[12px] font-semibold uppercase tracking-widest text-[var(--admin-text-muted)]">
               Imprimir Tickets
             </span>
-            <button
-              onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
-              className="flex items-center gap-1.5 px-2.5 rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-text-placeholder)] transition-colors cursor-pointer"
-              style={{ height: 26 }}
-            >
-              <Printer className="h-3 w-3" />
-              <span className="text-[11px] font-medium">Ticket Completo</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
+                className="flex items-center gap-1.5 px-2.5 rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-orange-400 hover:border-orange-400/40 transition-colors cursor-pointer"
+                style={{ height: 26 }}
+              >
+                <ChefHat className="h-3 w-3" />
+                <span className="text-[11px] font-medium">Comanda</span>
+              </button>
+              <button
+                onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
+                className="flex items-center gap-1.5 px-2.5 rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-text-placeholder)] transition-colors cursor-pointer"
+                style={{ height: 26 }}
+              >
+                <Printer className="h-3 w-3" />
+                <span className="text-[11px] font-medium">Ticket Completo</span>
+              </button>
+            </div>
           </div>
           <div className="flex gap-1.5">
             {allTags.map((tag, idx) => {
