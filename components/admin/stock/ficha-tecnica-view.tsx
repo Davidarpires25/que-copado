@@ -180,18 +180,18 @@ function ShoppingRow({ item, quantity, isEven }: {
       {/* Disponible */}
       <div className="flex items-center justify-end gap-1.5 shrink-0" style={{ width: 120 }}>
         {!item.stock_tracking_enabled ? (
-          <span className="text-[11px] text-[var(--admin-text-faint)]">Sin tracking</span>
+          <span className="text-xs text-[var(--admin-text-faint)]">Sin tracking</span>
         ) : isShort ? (
           <>
             <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-            <span className="text-[11px] font-semibold text-red-500">
+            <span className="text-xs font-semibold text-red-500">
               falta {formatQty(Math.abs(delta!), item.unit)}
             </span>
           </>
         ) : (
           <>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-            <span className="text-[11px] font-semibold text-emerald-500">
+            <span className="text-xs font-semibold text-emerald-500">
               Suficiente
             </span>
           </>
@@ -258,14 +258,14 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
           <div className="ml-auto flex items-center gap-2">
             <button
               onClick={() => window.open(`/admin/stock/ficha/${sheet.product_id}/print?qty=${quantity}`, '_blank')}
-              className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] text-[12px] font-medium text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] text-xs font-medium text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer"
             >
               <Printer className="h-3.5 w-3.5" />
               Imprimir
             </button>
             <button
               onClick={() => window.open(`/admin/stock/ficha/${sheet.product_id}/print?qty=${quantity}`, '_blank')}
-              className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] text-[12px] font-medium text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] text-xs font-medium text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer"
             >
               <Download className="h-3.5 w-3.5" />
               Exportar PDF
@@ -299,7 +299,7 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
 
             {/* Middle: slider + input */}
             <div className="flex-1 min-w-0 px-4">
-              <p className="text-[11px] text-[var(--admin-text-muted)] mb-2">Producción simulada</p>
+              <p className="text-xs text-[var(--admin-text-muted)] mb-2">Producción simulada</p>
               <div className="flex items-center gap-3">
                 <input
                   type="range"
@@ -341,12 +341,12 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
             {/* Right: costs */}
             <div className="flex items-center gap-5 shrink-0 pl-4 border-l border-[var(--admin-border)]">
               <div className="text-right">
-                <p className="text-[11px] text-[var(--admin-text-muted)] mb-0.5">Costo total</p>
+                <p className="text-xs text-[var(--admin-text-muted)] mb-0.5">Costo total</p>
                 <p className="text-[17px] font-bold text-[var(--admin-text)] tabular-nums">{formatPrice(totalCost)}</p>
               </div>
               <div className="h-8 w-px bg-[var(--admin-border)]" />
               <div className="text-right">
-                <p className="text-[11px] text-[var(--admin-text-muted)] mb-0.5">Costo unitario</p>
+                <p className="text-xs text-[var(--admin-text-muted)] mb-0.5">Costo unitario</p>
                 <p className="text-[17px] font-bold text-[var(--admin-accent-text)] tabular-nums">{formatPrice(unitCost)}</p>
               </div>
             </div>
@@ -364,7 +364,7 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
                 key={t}
                 onClick={() => setTab(t)}
                 className={cn(
-                  'flex items-center gap-1.5 px-1 py-3 mr-6 text-[13px] font-semibold transition-colors cursor-pointer border-b-2 -mb-px',
+                  'flex items-center gap-1.5 px-1 py-3 mr-6 text-sm font-semibold transition-colors cursor-pointer border-b-2 -mb-px',
                   tab === t
                     ? 'text-[var(--admin-accent-text)] border-[var(--admin-accent)]'
                     : 'text-[var(--admin-text-muted)] border-transparent hover:text-[var(--admin-text)]'
