@@ -278,7 +278,7 @@ export function ElaboradoStockSection({
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="h-8 w-8 lg:h-9 lg:w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 transition-all"
+                                className="h-9 w-9 lg:h-10 lg:w-10 text-[var(--admin-text-muted)] hover:text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 transition-all"
                                 onClick={() => router.push(`/admin/stock/ficha/${product.id}`)}
                                 aria-label={`Ficha técnica de ${product.name}`}
                               >
@@ -298,7 +298,7 @@ export function ElaboradoStockSection({
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className={`h-8 w-8 lg:h-9 lg:w-9 transition-all ${
+                                className={`h-9 w-9 lg:h-10 lg:w-10 transition-all ${
                                   product.is_out_of_stock
                                     ? 'text-green-400 hover:text-green-300 hover:bg-green-500/10'
                                     : 'text-[var(--admin-text-muted)] hover:text-red-400 hover:bg-red-500/10'

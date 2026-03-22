@@ -246,7 +246,7 @@ export function IngredientsStockTab({
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="h-8 w-8 lg:h-9 lg:w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)] transition-all cursor-pointer"
+                                className="h-9 w-9 lg:h-10 lg:w-10 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)] transition-all cursor-pointer"
                                 onClick={() => setAdjustTarget(ingredient)}
                                 aria-label={`Ajustar stock de ${ingredient.name}`}
                               >

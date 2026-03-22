@@ -119,7 +119,7 @@ function IngredientCombobox({
               <button
                 type="button"
                 onClick={() => setSearch('')}
-                className="p-0.5 rounded hover:bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] transition-colors"
+                className="h-8 w-8 flex items-center justify-center rounded hover:bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] transition-colors"
               >
                 <X className="h-3 w-3" />
               </button>
