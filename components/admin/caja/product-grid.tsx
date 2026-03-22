@@ -205,7 +205,7 @@ export function PosProductGrid({
                     </p>
                   </div>
                   {isLowStock && (
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 leading-none shrink-0">
+                    <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/25 text-amber-400 leading-none shrink-0">
                       {product.current_stock === 0 ? 'Agotado' : `${product.current_stock} u.`}
                     </span>
                   )}

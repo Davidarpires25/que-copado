@@ -341,7 +341,7 @@ export function TablePayView({
                   </p>
                   {isSplit && (
                     <div className="flex items-center justify-center px-2 rounded-[10px] bg-[var(--admin-accent)]/12" style={{ height: 20 }}>
-                      <span className="text-[10px] font-semibold text-[var(--admin-accent-text)]">Pago dividido</span>
+                      <span className="text-[11px] font-semibold text-[var(--admin-accent-text)]">Pago dividido</span>
                     </div>
                   )}
                 </div>
@@ -398,7 +398,7 @@ export function TablePayView({
                               }}
                               onBlur={() => commitEdit(opt.value)}
                               className={cn(
-                                'w-20 h-6 text-right text-[11px] font-bold tabular-nums px-2 rounded-md bg-[var(--admin-surface-2)] border outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
+                                'w-24 h-9 text-right text-[13px] font-bold tabular-nums px-2 rounded-md bg-[var(--admin-surface-2)] border outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
                                 opt.border, opt.color
                               )}
                               placeholder="0"
@@ -407,7 +407,7 @@ export function TablePayView({
                             <button
                               onClick={e => handleAmountPillClick(e, opt.value)}
                               className={cn(
-                                'h-6 min-w-[60px] px-2 rounded-md bg-[var(--admin-surface-2)] border text-[11px] font-bold tabular-nums transition-colors cursor-pointer hover:opacity-80',
+                                'h-9 min-w-[60px] px-2 rounded-md bg-[var(--admin-surface-2)] border text-[13px] font-bold tabular-nums transition-colors cursor-pointer hover:opacity-80',
                                 opt.border, opt.color
                               )}
                             >

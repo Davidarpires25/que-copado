@@ -72,7 +72,7 @@ export function TableCard({ table, isSelected, onClick }: TableCardProps) {
           cfg.badge
         )} style={{ height: 18 }}>
           <div className={cn('w-1.5 h-1.5 rounded-full shrink-0', cfg.dot)} />
-          <span className={cn('text-[10px] font-semibold leading-none', cfg.text)}>
+          <span className={cn('text-[11px] font-semibold leading-none', cfg.text)}>
             {cfg.label}
           </span>
         </div>

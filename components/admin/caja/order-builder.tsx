@@ -76,7 +76,7 @@ export function OrderBuilder({
         {items.length > 0 && (
           <button
             onClick={handleClearCart}
-            className={`flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               confirmClear
                 ? 'bg-red-500/10 text-red-400'
                 : 'text-[var(--admin-text-faint)] hover:text-red-400 hover:bg-red-500/10'
@@ -139,10 +139,10 @@ export function OrderBuilder({
                   <button
                     onClick={() => onUpdateQuantity(item.id, -1)}
                     className="flex items-center justify-center rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-accent)]/40 transition-all active:scale-90 cursor-pointer"
-                    style={{ width: 26, height: 26 }}
+                    style={{ width: 36, height: 36 }}
                     aria-label="Disminuir"
                   >
-                    <Minus className="h-3 w-3 text-[var(--admin-text-muted)]" />
+                    <Minus className="h-3.5 w-3.5 text-[var(--admin-text-muted)]" />
                   </button>
                   <motion.span
                     key={item.quantity}
@@ -157,10 +157,10 @@ export function OrderBuilder({
                   <button
                     onClick={() => onUpdateQuantity(item.id, 1)}
                     className="flex items-center justify-center rounded-md bg-[var(--admin-accent)] hover:opacity-90 active:scale-90 transition-all cursor-pointer"
-                    style={{ width: 26, height: 26 }}
+                    style={{ width: 36, height: 36 }}
                     aria-label="Aumentar"
                   >
-                    <Plus className="h-3 w-3 text-black" />
+                    <Plus className="h-3.5 w-3.5 text-black" />
                   </button>
                 </div>
 

@@ -245,15 +245,15 @@ export function TableOrderPanel({
                 ? 'bg-[var(--admin-accent)]/10 border border-[var(--admin-accent)]/30'
                 : 'bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)]'
             )}
-            style={{ height: 30 }}
+            style={{ height: 40 }}
           >
-            <span className={cn('text-[11px] font-semibold', !activeSaleTag ? 'text-[var(--admin-accent-text)]' : 'text-[var(--admin-text-muted)]')}>
+            <span className={cn('text-[12px] font-semibold', !activeSaleTag ? 'text-[var(--admin-accent-text)]' : 'text-[var(--admin-text-muted)]')}>
               Todos
             </span>
             {totalItemCount > 0 && (
               <div className="flex items-center justify-center rounded-full shrink-0"
-                style={{ width: 18, height: 18, background: !activeSaleTag ? 'var(--admin-accent)' : 'var(--admin-surface-2)' }}>
-                <span className={cn('text-[9px] font-bold', !activeSaleTag ? 'text-black' : 'text-[var(--admin-text-muted)]')}>
+                style={{ width: 20, height: 20, background: !activeSaleTag ? 'var(--admin-accent)' : 'var(--admin-surface-2)' }}>
+                <span className={cn('text-[10px] font-bold', !activeSaleTag ? 'text-black' : 'text-[var(--admin-text-muted)]')}>
                   {totalItemCount}
                 </span>
               </div>
@@ -277,24 +277,24 @@ export function TableOrderPanel({
                     canDelete ? 'rounded-r-none' : '',
                     isActive ? `${colors.bg} border border-current/30` : 'bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)]'
                   )}
-                  style={{ height: 30 }}
+                  style={{ height: 40 }}
                 >
-                  <span className={cn('text-[11px] font-semibold', isActive ? colors.text : 'text-[var(--admin-text-muted)]')}>
+                  <span className={cn('text-[12px] font-semibold', isActive ? colors.text : 'text-[var(--admin-text-muted)]')}>
                     {tag}
                   </span>
                   {tagCount > 0 && (
                     <div
                       className={cn('flex items-center justify-center rounded-full shrink-0', isActive ? colors.dot : 'bg-[var(--admin-text-faint)]')}
-                      style={{ width: 18, height: 18 }}
+                      style={{ width: 20, height: 20 }}
                     >
-                      <span className="text-[9px] font-bold text-white">{tagCount}</span>
+                      <span className="text-[10px] font-bold text-white">{tagCount}</span>
                     </div>
                   )}
                 </button>
                 {canDelete && (
                   <button
                     onClick={() => handleRemoveTag(tag)}
-                    className="h-[30px] px-1.5 rounded-r-full bg-[var(--admin-surface-2)] border border-l-0 border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors text-xs cursor-pointer"
+                    className="h-[40px] px-1.5 rounded-r-full bg-[var(--admin-surface-2)] border border-l-0 border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors text-xs cursor-pointer"
                   >
                     ×
                   </button>
@@ -308,7 +308,7 @@ export function TableOrderPanel({
             <button
               onClick={() => setAddingTag(true)}
               className="flex items-center justify-center rounded-full bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer shrink-0"
-              style={{ width: 30, height: 30 }}
+              style={{ width: 40, height: 40 }}
               aria-label="Agregar comensal"
             >
               <Plus className="h-3.5 w-3.5" />
@@ -370,18 +370,18 @@ export function TableOrderPanel({
               <button
                 onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
                 className="flex items-center gap-1.5 px-2.5 rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-orange-400 hover:border-orange-400/40 transition-colors cursor-pointer"
-                style={{ height: 26 }}
+                style={{ height: 36 }}
               >
-                <ChefHat className="h-3 w-3" />
-                <span className="text-[11px] font-medium">Comanda</span>
+                <ChefHat className="h-3.5 w-3.5" />
+                <span className="text-[12px] font-medium">Comanda</span>
               </button>
               <button
                 onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
                 className="flex items-center gap-1.5 px-2.5 rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-text-placeholder)] transition-colors cursor-pointer"
-                style={{ height: 26 }}
+                style={{ height: 36 }}
               >
-                <Printer className="h-3 w-3" />
-                <span className="text-[11px] font-medium">Ticket Completo</span>
+                <Printer className="h-3.5 w-3.5" />
+                <span className="text-[12px] font-medium">Ticket Completo</span>
               </button>
             </div>
           </div>
@@ -396,9 +396,9 @@ export function TableOrderPanel({
                     'flex-1 flex items-center justify-center gap-1.5 rounded-md border text-[11px] font-semibold transition-colors cursor-pointer hover:opacity-80',
                     colors.print
                   )}
-                  style={{ height: 32 }}
+                  style={{ height: 36 }}
                 >
-                  <Printer className="h-3 w-3" />
+                  <Printer className="h-3.5 w-3.5" />
                   {tag}
                 </button>
               )
