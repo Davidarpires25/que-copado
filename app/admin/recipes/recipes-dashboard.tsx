@@ -182,7 +182,7 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
                             }
                           </button>
                           {recipe.description && (
-                            <p className="text-xs text-[var(--admin-text-muted)] mt-0.5">{recipe.description}</p>
+                            <p className="text-sm text-[var(--admin-text-muted)] mt-0.5">{recipe.description}</p>
                           )}
                           {isExpanded && recipe.recipe_ingredients.length > 0 && (
                             <div className="mt-2 space-y-1 pl-1">
@@ -191,7 +191,7 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
                                 const factor = UNIT_TO_BASE[effectiveUnit] ?? 1
                                 const unitAbbr = INGREDIENT_UNIT_ABBR[effectiveUnit as IngredientUnit] ?? effectiveUnit
                                 return (
-                                  <div key={ri.id} className="flex items-center gap-2 text-xs text-[var(--admin-text-muted)]">
+                                  <div key={ri.id} className="flex items-center gap-2 text-sm text-[var(--admin-text-muted)]">
                                     <span className="w-1.5 h-1.5 rounded-full bg-[var(--admin-text-faint)] shrink-0" />
                                     <span className="text-[var(--admin-text)]">{ri.ingredients.name}</span>
                                     <span>{ri.quantity} {unitAbbr}</span>
