@@ -112,7 +112,7 @@ export function OrderBuilder({
                   <p className="text-[13px] font-medium text-[var(--admin-text)] truncate leading-tight">
                     {item.name}
                   </p>
-                  <p className="text-[11px] mt-0.5 text-[var(--admin-text-faint)]">
+                  <p className="text-[11px] font-medium mt-0.5 text-[var(--admin-text-faint)]">
                     {formatPrice(item.price)} c/u
                   </p>
                   <button
