@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, UtensilsCrossed, ChevronUp, ChevronDown, Pencil, Trash2, Loader2, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { AdminLayout } from '@/components/admin/layout'
 import { TableFormDialog } from '@/components/admin/tables/table-form-dialog'
 import { updateTable, deleteTable, reorderTable } from '@/app/actions/tables'
+import { createClient } from '@/lib/supabase/client'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
 import type { RestaurantTable } from '@/lib/types/tables'
@@ -27,6 +28,26 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
   const [movingId, setMovingId] = useState<string | null>(null)
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<RestaurantTable | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    const channel = supabase
+      .channel('tables-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'restaurant_tables' },
+        (payload) => setTables((prev) => [...prev, payload.new as RestaurantTable])
+      )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'restaurant_tables' },
+        (payload) => setTables((prev) =>
+          prev.map((t) => t.id === payload.new.id ? { ...t, ...payload.new } as RestaurantTable : t)
+        )
+      )
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'restaurant_tables' },
+        (payload) => setTables((prev) => prev.filter((t) => t.id !== payload.old.id))
+      )
+      .subscribe()
+
+    return () => { void supabase.removeChannel(channel) }
+  }, [])
 
   const activeCount = tables.filter((t) => t.is_active).length
   const inactiveCount = tables.filter((t) => !t.is_active).length

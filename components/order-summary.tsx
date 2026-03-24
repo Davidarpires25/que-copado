@@ -1,33 +1,27 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Tag, Shield, Clock } from 'lucide-react'
+import { ArrowRight, Shield, Clock } from 'lucide-react'
 import { DeliveryBikeIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { useCartStore } from '@/lib/store/cart-store'
 import { formatPrice } from '@/lib/utils'
 
 interface OrderSummaryProps {
-  showPromoInput?: boolean
   showTrustBadges?: boolean
   checkoutHref?: string
   checkoutLabel?: string
 }
 
 export function OrderSummary({
-  showPromoInput = true,
   showTrustBadges = true,
   checkoutHref = '/checkout',
   checkoutLabel = 'Continuar al Checkout',
 }: OrderSummaryProps) {
-  const [promoCode, setPromoCode] = useState('')
   const { getTotal, getItemCount } = useCartStore()
 
   const subtotal = getTotal()
-  const discount = 0
 
   return (
     <motion.div
@@ -47,28 +41,6 @@ export function OrderSummary({
 
       {/* Content - Más compacto en móvil */}
       <div className="p-4 lg:p-6 space-y-3 lg:space-y-4">
-        {/* Promo Code - Oculto en móvil */}
-        {showPromoInput && (
-          <div className="hidden lg:flex gap-2">
-            <div className="relative flex-1">
-              <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-orange-400" />
-              <Input
-                type="text"
-                placeholder="Código promocional"
-                value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value)}
-                className="pl-10 rounded-xl border-orange-200 focus:border-orange-400"
-              />
-            </div>
-            <Button
-              variant="outline"
-              className="border-orange-300 text-orange-600 hover:bg-orange-50 rounded-xl px-6"
-            >
-              Aplicar
-            </Button>
-          </div>
-        )}
-
         {/* Totals - Simplificado en móvil */}
         <div className="space-y-2 lg:space-y-3">
           {/* Subtotal y envío en una fila en móvil */}
@@ -88,15 +60,6 @@ export function OrderSummary({
               Se calcula al ingresar tu dirección
             </span>
           </div>
-
-          {discount > 0 && (
-            <div className="flex justify-between text-sm">
-              <span className="text-green-600">Descuento</span>
-              <span className="text-green-600 font-medium">
-                -{formatPrice(discount)}
-              </span>
-            </div>
-          )}
 
           <div className="border-t border-dashed border-orange-200 pt-2 lg:pt-3 flex justify-between items-center">
             <span className="text-orange-900 font-bold text-base lg:text-lg">Total</span>

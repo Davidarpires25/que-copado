@@ -32,26 +32,14 @@ export function Footer() {
             <p className="text-gray-400 text-sm leading-relaxed mb-4">
               Las mejores hamburguesas artesanales. Ingredientes frescos y mucho sabor en cada preparación.
             </p>
-            {/* Redes Sociales */}
+            {/* Redes Sociales — configurar URLs reales cuando estén disponibles */}
             <div className="flex gap-3">
-              <a
-                href="https://instagram.com/tu_usuario"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-gray-800 hover:bg-[#FEC501] flex items-center justify-center transition-colors group"
-                aria-label="Instagram"
-              >
-                <Instagram className="h-4 w-4 text-gray-400 group-hover:text-black" />
-              </a>
-              <a
-                href="https://facebook.com/tu_pagina"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-gray-800 hover:bg-[#FEC501] flex items-center justify-center transition-colors group"
-                aria-label="Facebook"
-              >
-                <Facebook className="h-4 w-4 text-gray-400 group-hover:text-black" />
-              </a>
+              <div className="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center" aria-label="Instagram">
+                <Instagram className="h-4 w-4 text-gray-600" />
+              </div>
+              <div className="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center" aria-label="Facebook">
+                <Facebook className="h-4 w-4 text-gray-600" />
+              </div>
             </div>
           </div>
 

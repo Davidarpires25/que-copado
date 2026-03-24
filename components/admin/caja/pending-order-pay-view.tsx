@@ -6,8 +6,10 @@ import {
   Loader2, AlertTriangle, Check, ChefHat,
 } from 'lucide-react'
 import { cn, formatPrice } from '@/lib/utils'
+import { clampAmountForSplitMethod } from '@/lib/utils/payment-split'
 import type { PaymentMethod, Order } from '@/lib/types/database'
 import type { PaymentSplit } from '@/lib/types/cash-register'
+import type { OrderItem } from '@/lib/types/orders'
 import { checkStockForItems } from '@/app/actions/stock'
 import type { StockWarning } from '@/app/actions/stock'
 import { printKitchenTicketAction } from '@/app/actions/print'
@@ -19,14 +21,6 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.Elemen
   { value: 'transfer',    label: 'Transferencia', icon: Zap },
   { value: 'mercadopago', label: 'Mercado Pago',  icon: QrCode },
 ]
-
-interface OrderItem {
-  id?: string
-  name: string
-  price: number
-  quantity: number
-  notes?: string | null
-}
 
 interface ActivePayment {
   method: PaymentMethod
@@ -96,11 +90,17 @@ export function PendingOrderPayView({ order, loading, onBack, onPrint, onConfirm
 
   const commitEdit = (method: PaymentMethod) => {
     const num = parseFloat(editAmount) || 0
-    if (num <= 0) {
-      setActivePayments(prev => prev.filter(p => p.method !== method))
-    } else {
-      setActivePayments(prev => prev.map(p => p.method === method ? { ...p, amount: num } : p))
-    }
+    setActivePayments((prev) => {
+      if (num <= 0) {
+        return prev.filter((p) => p.method !== method)
+      }
+      const otherSum = prev.filter((p) => p.method !== method).reduce((s, p) => s + p.amount, 0)
+      const amount = clampAmountForSplitMethod(method, num, otherSum, total)
+      if (amount <= 0) {
+        return prev.filter((p) => p.method !== method)
+      }
+      return prev.map((p) => (p.method === method ? { ...p, amount } : p))
+    })
     setEditingMethod(null)
     setEditAmount('')
   }
@@ -117,8 +117,9 @@ export function PendingOrderPayView({ order, loading, onBack, onPrint, onConfirm
       setActivePayments(prev => prev.filter(p => p.method !== method))
       if (editingMethod === method) { setEditingMethod(null); setEditAmount('') }
     } else {
-      // Activate with remaining balance as default
-      const defaultAmount = remaining > 0 ? remaining : total
+      // No sumar otro medio si el total ya está cubierto (evita duplicar importe)
+      if (remaining <= 0.01 && activePayments.length > 0) return
+      const defaultAmount = remaining
       setActivePayments(prev => [...prev, { method, amount: defaultAmount }])
       setEditAmount(defaultAmount.toFixed(0))
       setEditingMethod(method)

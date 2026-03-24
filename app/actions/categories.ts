@@ -14,6 +14,7 @@ export async function createCategory(formData: FormData) {
   }
 
   const name = formData.get('name') as string
+  const color = (formData.get('color') as string) || '#FEC501'
 
   if (!name?.trim()) {
     return { error: 'El nombre de la categoría es requerido' }
@@ -39,6 +40,7 @@ export async function createCategory(formData: FormData) {
   const { data, error } = await supabase.from('categories').insert({
     name: name.trim(),
     slug,
+    color,
     sort_order: (maxOrder?.sort_order ?? 0) + 1,
   }).select().single()
 
@@ -54,6 +56,7 @@ export async function updateCategory(categoryId: string, data: {
   name?: string
   slug?: string
   sort_order?: number
+  color?: string
 }) {
   const supabase = await createAdminClient()
 

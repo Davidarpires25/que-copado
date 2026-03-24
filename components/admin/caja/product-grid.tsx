@@ -4,44 +4,55 @@ import { useState, useMemo } from 'react'
 import { Search, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { cn, formatPrice } from '@/lib/utils'
-import type { Category, Product } from '@/lib/types/database'
+import type { Category, Product, ProductWithHalfConfig } from '@/lib/types/database'
 import type { PosCartItem } from './order-builder'
+import { HalfPizzaSelector } from './half-pizza-selector'
 
-// Colores sutiles por categoría (dot indicator)
-const CATEGORY_DOT_COLORS = [
-  'bg-[var(--admin-accent)]',
-  'bg-blue-400',
-  'bg-green-400',
-  'bg-purple-400',
-  'bg-rose-400',
-  'bg-cyan-400',
-  'bg-orange-400',
-  'bg-teal-400',
-]
 
 interface PosProductGridProps {
-  products: Product[]
+  products: ProductWithHalfConfig[]
   categories: Category[]
   cartItems?: PosCartItem[]
-  onAddItem: (product: Product) => void
+  getHalfOptions?: (product: ProductWithHalfConfig) => Product[]
+  onAddItem: (product: ProductWithHalfConfig, notes?: string, price?: number, metadata?: Record<string, unknown>) => void
 }
 
 export function PosProductGrid({
   products,
   categories,
   cartItems = [],
+  getHalfOptions,
   onAddItem,
 }: PosProductGridProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [halfSelectorProduct, setHalfSelectorProduct] = useState<ProductWithHalfConfig | null>(null)
+  const [halfOptions, setHalfOptions] = useState<Product[]>([])
 
-  const availableProducts = products.filter((p) => p.is_active && !p.is_out_of_stock)
+  const handleProductClick = (product: ProductWithHalfConfig) => {
+    const options = product.product_type === 'mitad' ? (getHalfOptions?.(product) ?? []) : []
+    if (product.product_type === 'mitad' && options.length >= 2) {
+      setHalfSelectorProduct(product)
+      setHalfOptions(options)
+    } else {
+      onAddItem(product)
+    }
+  }
 
-  const filtered = availableProducts.filter((p) => {
-    if (selectedCategory && p.category_id !== selectedCategory) return false
-    if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false
-    return true
-  })
+  const availableProducts = useMemo(
+    () => products.filter((p) => p.is_active && !p.is_out_of_stock),
+    [products]
+  )
+
+  const filtered = useMemo(
+    () =>
+      availableProducts.filter((p) => {
+        if (selectedCategory && p.category_id !== selectedCategory) return false
+        if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false
+        return true
+      }),
+    [availableProducts, selectedCategory, search]
+  )
 
   const hasActiveFilters = !!selectedCategory || !!search
   const selectedCategoryName = selectedCategory
@@ -50,8 +61,8 @@ export function PosProductGrid({
 
   const categoryColorMap = useMemo(() => {
     const map: Record<string, string> = {}
-    categories.forEach((cat, i) => {
-      map[cat.id] = CATEGORY_DOT_COLORS[i % CATEGORY_DOT_COLORS.length]
+    categories.forEach((cat) => {
+      map[cat.id] = cat.color ?? '#FEC501'
     })
     return map
   }, [categories])
@@ -101,7 +112,7 @@ export function PosProductGrid({
         >
           Todos
         </button>
-        {categories.map((cat, i) => (
+        {categories.map((cat) => (
           <button
             key={cat.id}
             onClick={() => setSelectedCategory(cat.id === selectedCategory ? null : cat.id)}
@@ -112,7 +123,7 @@ export function PosProductGrid({
                 : 'bg-[var(--admin-surface)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)]'
             )}
           >
-            <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', CATEGORY_DOT_COLORS[i % CATEGORY_DOT_COLORS.length])} />
+            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: cat.color ?? '#FEC501' }} />
             {cat.name}
           </button>
         ))}
@@ -158,8 +169,8 @@ export function PosProductGrid({
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5">
           {filtered.map((product) => {
             const dotColor = product.category_id
-              ? (categoryColorMap[product.category_id] ?? 'bg-[var(--admin-border)]')
-              : 'bg-[var(--admin-border)]'
+              ? (categoryColorMap[product.category_id] ?? undefined)
+              : undefined
             const qty = cartQtyMap[product.id] ?? 0
 
             const isLowStock =
@@ -170,7 +181,7 @@ export function PosProductGrid({
             return (
               <button
                 key={product.id}
-                onClick={() => onAddItem(product)}
+                onClick={() => handleProductClick(product)}
                 className={cn(
                   'relative bg-[var(--admin-surface)] rounded-xl p-3 text-left cursor-pointer',
                   'hover:bg-[var(--admin-surface-2)] active:scale-[0.97]',
@@ -199,7 +210,10 @@ export function PosProductGrid({
                 {/* Price + indicators */}
                 <div className="flex items-end justify-between mt-2 gap-1">
                   <div className="flex items-center gap-2">
-                    <span className={cn('w-1.5 h-1.5 rounded-full shrink-0 mb-0.5', dotColor)} />
+                    <span
+                      className="w-1.5 h-1.5 rounded-full shrink-0 mb-0.5"
+                      style={{ backgroundColor: dotColor ?? 'var(--admin-border)' }}
+                    />
                     <p className="text-xl font-black text-[var(--admin-accent-text)] tabular-nums leading-none">
                       {formatPrice(product.price)}
                     </p>
@@ -222,6 +236,19 @@ export function PosProductGrid({
           </div>
         )}
       </div>
+
+      {halfSelectorProduct && (
+        <HalfPizzaSelector
+          product={halfSelectorProduct}
+          pizzaProducts={halfOptions}
+          onConfirm={(notes, price, metadata) => {
+            onAddItem(halfSelectorProduct, notes, price, metadata)
+            setHalfSelectorProduct(null)
+            setHalfOptions([])
+          }}
+          onClose={() => { setHalfSelectorProduct(null); setHalfOptions([]) }}
+        />
+      )}
     </div>
   )
 }

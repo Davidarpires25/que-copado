@@ -12,13 +12,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { registerPurchase } from '@/app/actions/stock'
 import { toast } from 'sonner'
 import { INGREDIENT_UNIT_ABBR, type IngredientUnit } from '@/lib/types/database'
-import type { IngredientWithStock, ProductWithStock } from '@/lib/types/stock'
+import type { IngredientWithStock } from '@/lib/types/stock'
 
 interface PurchaseDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   ingredients: IngredientWithStock[]
-  products: ProductWithStock[]
 }
 
 interface PurchaseLine {

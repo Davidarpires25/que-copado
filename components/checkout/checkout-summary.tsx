@@ -7,7 +7,7 @@ import { Shield, ImageOff, AlertTriangle, MapPin, Loader2, ChevronDown, ChevronU
 import { WhatsAppIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { QuantityStepper } from '@/components/ui/quantity-stepper'
-import { useCartStore } from '@/lib/store/cart-store'
+import { useCartStore, getCartItemKey, getCartItemName, getCartItemPrice } from '@/lib/store/cart-store'
 import { formatPrice } from '@/lib/utils'
 import type { ShippingResult } from '@/lib/types/database'
 
@@ -78,12 +78,33 @@ export function CheckoutSummary({
         <div className="max-h-[300px] overflow-y-auto p-4 space-y-3">
           {items.map((item) => (
             <div
-              key={item.product.id}
+              key={getCartItemKey(item)}
               className="flex gap-3 p-2 rounded-xl bg-orange-50/50"
             >
               {/* Image */}
               <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-white shrink-0">
-                {item.product.image_url ? (
+                {item.secondHalf ? (
+                  <div className="w-full h-full flex">
+                    <div className="relative w-1/2 h-full overflow-hidden">
+                      {item.product.image_url ? (
+                        <Image src={item.product.image_url} alt={item.product.name} fill className="object-cover" sizes="28px" />
+                      ) : (
+                        <div className="w-full h-full bg-orange-100 flex items-center justify-center">
+                          <ImageOff className="h-3 w-3 text-orange-200" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="relative w-1/2 h-full overflow-hidden border-l border-white/50">
+                      {item.secondHalf.image_url ? (
+                        <Image src={item.secondHalf.image_url} alt={item.secondHalf.name} fill className="object-cover" sizes="28px" />
+                      ) : (
+                        <div className="w-full h-full bg-amber-100 flex items-center justify-center">
+                          <ImageOff className="h-3 w-3 text-orange-200" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : item.product.image_url ? (
                   <Image
                     src={item.product.image_url}
                     alt={item.product.name}
@@ -100,23 +121,23 @@ export function CheckoutSummary({
 
               {/* Details */}
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-orange-900 text-sm truncate">
-                  {item.product.name}
+                <p className="font-semibold text-orange-900 text-sm line-clamp-2 leading-tight">
+                  {getCartItemName(item)}
                 </p>
                 <p className="text-xs text-orange-600/70">
-                  {formatPrice(item.product.price)} c/u
+                  {formatPrice(getCartItemPrice(item))} c/u
                 </p>
                 <div className="mt-1">
                   <QuantityStepper
                     quantity={item.quantity}
                     onIncrement={() =>
-                      updateQuantity(item.product.id, item.quantity + 1)
+                      updateQuantity(getCartItemKey(item), item.quantity + 1)
                     }
                     onDecrement={() =>
-                      updateQuantity(item.product.id, item.quantity - 1)
+                      updateQuantity(getCartItemKey(item), item.quantity - 1)
                     }
                     size="sm"
-                    productName={item.product.name}
+                    productName={getCartItemName(item)}
                   />
                 </div>
               </div>
@@ -124,7 +145,7 @@ export function CheckoutSummary({
               {/* Price */}
               <div className="text-right shrink-0">
                 <p className="font-bold text-orange-600 text-sm">
-                  {formatPrice(item.product.price * item.quantity)}
+                  {formatPrice(getCartItemPrice(item) * item.quantity)}
                 </p>
               </div>
             </div>

@@ -3,7 +3,7 @@
  * API pública gratuita con límite de 1 req/segundo
  */
 
-export interface NominatimResult {
+interface NominatimResult {
   place_id: number
   display_name: string
   lat: string
@@ -33,7 +33,7 @@ export interface AddressSuggestion {
   }
 }
 
-export interface ReverseGeocodingResult {
+interface ReverseGeocodingResult {
   address: string
   fullAddress: string
   coordinates: {

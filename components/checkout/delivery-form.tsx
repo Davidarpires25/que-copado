@@ -56,8 +56,10 @@ interface DeliveryFormProps {
   clearFieldError?: (field: 'name' | 'phone' | 'address') => void
 }
 
-// Configuración del local - TODO: mover a env o base de datos
-const STORE_COORDINATES = { lat: -34.6037, lng: -58.3816 }
+const STORE_COORDINATES = {
+  lat: parseFloat(process.env.NEXT_PUBLIC_STORE_LAT ?? '-34.6037'),
+  lng: parseFloat(process.env.NEXT_PUBLIC_STORE_LNG ?? '-58.3816'),
+}
 
 // Zone indicator component
 function ZoneIndicator({

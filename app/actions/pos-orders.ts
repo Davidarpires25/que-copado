@@ -5,8 +5,10 @@ import { getAuthUser } from '@/lib/server/auth'
 import { devError } from '@/lib/server/logger'
 import { revalidateCaja, revalidateOrders, revalidateStock } from '@/lib/server/revalidate'
 import { deductStockForOrder, restoreStockForOrder } from '@/lib/server/stock-deduction'
+import { getSalesField } from '@/lib/server/cash-register-utils'
 import type { Order, PaymentMethod } from '@/lib/types/database'
 import type { CreatePosOrderData, CreateMostadorOrderData, PaymentSplit } from '@/lib/types/cash-register'
+import { validateHybridPaymentSplits } from '@/lib/utils/payment-split'
 import { sendToKitchen } from './comandas'
 
 /**
@@ -242,6 +244,7 @@ export async function createMostadorOrder(
       notes: item.notes || null,
       status: 'pendiente',
       added_by: user.id,
+      metadata: item.metadata ?? null,
     }))
 
     await supabase.from('order_items').insert(orderItemsToInsert)
@@ -292,6 +295,10 @@ export async function completeMostadorPayment(
     }
 
     const orderData = existingOrder as Order
+    if (splits && splits.length > 1) {
+      const splitErr = validateHybridPaymentSplits(splits, orderData.total)
+      if (splitErr) return { data: null, error: splitErr }
+    }
     const isHybrid = splits && splits.length > 1
 
     // Determine primary payment_method for the order record
@@ -422,19 +429,6 @@ export async function getPendingMostadorOrders(
   }
 }
 
-function getSalesField(paymentMethod: string): string {
-  switch (paymentMethod) {
-    case 'cash':
-      return 'total_cash_sales'
-    case 'card':
-      return 'total_card_sales'
-    case 'transfer':
-    case 'mercadopago':
-      return 'total_transfer_sales'
-    default:
-      return 'total_cash_sales'
-  }
-}
 
 /**
  * Cancela una orden mostrador pendiente (abierto -> cancelado).

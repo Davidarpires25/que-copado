@@ -72,10 +72,41 @@
 - **Mostrador flow:** Confirmar (status='abierto') → strip pendientes → PaymentPanel → completeMostadorPayment()
 - **Mesa flow:** Abrir mesa → addItemsToOrder() con `sale_tag` → payTableOrder() cobra TODO de una vez
 - **Limitacion crítica mostrador:** Strip de tarjetas tiene `min-w-[140px]` — demasiado pequeño para touch (viola Fitts)
-- **Limitacion crítica mesas:** `payTableOrder` cobra la orden completa con UN solo método, no hay split por comensal
 - **sale_tag:** existe en `order_items` como campo de texto libre, los chips de comensales filtran visualmente pero NO crean sub-ordenes
-- **Emojis como íconos:** PaymentPanel usa '💵', '💳', '🏦' como iconos — no es Lucide, viola restriccion del proyecto
-- **Pago híbrido:** No existe en ninguno de los dos flujos
-- **BD implicacion pago por comensal:** Requiere crear N ordenes separadas por comensal O una tabla `payment_splits` que registre pagos parciales con método propio
-- **payTableOrder action:** linea 465 en tables.ts — toma orderId, tableId, paymentMethod, sessionId — monolítico, sin splits
-- **completeMostadorPayment action:** linea 269 en pos-orders.ts — igual, un método de pago por orden completa
+- **Pago híbrido:** PaymentPanel tiene modo split por monto implementado. TablePaymentDialog tiene modo per_guest por sale_tag.
+- **payTableOrder action:** toma orderId, tableId, paymentMethod, sessionId, splits? — soporta splits (PaymentSplit[])
+- **completeMostadorPayment action:** igual, soporta splits opcionales
+- PaymentPanel usa Lucide icons: Banknote, CreditCard, Zap, QrCode — correcto
+
+## POS — Auditoría UX Completa (sesion 6)
+Ver archivo `pos-audit-sesion6.md` para tabla detallada de 28 hallazgos.
+Resumen ejecutivo:
+- **5 problemas ALTA severidad** — bloquean flujo o causan errores graves de cajero
+- **10 problemas MEDIA severidad** — friccion significativa en operacion diaria
+- **13 problemas BAJA severidad** — inconsistencias visuales y oportunidades de mejora
+- Componente más critico: `pos-interface.tsx` (mobile oculta OrderBuilder, no hay flujo alternativo)
+- Segundo más critico: `session-status-bar.tsx` (iconos con affordance errónea, botones sin label en mobile)
+- Hallazgo sorpresa: `table-payment-dialog.tsx` — modo per_guest sí implementado pero no actualiza vuelto en efectivo por comensal
+
+## RecipeFormDialog — Auditoría UX (sesion 7)
+Archivo: `components/admin/recipes/recipe-form-dialog.tsx`
+Sub-componentes: `IngredientCombobox`, `CreateIngredientDialog`
+
+**Bugs técnicos confirmados:**
+1. **CRITICO — Clipping del dropdown:** `IngredientCombobox` usa `position: absolute` dentro de `DialogContent` que tiene `overflow-y-auto`. En Safari y en Chrome cuando el contenedor scroll tiene `transform`, el dropdown se clipa. El anillo amber de highlight también puede quedar fuera del viewport si el item nuevo aparece al final. Fix: usar `position: fixed` calculado con `getBoundingClientRect()` o un Portal.
+2. **ALTO — Race condition mousedown vs click "Crear":** El listener `mousedown` en document cierra el dropdown antes de que el click en el botón "Crear" se registre como un click completo (mousedown fuera del container → setOpen(false) → el button recibe mouseup sin haber recibido mousedown → click sintético no se dispara). Fix: usar `pointerdown` con verificación `e.relatedTarget`, o cambiar a estrategia de `onBlur` del input con `setTimeout`.
+3. **ALTO — Focus trap del dialog apilado:** `CreateIngredientDialog` se renderiza como sibling fuera del `Dialog` principal, pero comparte el mismo Radix Portal layer (ambos en `z-index: 9999`). Radix bloquea la interacción con el primer dialog cuando el segundo está abierto, pero al cerrar el segundo el focus puede quedar atrapado en el overlay del primero en lugar de volver al `IngredientCombobox`. Fix: verificar que `onOpenChange` del CreateIngredientDialog restaure focus al trigger correcto.
+4. **MEDIO — `autoFocus` en campo de nombre:** `ing-name` tiene `autoFocus` pero el Dialog de Radix también gestiona focus internamente via `initialFocus`. En algunos navegadores compiten y el focus no llega al input. La estrategia del `useEffect` con `open` es correcta pero el `autoFocus` prop es redundante y puede generar doble-focus.
+5. **BAJO — `showCreateOption` siempre visible con lista vacía:** Cuando `availableIngredients` es array vacío Y `search` es vacío, `showCreateOption = !exactMatch = true`, entonces se muestra "Crear nuevo ingrediente" SIN el mensaje "No hay ingredientes disponibles". El mensaje de empty state (linea 164) tiene condición `!showCreateOption` que nunca se cumple en lista vacía.
+
+**Heurísticas Nielsen violadas:**
+- H1 (Visibilidad): el anillo amber de 2 segundos es el ÚNICO feedback de que el ingrediente fue agregado — desaparece antes de que el usuario baje scroll para verlo
+- H3 (Control y libertad): no hay "deshacer" para el auto-add post-creación; el usuario debe buscar el item y hacer click en X
+- H5 (Prevención de errores): costo `0` es silencioso — un ingrediente sin costo contamina el total de la receta sin advertencia
+- H6 (Reconocimiento): la opción "Crear" siempre visible (incluso con lista vacía) genera confusión sobre si existe o no el ingrediente
+
+**Lo que funciona bien:**
+- Patrón siblings (no anidado) para dialogs de Radix es correcto arquitecturalmente
+- Auto-add con cantidad=1 y unidad base es decisión UX sólida (reduce pasos)
+- `initialName` pre-cargado desde el search es excelente (evita re-tipeo)
+- Filtro `is_active && !usedIds.has(id)` en `availableIngredients` previene duplicados

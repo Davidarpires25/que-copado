@@ -1,5 +1,6 @@
 'use server'
 
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getBusinessSettings } from '@/app/actions/business-settings'
@@ -9,6 +10,7 @@ import { devError } from '@/lib/server/logger'
 import { revalidateOrders } from '@/lib/server/revalidate'
 import { deductStockForOrder } from '@/lib/server/stock-deduction'
 import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
+import { checkRateLimit } from '@/lib/server/rate-limit'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Order, OrderStatus, OrderWithZone } from '@/lib/types/database'
 import type { CreateOrderData, OrderFilters } from '@/lib/types/orders'
@@ -162,6 +164,14 @@ export async function createOrder(
   data: CreateOrderData
 ): Promise<{ data: Order | null; error: string | null }> {
   try {
+    // Rate limit: 10 órdenes por IP por hora
+    const headersList = await headers()
+    const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+    const { allowed } = checkRateLimit(`order:${ip}`, 10, 60 * 60 * 1000)
+    if (!allowed) {
+      return { data: null, error: 'Demasiados pedidos desde tu conexión. Intentá en unos minutos.' }
+    }
+
     const supabase = await createAdminClient()
 
     // VALIDACIÓN: Verificar si los pedidos están pausados
@@ -194,7 +204,7 @@ export async function createOrder(
     const productIds = data.items.map((i) => i.id)
     const { data: products, error: stockError } = await supabase
       .from('products')
-      .select('id, name, is_active, is_out_of_stock, current_stock, stock_tracking_enabled, product_type')
+      .select('id, name, price, is_active, is_out_of_stock, current_stock, stock_tracking_enabled, product_type')
       .in('id', productIds)
 
     if (stockError) {
@@ -240,6 +250,31 @@ export async function createOrder(
       }
     }
 
+    // Recalculate subtotal server-side from verified product prices — never trust client total
+    const priceMap = new Map((products ?? []).map((p) => [p.id, p.price]))
+    const serverSubtotal = data.items.reduce((sum, item) => {
+      const price = priceMap.get(item.id) ?? 0
+      return sum + price * item.quantity
+    }, 0)
+
+    // Validate shipping cost against delivery zone — fallback to client value if no zone
+    let serverShipping = data.shipping_cost
+    if (data.delivery_zone_id) {
+      const { data: zone } = await supabase
+        .from('delivery_zones')
+        .select('shipping_cost, free_shipping_threshold')
+        .eq('id', data.delivery_zone_id)
+        .single()
+      if (zone) {
+        serverShipping =
+          zone.free_shipping_threshold !== null && serverSubtotal >= zone.free_shipping_threshold
+            ? 0
+            : zone.shipping_cost
+      }
+    }
+
+    const serverTotal = serverSubtotal + serverShipping
+
     const { data: order, error } = await supabase
       .from('orders')
       .insert({
@@ -248,8 +283,8 @@ export async function createOrder(
         customer_address: data.customer_address,
         customer_coordinates: data.customer_coordinates || null,
         items: data.items,
-        total: data.total,
-        shipping_cost: data.shipping_cost,
+        total: serverTotal,
+        shipping_cost: serverShipping,
         delivery_zone_id: data.delivery_zone_id || null,
         notes: data.notes || null,
         payment_method: data.payment_method,
@@ -328,8 +363,10 @@ export async function getOrders(
     }
 
     if (filters?.search) {
+      // Use chained ilike calls instead of string interpolation to avoid PostgREST filter injection
+      const term = `%${filters.search}%`
       query = query.or(
-        `customer_name.ilike.%${filters.search}%,customer_phone.ilike.%${filters.search}%,customer_address.ilike.%${filters.search}%`
+        `customer_name.ilike.${term},customer_phone.ilike.${term},customer_address.ilike.${term}`
       )
     }
 

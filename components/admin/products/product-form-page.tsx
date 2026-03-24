@@ -8,7 +8,6 @@ import {
   Loader2,
   Package,
   Info,
-  ImageIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,13 +22,27 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { createProduct, updateProduct } from '@/app/actions/products'
-import { setProductRecipes, getProductRecipes } from '@/app/actions/recipes'
+import { setProductRecipes } from '@/app/actions/recipes'
 import { RecipeSelector, type ProductRecipeItem } from './recipe-selector'
-import type { Category, Product, RecipeWithIngredients, ProductType } from '@/lib/types/database'
+import { ImageUploader } from './image-uploader'
+import type { Category, Product, RecipeWithIngredients, ProductType, HalfConfig } from '@/lib/types/database'
 import { PRODUCT_TYPE_LABELS, PRODUCT_TYPE_DESCRIPTIONS } from '@/lib/types/database'
 import { formatPrice } from '@/lib/utils'
 
-type ProductWithCategory = Product & { categories: Category | null }
+type ProductWithCategory = Product & { categories: Category | null; product_half_configs?: HalfConfig[] }
+
+const HALF_PRICING_LABELS: Record<string, string> = {
+  max: 'Precio mayor',
+  average: 'Promedio',
+  fixed: 'Precio fijo',
+  cost_markup: 'Costo + margen',
+}
+const HALF_PRICING_DESCRIPTIONS: Record<string, string> = {
+  max: 'Se cobra la mitad más cara',
+  average: 'Promedio de ambas mitades',
+  fixed: 'El precio fijo del producto',
+  cost_markup: 'Costo promedio × (1 + margen%)',
+}
 
 interface ProductFormPageProps {
   mode: 'create' | 'edit'
@@ -57,10 +70,15 @@ export function ProductFormPage({
   const [isActive, setIsActive] = useState(product?.is_active ?? true)
   const [isOutOfStock, setIsOutOfStock] = useState(product?.is_out_of_stock ?? false)
 
+  // Half pizza config state
+  const halfCfg = product?.product_half_configs?.[0]
+  const [halfPricingMethod, setHalfPricingMethod] = useState(halfCfg?.pricing_method ?? 'max')
+  const [halfMarkupPct, setHalfMarkupPct] = useState(halfCfg?.pricing_markup_pct?.toString() ?? '30')
+
   // Live preview state
   const [previewName, setPreviewName] = useState(product?.name ?? '')
   const [previewPrice, setPreviewPrice] = useState(product?.price?.toString() ?? '')
-  const [previewImage, setPreviewImage] = useState(product?.image_url ?? '')
+  const [imageUrl, setImageUrl] = useState<string | null>(product?.image_url ?? null)
   const [previewCategory, setPreviewCategory] = useState(
     product?.categories?.name ?? ''
   )
@@ -82,6 +100,14 @@ export function ProductFormPage({
 
   const handleSubmit = async (formData: FormData) => {
     formData.set('product_type', productType)
+    if (productType === 'mitad') {
+      // Price is calculated dynamically — store 0 as placeholder
+      formData.set('price', '0')
+      formData.set('half_pricing_method', halfPricingMethod)
+      if (halfPricingMethod === 'cost_markup') {
+        formData.set('half_pricing_markup_pct', halfMarkupPct)
+      }
+    }
 
     startTransition(async () => {
       try {
@@ -91,14 +117,18 @@ export function ProductFormPage({
           const result = await updateProduct(product.id, {
             name: formData.get('name') as string,
             description: (formData.get('description') as string) || undefined,
-            price: parseFloat(formData.get('price') as string),
-            cost: calculatedCost ?? (costStr ? parseFloat(costStr) : null),
+            price: productType === 'mitad' ? 0 : parseFloat(formData.get('price') as string),
+            cost: productType === 'mitad' ? null : (calculatedCost ?? (costStr ? parseFloat(costStr) : null)),
             product_type: productType,
             category_id: formData.get('category_id') as string,
-            image_url: (formData.get('image_url') as string) || undefined,
+            image_url: imageUrl,
             station: stationRaw === 'none' ? null : stationRaw,
             is_active: isActive,
             is_out_of_stock: isOutOfStock,
+            ...(productType === 'mitad' && {
+              half_pricing_method: halfPricingMethod,
+              half_pricing_markup_pct: halfPricingMethod === 'cost_markup' ? parseFloat(halfMarkupPct) : null,
+            }),
           })
 
           if (result.error) {
@@ -116,6 +146,7 @@ export function ProductFormPage({
             toast.success('Producto actualizado')
           }
         } else {
+          formData.set('image_url', imageUrl ?? '')
           const result = await createProduct(formData)
 
           if (result.error) {
@@ -182,7 +213,10 @@ export function ProductFormPage({
               </Link>
               <Button
                 type="submit"
-                disabled={isPending || (productType === 'elaborado' && selectedRecipes.length === 0)}
+                disabled={
+                  isPending ||
+                  (productType === 'elaborado' && selectedRecipes.length === 0)
+                }
                 className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isPending ? (
@@ -217,34 +251,15 @@ export function ProductFormPage({
                 </div>
                 <div className="h-px bg-[var(--admin-border)]" />
 
-                {/* Image URL */}
+                {/* Image upload */}
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
-                    URL de imagen
+                    Imagen
                   </Label>
-                  <div className="flex gap-3">
-                    {/* Preview thumbnail */}
-                    <div className="h-20 w-20 shrink-0 rounded-lg border-2 border-dashed border-[var(--admin-border)] bg-[var(--admin-bg)] flex items-center justify-center overflow-hidden">
-                      {previewImage ? (
-                        <img
-                          src={previewImage}
-                          alt="Preview"
-                          className="h-full w-full object-cover"
-                          onError={() => setPreviewImage('')}
-                        />
-                      ) : (
-                        <ImageIcon className="h-7 w-7 text-[var(--admin-text-muted)]/40" />
-                      )}
-                    </div>
-                    <Input
-                      name="image_url"
-                      type="url"
-                      defaultValue={product?.image_url ?? ''}
-                      placeholder="https://..."
-                      onChange={(e) => setPreviewImage(e.target.value)}
-                      className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
-                    />
-                  </div>
+                  <ImageUploader
+                    initialUrl={product?.image_url}
+                    onChange={(url) => setImageUrl(url)}
+                  />
                 </div>
 
                 {/* Nombre */}
@@ -323,8 +338,8 @@ export function ProductFormPage({
                   <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
                     Tipo de producto
                   </Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {(['elaborado', 'reventa'] as ProductType[]).map((type) => (
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['elaborado', 'reventa', 'mitad'] as ProductType[]).map((type) => (
                       <button
                         key={type}
                         type="button"
@@ -359,16 +374,73 @@ export function ProductFormPage({
                         Los productos elaborados requieren al menos una receta para calcular el costo.
                       </p>
                     )}
+                    {selectedRecipes.length > 0 && (
+                      <div className="flex items-start gap-2 rounded-lg bg-blue-500/10 border border-blue-500/20 px-3 py-2.5">
+                        <Info className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
+                        <p className="text-xs text-blue-300">
+                          El costo se calcula automáticamente desde las recetas asociadas.
+                        </p>
+                      </div>
+                    )}
                   </>
                 )}
 
-                {/* Info note for elaborado with recipes */}
-                {productType === 'elaborado' && selectedRecipes.length > 0 && (
-                  <div className="flex items-start gap-2 rounded-lg bg-blue-500/10 border border-blue-500/20 px-3 py-2.5">
-                    <Info className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
-                    <p className="text-xs text-blue-300">
-                      El costo se calcula automáticamente desde las recetas asociadas.
-                    </p>
+                {/* Half pizza config (mitad only) */}
+                {productType === 'mitad' && (
+                  <div className="space-y-4">
+                    {/* Pricing method — 'fixed' excluded since price is always dynamic */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
+                        Método de precio
+                      </Label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {(['max', 'average', 'cost_markup'] as const).map((method) => (
+                          <button
+                            key={method}
+                            type="button"
+                            onClick={() => setHalfPricingMethod(method)}
+                            className={`p-2.5 rounded-lg border text-left transition-all ${
+                              halfPricingMethod === method
+                                ? 'border-[var(--admin-accent)]/50 bg-[var(--admin-accent)]/10'
+                                : 'border-[var(--admin-border)] bg-[var(--admin-bg)] hover:border-[var(--admin-accent)]/40'
+                            }`}
+                          >
+                            <p className={`text-xs font-semibold ${halfPricingMethod === method ? 'text-[var(--admin-accent-text)]' : 'text-[var(--admin-text)]'}`}>
+                              {HALF_PRICING_LABELS[method]}
+                            </p>
+                            <p className="text-[11px] text-[var(--admin-text-muted)] mt-0.5 leading-tight">
+                              {HALF_PRICING_DESCRIPTIONS[method]}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Markup % (only for cost_markup) */}
+                    {halfPricingMethod === 'cost_markup' && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
+                          Margen %
+                        </Label>
+                        <Input
+                          type="number"
+                          step="1"
+                          min="0"
+                          max="500"
+                          value={halfMarkupPct}
+                          onChange={(e) => setHalfMarkupPct(e.target.value)}
+                          placeholder="30"
+                          className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex items-start gap-2 rounded-lg bg-blue-500/10 border border-blue-500/20 px-3 py-2.5">
+                      <Info className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
+                      <p className="text-xs text-blue-300">
+                        El cliente elige 2 mitades de la misma categoría del producto. El precio se calcula dinámicamente.
+                      </p>
+                    </div>
                   </div>
                 )}
 
@@ -415,56 +487,60 @@ export function ProductFormPage({
                 </div>
                 <div className="h-px bg-[var(--admin-border)]" />
 
-                {/* Precio */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
-                    Precio de venta <span className="text-red-400">*</span>
-                  </Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold">$</span>
-                    <Input
-                      name="price"
-                      type="number"
-                      step="1"
-                      required
-                      defaultValue={product?.price ?? ''}
-                      placeholder="0"
-                      onChange={(e) => setPreviewPrice(e.target.value)}
-                      className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 pl-7 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
-                    />
-                  </div>
-                </div>
-
-                {/* Costo */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-[var(--admin-text-muted)] flex items-center gap-1.5">
-                    Costo
-                    {productType === 'elaborado' && selectedRecipes.length > 0 && (
-                      <span className="text-xs bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)] px-1.5 py-0.5 rounded font-semibold">
-                        Auto
-                      </span>
-                    )}
-                  </Label>
-                  {calculatedCost !== null ? (
-                    <div className="h-10 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-md px-3 flex items-center">
-                      <span className="text-[var(--admin-accent-text)] text-sm font-semibold">
-                        ${calculatedCost.toLocaleString('es-AR')}
-                      </span>
-                    </div>
-                  ) : (
+                {/* Precio — oculto para 'mitad' (se calcula dinámicamente) */}
+                {productType !== 'mitad' && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
+                      Precio de venta <span className="text-red-400">*</span>
+                    </Label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold">$</span>
                       <Input
-                        name="cost"
+                        name="price"
                         type="number"
                         step="1"
-                        defaultValue={product?.cost ?? ''}
-                        placeholder={productType === 'reventa' ? 'Costo de compra' : 'Sin receta'}
+                        required
+                        defaultValue={product?.price ?? ''}
+                        placeholder="0"
+                        onChange={(e) => setPreviewPrice(e.target.value)}
                         className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 pl-7 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
                       />
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+
+                {/* Costo — oculto para 'mitad' */}
+                {productType !== 'mitad' && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-[var(--admin-text-muted)] flex items-center gap-1.5">
+                      Costo
+                      {productType === 'elaborado' && selectedRecipes.length > 0 && (
+                        <span className="text-xs bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)] px-1.5 py-0.5 rounded font-semibold">
+                          Auto
+                        </span>
+                      )}
+                    </Label>
+                    {calculatedCost !== null ? (
+                      <div className="h-10 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-md px-3 flex items-center">
+                        <span className="text-[var(--admin-accent-text)] text-sm font-semibold">
+                          ${calculatedCost.toLocaleString('es-AR')}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold">$</span>
+                        <Input
+                          name="cost"
+                          type="number"
+                          step="1"
+                          defaultValue={product?.cost ?? ''}
+                          placeholder={productType === 'reventa' ? 'Costo de compra' : 'Sin receta'}
+                          className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 pl-7 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="h-px bg-[var(--admin-border)]" />
 
@@ -503,12 +579,11 @@ export function ProductFormPage({
                   <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg)] overflow-hidden">
                     {/* Image area */}
                     <div className="h-32 bg-[var(--admin-border)]/40 flex items-center justify-center">
-                      {previewImage ? (
+                      {imageUrl ? (
                         <img
-                          src={previewImage}
+                          src={imageUrl}
                           alt="Preview"
                           className="h-full w-full object-cover"
-                          onError={() => {}}
                         />
                       ) : (
                         <Package className="h-8 w-8 text-[var(--admin-text-muted)]/30" />

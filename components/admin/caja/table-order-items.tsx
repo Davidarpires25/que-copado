@@ -2,6 +2,7 @@
 
 import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react'
 import { cn, formatPrice } from '@/lib/utils'
+import { TAG_COLORS } from '@/lib/types/tables'
 import type { OrderItemRow } from '@/lib/types/tables'
 
 interface TableOrderItemsProps {
@@ -13,14 +14,6 @@ interface TableOrderItemsProps {
   onRemoveItem: (itemId: string) => void
 }
 
-// Color palette for comensales — matches Pencil design
-const TAG_COLORS = [
-  { dot: 'bg-green-400', text: 'text-green-400', bg: 'bg-green-400/12' },
-  { dot: 'bg-blue-400',  text: 'text-blue-400',  bg: 'bg-blue-400/12'  },
-  { dot: 'bg-amber-400', text: 'text-amber-400', bg: 'bg-amber-400/12' },
-  { dot: 'bg-purple-400',text: 'text-purple-400',bg: 'bg-purple-400/12'},
-  { dot: 'bg-pink-400',  text: 'text-pink-400',  bg: 'bg-pink-400/12'  },
-]
 
 function getTagColor(tag: string, allTags: string[]) {
   const idx = allTags.indexOf(tag)

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { useCartStore } from '@/lib/store/cart-store'
+import { useCartStore, getCartItemName, getCartItemPrice } from '@/lib/store/cart-store'
 import { getActiveDeliveryZones } from '@/app/actions/delivery-zones'
 import { calculateShippingCost } from '@/app/actions/shipping'
 import { createOrder, validateCartStock } from '@/app/actions/orders'
@@ -178,6 +178,7 @@ export function useCheckout() {
 
     try {
       // VALIDACIÓN DE STOCK: Verificar disponibilidad antes de procesar pago/envío
+      // For half-and-half, validate only the primary half (conservative)
       const cartSnapshot = items.map((i) => ({
         id: i.product.id,
         name: i.product.name,
@@ -250,8 +251,8 @@ export function useCheckout() {
 
       const orderItems: OrderItem[] = items.map((item) => ({
         id: item.product.id,
-        name: item.product.name,
-        price: item.product.price,
+        name: getCartItemName(item),
+        price: getCartItemPrice(item),
         quantity: item.quantity,
         image_url: item.product.image_url,
       }))

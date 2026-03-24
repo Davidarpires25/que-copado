@@ -1,4 +1,4 @@
-import type { Order, OrderStatus, OrderSource, PaymentMethod, DeliveryZone } from './database'
+import type { OrderStatus, OrderSource, PaymentMethod } from './database'
 
 // Item del carrito guardado en la orden
 export interface OrderItem {
@@ -9,6 +9,7 @@ export interface OrderItem {
   notes?: string | null
   image_url?: string | null
   product_type?: string | null
+  metadata?: Record<string, unknown> | null
 }
 
 // Datos para crear una orden desde el checkout
@@ -23,11 +24,6 @@ export interface CreateOrderData {
   delivery_zone_id?: string | null
   notes?: string | null
   payment_method: PaymentMethod
-}
-
-// Orden con la zona de delivery incluida
-export interface OrderWithZone extends Order {
-  delivery_zones: DeliveryZone | null
 }
 
 // Filtros para listar órdenes

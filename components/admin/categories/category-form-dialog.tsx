@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Check, Loader2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,12 @@ import { Label } from '@/components/ui/label'
 import { createCategory, updateCategory } from '@/app/actions/categories'
 import { toast } from 'sonner'
 import type { Category } from '@/lib/types/database'
+
+const CATEGORY_COLORS = [
+  '#FEC501', '#F97316', '#EF4444', '#F43F5E',
+  '#EC4899', '#A855F7', '#6366F1', '#3B82F6',
+  '#06B6D4', '#14B8A6', '#22C55E', '#84CC16',
+]
 
 interface CategoryFormDialogProps {
   open: boolean
@@ -32,6 +38,7 @@ export function CategoryFormDialog({
 }: CategoryFormDialogProps) {
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
+  const [color, setColor] = useState('#FEC501')
   const [isLoading, setIsLoading] = useState(false)
   const [nameTouched, setNameTouched] = useState(false)
 
@@ -43,9 +50,11 @@ export function CategoryFormDialog({
     if (category) {
       setName(category.name)
       setSlug(category.slug)
+      setColor(category.color ?? '#FEC501')
     } else {
       setName('')
       setSlug('')
+      setColor('#FEC501')
     }
     setNameTouched(false)
   }, [category, open])
@@ -75,6 +84,7 @@ export function CategoryFormDialog({
         const result = await updateCategory(category.id, {
           name: name.trim(),
           slug: slug.trim(),
+          color,
         })
 
         if (result.error) {
@@ -87,10 +97,12 @@ export function CategoryFormDialog({
           ...category,
           name: name.trim(),
           slug: slug.trim(),
+          color,
         })
       } else {
         const formData = new FormData()
         formData.append('name', name.trim())
+        formData.append('color', color)
 
         const result = await createCategory(formData)
 
@@ -165,6 +177,38 @@ export function CategoryFormDialog({
             <p className="text-xs text-[var(--admin-text-muted)]">
               {isEditing ? 'Solo letras, números y guiones.' : 'Se genera automaticamente a partir del nombre.'}
             </p>
+          </div>
+
+          {/* Color POS */}
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
+                Color en el POS
+              </Label>
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="w-3.5 h-3.5 rounded-full border border-white/20"
+                  style={{ backgroundColor: color }}
+                />
+                <span className="text-xs font-mono text-[var(--admin-text-muted)]">{color}</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-6 gap-2">
+              {CATEGORY_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setColor(c)}
+                  className="relative w-9 h-9 rounded-lg transition-transform hover:scale-110 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--admin-surface)] focus:ring-white/30"
+                  style={{ backgroundColor: c }}
+                  aria-label={c}
+                >
+                  {color === c && (
+                    <Check className="absolute inset-0 m-auto h-4 w-4 text-black/70 drop-shadow" />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Actions */}

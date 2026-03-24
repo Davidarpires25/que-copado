@@ -144,7 +144,7 @@ async function processJob(job) {
     await supabase.from('print_jobs').update({ status: 'printed' }).eq('id', job.id)
     console.log(`✅  Job ${job.id.slice(-8)} (${job.type}) impreso`)
   } catch (err) {
-    console.error(`❌  Job ${job.id.slice(-8)} falló:`, err.message)
+    console.error(`❌  Job ${job.id.slice(-8)} falló:`, err?.message ?? JSON.stringify(err))
     await supabase
       .from('print_jobs')
       .update({ status: 'error', error_msg: err.message })

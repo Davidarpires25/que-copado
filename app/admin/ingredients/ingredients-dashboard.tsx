@@ -26,6 +26,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
 import type { IngredientWithCategory, IngredientCategory } from '@/lib/types/database'
 import { INGREDIENT_UNIT_ABBR, type IngredientUnit } from '@/lib/types/database'
+import { formatCost } from '@/lib/constants/recipe-units'
 
 interface IngredientsDashboardProps {
   initialIngredients: IngredientWithCategory[]
@@ -45,12 +46,6 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false)
   const [subRecipeTarget, setSubRecipeTarget] = useState<IngredientWithCategory | null>(null)
 
-  const formatCost = (cost: number) =>
-    new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      minimumFractionDigits: 0,
-    }).format(cost)
 
   const filteredIngredients = ingredients.filter((i) => {
     const matchesSearch = !searchQuery || i.name.toLowerCase().includes(searchQuery.toLowerCase())

@@ -3,13 +3,19 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronRight, Loader2, Info } from 'lucide-react'
+import { Check, ChevronRight, Loader2, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { createCategory, updateCategory } from '@/app/actions/categories'
 import type { Category } from '@/lib/types/database'
+
+const CATEGORY_COLORS = [
+  '#FEC501', '#F97316', '#EF4444', '#F43F5E',
+  '#EC4899', '#A855F7', '#6366F1', '#3B82F6',
+  '#06B6D4', '#14B8A6', '#22C55E', '#84CC16',
+]
 
 interface CategoryFormPageProps {
   mode: 'create' | 'edit'
@@ -23,6 +29,7 @@ export function CategoryFormPage({ mode, category }: CategoryFormPageProps) {
   const [name, setName] = useState(category?.name ?? '')
   const [slug, setSlug] = useState(category?.slug ?? '')
   const [sortOrder, setSortOrder] = useState(category?.sort_order?.toString() ?? '')
+  const [color, setColor] = useState(category?.color ?? '#FEC501')
 
   const handleNameChange = (value: string) => {
     setName(value)
@@ -50,12 +57,14 @@ export function CategoryFormPage({ mode, category }: CategoryFormPageProps) {
             name: name.trim(),
             slug: slug.trim(),
             sort_order: sortOrder ? parseInt(sortOrder) : undefined,
+            color,
           })
           if (result.error) { toast.error(result.error); return }
           toast.success('Categoría actualizada')
         } else {
           const formData = new FormData()
           formData.append('name', name.trim())
+          formData.append('color', color)
           const result = await createCategory(formData)
           if (result.error) { toast.error(result.error); return }
           toast.success('Categoría creada')
@@ -189,19 +198,38 @@ export function CategoryFormPage({ mode, category }: CategoryFormPageProps) {
 
           <div className="h-px bg-[var(--admin-border)]" />
 
-          {/* Vista Previa */}
+          {/* Color POS */}
           <div className="space-y-3">
-            <p className="text-sm font-semibold text-[var(--admin-text)]">Vista Previa</p>
-            <div className="flex items-center gap-3">
-              <span className="inline-flex items-center px-4 py-2 text-xs font-semibold bg-[var(--admin-accent)] text-black">
-                {name || 'Nombre'}
-              </span>
-              <span className="inline-flex items-center px-4 py-2 text-xs font-semibold border border-[var(--admin-border)] text-[var(--admin-text-muted)]">
-                Otra Categoría
-              </span>
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
+                Color en el POS
+              </Label>
+              <div className="flex items-center gap-2">
+                <span
+                  className="w-4 h-4 rounded-full border border-white/20"
+                  style={{ backgroundColor: color }}
+                />
+                <span className="text-xs font-mono text-[var(--admin-text-muted)]">{color}</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-6 gap-2">
+              {CATEGORY_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setColor(c)}
+                  className="relative w-9 h-9 rounded-lg transition-transform hover:scale-110 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--admin-surface)] focus:ring-white/30"
+                  style={{ backgroundColor: c }}
+                  aria-label={c}
+                >
+                  {color === c && (
+                    <Check className="absolute inset-0 m-auto h-4 w-4 text-black/70 drop-shadow" />
+                  )}
+                </button>
+              ))}
             </div>
             <p className="text-xs text-[var(--admin-text-muted)]">
-              Así se verá el chip activo en el filtro de categorías.
+              Se usa como indicador de color en los chips del POS y en los productos de esa categoría.
             </p>
           </div>
         </div>

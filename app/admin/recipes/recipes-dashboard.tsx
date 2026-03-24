@@ -16,17 +16,11 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
 import type { RecipeWithIngredients, IngredientUnit } from '@/lib/types/database'
 import { INGREDIENT_UNIT_ABBR } from '@/lib/types/database'
+import { UNIT_TO_BASE, formatCost } from '@/lib/constants/recipe-units'
 
 interface RecipesDashboardProps {
   initialRecipes: RecipeWithIngredients[]
 }
-
-const UNIT_TO_BASE: Record<string, number> = {
-  kg: 1, g: 0.001, litro: 1, ml: 0.001, unidad: 1,
-}
-
-const formatCost = (cost: number) =>
-  new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(cost)
 
 export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
   const router = useRouter()

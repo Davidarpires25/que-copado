@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import {
   Loader2, ArrowLeft, CheckCircle, AlertTriangle,
-  Banknote, CreditCard, Zap, QrCode,
-  CircleArrowUp, CircleArrowDown, TriangleAlert,
+  CircleArrowUp, CircleArrowDown,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { closeSession } from '@/app/actions/cash-register'
@@ -282,7 +281,7 @@ export function SessionCloseScreen({
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    <TriangleAlert className="h-4 w-4" />
+                    <AlertTriangle className="h-4 w-4" />
                     Confirmar Cierre
                   </>
                 )}

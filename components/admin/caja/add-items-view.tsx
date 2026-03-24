@@ -8,24 +8,28 @@ import { cn, formatPrice } from '@/lib/utils'
 import { PosProductGrid } from './product-grid'
 import { addItemsToOrder } from '@/app/actions/tables'
 import { printKitchenTicketAction } from '@/app/actions/print'
-import type { Product, Category } from '@/lib/types/database'
+import type { Product, Category, ProductWithHalfConfig } from '@/lib/types/database'
+import { sendsToKitchen } from '@/lib/types/database'
 import type { RestaurantTable } from '@/lib/types/tables'
 
 interface CartItem {
-  product_id: string
+  id: string            // composite key: product_id or product_id__notes
+  product_id: string    // real DB product_id
   product_name: string
   product_price: number
   product_type?: string | null
   quantity: number
   notes?: string
+  metadata?: Record<string, unknown> | null
 }
 
 interface AddItemsViewProps {
-  products: Product[]
+  products: ProductWithHalfConfig[]
   categories: Category[]
   table: RestaurantTable
   orderId: string
   saleTag?: string | null
+  getHalfOptions?: (product: ProductWithHalfConfig) => Product[]
   onClose: () => void
   onItemsAdded: () => void
 }
@@ -36,6 +40,7 @@ export function AddItemsView({
   table,
   orderId,
   saleTag,
+  getHalfOptions,
   onClose,
   onItemsAdded,
 }: AddItemsViewProps) {
@@ -46,50 +51,60 @@ export function AddItemsView({
   const cartTotal = cart.reduce((s, i) => s + i.product_price * i.quantity, 0)
   const cartItemCount = cart.reduce((s, i) => s + i.quantity, 0)
 
-  const handleAddItem = useCallback((product: Product) => {
+  const handleAddItem = useCallback((
+    product: ProductWithHalfConfig,
+    notes?: string,
+    price?: number,
+    metadata?: Record<string, unknown>
+  ) => {
+    const finalPrice = price ?? product.price
     setCart((prev) => {
-      const existing = prev.find((i) => i.product_id === product.id)
+      const key = notes ? `${product.id}__${notes}` : product.id
+      const existing = prev.find((i) => i.id === key)
       if (existing) {
         return prev.map((i) =>
-          i.product_id === product.id ? { ...i, quantity: i.quantity + 1 } : i
+          i.id === key ? { ...i, quantity: i.quantity + 1 } : i
         )
       }
       return [...prev, {
+        id: key,
         product_id: product.id,
         product_name: product.name,
-        product_price: product.price,
+        product_price: finalPrice,
         product_type: product.product_type,
         quantity: 1,
+        notes: notes,
+        metadata: metadata ?? null,
       }]
     })
   }, [])
 
-  const handleUpdateQty = (productId: string, qty: number) => {
+  const handleUpdateQty = (id: string, qty: number) => {
     if (qty < 1) {
-      setCart((prev) => prev.filter((i) => i.product_id !== productId))
+      setCart((prev) => prev.filter((i) => i.id !== id))
       return
     }
     setCart((prev) =>
-      prev.map((i) => i.product_id === productId ? { ...i, quantity: qty } : i)
+      prev.map((i) => i.id === id ? { ...i, quantity: qty } : i)
     )
   }
 
-  const handleRemove = (productId: string) => {
-    setCart((prev) => prev.filter((i) => i.product_id !== productId))
+  const handleRemove = (id: string) => {
+    setCart((prev) => prev.filter((i) => i.id !== id))
   }
 
-  const toggleNote = (productId: string) => {
+  const toggleNote = (id: string) => {
     setNotesOpen((prev) => {
       const next = new Set(prev)
-      if (next.has(productId)) next.delete(productId)
-      else next.add(productId)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
       return next
     })
   }
 
-  const handleSetNotes = (productId: string, notes: string) => {
+  const handleSetNotes = (id: string, notes: string) => {
     setCart((prev) =>
-      prev.map((i) => i.product_id === productId ? { ...i, notes } : i)
+      prev.map((i) => i.id === id ? { ...i, notes } : i)
     )
   }
 
@@ -104,12 +119,13 @@ export function AddItemsView({
         product_price: i.product_price,
         quantity: i.quantity,
         notes: i.notes || null,
+        metadata: i.metadata || null,
       })),
       saleTag
     )
     setLoading(false)
     if (result.error) { toast.error(result.error); return }
-    const hasKitchenItems = cart.some((i) => i.product_type === 'elaborado')
+    const hasKitchenItems = cart.some((i) => sendsToKitchen(i.product_type ?? ''))
     if (hasKitchenItems) {
       printKitchenTicketAction(orderId).then((r) => { if (r.error) toast.error(r.error) })
     }
@@ -117,17 +133,16 @@ export function AddItemsView({
     onItemsAdded()
   }
 
-  const cartProducts = new Set(cart.map((i) => i.product_id))
-
   return (
-    <div className="flex-1 flex min-h-0 overflow-hidden">
+    <div className="flex-1 flex min-h-0 overflow-hidden relative">
 
       {/* Left — product grid */}
       <div className="flex-1 min-w-0 overflow-hidden">
         <PosProductGrid
           products={products}
           categories={categories}
-          cartItems={cart.map((i) => ({ id: i.product_id, name: i.product_name, price: i.product_price, quantity: i.quantity }))}
+          cartItems={cart.map((i) => ({ id: i.id, name: i.product_name, price: i.product_price, quantity: i.quantity }))}
+          getHalfOptions={getHalfOptions}
           onAddItem={handleAddItem}
         />
       </div>
@@ -176,7 +191,7 @@ export function AddItemsView({
             <AnimatePresence initial={false}>
               {cart.map((item) => (
                 <motion.div
-                  key={item.product_id}
+                  key={item.id}
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: 16 }}
@@ -191,29 +206,40 @@ export function AddItemsView({
                     <p className="text-[11px] mt-0.5 text-[var(--admin-text-faint)]">
                       {formatPrice(item.product_price)} c/u
                     </p>
-                    <button
-                      onClick={() => toggleNote(item.product_id)}
-                      className="flex items-center gap-1 mt-0.5 text-[11px] text-[var(--admin-text-faint)] hover:text-[var(--admin-accent-text)] transition-colors cursor-pointer"
-                    >
-                      <MessageSquare className="h-3 w-3" />
-                      <span className="truncate max-w-[100px]">{item.notes ? item.notes : 'nota'}</span>
-                    </button>
-                    {notesOpen.has(item.product_id) && (
-                      <input
-                        autoFocus
-                        value={item.notes ?? ''}
-                        onChange={(e) => handleSetNotes(item.product_id, e.target.value)}
-                        onBlur={() => { if (!item.notes) toggleNote(item.product_id) }}
-                        placeholder="sin queso, sin lechuga..."
-                        className="mt-1 w-full text-[11px] bg-transparent border-b border-[var(--admin-border)] focus:border-[var(--admin-accent)]/50 text-[var(--admin-text)] placeholder:text-[var(--admin-text-faint)] outline-none py-0.5"
-                      />
+                    {item.id !== item.product_id ? (
+                      item.notes && (
+                        <p className="flex items-center gap-1 mt-0.5 text-[11px] text-[var(--admin-accent-text)]/80">
+                          <MessageSquare className="h-3 w-3 shrink-0" />
+                          <span className="truncate max-w-[100px]">{item.notes}</span>
+                        </p>
+                      )
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => toggleNote(item.id)}
+                          className="flex items-center gap-1 mt-0.5 text-[11px] text-[var(--admin-text-faint)] hover:text-[var(--admin-accent-text)] transition-colors cursor-pointer"
+                        >
+                          <MessageSquare className="h-3 w-3" />
+                          <span className="truncate max-w-[100px]">{item.notes ? item.notes : 'nota'}</span>
+                        </button>
+                        {notesOpen.has(item.id) && (
+                          <input
+                            autoFocus
+                            value={item.notes ?? ''}
+                            onChange={(e) => handleSetNotes(item.id, e.target.value)}
+                            onBlur={() => { if (!item.notes) toggleNote(item.id) }}
+                            placeholder="sin queso, sin lechuga..."
+                            className="mt-1 w-full text-[11px] bg-transparent border-b border-[var(--admin-border)] focus:border-[var(--admin-accent)]/50 text-[var(--admin-text)] placeholder:text-[var(--admin-text-faint)] outline-none py-0.5"
+                          />
+                        )}
+                      </>
                     )}
                   </div>
 
                   {/* Qty controls */}
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
-                      onClick={() => handleUpdateQty(item.product_id, item.quantity - 1)}
+                      onClick={() => handleUpdateQty(item.id, item.quantity - 1)}
                       className="flex items-center justify-center rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-accent)]/40 transition-all active:scale-90 cursor-pointer"
                       style={{ width: 26, height: 26 }}
                     >
@@ -230,7 +256,7 @@ export function AddItemsView({
                       {item.quantity}
                     </motion.span>
                     <button
-                      onClick={() => handleUpdateQty(item.product_id, item.quantity + 1)}
+                      onClick={() => handleUpdateQty(item.id, item.quantity + 1)}
                       className="flex items-center justify-center rounded-md bg-[var(--admin-accent)] hover:opacity-90 active:scale-90 transition-all cursor-pointer"
                       style={{ width: 26, height: 26 }}
                     >
@@ -246,7 +272,7 @@ export function AddItemsView({
 
                   {/* Remove */}
                   <button
-                    onClick={() => handleRemove(item.product_id)}
+                    onClick={() => handleRemove(item.id)}
                     className="ml-2 text-[var(--admin-text-faint)] hover:text-red-400 transition-colors cursor-pointer shrink-0"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -302,6 +328,7 @@ export function AddItemsView({
           )}
         </button>
       </div>
+
     </div>
   )
 }

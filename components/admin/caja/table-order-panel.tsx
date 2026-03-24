@@ -9,7 +9,7 @@ import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { TableOrderItems } from './table-order-items'
-import { TABLE_STATUS_CONFIG, TABLE_SECTION_LABELS } from '@/lib/types/tables'
+import { TABLE_STATUS_CONFIG, TABLE_SECTION_LABELS, TAG_COLORS } from '@/lib/types/tables'
 import {
   updateOrderItem,
   removeOrderItem,
@@ -26,17 +26,11 @@ interface TableOrderPanelProps {
   onPayOrder: () => void
   onCancelOrder: () => void
   onClose: () => void
+  /** Tras editar cantidad o quitar ítem: recargar mesas para no mostrar datos viejos */
+  onOrderItemsChanged?: () => void
   asSheet?: boolean
 }
 
-// Color palette matching Pencil — index-based assignment per tag
-const TAG_COLORS = [
-  { dot: 'bg-green-400',  text: 'text-green-400',  bg: 'bg-green-400/12',  print: 'bg-green-400/10 border-green-400/20 text-green-400'  },
-  { dot: 'bg-blue-400',   text: 'text-blue-400',   bg: 'bg-blue-400/12',   print: 'bg-blue-400/10 border-blue-400/20 text-blue-400'   },
-  { dot: 'bg-amber-400',  text: 'text-amber-400',  bg: 'bg-amber-400/12',  print: 'bg-amber-400/10 border-amber-400/20 text-amber-400'  },
-  { dot: 'bg-purple-400', text: 'text-purple-400', bg: 'bg-purple-400/12', print: 'bg-purple-400/10 border-purple-400/20 text-purple-400' },
-  { dot: 'bg-pink-400',   text: 'text-pink-400',   bg: 'bg-pink-400/12',   print: 'bg-pink-400/10 border-pink-400/20 text-pink-400'   },
-]
 
 export function TableOrderPanel({
   table,
@@ -46,6 +40,7 @@ export function TableOrderPanel({
   onPayOrder,
   onCancelOrder,
   onClose,
+  onOrderItemsChanged,
   asSheet = false,
 }: TableOrderPanelProps) {
   const [loadingAction, setLoadingAction] = useState<string | null>(null)
@@ -98,12 +93,14 @@ export function TableOrderPanel({
   const handleUpdateQuantity = useCallback(async (itemId: string, quantity: number) => {
     const result = await updateOrderItem(itemId, quantity)
     if (result.error) toast.error(result.error)
-  }, [])
+    else onOrderItemsChanged?.()
+  }, [onOrderItemsChanged])
 
   const handleRemoveItem = useCallback(async (itemId: string) => {
     const result = await removeOrderItem(itemId)
     if (result.error) toast.error(result.error)
-  }, [])
+    else onOrderItemsChanged?.()
+  }, [onOrderItemsChanged])
 
   const handleCancelOrder = async () => {
     if (!order) return

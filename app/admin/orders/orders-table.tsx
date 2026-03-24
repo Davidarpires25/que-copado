@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, ClipboardList, SearchX, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { AdminLayout } from '@/components/admin/layout'
+import { createClient } from '@/lib/supabase/client'
 import { OrderStatusBadge, OrderDetailsDrawer } from '@/components/admin/orders'
 import { formatPrice, cn } from '@/lib/utils'
 import {
@@ -32,6 +33,26 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
   const router = useRouter()
   const [orders, setOrders] = useState(initialOrders)
   const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    const supabase = createClient()
+    const channel = supabase
+      .channel('orders-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' },
+        (payload) => setOrders((prev) => [payload.new as OrderWithZone, ...prev])
+      )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' },
+        (payload) => setOrders((prev) =>
+          prev.map((o) => o.id === payload.new.id ? { ...o, ...payload.new } as OrderWithZone : o)
+        )
+      )
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'orders' },
+        (payload) => setOrders((prev) => prev.filter((o) => o.id !== payload.old.id))
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [])
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
   const [selectedOrder, setSelectedOrder] = useState<OrderWithZone | null>(null)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
@@ -239,7 +260,7 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
                 const items = parseOrderItems(order.items)
                 const orderDate = new Date(order.created_at)
                 const timeStr = orderDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false })
-                const paymentMethod = (order as any).payment_method
+                const paymentMethod = order.payment_method
 
                 return (
                   <tr
@@ -270,9 +291,9 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       <span className="text-sm lg:text-base text-[var(--admin-text-muted)] capitalize">
-                        {paymentMethod === 'efectivo' ? 'Efectivo'
-                          : paymentMethod === 'tarjeta' ? 'Tarjeta'
-                          : paymentMethod === 'transferencia' ? 'Transferencia'
+                        {paymentMethod === 'cash' ? 'Efectivo'
+                          : paymentMethod === 'card' ? 'Tarjeta'
+                          : paymentMethod === 'transfer' || paymentMethod === 'mercadopago' ? 'Transferencia'
                           : '—'}
                       </span>
                     </TableCell>

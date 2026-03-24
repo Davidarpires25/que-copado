@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { printClientTicketAction, printKitchenTicketAction } from '@/app/actions/print'
-import { Store, UtensilsCrossed, History, Printer, X } from 'lucide-react'
+import { Store, UtensilsCrossed, History } from 'lucide-react'
 import { PosProductGrid } from './product-grid'
 import { OrderBuilder, type PosCartItem } from './order-builder'
 import { PendingOrderPayView } from './pending-order-pay-view'
@@ -27,19 +27,22 @@ import {
 } from '@/app/actions/pos-orders'
 import { getSessionOrders, getSessionSummary } from '@/app/actions/cash-register'
 import { openTable, getTables } from '@/app/actions/tables'
+import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
-import type { Category, Product, PaymentMethod, Order } from '@/lib/types/database'
+import type { Category, ProductWithHalfConfig, PaymentMethod, Order } from '@/lib/types/database'
+import { sendsToKitchen } from '@/lib/types/database'
 import type { CashRegisterSession, SessionSummary, PaymentSplit, OrderWithSplits } from '@/lib/types/cash-register'
 import type { TableWithOrder } from '@/lib/types/tables'
 
 type PosMode = 'mostrador' | 'mesas' | 'historial'
 
 interface PosInterfaceProps {
-  products: Product[]
+  products: ProductWithHalfConfig[]
   categories: Category[]
   session: CashRegisterSession
   initialTables: TableWithOrder[]
+  initialPendingOrders: Order[]
   onCloseSession: (summary: SessionSummary) => void
   onSessionUpdate: (session: CashRegisterSession) => void
 }
@@ -49,6 +52,7 @@ export function PosInterface({
   categories,
   session,
   initialTables,
+  initialPendingOrders,
   onCloseSession,
   onSessionUpdate,
 }: PosInterfaceProps) {
@@ -62,14 +66,13 @@ export function PosInterface({
   const [notes, setNotes] = useState('')
 
   // Mostrador UI state
-  const [showPayment, setShowPayment] = useState(false)
   const [showMovement, setShowMovement] = useState(false)
   const [historialLoading, setHistorialLoading] = useState(false)
   const [confirmLoading, setConfirmLoading] = useState(false)
   const [sessionOrders, setSessionOrders] = useState<OrderWithSplits[]>([])
 
   // Pending mostrador orders (abierto)
-  const [pendingOrders, setPendingOrders] = useState<Order[]>([])
+  const [pendingOrders, setPendingOrders] = useState<Order[]>(initialPendingOrders)
   const [pendingLoading, setPendingLoading] = useState(false)
   const [payingOrder, setPayingOrder] = useState<Order | null>(null)
   const [payingOrderLoading, setPayingOrderLoading] = useState(false)
@@ -90,9 +93,18 @@ export function PosInterface({
   const [payingTable, setPayingTable] = useState<TableWithOrder | null>(null)
   const [addItemsSaleTag, setAddItemsSaleTag] = useState<string | null>(null)
 
-  // Computed
+  const getHalfOptions = useCallback((halfProduct: ProductWithHalfConfig) => {
+    return products.filter(
+      (p) =>
+        p.category_id === halfProduct.category_id &&
+        p.product_type !== 'mitad' &&
+        p.is_active &&
+        !p.is_out_of_stock
+    )
+  }, [products])
+
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const hasKitchenItems = items.some((item) => item.product_type === 'elaborado')
+  const hasKitchenItems = items.some((item) => sendsToKitchen(item.product_type ?? ''))
   const currentCash =
     session.opening_balance +
     session.total_cash_sales +
@@ -101,44 +113,65 @@ export function PosInterface({
   const openTablesCount = tables.filter((t) => t.status !== 'libre').length
 
   // ─── Refresh ─────────────────────────────────────────────
-  const refreshTables = async () => {
+  const refreshTables = useCallback(async () => {
     const { data } = await getTables()
     if (data) {
       setTables(data)
-      if (selectedTable) {
-        const updated = data.find((t) => t.id === selectedTable.id)
-        if (updated && updated.status !== 'libre') {
-          setSelectedTable(updated)
-        } else {
-          setSelectedTable(null)
-        }
-      }
+      setSelectedTable((prev) => {
+        if (!prev) return null
+        const updated = data.find((t) => t.id === prev.id)
+        return updated && updated.status !== 'libre' ? updated : null
+      })
     }
-  }
+  }, [])
 
-  const refreshPendingOrders = useCallback(async () => {
-    setPendingLoading(true)
+  const refreshPendingOrders = useCallback(async (silent = false) => {
+    if (!silent) setPendingLoading(true)
     const { data } = await getPendingMostadorOrders(session.id)
     if (data) setPendingOrders(data)
-    setPendingLoading(false)
+    if (!silent) setPendingLoading(false)
   }, [session.id])
 
-  // Carga inicial de pedidos pendientes al montar (B1)
+  // ─── Realtime subscriptions ───────────────────────────────
   useEffect(() => {
-    void refreshPendingOrders()
-  }, [refreshPendingOrders])
+    const supabase = createClient()
+    const channel = supabase
+      .channel('pos-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'restaurant_tables' },
+        () => { void refreshTables() }
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' },
+        () => {
+          void refreshPendingOrders(true)
+          void refreshTables()
+        }
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' },
+        () => { void refreshTables() }
+      )
+      .subscribe()
+
+    return () => { void supabase.removeChannel(channel) }
+  }, [refreshTables, refreshPendingOrders])
 
   // ─── Mostrador handlers ─────────────────────────────────
-  const handleAddItem = useCallback((product: Product) => {
+  const handleAddItem = useCallback((
+    product: ProductWithHalfConfig,
+    notes?: string,
+    price?: number,
+    metadata?: Record<string, unknown>
+  ) => {
+    const finalPrice = price ?? product.price
     setItems((prev) => {
-      const existing = prev.find((item) => item.id === product.id)
+      const key = notes ? `${product.id}__${notes}` : product.id
+      const existing = prev.find((item) => item.id === key)
       if (existing) {
         toast.success(`${product.name} x${existing.quantity + 1}`, {
           duration: 1000,
           position: 'top-center',
         })
         return prev.map((item) =>
-          item.id === product.id
+          item.id === key
             ? { ...item, quantity: item.quantity + 1 }
             : item
         )
@@ -150,12 +183,15 @@ export function PosInterface({
       return [
         ...prev,
         {
-          id: product.id,
+          id: key,
+          halfPizzaProductId: notes ? product.id : undefined,
           name: product.name,
-          price: product.price,
+          price: finalPrice,
           quantity: 1,
           image_url: product.image_url,
           product_type: product.product_type ?? null,
+          notes: notes ?? null,
+          metadata: metadata ?? null,
         },
       ]
     })
@@ -196,12 +232,13 @@ export function PosInterface({
     setConfirmLoading(true)
 
     const { data, error } = await createMostadorOrder({
-      items: items.map(({ id, name, price, quantity, notes }) => ({
-        id,
+      items: items.map(({ id, name, price, quantity, notes, halfPizzaProductId, metadata }) => ({
+        id: halfPizzaProductId ?? id,
         name,
         price,
         quantity,
         notes: notes || null,
+        metadata: metadata ?? null,
       })),
       total: subtotal,
       notes: notes || null,
@@ -247,9 +284,9 @@ export function PosInterface({
     await handleLoadHistorial()
   }
 
-  const handleSwitchToMostrador = async () => {
+  const handleSwitchToMostrador = () => {
     setMode('mostrador')
-    await refreshPendingOrders()
+    void refreshPendingOrders(true)
   }
 
   const handleCancelOrder = async (orderId: string, isMostrador = false) => {
@@ -347,7 +384,6 @@ export function PosInterface({
     }
     if (data) {
       toast.success(`Mesa ${table.number} abierta`)
-      await refreshTables()
       const { data: updatedTables } = await getTables()
       if (updatedTables) {
         setTables(updatedTables)
@@ -460,6 +496,7 @@ export function PosInterface({
                   products={products}
                   categories={categories}
                   cartItems={items}
+                  getHalfOptions={getHalfOptions}
                   onAddItem={handleAddItem}
                 />
               </div>
@@ -522,7 +559,6 @@ export function PosInterface({
               ) : (
                 <OrderBuilder
                   items={items}
-                  notes={notes}
                   hasKitchenItems={hasKitchenItems}
                   onUpdateQuantity={handleUpdateQuantity}
                   onRemoveItem={handleRemoveItem}
@@ -559,6 +595,7 @@ export function PosInterface({
               table={selectedTable}
               orderId={selectedTable.orders.id}
               saleTag={addItemsSaleTag}
+              getHalfOptions={getHalfOptions}
               onClose={() => { setShowAddItems(false); setAddItemsSaleTag(null) }}
               onItemsAdded={handleTableItemsAdded}
             />
@@ -585,6 +622,7 @@ export function PosInterface({
                     onPayOrder={() => setPayingTable(selectedTable)}
                     onCancelOrder={handleTableOrderCancelled}
                     onClose={() => setSelectedTable(null)}
+                    onOrderItemsChanged={() => void refreshTables()}
                   />
                 </div>
               )}
@@ -639,7 +677,6 @@ export function PosInterface({
         ) : (
           <OrderBuilder
             items={items}
-            notes={notes}
             loading={confirmLoading}
             onUpdateQuantity={handleUpdateQuantity}
             onRemoveItem={handleRemoveItem}
@@ -659,7 +696,6 @@ export function PosInterface({
         currentCash={currentCash}
         openTablesCount={openTablesCount}
         onMovement={() => setShowMovement(true)}
-        onViewHistory={handleSwitchToHistorial}
         onCloseSession={handleCloseSessionClick}
       />
 
@@ -711,6 +747,7 @@ export function PosInterface({
               handleTableOrderCancelled()
             }}
             onClose={() => setShowMobileTablePanel(false)}
+            onOrderItemsChanged={() => void refreshTables()}
           />
         </BottomSheet>
       )}

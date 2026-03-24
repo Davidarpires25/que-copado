@@ -6,25 +6,11 @@ import { devError } from '@/lib/server/logger'
 import { friendlyError } from '@/lib/server/error-messages'
 import { revalidateCaja, revalidateOrders, revalidateTables, revalidateStock } from '@/lib/server/revalidate'
 import { deductStockForOrder } from '@/lib/server/stock-deduction'
+import { getSalesField } from '@/lib/server/cash-register-utils'
 import type { Order, PaymentMethod } from '@/lib/types/database'
 import type { TableWithOrder, RestaurantTable, OrderItemRow } from '@/lib/types/tables'
 import type { PaymentSplit } from '@/lib/types/cash-register'
-
-// ─── Helpers ────────────────────────────────────────────────
-
-function getSalesField(paymentMethod: string): string {
-  switch (paymentMethod) {
-    case 'cash':
-      return 'total_cash_sales'
-    case 'card':
-      return 'total_card_sales'
-    case 'transfer':
-    case 'mercadopago':
-      return 'total_transfer_sales'
-    default:
-      return 'total_cash_sales'
-  }
-}
+import { validateHybridPaymentSplits } from '@/lib/utils/payment-split'
 
 /**
  * Recalcula el total de la orden desde order_items y sincroniza el JSON items
@@ -254,6 +240,7 @@ export async function addItemsToOrder(
     product_price: number
     quantity: number
     notes?: string | null
+    metadata?: Record<string, unknown> | null
   }[],
   saleTag?: string | null
 ): Promise<{
@@ -287,6 +274,7 @@ export async function addItemsToOrder(
       sale_tag: saleTag || null,
       status: 'pendiente',
       added_by: user.id,
+      metadata: item.metadata || null,
     }))
 
     const { data: insertedItems, error } = await supabase
@@ -303,6 +291,7 @@ export async function addItemsToOrder(
     await recalculateOrderTotal(supabase, orderId)
 
     revalidateCaja()
+    revalidateOrders()
 
     return { data: insertedItems as OrderItemRow[], error: null }
   } catch (error) {
@@ -478,6 +467,28 @@ export async function payTableOrder(
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
 
+    // Verify session is open and belongs to this user
+    const { data: session } = await supabase
+      .from('cash_register_sessions')
+      .select('id, status')
+      .eq('id', sessionId)
+      .single()
+
+    if (!session || session.status !== 'open') {
+      return { data: null, error: 'Sesión de caja no válida' }
+    }
+
+    // Verify the table actually holds this order (prevents cross-table manipulation)
+    const { data: table } = await supabase
+      .from('restaurant_tables')
+      .select('id, current_order_id')
+      .eq('id', tableId)
+      .single()
+
+    if (!table || table.current_order_id !== orderId) {
+      return { data: null, error: 'La orden no corresponde a esta mesa' }
+    }
+
     // Get order
     const { data: order } = await supabase
       .from('orders')
@@ -490,6 +501,10 @@ export async function payTableOrder(
     }
 
     const orderData = order as Order
+    if (splits && splits.length > 1) {
+      const splitErr = validateHybridPaymentSplits(splits, orderData.total)
+      if (splitErr) return { data: null, error: splitErr }
+    }
     const isHybrid = splits && splits.length > 1
 
     // Determine primary method (highest amount for hybrid, or explicit for single)
@@ -687,6 +702,9 @@ export async function getOrderItems(orderId: string): Promise<{
 export async function getOpenTablesCount(): Promise<number> {
   try {
     const supabase = await createAdminClient()
+    const user = await getAuthUser(supabase)
+    if (!user) return 0
+
     const { count } = await supabase
       .from('restaurant_tables')
       .select('*', { count: 'exact', head: true })

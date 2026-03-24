@@ -29,15 +29,6 @@ function parseTimeToMinutes(time: string): number {
 }
 
 /**
- * Formatea minutos desde medianoche a "HH:MM"
- */
-function formatMinutesToTime(minutes: number): string {
-  const hours = Math.floor(minutes / 60) % 24
-  const mins = minutes % 60
-  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`
-}
-
-/**
  * Verifica si el negocio está abierto según la configuración
  * Maneja horarios que cruzan la medianoche (ej: 21:00 - 01:00)
  */

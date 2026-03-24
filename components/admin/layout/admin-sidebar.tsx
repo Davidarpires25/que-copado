@@ -21,6 +21,7 @@ import {
   BookOpen,
   Boxes,
   ChefHat,
+  History,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -48,6 +49,7 @@ const navGroups: NavGroup[] = [
     title: 'Operación',
     items: [
       { href: '/admin/caja', label: 'Caja', icon: CreditCard },
+      { href: '/admin/caja/arqueos', label: 'Arqueos', icon: History },
       { href: '/admin/tables', label: 'Mesas', icon: UtensilsCrossed },
       { href: '/admin/orders', label: 'Pedidos', icon: ClipboardList },
       { href: '/admin/cocina', label: 'Cocina', icon: ChefHat },

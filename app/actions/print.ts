@@ -1,6 +1,9 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getAuthUser } from '@/lib/server/auth'
+import { devError } from '@/lib/server/logger'
+import { sendsToKitchen } from '@/lib/types/database'
 
 const PAYMENT_LABELS: Record<string, string> = {
   cash: 'Efectivo',
@@ -23,6 +26,9 @@ export async function printClientTicketAction(
 ): Promise<{ error?: string }> {
   try {
     const supabase = await createAdminClient()
+
+    const user = await getAuthUser(supabase)
+    if (!user) return { error: 'No autorizado' }
 
     const { data: order, error } = await supabase
       .from('orders')
@@ -76,13 +82,13 @@ export async function printClientTicketAction(
     })
 
     if (insertError) {
-      console.error('printClientTicketAction insert:', insertError)
+      devError('printClientTicketAction insert:', insertError)
       return { error: 'Error al encolar el ticket de impresión.' }
     }
 
     return {}
   } catch (err) {
-    console.error('printClientTicketAction:', err)
+    devError('printClientTicketAction:', err)
     return { error: 'Error al imprimir. Verificá que la impresora esté encendida y configurada.' }
   }
 }
@@ -90,6 +96,9 @@ export async function printClientTicketAction(
 export async function printKitchenTicketAction(orderId: string): Promise<{ error?: string }> {
   try {
     const supabase = await createAdminClient()
+
+    const user = await getAuthUser(supabase)
+    if (!user) return { error: 'No autorizado' }
 
     const { data: order, error } = await supabase
       .from('orders')
@@ -108,7 +117,7 @@ export async function printKitchenTicketAction(orderId: string): Promise<{ error
     const items = (rows ?? [])
       .filter((i) => {
         const p = i.products as unknown as { product_type: string | null } | null
-        return p?.product_type === 'elaborado'
+        return sendsToKitchen(p?.product_type ?? '')
       })
       .map((i) => ({
         name: i.product_name,
@@ -133,13 +142,13 @@ export async function printKitchenTicketAction(orderId: string): Promise<{ error
     })
 
     if (insertError) {
-      console.error('printKitchenTicketAction insert:', insertError)
+      devError('printKitchenTicketAction insert:', insertError)
       return { error: 'Error al encolar el ticket de cocina.' }
     }
 
     return {}
   } catch (err) {
-    console.error('printKitchenTicketAction:', err)
+    devError('printKitchenTicketAction:', err)
     return { error: 'Error al imprimir cocina.' }
   }
 }

@@ -9,7 +9,6 @@ interface SessionStatusBarProps {
   currentCash: number
   openTablesCount?: number
   onMovement: () => void
-  onViewHistory: () => void
   onCloseSession: () => void
 }
 

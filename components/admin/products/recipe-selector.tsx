@@ -12,8 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { RecipeWithIngredients, IngredientUnit } from '@/lib/types/database'
-import { INGREDIENT_UNIT_ABBR } from '@/lib/types/database'
+import type { RecipeWithIngredients } from '@/lib/types/database'
+import { formatCost } from '@/lib/constants/recipe-units'
 
 export interface ProductRecipeItem {
   recipe_id: string
@@ -30,12 +30,6 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange }: RecipeSel
   const usedIds = new Set(selectedRecipes.map((r) => r.recipe_id))
   const availableRecipes = recipes.filter((r) => r.is_active && !usedIds.has(r.id))
 
-  const formatCost = (cost: number) =>
-    new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      minimumFractionDigits: 0,
-    }).format(cost)
 
   const getRecipe = (id: string) => recipes.find((r) => r.id === id)
 

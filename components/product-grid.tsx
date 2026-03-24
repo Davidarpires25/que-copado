@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { ProductCard } from './product-card'
 import { CategoryFilter } from './category-filter'
+import { HalfPizzaCard } from './half-pizza-card'
 import { SearchX } from 'lucide-react'
 import type { Category, Product } from '@/lib/types/database'
 
@@ -23,6 +24,21 @@ export function ProductGrid({ products, categories, stockMap = {} }: ProductGrid
   // Find the first category (by sort_order) to mark its first products as "best-seller"
   const firstCategoryId = categories.length > 0 ? categories[0].id : null
 
+  // Pizza category detection (by slug) for half-and-half feature
+  const pizzaCategoryId = useMemo(
+    () => categories.find((c) => c.slug === 'pizzas')?.id ?? null,
+    [categories]
+  )
+  const pizzaProducts = useMemo(
+    () => (pizzaCategoryId ? products.filter((p) => p.category_id === pizzaCategoryId && p.is_active) : []),
+    [products, pizzaCategoryId]
+  )
+
+  // Show builder card when pizza category is active (or all shown and there are pizzas)
+  const showPizzaBuilder =
+    pizzaProducts.length >= 2 &&
+    (selectedCategory === pizzaCategoryId || selectedCategory === null)
+
   return (
     <div className="space-y-5 md:space-y-8 pb-28 md:pb-0">
       <CategoryFilter
@@ -33,6 +49,11 @@ export function ProductGrid({ products, categories, stockMap = {} }: ProductGrid
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
+        {/* Half-and-half builder — spans full row, shown when in pizza category */}
+        {showPizzaBuilder && (
+          <HalfPizzaCard pizzaProducts={pizzaProducts} />
+        )}
+
         {filteredProducts.map((product, index) => (
           <div
             key={product.id}

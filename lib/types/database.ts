@@ -33,6 +33,7 @@ export interface Database {
           name: string
           slug: string
           sort_order: number
+          color: string
           created_at: string
         }
         Insert: {
@@ -40,6 +41,7 @@ export interface Database {
           name: string
           slug: string
           sort_order?: number
+          color?: string
           created_at?: string
         }
         Update: {
@@ -47,7 +49,51 @@ export interface Database {
           name?: string
           slug?: string
           sort_order?: number
+          color?: string
           created_at?: string
+        }
+      }
+      product_types: {
+        Row: {
+          type_key: string
+          label: string
+          description: string | null
+          uses_recipes: boolean
+          sends_to_kitchen: boolean
+        }
+        Insert: {
+          type_key: string
+          label: string
+          description?: string | null
+          uses_recipes?: boolean
+          sends_to_kitchen?: boolean
+        }
+        Update: {
+          type_key?: string
+          label?: string
+          description?: string | null
+          uses_recipes?: boolean
+          sends_to_kitchen?: boolean
+        }
+      }
+      product_half_configs: {
+        Row: {
+          product_id: string
+          source_category_id: string | null
+          pricing_method: string
+          pricing_markup_pct: number | null
+        }
+        Insert: {
+          product_id: string
+          source_category_id?: string | null
+          pricing_method?: string
+          pricing_markup_pct?: number | null
+        }
+        Update: {
+          product_id?: string
+          source_category_id?: string | null
+          pricing_method?: string
+          pricing_markup_pct?: number | null
         }
       }
       products: {
@@ -345,6 +391,7 @@ export interface Database {
           sale_tag: string | null
           added_at: string
           added_by: string | null
+          metadata: Json | null
         }
         Insert: {
           id?: string
@@ -358,6 +405,7 @@ export interface Database {
           sale_tag?: string | null
           added_at?: string
           added_by?: string | null
+          metadata?: Json | null
         }
         Update: {
           id?: string
@@ -371,6 +419,7 @@ export interface Database {
           sale_tag?: string | null
           added_at?: string
           added_by?: string | null
+          metadata?: Json | null
         }
       }
       comandas: {
@@ -811,17 +860,28 @@ export type ProductRecipeWithDetails = ProductRecipe & {
 }
 
 // Product types
-export type ProductType = 'elaborado' | 'reventa'
+export type ProductType = 'elaborado' | 'reventa' | 'mitad'
 
 export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
   elaborado: 'Elaborado',
   reventa: 'Reventa',
+  mitad: 'Mitad y Mitad',
 }
 
 export const PRODUCT_TYPE_DESCRIPTIONS: Record<ProductType, string> = {
   elaborado: 'Se prepara con recetas (ej: hamburguesas, papas)',
   reventa: 'Se compra y revende tal cual (ej: bebidas, extras)',
+  mitad: 'Pizza con selección de 2 mitades',
 }
+
+// Kitchen routing helper — use instead of hardcoded `=== 'elaborado'`
+export const KITCHEN_PRODUCT_TYPES: ProductType[] = ['elaborado', 'mitad']
+export const sendsToKitchen = (pt: string): boolean =>
+  KITCHEN_PRODUCT_TYPES.includes(pt as ProductType)
+
+// Half-pizza config type
+export type HalfConfig = Database['public']['Tables']['product_half_configs']['Row']
+export type ProductWithHalfConfig = Product & { product_half_configs: HalfConfig[] }
 
 // Ingredient Sub-Recipes (BOM)
 export type IngredientSubRecipe = {

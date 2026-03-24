@@ -2,7 +2,6 @@ import { createClient } from '@/lib/supabase/server'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { HeroSection } from '@/components/home/hero-section'
-import { SideDeals } from '@/components/home/side-deals'
 import { ProductGrid } from '@/components/product-grid'
 import { calcElaboradoStock } from '@/lib/server/stock-deduction'
 import type { Category, Product } from '@/lib/types/database'
@@ -67,14 +66,7 @@ export default async function HomePage() {
       <main>
         {/* Hero Section - Desktop only */}
         <section className="hidden md:block container mx-auto px-4 py-6 lg:py-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-8">
-              <HeroSection />
-            </div>
-            <div className="hidden lg:block lg:col-span-4">
-              <SideDeals />
-            </div>
-          </div>
+          <HeroSection />
         </section>
 
         {/* Menu Section */}

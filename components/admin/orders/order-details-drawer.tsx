@@ -30,7 +30,6 @@ export function OrderDetailsDrawer({
   onStatusChanged,
 }: OrderDetailsDrawerProps) {
   const [showStatusDialog, setShowStatusDialog] = useState(false)
-  const [currentStatus, setCurrentStatus] = useState<OrderStatus | null>(null)
 
   if (!order) return null
 
@@ -38,11 +37,8 @@ export function OrderDetailsDrawer({
   const subtotal = order.total - order.shipping_cost
 
   const handleStatusChange = (newStatus: OrderStatus) => {
-    setCurrentStatus(newStatus)
     onStatusChanged(order.id, newStatus)
   }
-
-  const displayStatus = currentStatus || order.status
 
   const googleMapsUrl = order.customer_coordinates
     ? `https://www.google.com/maps?q=${order.customer_coordinates.lat},${order.customer_coordinates.lng}`
@@ -94,7 +90,7 @@ export function OrderDetailsDrawer({
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
               {/* Status */}
               <div className="flex items-center justify-between">
-                <OrderStatusBadge status={displayStatus} />
+                <OrderStatusBadge status={order.status} />
                 <Button
                   variant="outline"
                   size="sm"
@@ -231,7 +227,7 @@ export function OrderDetailsDrawer({
             open={showStatusDialog}
             onOpenChange={setShowStatusDialog}
             orderId={order.id}
-            currentStatus={displayStatus}
+            currentStatus={order.status}
             onStatusChanged={handleStatusChange}
           />
         </>

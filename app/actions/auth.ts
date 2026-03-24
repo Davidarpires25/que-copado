@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { checkRateLimit } from '@/lib/server/rate-limit'
 
 export async function signIn(formData: FormData) {
   const supabase = await createAdminClient()
@@ -24,8 +25,14 @@ export async function signIn(formData: FormData) {
     return { error: 'El formato del email no es válido' }
   }
 
-  if (password.length < 6) {
-    return { error: 'La contraseña debe tener al menos 6 caracteres' }
+  if (password.length < 8) {
+    return { error: 'La contraseña debe tener al menos 8 caracteres' }
+  }
+
+  // Rate limit: 5 intentos por email cada 15 minutos
+  const { allowed } = checkRateLimit(`signin:${email.toLowerCase()}`, 5, 15 * 60 * 1000)
+  if (!allowed) {
+    return { error: 'Demasiados intentos fallidos. Esperá 15 minutos e intentá de nuevo.' }
   }
 
   const { error } = await supabase.auth.signInWithPassword({

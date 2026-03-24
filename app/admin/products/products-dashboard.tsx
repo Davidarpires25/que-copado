@@ -29,8 +29,8 @@ import {
 } from '@/app/actions/products'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
-import type { Category, Product, RecipeWithIngredients } from '@/lib/types/database'
+import { cn, formatPrice } from '@/lib/utils'
+import type { Category, Product } from '@/lib/types/database'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -41,7 +41,6 @@ type ProductWithCategory = Product & { categories: Category | null }
 interface AdminDashboardProps {
   initialProducts: ProductWithCategory[]
   categories: Category[]
-  recipes: RecipeWithIngredients[]
 }
 
 // ---------------------------------------------------------------------------
@@ -118,7 +117,6 @@ function StatsCards({ total, active, outOfStock }: StatsCardsProps) {
 export function ProductsDashboard({
   initialProducts,
   categories,
-  recipes,
 }: AdminDashboardProps) {
   const router = useRouter()
   const [products, setProducts] = useState(initialProducts)
@@ -143,14 +141,6 @@ export function ProductsDashboard({
   categories.forEach((cat) => {
     categoryCounts[cat.id] = products.filter((p) => p.categories?.id === cat.id).length
   })
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      minimumFractionDigits: 0,
-    }).format(price)
-  }
 
   // -------------------------------------------------------------------------
   // Handlers

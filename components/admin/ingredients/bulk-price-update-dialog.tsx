@@ -30,6 +30,7 @@ import { bulkUpdateCostByCategory } from '@/app/actions/ingredient-categories'
 import { toast } from 'sonner'
 import type { IngredientCategory, IngredientWithCategory } from '@/lib/types/database'
 import { INGREDIENT_UNIT_ABBR, type IngredientUnit } from '@/lib/types/database'
+import { formatCost } from '@/lib/constants/recipe-units'
 
 type UpdateType = 'percentage' | 'fixed'
 
@@ -40,13 +41,6 @@ interface BulkPriceUpdateDialogProps {
   ingredients: IngredientWithCategory[]
   onUpdated: () => void
 }
-
-const formatCost = (cost: number) =>
-  new Intl.NumberFormat('es-AR', {
-    style: 'currency',
-    currency: 'ARS',
-    minimumFractionDigits: 0,
-  }).format(cost)
 
 export function BulkPriceUpdateDialog({
   open,

@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { ProductsDashboard } from './products-dashboard'
-import type { RecipeWithIngredients } from '@/lib/types/database'
 
 export default async function ProductsPage() {
   const supabase = await createClient()
@@ -11,7 +10,7 @@ export default async function ProductsPage() {
     redirect('/admin/login')
   }
 
-  const [{ data: products }, { data: categories }, { data: recipes }] = await Promise.all([
+  const [{ data: products }, { data: categories }] = await Promise.all([
     supabase
       .from('products')
       .select('*, categories(*)')
@@ -20,17 +19,12 @@ export default async function ProductsPage() {
       .from('categories')
       .select('*')
       .order('sort_order', { ascending: true }),
-    supabase
-      .from('recipes')
-      .select('*, recipe_ingredients(*, ingredients(*))')
-      .order('name'),
   ])
 
   return (
     <ProductsDashboard
       initialProducts={products ?? []}
       categories={categories ?? []}
-      recipes={(recipes ?? []) as RecipeWithIngredients[]}
     />
   )
 }

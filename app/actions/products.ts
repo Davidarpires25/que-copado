@@ -33,8 +33,11 @@ export async function createProduct(formData: FormData) {
     return { error: 'La categoría es requerida' }
   }
 
+  const productType = (formData.get('product_type') as string) || 'elaborado'
+
   const price = parseFloat(priceStr)
-  if (isNaN(price) || price <= 0) {
+  // 'mitad' products use price=0 as placeholder (real price is calculated dynamically)
+  if (isNaN(price) || (price <= 0 && productType !== 'mitad')) {
     return { error: 'El precio debe ser un número válido mayor a 0' }
   }
 
@@ -46,16 +49,6 @@ export async function createProduct(formData: FormData) {
   if (cost !== null && (isNaN(cost) || cost < 0)) {
     return { error: 'El costo debe ser un número válido mayor o igual a 0' }
   }
-
-  if (imageUrl && imageUrl.trim()) {
-    try {
-      new URL(imageUrl)
-    } catch {
-      return { error: 'La URL de la imagen no es válida' }
-    }
-  }
-
-  const productType = (formData.get('product_type') as string) || 'elaborado'
   const stationRaw = (formData.get('station') as string) || 'none'
   const station = stationRaw === 'none' ? null : stationRaw
 
@@ -80,6 +73,20 @@ export async function createProduct(formData: FormData) {
     return { error: friendlyError(error) }
   }
 
+  // If type is 'mitad', create half config (source_category_id derived from product.category_id)
+  if (productType === 'mitad') {
+    const halfPricingMethod = (formData.get('half_pricing_method') as string) || 'max'
+    const halfMarkupPctStr = formData.get('half_pricing_markup_pct') as string | null
+    const halfMarkupPct = halfMarkupPctStr ? parseFloat(halfMarkupPctStr) : null
+
+    await supabase.from('product_half_configs').insert({
+      product_id: data.id,
+      source_category_id: categoryId,  // use same category as the product
+      pricing_method: halfPricingMethod,
+      pricing_markup_pct: halfPricingMethod === 'cost_markup' ? halfMarkupPct : null,
+    })
+  }
+
   revalidateStorefront()
   return { success: true, product: data }
 }
@@ -91,10 +98,14 @@ export async function updateProduct(productId: string, data: {
   cost?: number | null
   product_type?: string
   category_id?: string
-  image_url?: string
+  image_url?: string | null
   station?: string | null
   is_active?: boolean
   is_out_of_stock?: boolean
+  // half pizza config fields (handled separately, not sent to products table)
+  half_source_category_id?: string | null
+  half_pricing_method?: string
+  half_pricing_markup_pct?: number | null
 }) {
   const supabase = await createAdminClient()
 
@@ -130,24 +141,38 @@ export async function updateProduct(productId: string, data: {
     }
   }
 
-  if (data.image_url !== undefined && data.image_url) {
-    try {
-      new URL(data.image_url)
-      data.image_url = data.image_url.trim()
-    } catch {
-      return { error: 'La URL de la imagen no es válida' }
-    }
+  if (data.image_url !== undefined) {
+    data.image_url = data.image_url?.trim() || null
   }
+
+  // Extract half config fields before passing to products table
+  const { half_source_category_id, half_pricing_method, half_pricing_markup_pct, ...productData } = data
 
   const { data: updatedProduct, error } = await supabase
     .from('products')
-    .update(data)
+    .update(productData)
     .eq('id', productId)
     .select('*, categories(*)')
     .single()
 
   if (error) {
     return { error: friendlyError(error) }
+  }
+
+  // Handle half config upsert/delete based on product_type
+  const newType = data.product_type ?? updatedProduct.product_type
+  if (newType === 'mitad') {
+    // source_category_id = product's own category
+    const sourceCategoryId = data.category_id ?? updatedProduct.category_id
+    await supabase.from('product_half_configs').upsert({
+      product_id: productId,
+      source_category_id: sourceCategoryId,
+      pricing_method: half_pricing_method ?? 'max',
+      pricing_markup_pct: half_pricing_method === 'cost_markup' ? (half_pricing_markup_pct ?? null) : null,
+    }, { onConflict: 'product_id' })
+  } else if (data.product_type !== undefined && data.product_type !== 'mitad') {
+    // Type changed away from 'mitad' — delete config
+    await supabase.from('product_half_configs').delete().eq('product_id', productId)
   }
 
   revalidateStorefront()

@@ -1,16 +1,7 @@
 import { formatPrice } from '@/lib/utils'
-import type { Json, Order, OrderStatus, PaymentMethod } from '@/lib/types/database'
+import type { Json, PaymentMethod } from '@/lib/types/database'
 import type { OrderItem } from '@/lib/types/orders'
-import { ORDER_STATUS_CONFIG, PAYMENT_METHOD_CONFIG } from '@/lib/types/orders'
-
-/**
- * Formatea los items de una orden para mostrar
- */
-export function formatOrderItems(items: OrderItem[]): string {
-  return items
-    .map((item) => `${item.quantity}x ${item.name}`)
-    .join(', ')
-}
+import { PAYMENT_METHOD_CONFIG } from '@/lib/types/orders'
 
 /**
  * Formatea los items de una orden para WhatsApp
@@ -22,13 +13,6 @@ export function formatOrderItemsForWhatsApp(items: OrderItem[]): string {
         `• ${item.quantity}x ${item.name} - ${formatPrice(item.price * item.quantity)}`
     )
     .join('\n')
-}
-
-/**
- * Obtiene el label del estado
- */
-export function getStatusLabel(status: OrderStatus): string {
-  return ORDER_STATUS_CONFIG[status]?.label || status
 }
 
 /**
@@ -96,71 +80,6 @@ export function formatDateTime(dateString: string): string {
     hour: '2-digit',
     minute: '2-digit',
   })
-}
-
-/**
- * Formatea solo la hora
- */
-export function formatTime(dateString: string): string {
-  const date = new Date(dateString)
-  return date.toLocaleTimeString('es-AR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-/**
- * Genera el mensaje de WhatsApp para una orden existente
- */
-export function generateWhatsAppMessageFromOrder(
-  order: Order,
-  items: OrderItem[],
-  includeOrderId: boolean = true
-): string {
-  const orderItems = formatOrderItemsForWhatsApp(items)
-  const paymentLabel = getPaymentMethodLabel(order.payment_method)
-
-  const fullAddress = order.customer_address
-
-  // Generar link de Google Maps si hay coordenadas
-  const locationLink = order.customer_coordinates
-    ? `https://www.google.com/maps?q=${order.customer_coordinates.lat},${order.customer_coordinates.lng}`
-    : ''
-
-  let message = `🍔 *NUEVO PEDIDO - QUE COPADO*\n\n`
-
-  if (includeOrderId) {
-    message += `*Pedido #${order.id.slice(0, 8).toUpperCase()}*\n\n`
-  }
-
-  message += `*Cliente:* ${order.customer_name}\n`
-  message += `*Teléfono:* ${order.customer_phone}\n`
-  message += `*Dirección:* ${fullAddress}\n`
-
-  if (locationLink) {
-    message += `*📍 Ubicación:* ${locationLink}\n`
-  }
-
-  if (order.notes) {
-    message += `*Notas:* ${order.notes}\n`
-  }
-
-  message += `\n*PEDIDO:*\n${orderItems}\n\n`
-
-  const subtotal = order.total - order.shipping_cost
-  message += `*Subtotal:* ${formatPrice(subtotal)}\n`
-
-  if (order.shipping_cost > 0) {
-    message += `*Envío:* ${formatPrice(order.shipping_cost)}\n`
-  } else {
-    message += `*Envío:* Gratis\n`
-  }
-
-  message += `*TOTAL: ${formatPrice(order.total)}*\n\n`
-  message += `*Método de pago:* ${paymentLabel}\n\n`
-  message += `_Enviado desde queCopado.com_`
-
-  return message
 }
 
 /**
@@ -264,13 +183,6 @@ export function generateWhatsAppMessage(options: WhatsAppMessageOptions): string
  */
 export function getShortOrderId(orderId: string): string {
   return orderId.slice(0, 8).toUpperCase()
-}
-
-/**
- * Calcula el subtotal de una orden (total - shipping)
- */
-export function getOrderSubtotal(order: Order): number {
-  return order.total - order.shipping_cost
 }
 
 function isOrderItemLike(item: Json): item is { [key: string]: Json | undefined } & { name: Json; price: Json } {

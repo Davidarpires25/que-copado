@@ -8,7 +8,7 @@ import { Footer } from '@/components/footer'
 import { CartItem } from '@/components/cart-item'
 import { OrderSummary } from '@/components/order-summary'
 import { Button } from '@/components/ui/button'
-import { useCartStore } from '@/lib/store/cart-store'
+import { useCartStore, getCartItemKey } from '@/lib/store/cart-store'
 
 export default function CartPage() {
   const items = useCartStore((s) => s.items)
@@ -62,13 +62,13 @@ export default function CartPage() {
             <div className="lg:col-span-8 space-y-4">
               <AnimatePresence mode="popLayout">
                 {items.map((item, index) => (
-                  <div key={item.product.id}>
+                  <div key={getCartItemKey(item)}>
                     <CartItem
                       item={item}
                       onUpdateQuantity={(qty) =>
-                        updateQuantity(item.product.id, qty)
+                        updateQuantity(getCartItemKey(item), qty)
                       }
-                      onRemove={() => removeItem(item.product.id)}
+                      onRemove={() => removeItem(getCartItemKey(item))}
                     />
                     {index < items.length - 1 && (
                       <div className="border-b border-dashed border-orange-200/50 my-4" />

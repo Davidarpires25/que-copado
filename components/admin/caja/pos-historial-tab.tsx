@@ -18,7 +18,6 @@ import {
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { formatPrice } from '@/lib/utils'
-import { PAYMENT_METHOD_CONFIG } from '@/lib/types/orders'
 import type { PaymentMethod, Json } from '@/lib/types/database'
 import type { OrderItem } from '@/lib/types/orders'
 import type { OrderWithSplits } from '@/lib/types/cash-register'

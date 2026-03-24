@@ -2,17 +2,18 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Minus, Plus, ShoppingCart, Loader2, ChefHat, CreditCard, Printer, Trash2, MessageSquare } from 'lucide-react'
+import { Minus, Plus, ShoppingCart, Loader2, ChefHat, CreditCard, Trash2, MessageSquare } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import type { OrderItem } from '@/lib/types/orders'
 
 export interface PosCartItem extends OrderItem {
   quantity: number
+  halfPizzaProductId?: string  // real product_id when item id is composite
+  metadata?: Record<string, unknown> | null
 }
 
 interface OrderBuilderProps {
   items: PosCartItem[]
-  notes: string
   loading?: boolean
   hasKitchenItems?: boolean
   onUpdateQuantity: (id: string, delta: number) => void
@@ -115,22 +116,33 @@ export function OrderBuilder({
                   <p className="text-[11px] font-medium mt-0.5 text-[var(--admin-text-faint)]">
                     {formatPrice(item.price)} c/u
                   </p>
-                  <button
-                    onClick={() => toggleItemNote(item.id)}
-                    className="flex items-center gap-1 mt-0.5 text-[11px] text-[var(--admin-text-faint)] hover:text-[var(--admin-accent-text)] transition-colors cursor-pointer"
-                  >
-                    <MessageSquare className="h-3 w-3" />
-                    <span className="truncate max-w-[100px]">{item.notes ? item.notes : 'nota'}</span>
-                  </button>
-                  {itemNotesOpen.has(item.id) && (
-                    <input
-                      autoFocus
-                      value={item.notes ?? ''}
-                      onChange={(e) => onSetItemNotes?.(item.id, e.target.value)}
-                      onBlur={() => { if (!item.notes) toggleItemNote(item.id) }}
-                      placeholder="sin queso, sin lechuga..."
-                      className="mt-1 w-full text-[11px] bg-transparent border-b border-[var(--admin-border)] focus:border-[var(--admin-accent)]/50 text-[var(--admin-text)] placeholder:text-[var(--admin-text-faint)] outline-none py-0.5"
-                    />
+                  {item.halfPizzaProductId ? (
+                    item.notes && (
+                      <p className="flex items-center gap-1 mt-0.5 text-[11px] text-[var(--admin-accent-text)]/80">
+                        <MessageSquare className="h-3 w-3 shrink-0" />
+                        <span className="truncate max-w-[120px]">{item.notes}</span>
+                      </p>
+                    )
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => toggleItemNote(item.id)}
+                        className="flex items-center gap-1 mt-0.5 text-[11px] text-[var(--admin-text-faint)] hover:text-[var(--admin-accent-text)] transition-colors cursor-pointer"
+                      >
+                        <MessageSquare className="h-3 w-3" />
+                        <span className="truncate max-w-[100px]">{item.notes ? item.notes : 'nota'}</span>
+                      </button>
+                      {itemNotesOpen.has(item.id) && (
+                        <input
+                          autoFocus
+                          value={item.notes ?? ''}
+                          onChange={(e) => onSetItemNotes?.(item.id, e.target.value)}
+                          onBlur={() => { if (!item.notes) toggleItemNote(item.id) }}
+                          placeholder="sin queso, sin lechuga..."
+                          className="mt-1 w-full text-[11px] bg-transparent border-b border-[var(--admin-border)] focus:border-[var(--admin-accent)]/50 text-[var(--admin-text)] placeholder:text-[var(--admin-text-faint)] outline-none py-0.5"
+                        />
+                      )}
+                    </>
                   )}
                 </div>
 
@@ -228,17 +240,6 @@ export function OrderBuilder({
               {formatPrice(subtotal)}
             </motion.span>
           </div>
-        </div>
-      )}
-
-      {/* Print ticket row — bg-sidebar, centered */}
-      {items.length > 0 && (
-        <div className="flex items-center justify-center gap-2 shrink-0 bg-[var(--admin-surface-2)] border-t border-[var(--admin-border)]"
-             style={{ height: 44 }}>
-          <Printer className="h-4 w-4 text-[var(--admin-text-muted)]" />
-          <span className="text-[13px] font-medium text-[var(--admin-text-muted)]">
-            Imprimir Ticket
-          </span>
         </div>
       )}
 

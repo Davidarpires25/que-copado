@@ -6,7 +6,6 @@ import { AdminLayout } from '@/components/admin/layout'
 import {
   ChartContainer,
   CancellationCard,
-  PeriodSelector,
 } from '@/components/admin/analytics'
 
 // Heavy recharts components — lazy-loaded to reduce initial bundle
@@ -17,10 +16,6 @@ function ChartSkeleton({ height = 280 }: { height?: number | string }) {
       style={{ height }}
     />
   )
-}
-
-function LoadingPlaceholder({ height }: { height: string }) {
-  return <ChartSkeleton height={height} />
 }
 
 const ConfigurableSalesChart = dynamic(
@@ -221,7 +216,7 @@ export function AnalyticsDashboard({
           onPeriodChange={handleSalesPeriodChange}
         >
           {loadingSales ? (
-            <LoadingPlaceholder height="300px" />
+            <ChartSkeleton height="300px" />
           ) : (
             <ConfigurableSalesChart data={salesChart} />
           )}
@@ -239,7 +234,7 @@ export function AnalyticsDashboard({
           onPeriodChange={handleProfitPeriodChange}
         >
           {loadingProfit ? (
-            <LoadingPlaceholder height="300px" />
+            <ChartSkeleton height="300px" />
           ) : profitability ? (
             <ProfitabilityTable data={profitability} />
           ) : (
@@ -264,7 +259,7 @@ export function AnalyticsDashboard({
           >
             <div className="flex-1">
               {loadingHourly ? (
-                <LoadingPlaceholder height="280px" />
+                <ChartSkeleton height="280px" />
               ) : (
                 <HourlySalesChart data={hourlySales} />
               )}
@@ -284,7 +279,7 @@ export function AnalyticsDashboard({
           >
             <div className="flex-1">
               {loadingWeekday ? (
-                <LoadingPlaceholder height="280px" />
+                <ChartSkeleton height="280px" />
               ) : (
                 <WeekdaySalesChart data={weekdaySales} />
               )}
@@ -306,7 +301,7 @@ export function AnalyticsDashboard({
             className="flex-1"
           >
             {loadingProducts ? (
-              <LoadingPlaceholder height="300px" />
+              <ChartSkeleton height="300px" />
             ) : (
               <TopProductsRevenue data={topProducts} />
             )}
@@ -338,7 +333,7 @@ export function AnalyticsDashboard({
             className="flex-1"
           >
             {loadingPayment ? (
-              <LoadingPlaceholder height="280px" />
+              <ChartSkeleton height="280px" />
             ) : (
               <PaymentMethodChart data={paymentMethods} />
             )}
@@ -356,7 +351,7 @@ export function AnalyticsDashboard({
             className="flex-1"
           >
             {loadingShipping ? (
-              <LoadingPlaceholder height="280px" />
+              <ChartSkeleton height="280px" />
             ) : shipping ? (
               <ShippingAnalysis data={shipping} />
             ) : (
@@ -378,7 +373,7 @@ export function AnalyticsDashboard({
           onPeriodChange={handleZonePeriodChange}
         >
           {loadingZone ? (
-            <LoadingPlaceholder height="250px" />
+            <ChartSkeleton height="250px" />
           ) : (
             <ZoneSalesTable data={zoneSales} />
           )}

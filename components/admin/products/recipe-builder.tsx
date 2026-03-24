@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select'
 import type { Ingredient, IngredientUnit } from '@/lib/types/database'
 import { INGREDIENT_UNIT_ABBR } from '@/lib/types/database'
+import { formatCost } from '@/lib/constants/recipe-units'
 
 export interface RecipeItem {
   ingredient_id: string
@@ -29,12 +30,6 @@ export function RecipeBuilder({ ingredients, recipeItems, onChange }: RecipeBuil
   const usedIds = new Set(recipeItems.map((r) => r.ingredient_id))
   const availableIngredients = ingredients.filter((i) => i.is_active && !usedIds.has(i.id))
 
-  const formatCost = (cost: number) =>
-    new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      minimumFractionDigits: 0,
-    }).format(cost)
 
   const getIngredient = (id: string) => ingredients.find((i) => i.id === id)
 

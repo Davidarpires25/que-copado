@@ -3,16 +3,18 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import {
   ArrowLeft, Users, Banknote, CreditCard, Zap, QrCode,
-  Loader2, AlertTriangle, Printer, CreditCard as CreditCardIcon, Check,
+  Loader2, AlertTriangle, Printer, Check,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
+import { clampAmountForSplitMethod } from '@/lib/utils/payment-split'
 import { payTableOrder } from '@/app/actions/tables'
 import { printClientTicketAction } from '@/app/actions/print'
 import { checkStockForItems } from '@/app/actions/stock'
 import type { StockWarning } from '@/app/actions/stock'
 import type { PaymentMethod, Order } from '@/lib/types/database'
 import type { PaymentSplit, CashRegisterSession } from '@/lib/types/cash-register'
+import { TAG_COLORS } from '@/lib/types/tables'
 import type { OrderWithItems, RestaurantTable } from '@/lib/types/tables'
 
 type PayMode = 'full' | 'per_guest'
@@ -24,13 +26,6 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string; shortLabel: string
   { value: 'mercadopago', label: 'Mercado Pago', shortLabel: 'MP', icon: QrCode, color: 'text-purple-400', bg: 'bg-purple-400/10', border: 'border-purple-400/20' },
 ]
 
-const GUEST_COLORS = [
-  { dot: 'bg-green-400', text: 'text-green-400', bg: 'bg-green-400/12' },
-  { dot: 'bg-blue-400', text: 'text-blue-400', bg: 'bg-blue-400/12' },
-  { dot: 'bg-amber-400', text: 'text-amber-400', bg: 'bg-amber-400/12' },
-  { dot: 'bg-purple-400', text: 'text-purple-400', bg: 'bg-purple-400/12' },
-  { dot: 'bg-pink-400', text: 'text-pink-400', bg: 'bg-pink-400/12' },
-]
 
 interface TablePayViewProps {
   order: OrderWithItems
@@ -146,11 +141,17 @@ export function TablePayView({
 
   const commitEdit = (method: PaymentMethod) => {
     const num = parseFloat(editAmount) || 0
-    if (num <= 0) {
-      setActivePayments(prev => prev.filter(p => p.method !== method))
-    } else {
-      setActivePayments(prev => prev.map(p => p.method === method ? { ...p, amount: num } : p))
-    }
+    setActivePayments((prev) => {
+      if (num <= 0) {
+        return prev.filter((p) => p.method !== method)
+      }
+      const otherSum = prev.filter((p) => p.method !== method).reduce((s, p) => s + p.amount, 0)
+      const amount = clampAmountForSplitMethod(method, num, otherSum, total)
+      if (amount <= 0) {
+        return prev.filter((p) => p.method !== method)
+      }
+      return prev.map((p) => (p.method === method ? { ...p, amount } : p))
+    })
     setEditingMethod(null)
     setEditAmount('')
   }
@@ -162,7 +163,8 @@ export function TablePayView({
       setActivePayments(prev => prev.filter(p => p.method !== method))
       if (editingMethod === method) { setEditingMethod(null); setEditAmount('') }
     } else {
-      const defaultAmount = remaining > 0 ? remaining : total
+      if (remaining <= 0.01 && activePayments.length > 0) return
+      const defaultAmount = remaining
       setActivePayments(prev => [...prev, { method, amount: defaultAmount }])
       setEditAmount(defaultAmount.toFixed(0))
       setEditingMethod(method)
@@ -440,7 +442,7 @@ export function TablePayView({
           {payMode === 'per_guest' && (
             <div className="flex-1 flex gap-4 min-h-0">
               {guestTags.map(({ tag, subtotal }, idx) => {
-                const colors = GUEST_COLORS[idx % GUEST_COLORS.length]
+                const colors = TAG_COLORS[idx % TAG_COLORS.length]
                 const guestMethod = getGuestMethod(tag)
                 const items = itemsByGuest.get(tag) ?? []
 
@@ -551,7 +553,7 @@ export function TablePayView({
                 {/* Por comensal */}
                 <div className="space-y-3">
                   {guestTags.map(({ tag, subtotal }, idx) => {
-                    const colors = GUEST_COLORS[idx % GUEST_COLORS.length]
+                    const colors = TAG_COLORS[idx % TAG_COLORS.length]
                     const gm = getGuestMethod(tag)
                     const gmOpt = PAYMENT_METHODS.find((o) => o.value === gm)
                     return (
@@ -718,7 +720,7 @@ export function TablePayView({
                 `Faltan ${formatPrice(remaining)}`
               ) : (
                 <>
-                  <CreditCardIcon className="h-5 w-5" />
+                  <CreditCard className="h-5 w-5" />
                   Cobrar {formatPrice(total)}
                 </>
               )}
