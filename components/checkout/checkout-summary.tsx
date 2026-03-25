@@ -1,12 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { Shield, ImageOff, AlertTriangle, MapPin, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
-import { WhatsAppIcon } from '@/components/icons'
+import { Shield, AlertTriangle, MapPin, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { QuantityStepper } from '@/components/ui/quantity-stepper'
 import { useCartStore, getCartItemKey, getCartItemName, getCartItemPrice } from '@/lib/store/cart-store'
 import { formatPrice } from '@/lib/utils'
 import type { ShippingResult } from '@/lib/types/database'
@@ -32,7 +29,6 @@ export function CheckoutSummary({
 }: CheckoutSummaryProps) {
   const items = useCartStore((s) => s.items)
   const getTotal = useCartStore((s) => s.getTotal)
-  const updateQuantity = useCartStore((s) => s.updateQuantity)
   const [showDetails, setShowDetails] = useState(false)
   const shouldReduceMotion = useReducedMotion()
 
@@ -64,99 +60,42 @@ export function CheckoutSummary({
       <motion.div
         initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="hidden lg:block bg-white rounded-2xl border border-orange-100 shadow-warm-lg overflow-hidden sticky top-24"
+        className="hidden lg:block bg-white rounded-2xl border border-[#F0EBE1] overflow-hidden sticky top-24"
       >
-        {/* Header */}
-        <div className="bg-[#FEC501] px-6 py-4">
-          <h2 className="text-black font-bold text-lg">Tu Pedido</h2>
-          <p className="text-black/70 text-sm">
+        {/* Title */}
+        <div className="px-6 pt-6 pb-2">
+          <h2 className="text-lg font-bold text-[#2D1A0E]">Resumen del pedido</h2>
+          <p className="text-sm text-[#78706A]">
             {items.length} {items.length === 1 ? 'producto' : 'productos'}
           </p>
         </div>
 
         {/* Items */}
-        <div className="max-h-[300px] overflow-y-auto p-4 space-y-3">
+        <div className="max-h-[300px] overflow-y-auto px-6 py-3 space-y-3">
           {items.map((item) => (
             <div
               key={getCartItemKey(item)}
-              className="flex gap-3 p-2 rounded-xl bg-orange-50/50"
+              className="flex items-center justify-between gap-3"
             >
-              {/* Image */}
-              <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-white shrink-0">
-                {item.secondHalf ? (
-                  <div className="w-full h-full flex">
-                    <div className="relative w-1/2 h-full overflow-hidden">
-                      {item.product.image_url ? (
-                        <Image src={item.product.image_url} alt={item.product.name} fill className="object-cover" sizes="28px" />
-                      ) : (
-                        <div className="w-full h-full bg-orange-100 flex items-center justify-center">
-                          <ImageOff className="h-3 w-3 text-orange-200" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="relative w-1/2 h-full overflow-hidden border-l border-white/50">
-                      {item.secondHalf.image_url ? (
-                        <Image src={item.secondHalf.image_url} alt={item.secondHalf.name} fill className="object-cover" sizes="28px" />
-                      ) : (
-                        <div className="w-full h-full bg-amber-100 flex items-center justify-center">
-                          <ImageOff className="h-3 w-3 text-orange-200" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : item.product.image_url ? (
-                  <Image
-                    src={item.product.image_url}
-                    alt={item.product.name}
-                    fill
-                    className="object-cover"
-                    sizes="56px"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <ImageOff className="h-5 w-5 text-orange-200" />
-                  </div>
-                )}
-              </div>
-
-              {/* Details */}
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-orange-900 text-sm line-clamp-2 leading-tight">
-                  {getCartItemName(item)}
-                </p>
-                <p className="text-xs text-orange-600/70">
-                  {formatPrice(getCartItemPrice(item))} c/u
-                </p>
-                <div className="mt-1">
-                  <QuantityStepper
-                    quantity={item.quantity}
-                    onIncrement={() =>
-                      updateQuantity(getCartItemKey(item), item.quantity + 1)
-                    }
-                    onDecrement={() =>
-                      updateQuantity(getCartItemKey(item), item.quantity - 1)
-                    }
-                    size="sm"
-                    productName={getCartItemName(item)}
-                  />
+              <div className="flex items-center gap-2.5 min-w-0">
+                {/* qty badge */}
+                <div className="w-7 h-7 rounded-lg bg-[#FFF9F0] flex items-center justify-center shrink-0">
+                  <span className="font-mono text-xs font-semibold text-[#2D1A0E]">{item.quantity}</span>
                 </div>
+                <span className="text-sm font-medium text-[#2D1A0E] truncate">{getCartItemName(item)}</span>
               </div>
-
-              {/* Price */}
-              <div className="text-right shrink-0">
-                <p className="font-bold text-orange-600 text-sm">
-                  {formatPrice(getCartItemPrice(item) * item.quantity)}
-                </p>
-              </div>
+              <span className="font-mono text-sm font-semibold text-[#2D1A0E] shrink-0">
+                {formatPrice(getCartItemPrice(item) * item.quantity)}
+              </span>
             </div>
           ))}
         </div>
 
         {/* Totals */}
-        <div className="p-4 border-t border-orange-100 space-y-2">
+        <div className="px-6 py-4 space-y-3 border-t border-[#F0EBE1] mt-4">
           <div className="flex justify-between text-sm">
-            <span className="text-orange-700/70">Subtotal</span>
-            <span className="text-orange-800 font-medium">
+            <span className="text-[#78706A]">Subtotal</span>
+            <span className="font-mono font-semibold text-[#2D1A0E]">
               {formatPrice(subtotal)}
             </span>
           </div>
@@ -164,11 +103,11 @@ export function CheckoutSummary({
           {/* Shipping with zone info */}
           <div className="flex justify-between text-sm">
             <div className="flex items-center gap-1.5">
-              <span className="text-orange-700/70">Envío</span>
+              <span className="text-[#78706A]">Envío</span>
               {!isPickup && (
                 <>
                   {isCalculatingShipping ? (
-                    <Loader2 className="h-3 w-3 text-orange-600 animate-spin" />
+                    <Loader2 className="h-3 w-3 text-[#78706A] animate-spin" />
                   ) : (
                     shippingResult && !shippingResult.isOutOfCoverage && shippingResult.zone && (
                       <span
@@ -187,10 +126,10 @@ export function CheckoutSummary({
               )}
             </div>
             <span
-              className={`font-medium ${isFreeShipping ? 'text-green-600' : showShippingPending ? 'text-orange-600' : 'text-orange-800'}`}
+              className={`font-mono font-semibold ${isFreeShipping ? 'text-green-600' : showShippingPending ? 'text-[#78706A]' : 'text-[#2D1A0E]'}`}
             >
               {!isPickup && isCalculatingShipping ? (
-                <span className="text-orange-600/50">Calculando...</span>
+                <span className="text-[#B0A99F]">Calculando...</span>
               ) : showShippingPending ? (
                 'Ingresá ubicación'
               ) : isFreeShipping ? (
@@ -203,21 +142,21 @@ export function CheckoutSummary({
 
           {/* Free shipping threshold hint */}
           {!isPickup && !isFreeShipping && shippingResult && !shippingResult.isOutOfCoverage && shippingResult.zone?.free_shipping_threshold && (
-            <p className="text-xs text-orange-600/70">
+            <p className="text-xs text-[#78706A]">
               Envío gratis a partir de {formatPrice(shippingResult.zone.free_shipping_threshold)}
             </p>
           )}
 
-          <div className="border-t border-dashed border-orange-200 pt-2 flex justify-between items-center">
-            <span className="text-orange-900 font-bold">Total</span>
-            <span className="text-xl font-black bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+          <div className="border-t border-[#F0EBE1] pt-3 flex justify-between items-center">
+            <span className="font-bold text-[#2D1A0E] text-lg">Total</span>
+            <span className="font-mono text-2xl font-bold text-[#2D1A0E]">
               {formatPrice(total)}
             </span>
           </div>
         </div>
 
         {/* Checkout Button */}
-        <div className="p-4 pt-0 space-y-3">
+        <div className="px-6 pb-6 space-y-3">
           {isBlocked && !isPaused ? (
             <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
               <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
@@ -229,18 +168,18 @@ export function CheckoutSummary({
             <Button
               onClick={onCheckout}
               disabled={isLoading || items.length === 0 || isBlocked}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6 shadow-lg hover:shadow-xl transition-all rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-[52px] rounded-[14px] bg-[#FEC501] hover:bg-[#E5B001] text-[#2D1A0E] font-bold text-[15px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? (
                 <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Procesando...</>
               ) : (
-                <><WhatsAppIcon className="mr-2 h-5 w-5" />Pedir por WhatsApp</>
+                `Confirmar pedido · ${formatPrice(total)}`
               )}
             </Button>
           )}
 
           {/* Trust Badge */}
-          <div className="flex items-center justify-center gap-2 text-xs text-orange-600/70">
+          <div className="flex items-center justify-center gap-2 text-xs text-[#78706A]">
             <Shield className="h-4 w-4" />
             <span>Pedido seguro por WhatsApp</span>
           </div>
@@ -251,7 +190,7 @@ export function CheckoutSummary({
       <motion.div
         initial={shouldReduceMotion ? false : { y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-orange-100 shadow-warm-xl"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#F0EBE1] shadow-warm-xl"
       >
         {/* Detalles expandibles */}
         <AnimatePresence>
@@ -261,20 +200,20 @@ export function CheckoutSummary({
               animate={shouldReduceMotion ? { opacity: 1 } : { height: 'auto', opacity: 1 }}
               exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="overflow-hidden border-b border-orange-100"
+              className="overflow-hidden border-b border-[#F0EBE1]"
             >
-              <div className="px-4 py-3 space-y-2 bg-orange-50/50">
+              <div className="px-4 py-3 space-y-2 bg-[#FFF9F0]">
                 <div className="flex justify-between text-sm">
-                  <span className="text-orange-700/70">Subtotal ({items.length} {items.length === 1 ? 'producto' : 'productos'})</span>
-                  <span className="text-orange-800 font-medium">
+                  <span className="text-[#78706A]">Subtotal ({items.length} {items.length === 1 ? 'producto' : 'productos'})</span>
+                  <span className="font-mono font-semibold text-[#2D1A0E]">
                     {formatPrice(subtotal)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-orange-700/70">Envío</span>
+                    <span className="text-[#78706A]">Envío</span>
                     {!isPickup && isCalculatingShipping && (
-                      <Loader2 className="h-3 w-3 text-orange-600 animate-spin" />
+                      <Loader2 className="h-3 w-3 text-[#78706A] animate-spin" />
                     )}
                     {!isPickup && shippingResult && !shippingResult.isOutOfCoverage && shippingResult.zone && (
                       <span
@@ -290,10 +229,10 @@ export function CheckoutSummary({
                     )}
                   </div>
                   <span
-                    className={`font-medium ${isFreeShipping ? 'text-green-600' : showShippingPending ? 'text-orange-600' : 'text-orange-800'}`}
+                    className={`font-mono font-semibold ${isFreeShipping ? 'text-green-600' : showShippingPending ? 'text-[#78706A]' : 'text-[#2D1A0E]'}`}
                   >
                     {!isPickup && isCalculatingShipping ? (
-                      <span className="text-orange-600/50">...</span>
+                      <span className="text-[#B0A99F]">...</span>
                     ) : showShippingPending ? (
                       'Pendiente'
                     ) : isFreeShipping ? (
@@ -305,7 +244,7 @@ export function CheckoutSummary({
                 </div>
                 {/* Free shipping threshold hint */}
                 {!isPickup && !isFreeShipping && shippingResult && !shippingResult.isOutOfCoverage && shippingResult.zone?.free_shipping_threshold && (
-                  <p className="text-xs text-orange-600/70">
+                  <p className="text-xs text-[#78706A]">
                     Envío gratis a partir de {formatPrice(shippingResult.zone.free_shipping_threshold)}
                   </p>
                 )}
@@ -319,10 +258,10 @@ export function CheckoutSummary({
           {/* Total + ver detalles */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-orange-900 font-bold">Total</span>
+              <span className="text-[#2D1A0E] font-bold">Total</span>
               <button
                 onClick={() => setShowDetails(!showDetails)}
-                className="text-xs text-orange-600 hover:text-orange-700 flex items-center gap-0.5"
+                className="text-xs text-[#78706A] hover:text-[#2D1A0E] flex items-center gap-0.5"
               >
                 {showDetails ? 'ocultar' : 'ver detalles'}
                 {showDetails ? (
@@ -332,12 +271,12 @@ export function CheckoutSummary({
                 )}
               </button>
             </div>
-            <span className="text-xl font-black bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+            <span className="font-mono text-xl font-bold text-[#2D1A0E]">
               {formatPrice(total)}
             </span>
           </div>
 
-          {/* WhatsApp Button - Full width */}
+          {/* CTA Button - Full width */}
           {isBlocked && !isPaused ? (
             <div className="flex items-center justify-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
               <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
@@ -347,12 +286,12 @@ export function CheckoutSummary({
             <Button
               onClick={onCheckout}
               disabled={isLoading || items.length === 0 || isBlocked}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-4 shadow-lg rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-[52px] rounded-[14px] bg-[#FEC501] hover:bg-[#E5B001] text-[#2D1A0E] font-bold text-[15px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? (
                 <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Procesando...</>
               ) : (
-                <><WhatsAppIcon className="mr-2 h-5 w-5" />Pedir por WhatsApp</>
+                `Confirmar pedido · ${formatPrice(total)}`
               )}
             </Button>
           )}

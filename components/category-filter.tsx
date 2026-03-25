@@ -23,7 +23,7 @@ export function CategoryFilter({
           className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap shrink-0 transition-colors duration-200 active:scale-95 touch-manipulation ${
             selectedCategory === null
               ? 'bg-[#FEC501] text-black shadow-sm shadow-[#FEC501]/30'
-              : 'bg-white text-orange-700 border border-orange-200 hover:border-orange-300 hover:bg-orange-50'
+              : 'bg-white text-[#2D1A0E] border border-[#E7E0D3] hover:border-[#F0EBE1] hover:bg-[#FFF9F0]'
           }`}
         >
           Todos
@@ -39,7 +39,7 @@ export function CategoryFilter({
               className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap shrink-0 transition-colors duration-200 active:scale-95 touch-manipulation ${
                 isActive
                   ? 'bg-[#FEC501] text-black shadow-sm shadow-[#FEC501]/30'
-                  : 'bg-white text-orange-700 border border-orange-200 hover:border-orange-300 hover:bg-orange-50'
+                  : 'bg-white text-[#2D1A0E] border border-[#E7E0D3] hover:border-[#F0EBE1] hover:bg-[#FFF9F0]'
               }`}
             >
               {category.name}

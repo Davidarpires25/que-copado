@@ -2,9 +2,8 @@
 
 import dynamic from 'next/dynamic'
 import { useRef, useEffect } from 'react'
-import { MapPin, User, Phone, MessageSquare, Truck, Check, Loader2, Store, AlertCircle } from 'lucide-react'
+import { Truck, Check, Loader2, Store, AlertCircle, MapPin } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { AddressAutocomplete } from './address-autocomplete'
 import { CashIcon, BankTransferIcon, MercadoPagoIcon, NavigationIcon } from '@/components/icons'
@@ -18,8 +17,8 @@ const AddressMapPicker = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="bg-orange-50 rounded-xl h-[250px] flex items-center justify-center">
-        <p className="text-orange-600/70 text-sm">Cargando mapa...</p>
+      <div className="bg-[#FFF9F0] rounded-xl h-[250px] flex items-center justify-center">
+        <p className="text-[#78706A] text-sm">Cargando mapa...</p>
       </div>
     ),
   }
@@ -77,9 +76,9 @@ function ZoneIndicator({
 
   if (isCalculating) {
     return (
-      <div className="mt-3 p-3 rounded-lg bg-orange-50 border border-orange-200 flex items-center gap-3">
-        <Loader2 className="h-4 w-4 text-orange-600 animate-spin shrink-0" />
-        <p className="text-sm text-orange-700">
+      <div className="mt-3 p-3 rounded-lg bg-[#FFF9F0] border border-[#E7E0D3] flex items-center gap-3">
+        <Loader2 className="h-4 w-4 text-[#78706A] animate-spin shrink-0" />
+        <p className="text-sm text-[#78706A]">
           Verificando zona de cobertura...
         </p>
       </div>
@@ -97,36 +96,15 @@ function ZoneIndicator({
   }
 
   if (shippingResult?.zone) {
+    const shippingLabel = shippingResult.isFreeShipping
+      ? 'Envío gratis'
+      : `Envío ${formatPrice(shippingResult.shippingCost)}`
     return (
-      <div
-        className="mt-3 p-3 rounded-lg border flex items-center gap-3"
-        style={{
-          backgroundColor: `${shippingResult.zone.color}10`,
-          borderColor: `${shippingResult.zone.color}40`,
-        }}
-      >
-        <div
-          className="w-3 h-3 rounded-full shrink-0"
-          style={{ backgroundColor: shippingResult.zone.color }}
-        />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-orange-900">
-            Zona: {shippingResult.zone.name}
-          </p>
-          <div className="flex items-center gap-2 mt-0.5">
-            <Truck className="h-3 w-3 text-orange-600" />
-            {shippingResult.isFreeShipping ? (
-              <span className="text-sm text-green-600 font-medium flex items-center gap-1">
-                <Check className="h-3 w-3" />
-                Envío gratis
-              </span>
-            ) : (
-              <span className="text-sm text-orange-600">
-                Envío: {formatPrice(shippingResult.shippingCost)}
-              </span>
-            )}
-          </div>
-        </div>
+      <div className="mt-3 inline-flex items-center gap-1.5 bg-[#FEF3C7] rounded-full px-3 py-1.5">
+        <MapPin className="h-3.5 w-3.5 text-[#D97706] shrink-0" />
+        <span className="text-xs font-semibold text-[#D97706]">
+          {shippingResult.zone.name} · {shippingLabel}
+        </span>
       </div>
     )
   }
@@ -148,7 +126,7 @@ function PickupInfoInline() {
         type="button"
         onClick={handleOpenMap}
         variant="outline"
-        className="w-full border-orange-200 hover:bg-orange-50 hover:border-orange-300 text-orange-700 font-semibold"
+        className="w-full border-[#E7E0D3] hover:bg-[#FFF9F0] hover:border-[#E7E0D3] text-[#2D1A0E] font-semibold"
       >
         <NavigationIcon size={18} className="mr-2" />
         Cómo llegar
@@ -253,40 +231,23 @@ export function DeliveryForm({
   }
 
   return (
-    <div className="-mx-4 lg:mx-0 bg-white lg:rounded-2xl lg:border lg:border-orange-100 lg:shadow-warm overflow-hidden">
-      {/* Header - Compacto en móvil */}
-      <div className="flex items-center gap-3 px-4 lg:px-6 py-3 lg:py-4 border-b border-orange-100 bg-orange-50/50">
-        <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-[#FEC501] flex items-center justify-center">
-          <User className="h-4 w-4 lg:h-5 lg:w-5 text-black" />
-        </div>
-        <div>
-          <h2 className="font-bold text-orange-900 text-base lg:text-lg">Datos del Pedido</h2>
-          <p className="text-sm text-orange-600/70">
-            Completá tus datos para continuar
-          </p>
-        </div>
-      </div>
-
-      {/* Form */}
-      <div className="px-4 lg:px-6 py-5 lg:py-6 space-y-5">
-        {/* Name & Phone - Siempre visibles */}
+    <div className="space-y-6">
+      {/* Datos personales */}
+      <div>
+        <h3 className="text-base font-bold text-[#2D1A0E] mb-3">Datos personales</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Name */}
-          <div className="space-y-2">
-            <Label
-              htmlFor="name"
-              className="text-orange-800 font-semibold flex items-center gap-2"
-            >
-              <User className="h-4 w-4" />
+          <div className="space-y-1.5">
+            <label htmlFor="name" className="block text-sm font-medium text-[#2D1A0E] mb-1.5">
               Nombre completo
-            </Label>
+            </label>
             <Input
               ref={nameRef}
               id="name"
               placeholder="Nombre y apellido"
               value={data.name}
               onChange={(e) => { updateField('name', e.target.value); if (clearFieldError) clearFieldError('name') }}
-              className={`input-large ${fieldErrors?.name ? 'border-red-400 focus-visible:ring-red-400' : 'border-orange-200'}`}
+              className={`bg-white border-[#E7E0D3] focus-visible:ring-[#FEC501] focus-visible:border-[#FEC501] rounded-xl h-12 ${fieldErrors?.name ? 'border-red-400 focus-visible:ring-red-400' : ''}`}
               aria-invalid={!!fieldErrors?.name}
             />
             {fieldErrors?.name && (
@@ -297,14 +258,10 @@ export function DeliveryForm({
           </div>
 
           {/* Phone */}
-          <div className="space-y-2">
-            <Label
-              htmlFor="phone"
-              className="text-orange-800 font-semibold flex items-center gap-2"
-            >
-              <Phone className="h-4 w-4" />
+          <div className="space-y-1.5">
+            <label htmlFor="phone" className="block text-sm font-medium text-[#2D1A0E] mb-1.5">
               Teléfono
-            </Label>
+            </label>
             <Input
               ref={phoneRef}
               id="phone"
@@ -312,7 +269,7 @@ export function DeliveryForm({
               placeholder="Ej: 11 2345-6789"
               value={data.phone}
               onChange={(e) => { updateField('phone', e.target.value); if (clearFieldError) clearFieldError('phone') }}
-              className={`input-large ${fieldErrors?.phone ? 'border-red-400 focus-visible:ring-red-400' : 'border-orange-200'}`}
+              className={`bg-white border-[#E7E0D3] focus-visible:ring-[#FEC501] focus-visible:border-[#FEC501] rounded-xl h-12 ${fieldErrors?.phone ? 'border-red-400 focus-visible:ring-red-400' : ''}`}
               aria-invalid={!!fieldErrors?.phone}
             />
             {fieldErrors?.phone && (
@@ -322,80 +279,62 @@ export function DeliveryForm({
             )}
           </div>
         </div>
+      </div>
 
-        {/* Delivery Type Selector */}
-        <div className="space-y-2">
-          <Label className="text-orange-800 font-semibold">
-            ¿Cómo recibís tu pedido?
-          </Label>
-          <div className="grid grid-cols-2 gap-3">
-            {/* Delivery Option */}
-            <button
-              type="button"
-              onClick={() => onDeliveryTypeChange('delivery')}
-              className={`
-                relative flex items-center gap-3 p-4 rounded-xl border-2 transition-all
-                ${deliveryType === 'delivery'
-                  ? 'border-[#FEC501] bg-[#FEC501]/10'
-                  : 'border-orange-200 bg-white hover:border-orange-300'
-                }
-              `}
-            >
-              <div className={`
-                w-10 h-10 rounded-full flex items-center justify-center shrink-0
-                ${deliveryType === 'delivery' ? 'bg-[#FEC501]' : 'bg-orange-100'}
-              `}>
-                <Truck className={`h-5 w-5 ${deliveryType === 'delivery' ? 'text-black' : 'text-orange-600'}`} />
-              </div>
-              <div className="text-left">
-                <p className={`font-semibold ${deliveryType === 'delivery' ? 'text-orange-900' : 'text-orange-700'}`}>
-                  Delivery
-                </p>
-                <p className="text-sm text-orange-600/70">Te lo llevamos</p>
-              </div>
-              {deliveryType === 'delivery' && (
-                <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FEC501] flex items-center justify-center">
-                  <Check className="h-3 w-3 text-black" />
-                </div>
-              )}
-            </button>
+      {/* Tipo de entrega */}
+      <div>
+        <h3 className="text-base font-bold text-[#2D1A0E] mb-3">Tipo de entrega</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {/* Delivery Option */}
+          <button
+            type="button"
+            onClick={() => onDeliveryTypeChange('delivery')}
+            className={`
+              flex flex-col items-center gap-1.5 p-4 rounded-[14px] transition-all
+              ${deliveryType === 'delivery'
+                ? 'border-2 border-[#FEC501] bg-[#FFFBEB]'
+                : 'border border-[#E7E0D3] bg-white hover:border-[#FEC501]'
+              }
+            `}
+          >
+            <Truck className={`h-6 w-6 ${deliveryType === 'delivery' ? 'text-[#2D1A0E]' : 'text-[#78706A]'}`} />
+            <span className={`text-sm ${deliveryType === 'delivery' ? 'font-bold text-[#2D1A0E]' : 'font-medium text-[#2D1A0E]'}`}>
+              Delivery
+            </span>
+          </button>
 
-            {/* Pickup Option */}
-            <button
-              type="button"
-              onClick={() => onDeliveryTypeChange('pickup')}
-              className={`
-                relative flex items-center gap-3 p-4 rounded-xl border-2 transition-all
-                ${deliveryType === 'pickup'
-                  ? 'border-[#FEC501] bg-[#FEC501]/10'
-                  : 'border-orange-200 bg-white hover:border-orange-300'
-                }
-              `}
-            >
-              <div className={`
-                w-10 h-10 rounded-full flex items-center justify-center shrink-0
-                ${deliveryType === 'pickup' ? 'bg-[#FEC501]' : 'bg-orange-100'}
-              `}>
-                <Store className={`h-5 w-5 ${deliveryType === 'pickup' ? 'text-black' : 'text-orange-600'}`} />
-              </div>
-              <div className="text-left">
-                <p className={`font-semibold ${deliveryType === 'pickup' ? 'text-orange-900' : 'text-orange-700'}`}>
-                  Retiro
-                </p>
-                <p className="text-sm text-green-600 font-medium">¡Envío gratis!</p>
-              </div>
-              {deliveryType === 'pickup' && (
-                <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FEC501] flex items-center justify-center">
-                  <Check className="h-3 w-3 text-black" />
-                </div>
-              )}
-            </button>
-          </div>
+          {/* Pickup Option */}
+          <button
+            type="button"
+            onClick={() => onDeliveryTypeChange('pickup')}
+            className={`
+              flex flex-col items-center gap-1.5 p-4 rounded-[14px] transition-all
+              ${deliveryType === 'pickup'
+                ? 'border-2 border-[#FEC501] bg-[#FFFBEB]'
+                : 'border border-[#E7E0D3] bg-white hover:border-[#FEC501]'
+              }
+            `}
+          >
+            <Store className={`h-6 w-6 ${deliveryType === 'pickup' ? 'text-[#2D1A0E]' : 'text-[#78706A]'}`} />
+            <div className="flex flex-col items-center gap-1">
+              <span className={`text-sm ${deliveryType === 'pickup' ? 'font-bold text-[#2D1A0E]' : 'font-medium text-[#2D1A0E]'}`}>
+                Retiro en local
+              </span>
+              <span className="bg-[#DCFCE7] text-[#16A34A] text-xs rounded-full px-2 py-0.5 font-medium">
+                Envío gratis
+              </span>
+            </div>
+          </button>
         </div>
+      </div>
 
-        {/* Conditional content based on delivery type */}
-        {deliveryType === 'delivery' && (
-          <>
+      {/* Conditional content based on delivery type */}
+      {deliveryType === 'delivery' && (
+        <>
+          {/* Dirección de entrega */}
+          <div>
+            <h3 className="text-base font-bold text-[#2D1A0E] mb-3">Dirección de entrega</h3>
+
             {/* Address Autocomplete */}
             <div ref={addressContainerRef}>
               <AddressAutocomplete
@@ -414,7 +353,7 @@ export function DeliveryForm({
             </div>
 
             {/* Map Preview - Siempre visible en delivery */}
-            <div className="space-y-2">
+            <div className="space-y-2 mt-4">
               <AddressMapPicker
                 coordinates={data.coordinates}
                 onCoordinatesChange={handleMapCoordinatesChange}
@@ -433,104 +372,77 @@ export function DeliveryForm({
             </div>
 
             {/* Notes */}
-            <div className="space-y-2">
-              <Label
-                htmlFor="notes"
-                className="text-orange-800 font-semibold flex items-center gap-2"
-              >
-                <MessageSquare className="h-4 w-4" />
+            <div className="space-y-1.5 mt-4">
+              <label htmlFor="notes" className="block text-sm font-medium text-[#2D1A0E] mb-1.5">
                 Indicaciones (opcional)
-              </Label>
+              </label>
               <Input
                 id="notes"
                 placeholder="Piso, depto, timbre, referencias..."
                 value={data.notes}
                 onChange={(e) => updateField('notes', e.target.value)}
-                className="input-large border-orange-200"
+                className="bg-white border-[#E7E0D3] focus-visible:ring-[#FEC501] focus-visible:border-[#FEC501] rounded-xl h-12"
               />
             </div>
-          </>
-        )}
-
-        {deliveryType === 'pickup' && (
-          <PickupInfoInline />
-        )}
-
-        {/* Payment Method Selector */}
-        <div className="space-y-3 pt-4 border-t border-orange-100">
-          <Label className="text-orange-800 font-semibold">¿Cómo pagás?</Label>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            {paymentMethods.map((method) => {
-              const Icon = method.icon
-              const isSelected = paymentMethod === method.id
-
-              return (
-                <button
-                  key={method.id}
-                  type="button"
-                  onClick={() => onPaymentMethodChange(method.id)}
-                  className={`
-                    relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl border-2 transition-all
-                    ${isSelected
-                      ? 'border-[#FEC501] bg-[#FEC501]/10'
-                      : 'border-orange-200 bg-white hover:border-orange-300'
-                    }
-                  `}
-                >
-                  {/* Check badge */}
-                  {isSelected && (
-                    <div className="absolute top-1.5 right-1.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#FEC501] flex items-center justify-center">
-                      <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-black" />
-                    </div>
-                  )}
-
-                  {/* Icon */}
-                  <div className={`
-                    w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-2
-                    ${isSelected ? 'bg-[#FEC501]' : 'bg-orange-100'}
-                  `}>
-                    <Icon
-                      size={20}
-                      className={`sm:w-6 sm:h-6 ${isSelected ? 'text-black' : 'text-orange-600'}`}
-                    />
-                  </div>
-
-                  {/* Label */}
-                  <span className={`text-sm font-semibold text-center ${isSelected ? 'text-orange-900' : 'text-orange-700'}`}>
-                    {method.label}
-                  </span>
-
-                  {/* Description */}
-                  <span className="text-xs text-orange-500 text-center mt-0.5 hidden sm:block">
-                    {method.description}
-                  </span>
-                </button>
-              )
-            })}
           </div>
+        </>
+      )}
 
-          {/* Cash Amount Input */}
-          {paymentMethod === 'cash' && (
-            <div className="p-3 rounded-xl bg-orange-50 border border-orange-200">
-              <label htmlFor="cashAmount" className="text-sm text-orange-700 font-medium block mb-2">
-                ¿Con cuánto pagás?
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-orange-400 font-medium text-base">$</span>
-                <Input
-                  id="cashAmount"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  placeholder="Ej: 10000"
-                  value={cashAmount}
-                  onChange={(e) => onCashAmountChange(e.target.value.replace(/[^0-9]/g, ''))}
-                  className="input-large !pl-9 border-orange-200 bg-white"
-                />
-              </div>
-            </div>
-          )}
+      {deliveryType === 'pickup' && (
+        <PickupInfoInline />
+      )}
+
+      {/* Método de pago */}
+      <div className="pt-4 border-t border-[#F0EBE1]">
+        <h3 className="text-base font-bold text-[#2D1A0E] mb-3">Método de pago</h3>
+        <div className="flex flex-col gap-2">
+          {paymentMethods.map((method) => {
+            const Icon = method.icon
+            const isSelected = paymentMethod === method.id
+
+            return (
+              <button
+                key={method.id}
+                type="button"
+                onClick={() => onPaymentMethodChange(method.id)}
+                className={`
+                  flex items-center gap-3 px-4 h-[52px] rounded-[14px] border-2 transition-all
+                  ${isSelected
+                    ? 'border-[#FEC501] bg-[#FFFBEB]'
+                    : 'border-[#E7E0D3] bg-white hover:border-[#F0EBE1]'
+                  }
+                `}
+              >
+                <Icon size={20} className="text-[#2D1A0E]" />
+                <span className={`text-sm ${isSelected ? 'font-semibold text-[#2D1A0E]' : 'font-medium text-[#2D1A0E]'}`}>
+                  {method.label}
+                </span>
+              </button>
+            )
+          })}
         </div>
+
+        {/* Cash Amount Input */}
+        {paymentMethod === 'cash' && (
+          <div className="space-y-1.5 mt-3">
+            <label htmlFor="cashAmount" className="text-xs font-medium text-[#2D1A0E]">
+              ¿Con cuánto pagás?
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#B0A99F] font-medium text-base">$</span>
+              <Input
+                id="cashAmount"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="Ej: 10000"
+                value={cashAmount}
+                onChange={(e) => onCashAmountChange(e.target.value.replace(/[^0-9]/g, ''))}
+                className="bg-white border-[#E7E0D3] h-12 rounded-xl !pl-9 focus-visible:ring-[#FEC501] focus-visible:border-[#FEC501]"
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

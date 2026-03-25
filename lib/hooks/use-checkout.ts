@@ -304,7 +304,15 @@ export function useCheckout() {
       const pendingOrder: PendingOrder = {
         whatsappUrl,
         customerName: deliveryData.name,
+        customerPhone: deliveryData.phone,
         itemCount: items.reduce((acc, i) => acc + i.quantity, 0),
+        subtotal: currentSubtotal,
+        shippingCost: shipping,
+        total,
+        deliveryType: deliveryType as 'delivery' | 'pickup',
+        address: fullAddress,
+        paymentMethod,
+        orderNumber: String(Math.floor(1000 + Math.random() * 9000)),
       }
       sessionStorage.setItem('qc_pending_order', JSON.stringify(pendingOrder))
       router.push('/order-confirmation')

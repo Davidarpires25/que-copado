@@ -160,10 +160,10 @@ export function AddressMapPicker({
   if (disabled) {
     return (
       <div
-        className="bg-orange-50 rounded-xl flex items-center justify-center text-orange-600/70"
+        className="bg-[#FFF9F0] border border-[#E7E0D3] rounded-xl flex items-center justify-center"
         style={{ height }}
       >
-        <p className="text-sm">Ingresá una dirección para ver el mapa</p>
+        <p className="text-sm text-[#B0A99F]">Ingresá una dirección para ver el mapa</p>
       </div>
     )
   }
@@ -202,8 +202,8 @@ export function AddressMapPicker({
       {/* Hint cuando no hay ubicación seleccionada */}
       {!hasUserCoordinates && !isLoading && !isGettingLocation && (
         <div className="absolute bottom-3 left-3 right-14 z-10">
-          <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md border border-orange-100">
-            <p className="text-xs text-orange-700 text-center">
+          <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm border border-[#F0EBE1]">
+            <p className="text-xs text-[#78706A] text-center">
               Tocá en el mapa o usá el botón GPS para marcar tu ubicación
             </p>
           </div>
@@ -215,20 +215,20 @@ export function AddressMapPicker({
         type="button"
         onClick={handleGetCurrentLocation}
         disabled={isGettingLocation || isLoading}
-        className="absolute top-3 right-3 z-10 w-10 h-10 bg-white rounded-full shadow-lg border border-orange-200 flex items-center justify-center hover:bg-orange-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="absolute top-3 right-3 z-10 w-10 h-10 bg-[#FEC501] rounded-full shadow-md flex items-center justify-center hover:bg-[#E5B001] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         title="Usar mi ubicación actual"
       >
         {isGettingLocation ? (
-          <Loader2 className="h-5 w-5 text-orange-600 animate-spin" />
+          <Loader2 className="h-5 w-5 text-[#2D1A0E] animate-spin" />
         ) : (
-          <GpsIcon size={20} className="text-orange-600" />
+          <GpsIcon size={20} className="text-[#2D1A0E]" />
         )}
       </button>
 
       {/* Overlay de carga */}
       {isLoading && (
         <div className="absolute inset-0 bg-white/70 rounded-xl flex items-center justify-center z-10">
-          <div className="flex items-center gap-2 text-orange-600">
+          <div className="flex items-center gap-2 text-[#2D1A0E]">
             <Loader2 className="h-5 w-5 animate-spin" />
             <span className="text-sm font-medium">Obteniendo dirección...</span>
           </div>

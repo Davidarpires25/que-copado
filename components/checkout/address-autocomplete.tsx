@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { MapPin, Loader2, Search, Navigation, AlertCircle } from 'lucide-react'
+import { MapPin, Loader2, Search, Locate, AlertCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
 import { useAddressAutocomplete } from '@/lib/hooks/use-address-autocomplete'
 import { reverseGeocode } from '@/lib/services/geocoding'
 import type { AddressSuggestion } from '@/lib/services/geocoding'
@@ -168,17 +167,16 @@ export function AddressAutocomplete({
     <div className="relative space-y-2">
       <Label
         htmlFor="address-autocomplete"
-        className="text-orange-800 font-semibold flex items-center gap-2"
+        className="text-sm font-medium text-[#2D1A0E]"
       >
-        <MapPin className="h-4 w-4" />
         {label}
-        {required && <span className="text-red-500">*</span>}
+        {required && <span className="text-red-500 ml-0.5">*</span>}
       </Label>
 
       <div className="flex gap-2">
         {/* Input con autocomplete */}
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-400 pointer-events-none z-10" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#A8A29E] pointer-events-none z-10" />
           <Input
             ref={inputRef}
             id="address-autocomplete"
@@ -189,42 +187,38 @@ export function AddressAutocomplete({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={disabled || isGeolocating}
-            className="input-large border-orange-200 !pl-12 !pr-4"
+            className="bg-white border-[#E7E0D3] rounded-xl h-12 !pl-9 focus-visible:ring-[#FEC501] focus-visible:border-[#FEC501] text-[#2D1A0E] placeholder:text-[#B0A99F]"
             autoComplete="off"
           />
 
           {isLoading && (
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10">
-              <Loader2 className="h-5 w-5 text-orange-500 animate-spin" />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 z-10">
+              <Loader2 className="h-4 w-4 text-[#78706A] animate-spin" />
             </div>
           )}
         </div>
 
         {/* Botón GPS */}
-        <Button
+        <button
           type="button"
-          variant="outline"
           onClick={handleGeolocation}
           disabled={disabled || isGeolocating}
-          className="shrink-0 h-[52px] px-4 border-orange-200 hover:border-[#FEC501] hover:bg-[#FEC501]/10 text-orange-700 hover:text-orange-900 transition-all"
           title="Usar mi ubicación"
+          className="shrink-0 w-12 h-12 rounded-xl bg-[#FFF9F0] border border-[#F0EBE1] flex items-center justify-center text-[#2D1A0E] hover:bg-[#F0EBE1] transition-colors disabled:opacity-50"
         >
           {isGeolocating ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <>
-              <Navigation className="h-5 w-5 mr-2" />
-              <span className="hidden sm:inline">GPS</span>
-            </>
+            <Locate className="h-4 w-4" />
           )}
-        </Button>
+        </button>
       </div>
 
       {/* Dropdown de sugerencias */}
       {isOpen && suggestions.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 w-full mt-1 bg-white border border-orange-200 rounded-xl shadow-warm-lg max-h-60 overflow-y-auto"
+          className="absolute z-50 w-full mt-1 bg-white border border-[#E7E0D3] rounded-xl shadow-sm max-h-60 overflow-y-auto"
           style={{ top: '100%' }}
         >
           {suggestions.map((suggestion, index) => (
@@ -232,17 +226,17 @@ export function AddressAutocomplete({
               key={suggestion.id}
               type="button"
               onClick={() => handleSelect(suggestion)}
-              className={`w-full text-left px-4 py-3 hover:bg-orange-50 transition-colors border-b border-orange-100 last:border-b-0 ${
-                index === selectedIndex ? 'bg-orange-50' : ''
+              className={`w-full text-left px-4 py-3 hover:bg-[#FFF9F0] transition-colors border-b border-[#F0EBE1] last:border-b-0 ${
+                index === selectedIndex ? 'bg-[#FFF9F0]' : ''
               }`}
             >
               <div className="flex items-start gap-3">
-                <MapPin className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                <MapPin className="h-4 w-4 text-[#B0A99F] mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-orange-900">
+                  <p className="text-sm font-medium text-[#2D1A0E]">
                     {suggestion.shortAddress}
                   </p>
-                  <p className="text-xs text-orange-600/70 truncate mt-0.5">
+                  <p className="text-xs text-[#78706A] truncate mt-0.5">
                     {suggestion.fullAddress}
                   </p>
                 </div>
@@ -254,7 +248,7 @@ export function AddressAutocomplete({
 
       {/* Error de geolocalización */}
       {geoError && (
-        <p className="text-sm text-amber-600 flex items-center gap-1.5">
+        <p className="text-sm text-red-500 flex items-center gap-1.5">
           <AlertCircle className="h-4 w-4 shrink-0" />
           {geoError}
         </p>
@@ -262,14 +256,14 @@ export function AddressAutocomplete({
 
       {/* Error de autocomplete */}
       {error && !geoError && (
-        <p className="text-sm text-red-600 flex items-center gap-1">
-          <span>⚠</span> {error}
+        <p className="text-sm text-red-500 flex items-center gap-1">
+          <AlertCircle className="h-4 w-4 shrink-0" /> {error}
         </p>
       )}
 
       {/* Hint */}
       {!error && !geoError && query.length > 0 && query.length < 3 && (
-        <p className="text-xs text-orange-600/70">
+        <p className="text-xs text-[#B0A99F]">
           Escribí al menos 3 caracteres para buscar
         </p>
       )}

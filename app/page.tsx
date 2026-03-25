@@ -1,12 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
-import { HeroSection } from '@/components/home/hero-section'
 import { ProductGrid } from '@/components/product-grid'
-import { calcElaboradoStock } from '@/lib/server/stock-deduction'
-import type { Category, Product } from '@/lib/types/database'
+import type { Category, ProductWithHalfConfig } from '@/lib/types/database'
 
-export const revalidate = 60
+export const revalidate = 300
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -14,10 +12,10 @@ export default async function HomePage() {
   const [{ data: rawProducts }, { data: categories }] = await Promise.all([
     supabase
       .from('products')
-      .select('*')
+      .select('*, product_half_configs(*)')
       .eq('is_active', true)
       .order('name', { ascending: true })
-      .returns<Product[]>(),
+      .returns<ProductWithHalfConfig[]>(),
     supabase
       .from('categories')
       .select('*')
@@ -34,54 +32,38 @@ export default async function HomePage() {
     return a.name.localeCompare(b.name)
   })
 
-  // Compute available quantities for products with stock tracking.
-  // Used to: (1) show urgency badge, (2) override is_out_of_stock when DB flag
-  // hasn't been synced yet (e.g. stock manually set to 0 from admin panel).
+  // Build stockMap from already-fetched data (no extra queries).
+  // - reventa: use current_stock column directly
+  // - elaborado: is_out_of_stock is kept in sync by syncElaboradoAvailability
+  //   after every POS sale, so no per-product queries needed here.
   const stockMap: Record<string, number> = {}
-  await Promise.all(
-    (products).map(async (p) => {
-      if (p.product_type === 'reventa' && p.stock_tracking_enabled && p.current_stock !== null) {
-        stockMap[p.id] = Math.max(0, Math.floor(Number(p.current_stock)))
-      } else if (p.product_type === 'elaborado') {
-        const qty = await calcElaboradoStock(supabase, p.id)
-        if (qty !== null) stockMap[p.id] = Math.max(0, qty)
-      }
-    })
-  )
-
-  // Override is_out_of_stock based on real-time computed stock so the cart
-  // button is always correct, even when the DB flag hasn't been synced yet.
-  const productsWithStock = products.map(p => {
-    if (!(p.id in stockMap)) return p
-    if (stockMap[p.id] === 0) return { ...p, is_out_of_stock: true }
-    // Stock available: clear stale out-of-stock flag from DB if needed
-    if (p.is_out_of_stock) return { ...p, is_out_of_stock: false }
-    return p
-  })
+  for (const p of products) {
+    if (p.product_type === 'reventa' && p.stock_tracking_enabled && p.current_stock !== null) {
+      stockMap[p.id] = Math.max(0, Math.floor(Number(p.current_stock)))
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
+    <div className="min-h-screen bg-[#FBF5E6]">
       <Header />
 
       <main>
-        {/* Hero Section - Desktop only */}
-        <section className="hidden md:block container mx-auto px-4 py-6 lg:py-10">
-          <HeroSection />
+        {/* Hero Section */}
+        <section className="container mx-auto px-4 pt-6 pb-2 md:pt-10 md:pb-4">
+          <div className="text-center md:text-left">
+            <h1 className="text-2xl md:text-4xl font-black text-[#2D1A0E] leading-tight">
+              ¿Qué vas a pedir hoy?
+            </h1>
+            <p className="text-[#78706A] text-sm md:text-base mt-1">
+              Las mejores burgers de la zona, a un clic de tu mesa
+            </p>
+          </div>
         </section>
 
         {/* Menu Section */}
-        <section id="menu" className="pt-3 pb-8 md:py-12 scroll-mt-24">
+        <section id="menu" className="pt-3 pb-8 md:py-8 scroll-mt-24">
           <div className="container mx-auto px-4">
-            <div className="mb-4 md:mb-8">
-              <h2 className="text-2xl md:text-3xl font-black text-orange-900">
-                Nuestro Menú
-              </h2>
-              <p className="hidden md:block text-orange-700/60 text-sm mt-1">
-                Explorá todas nuestras opciones
-              </p>
-            </div>
-
-            <ProductGrid products={productsWithStock} categories={categories ?? []} stockMap={stockMap} />
+            <ProductGrid products={products} categories={categories ?? []} stockMap={stockMap} />
           </div>
         </section>
       </main>

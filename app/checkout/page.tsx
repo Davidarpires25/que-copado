@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ArrowLeft, ShoppingCart, AlertTriangle, MessageCircle, PauseCircle } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
@@ -8,8 +9,11 @@ import { DeliveryForm } from '@/components/checkout/delivery-form'
 import { CheckoutSummary } from '@/components/checkout/checkout-summary'
 import { Button } from '@/components/ui/button'
 import { useCheckout } from '@/lib/hooks/use-checkout'
+import { useUIStore } from '@/lib/store/ui-store'
 
 export default function CheckoutPage() {
+  const router = useRouter()
+  const setCartDrawerOpen = useUIStore((s) => s.setCartDrawerOpen)
   const {
     items,
     deliveryType,
@@ -35,18 +39,18 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
+      <div className="min-h-screen bg-[#FBF5E6]">
         <Header />
         <main className="container mx-auto px-4 py-16">
           <div className="flex flex-col items-center justify-center gap-6 max-w-md mx-auto text-center">
-            <div className="w-32 h-32 rounded-full bg-orange-100 flex items-center justify-center">
-              <ShoppingCart className="h-16 w-16 text-orange-300" />
+            <div className="w-32 h-32 rounded-full bg-[#FFF9F0] flex items-center justify-center">
+              <ShoppingCart className="h-16 w-16 text-[#E7E0D3]" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-orange-900 mb-2">
+              <h1 className="text-2xl font-bold text-[#2D1A0E] mb-2">
                 No hay productos en tu carrito
               </h1>
-              <p className="text-orange-600/70">
+              <p className="text-[#78706A]">
                 Agregá productos para poder realizar tu pedido
               </p>
             </div>
@@ -63,18 +67,31 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
+    <div className="min-h-screen bg-[#FBF5E6]">
       <Header />
 
       <main className="container mx-auto px-4 py-4 md:py-12">
         <div className="lg:max-w-5xl lg:mx-auto">
-          <Link
-            href="/cart"
-            className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium mb-3 md:mb-6 group"
-          >
-            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-            Volver al carrito
-          </Link>
+          {/* Page header: back button + title */}
+          <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-8">
+            <button
+              onClick={() => {
+                if (window.innerWidth >= 1024) {
+                  sessionStorage.setItem('openCartOnMenu', '1')
+                  router.push('/#menu')
+                } else {
+                  router.back()
+                }
+              }}
+              aria-label="Volver"
+              className="w-10 h-10 rounded-xl bg-white border border-[#F0EBE1] flex items-center justify-center hover:bg-[#FFF9F0] transition-colors shrink-0"
+            >
+              <ArrowLeft className="h-[18px] w-[18px] text-[#2D1A0E]" />
+            </button>
+            <h1 className="text-[22px] md:text-[28px] font-extrabold text-[#2D1A0E] leading-tight tracking-tight">
+              Checkout
+            </h1>
+          </div>
 
           {/* Orders paused warning */}
           {!checkingBusiness && !isAcceptingOrders && (

@@ -1,0 +1,21 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[headers]]
+  # JS, CSS y fuentes generados por Next.js — tienen hash en el nombre, nunca cambian
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  # Assets estáticos públicos (logos, imágenes, SVGs)
+  for = "/public/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  # Leaflet tiles y assets en /public/leaflet/
+  for = "/leaflet/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
