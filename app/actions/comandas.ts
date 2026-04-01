@@ -34,6 +34,20 @@ export async function sendToKitchen(orderId: string): Promise<{
       return { data: [], error: null }
     }
 
+    // Exclude items that already have a comanda_item (idempotent — safe to call multiple times)
+    const allItemIds = items.map((i) => i.id)
+    const { data: existingComandaItems } = await supabase
+      .from('comanda_items')
+      .select('order_item_id')
+      .in('order_item_id', allItemIds)
+
+    const alreadySentIds = new Set((existingComandaItems ?? []).map((ci) => ci.order_item_id))
+    const newItems = items.filter((i) => !alreadySentIds.has(i.id))
+
+    if (newItems.length === 0) {
+      return { data: [], error: null }
+    }
+
     // Filter items with a station and group by station
     type ItemWithStation = {
       id: string
@@ -46,7 +60,7 @@ export async function sendToKitchen(orderId: string): Promise<{
 
     const grouped = new Map<Station, ItemWithStation[]>()
 
-    for (const item of items) {
+    for (const item of newItems) {
       const product = item.products as unknown as { station: string | null; product_type: string | null } | null
       if (product?.product_type === 'reventa') continue // reventa products never go to kitchen
       const station = product?.station as Station | null

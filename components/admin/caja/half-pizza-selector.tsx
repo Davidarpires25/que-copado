@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, UtensilsCrossed, X } from 'lucide-react'
+import { Check, Pizza, X } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { formatPrice } from '@/lib/utils'
 import { calcHalfPizzaPrice } from '@/lib/utils/half-pizza'
@@ -117,7 +117,7 @@ export function HalfPizzaSelector({ product, pizzaProducts, onConfirm, onClose }
                       <img src={pizza.image_url} alt={pizza.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <UtensilsCrossed className="h-4 w-4 text-[var(--admin-text-faint)]" />
+                        <Pizza className="h-4 w-4 text-[var(--admin-text-faint)]" />
                       </div>
                     )}
                   </div>
@@ -157,7 +157,7 @@ export function HalfPizzaSelector({ product, pizzaProducts, onConfirm, onClose }
                       <img src={pizza.image_url} alt={pizza.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <UtensilsCrossed className="h-4 w-4 text-[var(--admin-text-faint)]" />
+                        <Pizza className="h-4 w-4 text-[var(--admin-text-faint)]" />
                       </div>
                     )}
                   </div>

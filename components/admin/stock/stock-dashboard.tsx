@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { Package, AlertTriangle, ArrowRightLeft, ShoppingCart, UtensilsCrossed } from 'lucide-react'
+import { Package, AlertTriangle, RefreshCw, PackagePlus, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { AdminLayout } from '@/components/admin/layout/admin-layout'
@@ -83,10 +83,12 @@ export function StockDashboard({
   )
 
   // Sync server props to state when router.refresh() delivers new data
-  useEffect(() => { setIngredients(initialIngredients) }, [initialIngredients])
-  useEffect(() => { setProducts(initialProducts) }, [initialProducts])
-  useEffect(() => { setAlerts(initialAlerts) }, [initialAlerts])
-  useEffect(() => { setMovements(initialMovements) }, [initialMovements])
+  useEffect(() => {
+    setIngredients(initialIngredients)
+    setProducts(initialProducts)
+    setAlerts(initialAlerts)
+    setMovements(initialMovements)
+  }, [initialIngredients, initialProducts, initialAlerts, initialMovements])
 
   const trackedCount = useMemo(() => {
     const trackedIngredients = ingredients.filter((i) => i.stock_tracking_enabled).length
@@ -180,7 +182,7 @@ export function StockDashboard({
               </p>
             </div>
             <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center ${reservedTotal > 0 ? 'bg-yellow-500/10' : 'bg-[var(--admin-surface-2)]'}`}>
-              <UtensilsCrossed className={`h-5 w-5 lg:h-6 lg:w-6 ${reservedTotal > 0 ? 'text-yellow-500' : 'text-[var(--admin-text-muted)]'}`} />
+              <Lock className={`h-5 w-5 lg:h-6 lg:w-6 ${reservedTotal > 0 ? 'text-yellow-500' : 'text-[var(--admin-text-muted)]'}`} />
             </div>
           </div>
         </div>
@@ -200,7 +202,7 @@ export function StockDashboard({
               )}
             </div>
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-blue-500/10 rounded-xl flex items-center justify-center">
-              <ArrowRightLeft className="h-5 w-5 lg:h-6 lg:w-6 text-blue-500" />
+              <RefreshCw className="h-5 w-5 lg:h-6 lg:w-6 text-blue-500" />
             </div>
           </div>
         </div>
@@ -223,7 +225,7 @@ export function StockDashboard({
               onClick={() => setPurchaseOpen(true)}
               className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all hover:scale-105 active:scale-95"
             >
-              <ShoppingCart className="h-4 w-4 mr-2" />
+              <PackagePlus className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Registrar Compra</span>
               <span className="sm:hidden">Compra</span>
             </Button>
@@ -237,7 +239,7 @@ export function StockDashboard({
             onClick={() => setPurchaseOpen(true)}
             className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all hover:scale-105 active:scale-95"
           >
-            <ShoppingCart className="h-4 w-4 mr-2" />
+            <PackagePlus className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">Registrar Compra</span>
             <span className="sm:hidden">Compra</span>
           </Button>
@@ -260,7 +262,7 @@ export function StockDashboard({
         {([
           { key: 'ingredientes', label: 'Stock Actual' },
           { key: 'productos', label: 'Alertas', alert: (alerts.length + elaboradosAgotados) > 0 },
-          { key: 'movimientos', label: 'Reservas' },
+          { key: 'movimientos', label: 'Movimientos' },
           { key: 'consumo', label: 'Consumo Histórico' },
         ] as const).map(({ key, label, ...rest }) => {
           const alert = 'alert' in rest ? rest.alert : undefined

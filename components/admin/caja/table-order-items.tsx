@@ -1,6 +1,6 @@
 'use client'
 
-import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react'
+import { Minus, Plus, Trash2, Utensils } from 'lucide-react'
 import { cn, formatPrice } from '@/lib/utils'
 import { TAG_COLORS } from '@/lib/types/tables'
 import type { OrderItemRow } from '@/lib/types/tables'
@@ -36,7 +36,7 @@ export function TableOrderItems({
   if (activeItems.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-10 text-[var(--admin-text-muted)]">
-        <ShoppingBag className="h-8 w-8 mb-2 text-[var(--admin-text-placeholder)]" />
+        <Utensils className="h-8 w-8 mb-2 text-[var(--admin-text-placeholder)]" />
         <p className="text-sm">Sin productos aún</p>
       </div>
     )
@@ -60,7 +60,7 @@ export function TableOrderItems({
                 tagColor.bg
               )} style={{ height: 20 }}>
                 <div className={cn('w-1 h-1 rounded-full shrink-0', tagColor.dot)} />
-                <span className={cn('text-[9px] font-semibold leading-none', tagColor.text)}>
+                <span className={cn('text-[11px] font-semibold leading-none', tagColor.text)}>
                   {item.sale_tag}
                 </span>
               </div>
@@ -72,9 +72,9 @@ export function TableOrderItems({
                 {item.product_name}
               </span>
               {item.notes && (
-                <span className="text-[11px] text-[var(--admin-text-faint)] truncate">{item.notes}</span>
+                <span className="text-xs text-[var(--admin-text-faint)] truncate">{item.notes}</span>
               )}
-              <span className="text-[11px] text-[var(--admin-text-faint)]">
+              <span className="text-xs text-[var(--admin-text-faint)]">
                 {formatPrice(item.product_price)} c/u
               </span>
             </div>

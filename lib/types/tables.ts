@@ -29,6 +29,7 @@ export interface OrderItemRow {
   sale_tag: string | null
   added_at: string
   added_by: string | null
+  kitchen_print_batch_id?: string | null
 }
 
 // Order with its normalized items

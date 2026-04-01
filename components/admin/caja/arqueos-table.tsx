@@ -1,7 +1,8 @@
 'use client'
 
 import { Fragment, useState, useMemo } from 'react'
-import { Search, SearchX, History, TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp, Banknote, CreditCard, Wallet, ArrowDownCircle, ArrowUpCircle } from 'lucide-react'
+import Link from 'next/link'
+import { Search, SearchX, History, TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp, Banknote, CreditCard, Wallet, MinusCircle, PlusCircle, ExternalLink } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
@@ -130,10 +131,20 @@ function SessionDetail({ session }: SessionDetailProps) {
         </p>
       )}
 
-      {/* Movements */}
-      <p className="text-xs font-semibold uppercase tracking-widest text-[var(--admin-text-muted)] mb-2 px-1">
-        Movimientos de caja
-      </p>
+      {/* Movements header with link */}
+      <div className="flex items-center justify-between mb-2 px-1">
+        <p className="text-xs font-semibold uppercase tracking-widest text-[var(--admin-text-muted)]">
+          Movimientos de caja
+        </p>
+        <Link
+          href={`/admin/caja/movimientos?session=${session.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="flex items-center gap-1 text-xs text-[var(--admin-text-faint)] hover:text-[var(--admin-accent-text)] transition-colors"
+        >
+          <ExternalLink className="h-3 w-3" />
+          Ver todos
+        </Link>
+      </div>
       {loading ? (
         <p className="text-xs text-[var(--admin-text-faint)] px-1">Cargando...</p>
       ) : movements && movements.length > 0 ? (
@@ -144,9 +155,9 @@ function SessionDetail({ session }: SessionDetailProps) {
               className="flex items-center gap-3 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-lg px-3 py-2"
             >
               {m.type === 'withdrawal' ? (
-                <ArrowDownCircle className="h-4 w-4 text-red-400 shrink-0" />
+                <MinusCircle className="h-4 w-4 text-red-400 shrink-0" />
               ) : (
-                <ArrowUpCircle className="h-4 w-4 text-green-400 shrink-0" />
+                <PlusCircle className="h-4 w-4 text-green-400 shrink-0" />
               )}
               <span className="text-xs text-[var(--admin-text-muted)] flex-1 truncate">{m.reason}</span>
               <span className={cn('text-xs font-bold shrink-0', m.type === 'withdrawal' ? 'text-red-400' : 'text-green-400')}>

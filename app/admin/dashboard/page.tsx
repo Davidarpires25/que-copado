@@ -7,6 +7,8 @@ import { getOpenTablesCount } from '@/app/actions/tables'
 import { getStockAlerts } from '@/app/actions/stock'
 import { DashboardOverview } from './dashboard-overview'
 
+export const revalidate = 60
+
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

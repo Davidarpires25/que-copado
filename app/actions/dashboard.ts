@@ -3,13 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/server/auth'
 import { devError } from '@/lib/server/logger'
-import { parseOrderItems } from '@/lib/services/order-formatter'
-import type { Json } from '@/lib/types/database'
 import type { DashboardStats, TopProduct, SalesChartData } from '@/lib/types/orders'
-
-interface OrderItemsRow {
-  items: unknown
-}
 
 interface OrderChartRow {
   total: number
@@ -115,32 +109,52 @@ export async function getTopProducts(
     monthStart.setDate(1)
     monthStart.setHours(0, 0, 0, 0)
 
-    const { data: orders, error } = await supabase
+    const { data: orderIds, error: ordersError } = await supabase
       .from('orders')
-      .select('items')
+      .select('id')
       .gte('created_at', monthStart.toISOString())
-      .neq('status', 'cancelado') as { data: OrderItemsRow[] | null; error: unknown }
+      .neq('status', 'cancelado')
 
-    if (error || !orders) {
-      devError('Error fetching orders for top products:', error)
+    if (ordersError || !orderIds) {
+      devError('Error fetching orders for top products:', ordersError)
+      return { data: null, error: 'Error al cargar productos' }
+    }
+
+    if (orderIds.length === 0) {
+      return { data: [], error: null }
+    }
+
+    interface OrderItemRow {
+      product_id: string | null
+      product_name: string
+      product_price: number
+      quantity: number
+    }
+
+    const { data: rows, error } = await supabase
+      .from('order_items')
+      .select('product_id, product_name, product_price, quantity')
+      .in('order_id', (orderIds as { id: string }[]).map((o) => o.id))
+      .neq('status', 'cancelado') as { data: OrderItemRow[] | null; error: unknown }
+
+    if (error || !rows) {
+      devError('Error fetching order_items for top products:', error)
       return { data: null, error: 'Error al cargar productos' }
     }
 
     const productStats: Record<string, { name: string; quantity: number; revenue: number }> = {}
 
-    orders.forEach((order) => {
-      const items = parseOrderItems(order.items as Json)
-      items.forEach((item) => {
-        if (!productStats[item.id]) {
-          productStats[item.id] = {
-            name: item.name,
-            quantity: 0,
-            revenue: 0,
-          }
+    rows.forEach((item) => {
+      const key = item.product_id ?? item.product_name
+      if (!productStats[key]) {
+        productStats[key] = {
+          name: item.product_name,
+          quantity: 0,
+          revenue: 0,
         }
-        productStats[item.id].quantity += item.quantity
-        productStats[item.id].revenue += item.price * item.quantity
-      })
+      }
+      productStats[key].quantity += item.quantity
+      productStats[key].revenue += item.product_price * item.quantity
     })
 
     const topProducts = Object.entries(productStats)

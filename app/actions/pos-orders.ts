@@ -63,15 +63,17 @@ export async function createPosOrder(
     // Update session totals
     const salesField = getSalesField(data.payment_method)
 
-    const { data: currentSession } = await supabase
+    const { data: currentSession, error: sessionFetchError } = await supabase
       .from('cash_register_sessions')
       .select('total_sales, total_orders, total_cash_sales, total_card_sales, total_transfer_sales')
       .eq('id', data.session_id)
       .single()
 
-    if (currentSession) {
+    if (sessionFetchError || !currentSession) {
+      devError(`CRITICAL: session ${data.session_id} not found — totals NOT updated for POS order ${order.id} (${data.total}):`, sessionFetchError)
+    } else {
       const s = currentSession as Record<string, number>
-      await supabase
+      const { error: updateErr } = await supabase
         .from('cash_register_sessions')
         .update({
           total_sales: (s.total_sales || 0) + data.total,
@@ -79,6 +81,7 @@ export async function createPosOrder(
           [salesField]: (s[salesField] || 0) + data.total,
         })
         .eq('id', data.session_id)
+      if (updateErr) devError(`CRITICAL: session totals update failed for POS order ${order.id}:`, updateErr)
     }
 
     // Best-effort stock deduction — errors do NOT block the sale
@@ -145,15 +148,17 @@ export async function cancelPosOrder(
     if (orderData.cash_register_session_id) {
       const salesField = getSalesField(orderData.payment_method)
 
-      const { data: currentSession } = await supabase
+      const { data: currentSession, error: sessionFetchError } = await supabase
         .from('cash_register_sessions')
         .select('total_sales, total_orders, total_cash_sales, total_card_sales, total_transfer_sales')
         .eq('id', orderData.cash_register_session_id)
         .single()
 
-      if (currentSession) {
+      if (sessionFetchError || !currentSession) {
+        devError(`CRITICAL: session ${orderData.cash_register_session_id} not found — totals NOT reverted for cancelled order ${orderId}:`, sessionFetchError)
+      } else {
         const s = currentSession as Record<string, number>
-        await supabase
+        const { error: updateErr } = await supabase
           .from('cash_register_sessions')
           .update({
             total_sales: Math.max(0, (s.total_sales || 0) - orderData.total),
@@ -161,6 +166,7 @@ export async function cancelPosOrder(
             [salesField]: Math.max(0, (s[salesField] || 0) - orderData.total),
           })
           .eq('id', orderData.cash_register_session_id)
+        if (updateErr) devError(`CRITICAL: session totals revert failed for cancelled order ${orderId}:`, updateErr)
       }
     }
 
@@ -247,7 +253,13 @@ export async function createMostadorOrder(
       metadata: item.metadata ?? null,
     }))
 
-    await supabase.from('order_items').insert(orderItemsToInsert)
+    const { error: itemsError } = await supabase.from('order_items').insert(orderItemsToInsert)
+    if (itemsError) {
+      devError('Error inserting order_items for mostrador order:', itemsError)
+      // Rollback: delete the orphaned order
+      await supabase.from('orders').delete().eq('id', order.id)
+      return { data: null, error: 'Error al registrar los productos del pedido' }
+    }
 
     // Send to kitchen (fire and forget - errors don't block the order)
     try {
@@ -282,6 +294,18 @@ export async function completeMostadorPayment(
     const supabase = await createAdminClient()
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
+
+    // Verify session is open before processing payment
+    const { data: session } = await supabase
+      .from('cash_register_sessions')
+      .select('id, status')
+      .eq('id', sessionId)
+      .eq('status', 'open')
+      .single()
+
+    if (!session) {
+      return { data: null, error: 'La caja no está abierta' }
+    }
 
     const { data: existingOrder } = await supabase
       .from('orders')
@@ -336,19 +360,21 @@ export async function completeMostadorPayment(
         .from('payment_splits')
         .insert(splitsToInsert)
       if (splitsError) {
-        devError('Error inserting payment_splits:', splitsError)
-        // Non-fatal: the order is already marked pagado
+        devError(`CRITICAL: payment_splits insert failed for order ${orderId} — hybrid payment audit trail lost:`, splitsError)
+        // Order is already pagado — cannot rollback, but splits are required for reconciliation
       }
     }
 
     // Update session totals
-    const { data: currentSession } = await supabase
+    const { data: currentSession, error: sessionFetchError } = await supabase
       .from('cash_register_sessions')
       .select('total_sales, total_orders, total_cash_sales, total_card_sales, total_transfer_sales')
       .eq('id', sessionId)
       .single()
 
-    if (currentSession) {
+    if (sessionFetchError || !currentSession) {
+      devError(`CRITICAL: session ${sessionId} not found — totals NOT updated for mostrador order ${orderId} (${orderData.total}):`, sessionFetchError)
+    } else {
       const s = currentSession as Record<string, number>
       const sessionUpdate: Record<string, number> = {
         total_sales: (s.total_sales || 0) + orderData.total,
@@ -366,10 +392,11 @@ export async function completeMostadorPayment(
         sessionUpdate[salesField] = (s[salesField] || 0) + orderData.total
       }
 
-      await supabase
+      const { error: updateErr } = await supabase
         .from('cash_register_sessions')
         .update(sessionUpdate)
         .eq('id', sessionId)
+      if (updateErr) devError(`CRITICAL: session totals update failed for mostrador order ${orderId}:`, updateErr)
     }
 
     // Best-effort stock deduction

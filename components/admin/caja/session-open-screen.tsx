@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { DollarSign, Loader2, Lock } from 'lucide-react'
+import { Banknote, Loader2, KeyRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { openSession } from '@/app/actions/cash-register'
@@ -43,7 +43,7 @@ export function SessionOpenScreen({ onSessionOpened }: SessionOpenScreenProps) {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-[var(--admin-accent)]/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[var(--admin-accent)]/20">
-            <Lock className="h-10 w-10 text-[var(--admin-accent-text)]" />
+            <KeyRound className="h-10 w-10 text-[var(--admin-accent-text)]" />
           </div>
           <h1 className="text-3xl font-bold text-[var(--admin-text)]">Abrir Caja</h1>
           <p className="text-[var(--admin-text-muted)] mt-2 text-base">
@@ -57,7 +57,7 @@ export function SessionOpenScreen({ onSessionOpened }: SessionOpenScreenProps) {
               Monto inicial en caja
             </label>
             <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--admin-text-muted)]" />
+              <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--admin-text-muted)]" />
               <Input
                 type="number"
                 value={amount}

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Wheat, Check, X, Pencil, Trash2, Search, TrendingUp, Tag, GitBranch } from 'lucide-react'
+import { Plus, Wheat, Check, X, Pencil, Trash2, Search, TrendingUp, Tag, ListTree } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
@@ -47,17 +47,25 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
   const [subRecipeTarget, setSubRecipeTarget] = useState<IngredientWithCategory | null>(null)
 
 
-  const filteredIngredients = ingredients.filter((i) => {
+  const filteredIngredients = useMemo(() => ingredients.filter((i) => {
     const matchesSearch = !searchQuery || i.name.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesCategory =
       !filterCategory ||
       filterCategory === ALL_CATEGORIES_VALUE ||
       i.ingredient_categories?.id === filterCategory
     return matchesSearch && matchesCategory
-  })
+  }), [ingredients, searchQuery, filterCategory])
 
-  const activeCount = ingredients.filter((i) => i.is_active).length
+  const activeCount = useMemo(() => ingredients.filter((i) => i.is_active).length, [ingredients])
   const inactiveCount = ingredients.length - activeCount
+
+  const countByCategory = useMemo(() => {
+    const map: Record<string, number> = {}
+    categories.forEach((cat) => {
+      map[cat.id] = ingredients.filter((i) => i.ingredient_categories?.id === cat.id).length
+    })
+    return map
+  }, [ingredients, categories])
 
   const handleToggleActive = async (ingredient: IngredientWithCategory) => {
     const newValue = !ingredient.is_active
@@ -232,7 +240,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                 </span>
               </button>
               {categories.map((cat) => {
-                const count = ingredients.filter((i) => i.ingredient_categories?.id === cat.id).length
+                const count = countByCategory[cat.id] ?? 0
                 const isActive = filterCategory === cat.id
                 return (
                   <button
@@ -345,7 +353,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                                   className="h-9 w-9 lg:h-10 lg:w-10 text-[var(--admin-text-muted)] hover:text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 transition-all"
                                   onClick={() => setSubRecipeTarget(ingredient)}
                                 >
-                                  <GitBranch className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+                                  <ListTree className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>Gestionar sub-receta</TooltipContent>

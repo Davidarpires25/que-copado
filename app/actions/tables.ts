@@ -20,13 +20,17 @@ async function recalculateOrderTotal(
   orderId: string
 ) {
   // Fetch all non-cancelled items
-  const { data: items } = await supabase
+  const { data: items, error: itemsError } = await supabase
     .from('order_items')
     .select('*')
     .eq('order_id', orderId)
-    .eq('status', 'pendiente')
+    .neq('status', 'cancelado')
     .order('added_at')
 
+  if (itemsError) {
+    devError(`Error fetching order_items for recalculate (order ${orderId}):`, itemsError)
+    return
+  }
   if (!items) return
 
   const total = items.reduce(
@@ -42,7 +46,7 @@ async function recalculateOrderTotal(
     quantity: item.quantity,
   }))
 
-  await supabase
+  const { error: updateError } = await supabase
     .from('orders')
     .update({
       total,
@@ -50,6 +54,10 @@ async function recalculateOrderTotal(
       updated_at: new Date().toISOString(),
     })
     .eq('id', orderId)
+
+  if (updateError) {
+    devError(`Error syncing order total for ${orderId} (total: ${total}):`, updateError)
+  }
 }
 
 // ─── Table Queries ──────────────────────────────────────────
@@ -261,6 +269,10 @@ export async function addItemsToOrder(
 
     if (!order || (order.status !== 'abierto' && order.status !== 'cuenta_pedida')) {
       return { data: null, error: 'La orden no esta abierta' }
+    }
+
+    if (items.some((i) => i.quantity <= 0)) {
+      return { data: null, error: 'La cantidad de cada producto debe ser mayor a cero' }
     }
 
     // Insert items
@@ -531,7 +543,7 @@ export async function payTableOrder(
 
     // Insert payment_splits rows for hybrid payment
     if (isHybrid) {
-      await supabase.from('payment_splits').insert(
+      const { error: splitsError } = await supabase.from('payment_splits').insert(
         splits.map((sp) => ({
           order_id: orderId,
           amount: sp.amount,
@@ -539,16 +551,22 @@ export async function payTableOrder(
           session_id: sessionId,
         }))
       )
+      if (splitsError) {
+        devError('Error inserting payment_splits for table order:', splitsError)
+        // Order is already marked pagado — log but continue; splits are needed for reconciliation
+      }
     }
 
     // Update session totals — accumulated per method for hybrid
-    const { data: currentSession } = await supabase
+    const { data: currentSession, error: sessionFetchError } = await supabase
       .from('cash_register_sessions')
       .select('total_sales, total_orders, total_cash_sales, total_card_sales, total_transfer_sales')
       .eq('id', sessionId)
       .single()
 
-    if (currentSession) {
+    if (sessionFetchError || !currentSession) {
+      devError(`CRITICAL: session ${sessionId} not found — totals NOT updated for order ${orderId} (${orderData.total}):`, sessionFetchError)
+    } else {
       const s = currentSession as Record<string, number>
 
       if (isHybrid) {
@@ -564,10 +582,11 @@ export async function payTableOrder(
           const field = getSalesField(sp.method)
           delta[field] = (delta[field] || 0) + sp.amount
         }
-        await supabase.from('cash_register_sessions').update(delta).eq('id', sessionId)
+        const { error: updateErr } = await supabase.from('cash_register_sessions').update(delta).eq('id', sessionId)
+        if (updateErr) devError(`CRITICAL: session totals update failed for table order ${orderId}:`, updateErr)
       } else {
         const salesField = getSalesField(paymentMethod)
-        await supabase
+        const { error: updateErr } = await supabase
           .from('cash_register_sessions')
           .update({
             total_sales: (s.total_sales || 0) + orderData.total,
@@ -575,6 +594,7 @@ export async function payTableOrder(
             [salesField]: (s[salesField] || 0) + orderData.total,
           })
           .eq('id', sessionId)
+        if (updateErr) devError(`CRITICAL: session totals update failed for table order ${orderId}:`, updateErr)
       }
     }
 
@@ -641,20 +661,26 @@ export async function cancelTableOrder(
       return { error: 'Error al cancelar orden' }
     }
 
-    // Cancel all items
-    await supabase
+    // Cancel all items (non-critical if fails — order is already cancelled)
+    const { error: itemsError } = await supabase
       .from('order_items')
       .update({ status: 'cancelado' })
       .eq('order_id', orderId)
+    if (itemsError) devError(`Error cancelling order_items for order ${orderId}:`, itemsError)
 
-    // Free the table
-    await supabase
+    // Free the table — critical: if this fails the table gets stuck as 'ocupada'
+    const { error: tableError } = await supabase
       .from('restaurant_tables')
       .update({
         status: 'libre',
         current_order_id: null,
       })
       .eq('id', tableId)
+
+    if (tableError) {
+      devError(`CRITICAL: failed to free table ${tableId} after cancelling order ${orderId}:`, tableError)
+      return { error: 'Orden cancelada pero no se pudo liberar la mesa. Recargá la página.' }
+    }
 
     revalidateCaja()
     revalidateOrders()

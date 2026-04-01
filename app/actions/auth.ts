@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { checkRateLimit } from '@/lib/server/rate-limit'
+import { isRateLimited, recordFailure } from '@/lib/server/rate-limit'
 
 export async function signIn(formData: FormData) {
   const supabase = await createAdminClient()
@@ -29,9 +29,10 @@ export async function signIn(formData: FormData) {
     return { error: 'La contraseña debe tener al menos 8 caracteres' }
   }
 
-  // Rate limit: 5 intentos por email cada 15 minutos
-  const { allowed } = checkRateLimit(`signin:${email.toLowerCase()}`, 5, 15 * 60 * 1000)
-  if (!allowed) {
+  // Rate limit: máximo 10 intentos fallidos por email cada 15 minutos
+  // Solo se cuentan los intentos FALLIDOS — logins exitosos no consumen el límite
+  const rateLimitKey = `signin:${email.toLowerCase()}`
+  if (isRateLimited(rateLimitKey, 10)) {
     return { error: 'Demasiados intentos fallidos. Esperá 15 minutos e intentá de nuevo.' }
   }
 
@@ -41,6 +42,7 @@ export async function signIn(formData: FormData) {
   })
 
   if (error) {
+    recordFailure(rateLimitKey, 10, 15 * 60 * 1000)
     return { error: 'Credenciales inválidas' }
   }
 

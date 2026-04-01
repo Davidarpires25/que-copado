@@ -110,3 +110,15 @@ Sub-componentes: `IngredientCombobox`, `CreateIngredientDialog`
 - Auto-add con cantidad=1 y unidad base es decisión UX sólida (reduce pasos)
 - `initialName` pre-cargado desde el search es excelente (evita re-tipeo)
 - Filtro `is_active && !usedIds.has(id)` en `availableIngredients` previene duplicados
+
+## Flujo Público — Auditoría UX (sesión 8)
+Ver archivo `public-flow-audit.md` para análisis completo.
+Resumen ejecutivo:
+- **2 gaps críticos NO implementados:** detalle de producto (`/productos/[id]`) y confirmación WhatsApp (`/confirmation/[orderId]`)
+- **Decisión técnica clave:** detalle de producto debe usar Parallel Routes + Route Interception de Next.js (página en mobile, modal en desktop)
+- **Decisión de producto pendiente:** ¿el pedido se persiste en BD antes o después de abrir WhatsApp?
+- **Observaciones en CartItem:** agregar `observations?: string` al store — necesario para "sin cebolla, extra cheddar"
+- **Checkout mobile:** falta sticky bottom CTA con precio total — el botón está perdido al final del scroll
+- **Half-pizza selector:** completamente implementado en `product-grid.tsx` como Radix Sheet — `half-pizza-card.tsx` fue eliminado (git D)
+- **Badge editorial:** `best-seller` se asigna por posición de array — debe ser campo en DB (`products.badge`)
+- Fondo público actual: gradiente `from-orange-50 via-amber-50 to-yellow-50` (el diseño plantea crema plano — aceptable)

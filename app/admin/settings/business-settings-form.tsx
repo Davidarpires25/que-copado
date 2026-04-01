@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, Calendar, Pause, Play, Loader2, Save, Sun, Moon } from 'lucide-react'
+import { Clock, Calendar, ToggleLeft, ToggleRight, Loader2, Save, Sun, Moon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -32,14 +32,14 @@ const DAYS_OF_WEEK = [
 export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormProps) {
   const [settings, setSettings] = useState(initialSettings)
   const [isSaving, setIsSaving] = useState(false)
-  const [isTogglingPause, setIsTogglingPause] = useState(false)
+  const [isTogglingToggleLeft, setIsTogglingToggleLeft] = useState(false)
   const { theme, setTheme } = useThemeStore()
 
   // Form state
   const [operatingDays, setOperatingDays] = useState<number[]>(settings.operating_days)
   const [openingTime, setOpeningTime] = useState(settings.opening_time)
   const [closingTime, setClosingTime] = useState(settings.closing_time)
-  const [pauseMessage, setPauseMessage] = useState(settings.pause_message || '')
+  const [pauseMessage, setToggleLeftMessage] = useState(settings.pause_message || '')
 
   const businessStatus = checkBusinessStatus(settings)
 
@@ -74,10 +74,10 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
     }
   }
 
-  const handleTogglePause = async () => {
-    setIsTogglingPause(true)
+  const handleToggleToggleLeft = async () => {
+    setIsTogglingToggleLeft(true)
     const result = await toggleBusinessPause(!settings.is_paused, pauseMessage || undefined)
-    setIsTogglingPause(false)
+    setIsTogglingToggleLeft(false)
 
     if (result.error) {
       toast.error(result.error)
@@ -115,27 +115,27 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
 
             <Button
               variant={settings.is_paused ? 'default' : 'outline'}
-              onClick={handleTogglePause}
-              disabled={isTogglingPause}
+              onClick={handleToggleToggleLeft}
+              disabled={isTogglingToggleLeft}
               className={
                 settings.is_paused
                   ? 'bg-green-600 hover:bg-green-700 text-white'
                   : 'border-red-500/50 text-red-400 hover:bg-red-500/10'
               }
             >
-              {isTogglingPause ? (
+              {isTogglingToggleLeft ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : settings.is_paused ? (
-                <Play className="h-4 w-4 mr-2" />
+                <ToggleRight className="h-4 w-4 mr-2" />
               ) : (
-                <Pause className="h-4 w-4 mr-2" />
+                <ToggleLeft className="h-4 w-4 mr-2" />
               )}
               {settings.is_paused ? 'Reanudar Pedidos' : 'Pausar Pedidos'}
             </Button>
           </div>
         </div>
 
-        {/* Business Hours */}
+        {/* Operación — Horarios + Pausa unificados */}
         <div
           className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 space-y-6 shadow-[var(--shadow-card)]"
         >
@@ -192,14 +192,11 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
           <p className="text-sm text-[var(--admin-text-muted)]">
             Horario: {formatBusinessHours(openingTime, closingTime)}
           </p>
-        </div>
 
-        {/* Pause Message */}
-        <div
-          className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 space-y-4 shadow-[var(--shadow-card)]"
-        >
+          <div className="h-px bg-[var(--admin-border)]" />
+
           <div className="flex items-center gap-2">
-            <Pause className="h-5 w-5 text-[var(--admin-accent-text)]" />
+            <ToggleLeft className="h-5 w-5 text-[var(--admin-accent-text)]" />
             <h2 className="text-lg font-semibold text-[var(--admin-text)]">Mensaje de Pausa</h2>
           </div>
 
@@ -209,7 +206,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
             </Label>
             <Textarea
               value={pauseMessage}
-              onChange={(e) => setPauseMessage(e.target.value)}
+              onChange={(e) => setToggleLeftMessage(e.target.value)}
               placeholder="Estamos cerrados temporalmente. Volvemos pronto!"
               className="bg-[var(--admin-surface-2)] border-[var(--admin-border)] text-[var(--admin-text)] min-h-[100px] placeholder:text-[var(--admin-text-muted)]"
             />

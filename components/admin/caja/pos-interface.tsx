@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { printClientTicketAction, printKitchenTicketAction } from '@/app/actions/print'
-import { Store, UtensilsCrossed, History } from 'lucide-react'
+import { Store, Table2, History } from 'lucide-react'
 import { PosProductGrid } from './product-grid'
 import { OrderBuilder, type PosCartItem } from './order-builder'
 import { PendingOrderPayView } from './pending-order-pay-view'
@@ -103,14 +103,15 @@ export function PosInterface({
     )
   }, [products])
 
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const hasKitchenItems = items.some((item) => sendsToKitchen(item.product_type ?? ''))
-  const currentCash =
+  const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.price * item.quantity, 0), [items])
+  const hasKitchenItems = useMemo(() => items.some((item) => sendsToKitchen(item.product_type ?? '')), [items])
+  const currentCash = useMemo(() => (
     session.opening_balance +
     session.total_cash_sales +
     session.total_deposits -
     session.total_withdrawals
-  const openTablesCount = tables.filter((t) => t.status !== 'libre').length
+  ), [session.opening_balance, session.total_cash_sales, session.total_deposits, session.total_withdrawals])
+  const openTablesCount = useMemo(() => tables.filter((t) => t.status !== 'libre').length, [tables])
 
   // ─── Refresh ─────────────────────────────────────────────
   const refreshTables = useCallback(async () => {
@@ -125,6 +126,12 @@ export function PosInterface({
     }
   }, [])
 
+  const refreshTablesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const debouncedRefreshTables = useCallback(() => {
+    if (refreshTablesTimerRef.current) clearTimeout(refreshTablesTimerRef.current)
+    refreshTablesTimerRef.current = setTimeout(() => void refreshTables(), 300)
+  }, [refreshTables])
+
   const refreshPendingOrders = useCallback(async (silent = false) => {
     if (!silent) setPendingLoading(true)
     const { data } = await getPendingMostadorOrders(session.id)
@@ -138,21 +145,21 @@ export function PosInterface({
     const channel = supabase
       .channel('pos-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'restaurant_tables' },
-        () => { void refreshTables() }
+        () => { debouncedRefreshTables() }
       )
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' },
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `session_id=eq.${session.id}` },
         () => {
           void refreshPendingOrders(true)
-          void refreshTables()
+          debouncedRefreshTables()
         }
       )
       .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' },
-        () => { void refreshTables() }
+        () => { debouncedRefreshTables() }
       )
       .subscribe()
 
     return () => { void supabase.removeChannel(channel) }
-  }, [refreshTables, refreshPendingOrders])
+  }, [debouncedRefreshTables, refreshPendingOrders, session.id])
 
   // ─── Mostrador handlers ─────────────────────────────────
   const handleAddItem = useCallback((
@@ -407,9 +414,9 @@ export function PosInterface({
     await refreshTables()
   }
 
-  const handleTableBillRequested = async () => {
+  const handleTableBillRequested = useCallback(async () => {
     await refreshTables()
-  }
+  }, [refreshTables])
 
   const handleTablePaid = async () => {
     setPayingTable(null)
@@ -422,10 +429,27 @@ export function PosInterface({
     }
   }
 
-  const handleTableOrderCancelled = async () => {
+  const handleTableOrderCancelled = useCallback(async () => {
     setSelectedTable(null)
     await refreshTables()
-  }
+  }, [refreshTables])
+
+  const handleTableAddItems = useCallback((tag: string | null | undefined) => {
+    setAddItemsSaleTag(tag ?? null)
+    setShowAddItems(true)
+  }, [])
+
+  const handleTablePayOrder = useCallback(() => {
+    setPayingTable(selectedTable)
+  }, [selectedTable])
+
+  const handleTableClose = useCallback(() => {
+    setSelectedTable(null)
+  }, [])
+
+  const handleTableOrderChanged = useCallback(() => {
+    void refreshTables()
+  }, [refreshTables])
 
   return (
     <div className="h-full flex flex-col bg-[var(--admin-bg)]">
@@ -457,7 +481,7 @@ export function PosInterface({
               : 'text-[var(--admin-text-muted)] border-transparent hover:text-[var(--admin-text)]'
           )}
         >
-          <UtensilsCrossed className="h-4 w-4" />
+          <Table2 className="h-4 w-4" />
           Mesas
           {openTablesCount > 0 && (
             <span className="ml-1 px-1.5 py-0.5 text-xs font-bold bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)] rounded-full">
@@ -553,7 +577,7 @@ export function PosInterface({
                   order={payingOrder}
                   loading={payingOrderLoading}
                   onBack={() => setPayingOrder(null)}
-                  onPrint={() => printClientTicketAction(payingOrder.id).then(r => { if (r.error) toast.error(r.error) })}
+                  onPrint={() => printClientTicketAction(payingOrder.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
                   onConfirm={handlePayPendingOrder}
                 />
               ) : (
@@ -617,12 +641,12 @@ export function PosInterface({
                   <TableOrderPanel
                     table={selectedTable}
                     session={session}
-                    onAddItems={(tag) => { setAddItemsSaleTag(tag ?? null); setShowAddItems(true) }}
+                    onAddItems={handleTableAddItems}
                     onRequestBill={handleTableBillRequested}
-                    onPayOrder={() => setPayingTable(selectedTable)}
+                    onPayOrder={handleTablePayOrder}
                     onCancelOrder={handleTableOrderCancelled}
-                    onClose={() => setSelectedTable(null)}
-                    onOrderItemsChanged={() => void refreshTables()}
+                    onClose={handleTableClose}
+                    onOrderItemsChanged={handleTableOrderChanged}
                   />
                 </div>
               )}
@@ -668,7 +692,7 @@ export function PosInterface({
             order={payingOrder}
             loading={payingOrderLoading}
             onBack={() => { setPayingOrder(null); setShowMobileCart(false) }}
-            onPrint={() => printClientTicketAction(payingOrder.id).then(r => { if (r.error) toast.error(r.error) })}
+            onPrint={() => printClientTicketAction(payingOrder.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
             onConfirm={async (method, splits) => {
               await handlePayPendingOrder(method, splits)
               setShowMobileCart(false)

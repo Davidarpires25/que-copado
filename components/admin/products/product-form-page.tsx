@@ -8,6 +8,7 @@ import {
   Loader2,
   Package,
   Info,
+  SlidersHorizontal,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,10 +39,10 @@ const HALF_PRICING_LABELS: Record<string, string> = {
   cost_markup: 'Costo + margen',
 }
 const HALF_PRICING_DESCRIPTIONS: Record<string, string> = {
-  max: 'Se cobra la mitad más cara',
-  average: 'Promedio de ambas mitades',
+  max: 'Se cobra el precio de la mitad más cara',
+  average: 'Se cobra el promedio de los dos precios',
   fixed: 'El precio fijo del producto',
-  cost_markup: 'Costo promedio × (1 + margen%)',
+  cost_markup: 'Costo de ingredientes + tu ganancia',
 }
 
 interface ProductFormPageProps {
@@ -215,7 +216,8 @@ export function ProductFormPage({
                 type="submit"
                 disabled={
                   isPending ||
-                  (productType === 'elaborado' && selectedRecipes.length === 0)
+                  (productType === 'elaborado' && selectedRecipes.length === 0) ||
+                  (productType === 'mitad' && halfPricingMethod === 'cost_markup' && (!halfMarkupPct || isNaN(parseFloat(halfMarkupPct))))
                 }
                 className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -233,12 +235,11 @@ export function ProductFormPage({
             </div>
           </div>
 
-          {/* Two-column layout */}
-          <div className="flex gap-6 items-start">
+          {/* Two-column layout — single unified card */}
+          <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-8 flex gap-8 items-start">
 
-            {/* ── Left card ── */}
+            {/* ── Left column ── */}
             <div className="flex-1 min-w-0 space-y-5">
-              <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-6 space-y-5">
 
                 {/* Section: Información */}
                 <div className="space-y-0.5">
@@ -388,6 +389,17 @@ export function ProductFormPage({
                 {/* Half pizza config (mitad only) */}
                 {productType === 'mitad' && (
                   <div className="space-y-4">
+
+                    {/* Info-box reactivo — al inicio, antes de las decisiones */}
+                    <div className="flex items-start gap-2 rounded-lg bg-blue-500/10 border border-blue-500/20 px-3 py-2.5">
+                      <Info className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
+                      <p className="text-xs text-blue-300">
+                        {previewCategory
+                          ? <>El cliente podrá combinar 2 productos activos de <span className="font-semibold text-blue-200">«{previewCategory}»</span> como mitades. El precio se calcula al momento de la venta.</>
+                          : 'Seleccioná una categoría arriba para definir qué productos podrá combinar el cliente como mitades.'}
+                      </p>
+                    </div>
+
                     {/* Pricing method — 'fixed' excluded since price is always dynamic */}
                     <div className="space-y-2">
                       <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
@@ -408,7 +420,7 @@ export function ProductFormPage({
                             <p className={`text-xs font-semibold ${halfPricingMethod === method ? 'text-[var(--admin-accent-text)]' : 'text-[var(--admin-text)]'}`}>
                               {HALF_PRICING_LABELS[method]}
                             </p>
-                            <p className="text-[11px] text-[var(--admin-text-muted)] mt-0.5 leading-tight">
+                            <p className="text-xs text-[var(--admin-text-muted)] mt-0.5 leading-tight">
                               {HALF_PRICING_DESCRIPTIONS[method]}
                             </p>
                           </button>
@@ -416,29 +428,23 @@ export function ProductFormPage({
                       </div>
                     </div>
 
-                    {/* Markup % (only for cost_markup) */}
-                    {halfPricingMethod === 'cost_markup' && (
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
-                          Margen %
-                        </Label>
-                        <Input
-                          type="number"
-                          step="1"
-                          min="0"
-                          max="500"
-                          value={halfMarkupPct}
-                          onChange={(e) => setHalfMarkupPct(e.target.value)}
-                          placeholder="30"
-                          className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
-                        />
-                      </div>
-                    )}
-
-                    <div className="flex items-start gap-2 rounded-lg bg-blue-500/10 border border-blue-500/20 px-3 py-2.5">
-                      <Info className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
-                      <p className="text-xs text-blue-300">
-                        El cliente elige 2 mitades de la misma categoría del producto. El precio se calcula dinámicamente.
+                    {/* Markup % (only for cost_markup) — con transición suave */}
+                    <div className={`space-y-2 transition-all duration-200 overflow-hidden ${halfPricingMethod === 'cost_markup' ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
+                      <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
+                        Tu ganancia %
+                      </Label>
+                      <Input
+                        type="number"
+                        step="1"
+                        min="0"
+                        max="500"
+                        value={halfMarkupPct}
+                        onChange={(e) => setHalfMarkupPct(e.target.value)}
+                        placeholder="Ej: 40"
+                        className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
+                      />
+                      <p className="text-xs text-[var(--admin-text-muted)]">
+                        Ej: con 40%, si el costo promedio es $2.000, el precio de venta será $2.800
                       </p>
                     </div>
                   </div>
@@ -469,12 +475,10 @@ export function ProductFormPage({
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
             </div>
 
-            {/* ── Right card ── */}
-            <div className="w-[340px] shrink-0 space-y-5">
-              <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-6 space-y-5">
+            {/* ── Right column ── */}
+            <div className="w-[320px] shrink-0 space-y-5">
 
                 {/* Section: Configuración */}
                 <div className="space-y-0.5">
@@ -482,10 +486,23 @@ export function ProductFormPage({
                     Configuración
                   </h2>
                   <p className="text-xs text-[var(--admin-text-muted)]">
-                    Precio, visibilidad y disponibilidad
+                    {productType === 'mitad' ? 'Visibilidad y disponibilidad' : 'Precio, visibilidad y disponibilidad'}
                   </p>
                 </div>
                 <div className="h-px bg-[var(--admin-border)]" />
+
+                {/* Bloque precio dinámico — solo para mitad */}
+                {productType === 'mitad' && (
+                  <div className="flex items-start gap-2.5 rounded-lg bg-[var(--admin-accent)]/8 border border-[var(--admin-accent)]/20 px-3 py-3">
+                    <SlidersHorizontal className="h-4 w-4 text-[var(--admin-accent-text)] shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--admin-accent-text)]">Precio dinámico</p>
+                      <p className="text-xs text-[var(--admin-text-muted)] mt-0.5 leading-snug">
+                        Se calcula al momento de la venta según el método configurado.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Precio — oculto para 'mitad' (se calcula dinámicamente) */}
                 {productType !== 'mitad' && (
@@ -594,11 +611,16 @@ export function ProductFormPage({
                       <p className="text-sm font-semibold text-[var(--admin-text)] truncate">
                         {previewName || 'Nombre del Producto'}
                       </p>
-                      <p className="text-sm font-bold text-[var(--admin-accent-text)]">
-                        {previewPrice
-                          ? formatPrice(parseFloat(previewPrice))
-                          : '$0'}
-                      </p>
+                      {productType === 'mitad' ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--admin-accent-text)] bg-[var(--admin-accent)]/10 rounded-full px-2 py-0.5">
+                          <SlidersHorizontal className="h-3 w-3" />
+                          Precio dinámico
+                        </span>
+                      ) : (
+                        <p className="text-sm font-bold text-[var(--admin-accent-text)]">
+                          {previewPrice ? formatPrice(parseFloat(previewPrice)) : '$0'}
+                        </p>
+                      )}
                       {previewCategory && (
                         <span className="inline-block text-xs font-medium text-[var(--admin-accent-text)] bg-[var(--admin-accent)]/10 rounded-full px-2 py-0.5">
                           {previewCategory}
@@ -607,7 +629,6 @@ export function ProductFormPage({
                     </div>
                   </div>
                 </div>
-              </div>
             </div>
 
           </div>

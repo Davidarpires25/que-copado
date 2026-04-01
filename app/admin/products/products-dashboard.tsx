@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Pencil, Trash2, Check, X, Package, DollarSign, Search, Eye, EyeOff } from 'lucide-react'
+import { Plus, Pencil, Trash2, Check, X, Package, Search, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
@@ -131,16 +131,19 @@ export function ProductsDashboard({
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false)
   const [isBulkAction, setIsBulkAction] = useState(false)
 
-  const filteredProducts = products.filter((p) => {
+  const filteredProducts = useMemo(() => products.filter((p) => {
     const matchesCategory = !selectedCategory || p.categories?.id === selectedCategory
     const matchesSearch = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesCategory && matchesSearch
-  })
+  }), [products, selectedCategory, searchQuery])
 
-  const categoryCounts: Record<string, number> = { all: products.length }
-  categories.forEach((cat) => {
-    categoryCounts[cat.id] = products.filter((p) => p.categories?.id === cat.id).length
-  })
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: products.length }
+    categories.forEach((cat) => {
+      counts[cat.id] = products.filter((p) => p.categories?.id === cat.id).length
+    })
+    return counts
+  }, [products, categories])
 
   // -------------------------------------------------------------------------
   // Handlers
@@ -311,8 +314,8 @@ export function ProductsDashboard({
   // Computed values
   // -------------------------------------------------------------------------
 
-  const activeProducts = products.filter((p) => p.is_active)
-  const outOfStock = products.filter((p) => p.is_out_of_stock)
+  const activeProducts = useMemo(() => products.filter((p) => p.is_active), [products])
+  const outOfStock = useMemo(() => products.filter((p) => p.is_out_of_stock), [products])
 
   // -------------------------------------------------------------------------
   // Render
@@ -434,6 +437,7 @@ export function ProductsDashboard({
           )}
 
           {/* Products table */}
+          <TooltipProvider>
           <div>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -480,13 +484,10 @@ export function ProductsDashboard({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredProducts.map((product, index) => {
+                    {filteredProducts.map((product) => {
                       return (
-                        <motion.tr
+                        <tr
                           key={product.id}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.03 }}
                           className="border-[var(--admin-border)] transition-colors duration-200 group hover:bg-[var(--admin-surface-2)]"
                         >
                           <TableCell className="w-10 text-center">
@@ -503,6 +504,7 @@ export function ProductsDashboard({
                                   <img
                                     src={product.image_url}
                                     alt={product.name}
+                                    loading="lazy"
                                     className="h-10 w-10 lg:h-12 lg:w-12 object-cover group-hover:scale-110 transition-transform duration-200"
                                   />
                                 ) : (
@@ -582,7 +584,6 @@ export function ProductsDashboard({
                                   className="flex items-center gap-1 text-[var(--admin-accent-text)] hover:text-[#E09D00] transition-all duration-200 font-semibold group/price px-1.5 py-1 rounded-lg hover:bg-[var(--admin-accent)]/10 text-sm lg:text-base"
                                 >
                                   {formatPrice(product.price)}
-                                  <DollarSign className="h-3 w-3 lg:h-3.5 lg:w-3.5 opacity-50 group-hover/price:opacity-100 transition-opacity" />
                                 </button>
                                 {product.cost != null && (
                                   <p className="text-xs text-[var(--admin-text-muted)]/60 px-1.5">
@@ -593,84 +594,77 @@ export function ProductsDashboard({
                             )}
                           </TableCell>
                           <TableCell className="text-center hidden sm:table-cell">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div className="flex justify-center">
-                                    <Switch
-                                      checked={!product.is_out_of_stock}
-                                      onCheckedChange={() => handleToggleStock(product)}
-                                      className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-[var(--admin-border)]"
-                                      aria-label={product.is_out_of_stock ? 'Sin stock' : 'En stock'}
-                                    />
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent side="top">
-                                  {product.is_out_of_stock ? 'Sin stock' : 'En stock'}
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex justify-center">
+                                  <Switch
+                                    checked={!product.is_out_of_stock}
+                                    onCheckedChange={() => handleToggleStock(product)}
+                                    className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-[var(--admin-border)]"
+                                    aria-label={product.is_out_of_stock ? 'Sin stock' : 'En stock'}
+                                  />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent side="top">
+                                {product.is_out_of_stock ? 'Sin stock' : 'En stock'}
+                              </TooltipContent>
+                            </Tooltip>
                           </TableCell>
                           <TableCell className="text-center hidden sm:table-cell">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div className="flex justify-center">
-                                    <Switch
-                                      checked={product.is_active}
-                                      onCheckedChange={() => handleToggleActive(product)}
-                                      className="data-[state=checked]:bg-[var(--admin-accent)] data-[state=unchecked]:bg-[var(--admin-border)]"
-                                      aria-label={product.is_active ? 'Activo' : 'Inactivo'}
-                                    />
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent side="top">
-                                  {product.is_active ? 'Activo' : 'Inactivo'}
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex justify-center">
+                                  <Switch
+                                    checked={product.is_active}
+                                    onCheckedChange={() => handleToggleActive(product)}
+                                    className="data-[state=checked]:bg-[var(--admin-accent)] data-[state=unchecked]:bg-[var(--admin-border)]"
+                                    aria-label={product.is_active ? 'Activo' : 'Inactivo'}
+                                  />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent side="top">
+                                {product.is_active ? 'Activo' : 'Inactivo'}
+                              </TooltipContent>
+                            </Tooltip>
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-2">
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      size="icon"
-                                      variant="ghost"
-                                      className="h-9 w-9 lg:h-10 lg:w-10 transition-all duration-200 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)]"
-                                      onClick={() => router.push(`/admin/products/${product.id}/edit`)}
-                                    >
-                                      <Pencil className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>Editar</TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      size="icon"
-                                      variant="ghost"
-                                      className="h-9 w-9 lg:h-10 lg:w-10 text-red-500 hover:text-red-400 hover:bg-red-950/30 transition-all duration-200"
-                                      onClick={() => setDeleteTarget(product.id)}
-                                    >
-                                      <Trash2 className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>Eliminar</TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-9 w-9 lg:h-10 lg:w-10 transition-all duration-200 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)]"
+                                    onClick={() => router.push(`/admin/products/${product.id}/edit`)}
+                                  >
+                                    <Pencil className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Editar</TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-9 w-9 lg:h-10 lg:w-10 text-red-500 hover:text-red-400 hover:bg-red-950/30 transition-all duration-200"
+                                    onClick={() => setDeleteTarget(product.id)}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Eliminar</TooltipContent>
+                              </Tooltip>
                             </div>
                           </TableCell>
-                        </motion.tr>
+                        </tr>
                       )
                     })}
                   </TableBody>
                 </Table>
               </motion.div>
             </div>
+          </TooltipProvider>
         </>
       )}
 

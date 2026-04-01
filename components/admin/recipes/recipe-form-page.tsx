@@ -308,14 +308,11 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
           </div>
         </div>
 
-        {/* Two-column layout */}
-        <div className="flex gap-6 items-start">
+        {/* Two-column layout — single unified card */}
+        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-8 flex gap-8 items-start">
 
           {/* ── Left column ── */}
           <div className="flex-1 min-w-0 space-y-5">
-
-            {/* Información card */}
-            <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-6 space-y-5">
               <div className="space-y-0.5">
                 <h2 className="text-sm font-semibold text-[var(--admin-text)]">Información de la Receta</h2>
                 <p className="text-xs text-[var(--admin-text-muted)]">Nombre y descripción de la receta</p>
@@ -370,11 +367,8 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                   </p>
                 </div>
               )}
-            </div>
-
-            {/* Resumen de Costos card */}
             {recipeItems.length > 0 && (
-              <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-6 space-y-4">
+              <div className="space-y-4 border-t border-[var(--admin-border)] pt-5">
                 <div className="space-y-0.5">
                   <h2 className="text-sm font-semibold text-[var(--admin-text)]">Resumen de Costos</h2>
                   <p className="text-xs text-[var(--admin-text-muted)]">Calculado en base a los ingredientes</p>
@@ -411,8 +405,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
           </div>
 
           {/* ── Right column ── */}
-          <div className="w-[420px] shrink-0">
-            <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-6 space-y-5">
+          <div className="w-[420px] shrink-0 space-y-5">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <h2 className="text-sm font-semibold text-[var(--admin-text)]">Ingredientes de la Receta</h2>
@@ -557,7 +550,6 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                   )}
                 </div>
               )}
-            </div>
           </div>
         </div>
       </form>

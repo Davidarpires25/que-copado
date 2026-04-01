@@ -15,13 +15,15 @@ import {
   ClipboardList,
   Settings,
   BarChart3,
-  CreditCard,
-  UtensilsCrossed,
+  ScanLine,
+  Table2,
   Wheat,
   BookOpen,
   Boxes,
   ChefHat,
   History,
+  Scale,
+  ArrowLeftRight,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -48,9 +50,9 @@ const navGroups: NavGroup[] = [
   {
     title: 'Operación',
     items: [
-      { href: '/admin/caja', label: 'Caja', icon: CreditCard },
-      { href: '/admin/caja/arqueos', label: 'Arqueos', icon: History },
-      { href: '/admin/tables', label: 'Mesas', icon: UtensilsCrossed },
+      { href: '/admin/caja', label: 'Caja', icon: ScanLine },
+      { href: '/admin/caja/arqueos', label: 'Arqueos', icon: Scale },
+      { href: '/admin/tables', label: 'Mesas', icon: Table2 },
       { href: '/admin/orders', label: 'Pedidos', icon: ClipboardList },
       { href: '/admin/cocina', label: 'Cocina', icon: ChefHat },
       { href: '/admin/stock', label: 'Stock', icon: Boxes },
@@ -172,7 +174,7 @@ export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCo
   return (
     <aside
       className={cn(
-        'group/sidebar fixed left-0 top-0 z-40 h-screen bg-[var(--admin-sidebar-bg)] border-r border-[var(--admin-sidebar-border)] transition-all duration-300 flex flex-col',
+        'group/sidebar fixed left-0 top-0 z-40 h-screen bg-[var(--admin-sidebar-bg)] border-r border-[var(--admin-sidebar-border)] transition-all duration-300 flex flex-col overflow-hidden',
         collapsed ? 'w-[72px]' : 'w-64'
       )}
     >

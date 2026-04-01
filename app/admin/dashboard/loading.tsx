@@ -9,6 +9,25 @@ function Skeleton({ className }: { className?: string }) {
 export default function DashboardLoading() {
   return (
     <AdminLayout title="Dashboard" description="Resumen de tu negocio">
+      {/* Operational Status skeleton */}
+      <div className="mb-8">
+        <Skeleton className="h-3 w-28 mb-3" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={i}
+              className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl px-4 py-3.5 shadow-[var(--shadow-card)] flex items-center gap-3"
+            >
+              <Skeleton className="h-9 w-9 rounded-lg shrink-0" />
+              <div className="flex-1">
+                <Skeleton className="h-2.5 w-20 mb-2" />
+                <Skeleton className="h-5 w-8" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {Array.from({ length: 4 }).map((_, i) => (

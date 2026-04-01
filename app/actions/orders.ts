@@ -109,6 +109,18 @@ export async function validateCartStock(
 
     const issues: StockIssue[] = []
 
+    const elaboradoItems = cartItems.filter((item) => {
+      const product = products?.find((p) => p.id === item.id)
+      return product?.product_type === 'elaborado'
+    })
+
+    const elaboradoMaxQtys = await Promise.all(
+      elaboradoItems.map((item) => getMaxElaboradoQuantity(supabase, item.id))
+    )
+    const elaboradoMaxMap = new Map(
+      elaboradoItems.map((item, i) => [item.id, elaboradoMaxQtys[i]])
+    )
+
     for (const item of cartItems) {
       const product = products?.find((p) => p.id === item.id)
 
@@ -123,7 +135,7 @@ export async function validateCartStock(
       }
 
       if (product.product_type === 'elaborado') {
-        const maxQty = await getMaxElaboradoQuantity(supabase, product.id)
+        const maxQty = elaboradoMaxMap.get(item.id) ?? null
         if (maxQty !== null && maxQty < item.quantity) {
           issues.push({
             productId: item.id,
@@ -534,7 +546,7 @@ export async function getRecentOrders(
 
     const { data, error } = await supabase
       .from('orders')
-      .select('*, delivery_zones(*)')
+      .select('*, delivery_zones(id, name)')
       .order('created_at', { ascending: false })
       .limit(limit)
 
@@ -565,29 +577,26 @@ export async function getOrderCountsByStatus(): Promise<{
       return { data: null, error: 'No autenticado' }
     }
 
-    const { data, error } = await supabase
-      .from('orders')
-      .select('status')
+    const statuses: OrderStatus[] = ['abierto', 'recibido', 'cuenta_pedida', 'pagado', 'entregado', 'cancelado']
 
-    if (error || !data) {
-      devError('Error counting orders:', error)
+    const results = await Promise.all(
+      statuses.map((status) =>
+        supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', status)
+      )
+    )
+
+    const firstError = results.find((r) => r.error)
+    if (firstError?.error) {
+      devError('Error counting orders:', firstError.error)
       return { data: null, error: 'Error al contar pedidos' }
     }
 
-    const counts: Record<OrderStatus, number> = {
-      abierto: 0,
-      recibido: 0,
-      cuenta_pedida: 0,
-      pagado: 0,
-      entregado: 0,
-      cancelado: 0,
-    }
-
-    data.forEach((order: { status: string }) => {
-      if (order.status in counts) {
-        counts[order.status as OrderStatus]++
-      }
-    })
+    const counts = Object.fromEntries(
+      statuses.map((status, i) => [status, results[i].count ?? 0])
+    ) as Record<OrderStatus, number>
 
     return { data: counts, error: null }
   } catch (error) {

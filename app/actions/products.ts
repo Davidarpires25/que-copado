@@ -2,7 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
-import { revalidateStorefront } from '@/lib/server/revalidate'
+import { revalidateStorefront, revalidateProducts } from '@/lib/server/revalidate'
 import { friendlyError } from '@/lib/server/error-messages'
 
 export async function createProduct(formData: FormData) {
@@ -79,15 +79,22 @@ export async function createProduct(formData: FormData) {
     const halfMarkupPctStr = formData.get('half_pricing_markup_pct') as string | null
     const halfMarkupPct = halfMarkupPctStr ? parseFloat(halfMarkupPctStr) : null
 
-    await supabase.from('product_half_configs').insert({
+    const { error: halfError } = await supabase.from('product_half_configs').insert({
       product_id: data.id,
       source_category_id: categoryId,  // use same category as the product
       pricing_method: halfPricingMethod,
       pricing_markup_pct: halfPricingMethod === 'cost_markup' ? halfMarkupPct : null,
     })
+
+    if (halfError) {
+      // Rollback: delete the product just created to avoid orphaned records
+      await supabase.from('products').delete().eq('id', data.id)
+      return { error: 'Error al crear la configuración de media pizza' }
+    }
   }
 
   revalidateStorefront()
+  revalidateProducts()
   return { success: true, product: data }
 }
 
@@ -133,7 +140,7 @@ export async function updateProduct(productId: string, data: {
   }
 
   if (data.price !== undefined) {
-    if (isNaN(data.price) || data.price <= 0) {
+    if (isNaN(data.price) || (data.price <= 0 && data.product_type !== 'mitad')) {
       return { error: 'El precio debe ser un número válido mayor a 0' }
     }
     if (data.price > 1000000) {
@@ -164,18 +171,26 @@ export async function updateProduct(productId: string, data: {
   if (newType === 'mitad') {
     // source_category_id = product's own category
     const sourceCategoryId = data.category_id ?? updatedProduct.category_id
-    await supabase.from('product_half_configs').upsert({
+    const { error: halfError } = await supabase.from('product_half_configs').upsert({
       product_id: productId,
       source_category_id: sourceCategoryId,
       pricing_method: half_pricing_method ?? 'max',
       pricing_markup_pct: half_pricing_method === 'cost_markup' ? (half_pricing_markup_pct ?? null) : null,
     }, { onConflict: 'product_id' })
+
+    if (halfError) {
+      return { error: 'Error al actualizar la configuración de media pizza' }
+    }
   } else if (data.product_type !== undefined && data.product_type !== 'mitad') {
     // Type changed away from 'mitad' — delete config
-    await supabase.from('product_half_configs').delete().eq('product_id', productId)
+    const { error: halfDeleteError } = await supabase.from('product_half_configs').delete().eq('product_id', productId)
+    if (halfDeleteError) {
+      return { error: 'Error al eliminar la configuración de media pizza' }
+    }
   }
 
   revalidateStorefront()
+  revalidateProducts()
   return { success: true, product: updatedProduct }
 }
 
@@ -201,6 +216,7 @@ export async function deleteProduct(productId: string) {
   }
 
   revalidateStorefront()
+  revalidateProducts()
   return { success: true }
 }
 
@@ -240,6 +256,7 @@ export async function bulkToggleActive(productIds: string[], isActive: boolean) 
   }
 
   revalidateStorefront()
+  revalidateProducts()
   return { success: true, count: productIds.length }
 }
 
@@ -265,5 +282,6 @@ export async function bulkDelete(productIds: string[]) {
   }
 
   revalidateStorefront()
+  revalidateProducts()
   return { success: true, count: productIds.length }
 }

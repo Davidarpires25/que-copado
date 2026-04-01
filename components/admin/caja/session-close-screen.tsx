@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
   Loader2, ArrowLeft, CheckCircle, AlertTriangle,
-  CircleArrowUp, CircleArrowDown,
+  TrendingUp, TrendingDown,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { closeSession } from '@/app/actions/cash-register'
@@ -181,7 +181,7 @@ export function SessionCloseScreen({
                     {s.total_deposits > 0 && (
                       <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[var(--admin-surface-2)] border border-[var(--admin-border)]">
                         <div className="flex items-center gap-2.5">
-                          <CircleArrowUp className="h-4 w-4 text-green-400 shrink-0" />
+                          <TrendingUp className="h-4 w-4 text-green-400 shrink-0" />
                           <span className="text-[13px] text-[var(--admin-text)]">Ingresos</span>
                         </div>
                         <span className="text-[13px] font-semibold text-green-400">+{formatPrice(s.total_deposits)}</span>
@@ -190,7 +190,7 @@ export function SessionCloseScreen({
                     {s.total_withdrawals > 0 && (
                       <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[var(--admin-surface-2)] border border-[var(--admin-border)]">
                         <div className="flex items-center gap-2.5">
-                          <CircleArrowDown className="h-4 w-4 text-red-400 shrink-0" />
+                          <TrendingDown className="h-4 w-4 text-red-400 shrink-0" />
                           <span className="text-[13px] text-[var(--admin-text)]">Retiros</span>
                         </div>
                         <span className="text-[13px] font-semibold text-red-400">-{formatPrice(s.total_withdrawals)}</span>

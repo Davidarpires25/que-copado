@@ -1,242 +1,406 @@
 version: "2"
 type: frontend
 tech_stack:
-  - TypeScript
-  - Next.js 16 (App Router)
-  - React 19
-  - Tailwind CSS 4
-  - Shadcn/UI + Radix UI
-  - Framer Motion
-  - Zustand (state management)
-  - Supabase (PostgreSQL + Auth)
-  - Leaflet + react-leaflet (maps)
-  - Turf.js (geospatial)
-  - Recharts (charts)
-  - Sonner (toasts)
+  - language: TypeScript
+  - framework: Next.js 16 (App Router)
+  - ui_library: Tailwind CSS 4 + Shadcn/UI + Radix UI
+  - other: Supabase (PostgreSQL + Auth), Zustand, Framer Motion
+
 routes:
-  - path: /
-    file: app/page.tsx
-    auth_required: false
-    description: Public homepage with hero section, promotions, and product catalog grid with category filters
-  - path: /cart
-    file: app/cart/page.tsx
-    auth_required: false
-    description: Shopping cart page showing cart items with quantity controls and order summary
-  - path: /checkout
-    file: app/checkout/page.tsx
-    auth_required: false
-    description: Checkout page with delivery form, address autocomplete with map, payment method selection, and WhatsApp order submission
   - path: /admin/login
     file: app/admin/login/page.tsx
     auth_required: false
-    description: Admin login page with email and password authentication
+    description: Admin login page
   - path: /admin/dashboard
     file: app/admin/dashboard/page.tsx
     auth_required: true
-    description: Admin dashboard with sales statistics, recent orders, and KPI cards
-  - path: /admin/products
-    file: app/admin/products/page.tsx
+    description: Admin dashboard with sales stats, top products, recent orders
+  - path: /admin/caja
+    file: app/admin/caja/page.tsx
     auth_required: true
-    description: Admin product management with CRUD operations, image upload, and stock toggle
-  - path: /admin/categories
-    file: app/admin/categories/page.tsx
+    description: POS - Mostrador and Mesas modes
+  - path: /admin/caja/arqueos
+    file: app/admin/caja/arqueos/page.tsx
     auth_required: true
-    description: Admin category management with CRUD operations and sort order
+    description: Cash register session history
+  - path: /admin/caja/movimientos
+    file: app/admin/caja/movimientos/page.tsx
+    auth_required: true
+    description: Cash movements history
   - path: /admin/orders
     file: app/admin/orders/page.tsx
     auth_required: true
-    description: Admin order management with status tracking and order details
+    description: Order management
+  - path: /admin/products
+    file: app/admin/products/page.tsx
+    auth_required: true
+    description: Product list management
+  - path: /admin/products/new
+    file: app/admin/products/new/page.tsx
+    auth_required: true
+    description: Create new product
+  - path: /admin/categories
+    file: app/admin/categories/page.tsx
+    auth_required: true
+    description: Category management
+  - path: /admin/ingredients
+    file: app/admin/ingredients/page.tsx
+    auth_required: true
+    description: Ingredient management
+  - path: /admin/recipes
+    file: app/admin/recipes/page.tsx
+    auth_required: true
+    description: Recipe management
+  - path: /admin/stock
+    file: app/admin/stock/page.tsx
+    auth_required: true
+    description: Stock management
+  - path: /admin/tables
+    file: app/admin/tables/page.tsx
+    auth_required: true
+    description: Restaurant table configuration
   - path: /admin/delivery-zones
     file: app/admin/delivery-zones/page.tsx
     auth_required: true
-    description: Admin delivery zone management with map-based polygon drawing and shipping cost configuration
+    description: Delivery zone management
   - path: /admin/settings
     file: app/admin/settings/page.tsx
     auth_required: true
-    description: Admin business settings including pause orders toggle and WhatsApp number configuration
+    description: Business settings
+  - path: /admin/analytics
+    file: app/admin/analytics/page.tsx
+    auth_required: true
+    description: Sales analytics
+  - path: /admin/cocina
+    file: app/admin/cocina/page.tsx
+    auth_required: true
+    description: Kitchen display system
+
 features:
-  - name: Product Catalog
-    description: Browse products by category with filtering, view product details with images and prices
-    files:
-      - app/page.tsx
-      - components/product-grid.tsx
-      - components/product-card.tsx
-    entry_route: /
-    user_interactions:
-      - View all products on the homepage
-      - Click category filter tabs to filter products
-      - Click "Agregar" button on a product card to add it to cart
-      - See product name, price, description, and image
-    api_calls:
-      - method: GET
-        endpoint: supabase.from('products').select('*')
-      - method: GET
-        endpoint: supabase.from('categories').select('*')
-    auth_required: false
-  - name: Shopping Cart
-    description: Persistent cart using Zustand with localStorage, quantity management, and order summary
-    files:
-      - app/cart/page.tsx
-      - components/cart-item.tsx
-      - components/order-summary.tsx
-      - lib/store/cart-store.ts
-    entry_route: /cart
-    user_interactions:
-      - View items in the cart with quantities and prices
-      - Increase or decrease item quantity with + and - buttons
-      - Remove item from cart
-      - See subtotal and order summary
-      - Click "Ir al checkout" to proceed to checkout
-      - Click "Seguir comprando" to go back to menu
-    api_calls: []
-    auth_required: false
-  - name: Checkout with WhatsApp
-    description: Complete order with delivery/pickup selection, address with map, payment method, and send order via WhatsApp
-    files:
-      - app/checkout/page.tsx
-      - components/checkout/delivery-form.tsx
-      - components/checkout/address-autocomplete.tsx
-      - components/checkout/address-map-picker.tsx
-      - components/checkout/checkout-summary.tsx
-      - lib/services/order-formatter.ts
-      - lib/services/shipping.ts
-      - app/actions/shipping.ts
-      - app/actions/orders.ts
-    entry_route: /checkout
-    user_interactions:
-      - Fill in name and phone number
-      - Select delivery type (Delivery or Retiro/Pickup)
-      - Type address with autocomplete suggestions
-      - Adjust pin on the map for exact location
-      - See detected delivery zone and shipping cost
-      - Select payment method (Efectivo, Transferencia, Mercado Pago)
-      - Enter cash amount if paying with cash
-      - Review order summary with subtotal, shipping, and total
-      - Click "Enviar pedido por WhatsApp" to submit order
-    api_calls:
-      - method: POST
-        endpoint: server action calculateShippingCost
-      - method: POST
-        endpoint: server action createOrder
-      - method: GET
-        endpoint: server action getActiveDeliveryZones
-      - method: GET
-        endpoint: server action checkIfAcceptingOrders
-    auth_required: false
   - name: Admin Login
-    description: Email/password authentication for admin panel access
+    description: Authenticate admin users with email and password via Supabase Auth
     files:
       - app/admin/login/page.tsx
       - app/actions/auth.ts
     entry_route: /admin/login
     user_interactions:
-      - Fill email input field
-      - Fill password input field
-      - Click "Iniciar Sesion" button to submit
-      - See error toast on invalid credentials
-      - Redirect to /admin/dashboard on success
+      - Navigate to /admin/login
+      - Fill email input with davidarpires25@gmail.com
+      - Fill password input with Adrianachayle920
+      - Click Ingresar button
+      - Get redirected to /admin/dashboard on success
     api_calls:
       - method: POST
-        endpoint: server action signIn (supabase.auth.signInWithPassword)
+        endpoint: /auth/v1/token
     auth_required: false
+
   - name: Admin Dashboard
-    description: Sales statistics overview with KPIs, charts, and recent orders
+    description: Overview with KPIs, top products, recent orders
     files:
       - app/admin/dashboard/page.tsx
-      - app/actions/dashboard.ts
+      - app/admin/dashboard/dashboard-overview.tsx
     entry_route: /admin/dashboard
     user_interactions:
-      - View total sales, order count, and average order value KPIs
-      - View sales charts
-      - View list of recent orders
-      - Navigate to other admin sections via sidebar
+      - View total sales and orders KPIs
+      - View top products table
+      - View recent orders list
     api_calls:
       - method: GET
-        endpoint: server action getDashboardStats
+        endpoint: /rest/v1/orders
     auth_required: true
-  - name: Admin Product Management
-    description: CRUD for products including image upload to Supabase Storage, stock and visibility toggles
+
+  - name: POS Mostrador Mode
+    description: Counter sale mode - build orders, confirm, collect payment
     files:
-      - app/admin/products/page.tsx
-      - app/actions/products.ts
-    entry_route: /admin/products
+      - app/admin/caja/page.tsx
+      - components/admin/caja/pos-interface.tsx
+      - components/admin/caja/order-builder.tsx
+    entry_route: /admin/caja
     user_interactions:
-      - View list of all products
-      - Click "Nuevo Producto" to add a product
-      - Fill product form (name, description, price, category, image)
-      - Toggle product visibility (is_active)
-      - Toggle out of stock status (is_out_of_stock)
-      - Edit existing product
-      - Delete a product
+      - Open cash register session with opening balance
+      - Click Mostrador tab
+      - Click products in grid to add to cart
+      - View cart totals
+      - Click Confirmar pedido
+      - Click pending order chip to pay
+      - Select payment method (Efectivo/Tarjeta/Transferencia)
+      - Click Cobrar to complete payment
     api_calls:
       - method: POST
-        endpoint: server action createProduct
-      - method: PUT
-        endpoint: server action updateProduct
-      - method: DELETE
-        endpoint: server action deleteProduct
-      - method: PATCH
-        endpoint: server action toggleProductActive
-      - method: PATCH
-        endpoint: server action toggleProductStock
+        endpoint: /rest/v1/orders
+      - method: POST
+        endpoint: /rest/v1/order_items
     auth_required: true
-  - name: Admin Category Management
-    description: CRUD for product categories with sort ordering
+
+  - name: POS Mesas Mode
+    description: Table mode - open tables, add items, request bill, collect payment
     files:
-      - app/admin/categories/page.tsx
-      - app/actions/categories.ts
-    entry_route: /admin/categories
+      - app/admin/caja/page.tsx
+      - components/admin/caja/table-grid.tsx
+      - components/admin/caja/table-order-panel.tsx
+      - components/admin/caja/table-pay-view.tsx
+    entry_route: /admin/caja
     user_interactions:
-      - View list of all categories
-      - Create new category with name and sort order
-      - Edit existing category
-      - Delete a category
+      - Click Mesas tab
+      - View table grid with status indicators
+      - Click a libre table to open it
+      - Add products to table order
+      - View order items in panel
+      - Click Pedir cuenta
+      - Click Cobrar and select payment method
+      - Complete payment, table returns to libre
     api_calls:
       - method: POST
-        endpoint: server action createCategory
-      - method: PUT
-        endpoint: server action updateCategory
-      - method: DELETE
-        endpoint: server action deleteCategory
+        endpoint: /rest/v1/restaurant_tables
+      - method: PATCH
+        endpoint: /rest/v1/orders
     auth_required: true
-  - name: Admin Order Management
-    description: View and manage customer orders with status updates
+
+  - name: Cash Register Session
+    description: Open and close cash register sessions
+    files:
+      - app/admin/caja/caja-dashboard.tsx
+      - components/admin/caja/session-open-screen.tsx
+      - components/admin/caja/session-close-screen.tsx
+    entry_route: /admin/caja
+    user_interactions:
+      - Enter opening balance and click Abrir Caja
+      - View session status bar with totals
+      - Click Cerrar Caja and confirm close
+    api_calls:
+      - method: POST
+        endpoint: /rest/v1/cash_register_sessions
+      - method: PATCH
+        endpoint: /rest/v1/cash_register_sessions
+    auth_required: true
+
+  - name: Cash Movements
+    description: Register deposits and withdrawals during session
+    files:
+      - components/admin/caja/cash-movement-dialog.tsx
+      - app/admin/caja/movimientos/page.tsx
+    entry_route: /admin/caja
+    user_interactions:
+      - Click Movimiento in status bar
+      - Select tipo (ingreso/egreso)
+      - Enter amount and description
+      - Confirm movement
+    api_calls:
+      - method: POST
+        endpoint: /rest/v1/cash_movements
+    auth_required: true
+
+  - name: Cash Register Arqueos
+    description: View historical cash register session list
+    files:
+      - app/admin/caja/arqueos/page.tsx
+      - components/admin/caja/arqueos-table.tsx
+    entry_route: /admin/caja/arqueos
+    user_interactions:
+      - View list of past sessions with opening balance and totals
+    api_calls:
+      - method: GET
+        endpoint: /rest/v1/cash_register_sessions
+    auth_required: true
+
+  - name: Order Management
+    description: View and update delivery/takeaway orders
     files:
       - app/admin/orders/page.tsx
-      - app/actions/orders.ts
+      - app/admin/orders/orders-table.tsx
+      - components/admin/orders/order-details-drawer.tsx
     entry_route: /admin/orders
     user_interactions:
-      - View list of all orders with status badges
-      - View order details (items, customer info, delivery address)
+      - View orders list with status badges
+      - Filter by status tab
+      - Click order to open details drawer
       - Update order status
     api_calls:
       - method: GET
-        endpoint: server action getOrders
+        endpoint: /rest/v1/orders
       - method: PATCH
-        endpoint: server action updateOrderStatus
+        endpoint: /rest/v1/orders
     auth_required: true
-  - name: Admin Business Settings
-    description: Configure business settings like pause orders toggle and WhatsApp number
+
+  - name: Product Management
+    description: CRUD products with images, prices and recipe assignments
     files:
-      - app/admin/settings/page.tsx
-      - app/actions/business-settings.ts
-    entry_route: /admin/settings
+      - app/admin/products/page.tsx
+      - app/admin/products/new/page.tsx
+      - components/admin/products/product-form-page.tsx
+    entry_route: /admin/products
     user_interactions:
-      - Toggle pause/resume accepting orders
-      - Set custom pause message
-      - Configure WhatsApp business number
+      - View product list
+      - Toggle active status
+      - Click Nueva producto
+      - Fill name, price, category
+      - Save product
+      - Edit existing product
     api_calls:
       - method: GET
-        endpoint: server action getBusinessSettings
-      - method: PUT
-        endpoint: server action updateBusinessSettings
-      - method: PUT
-        endpoint: server action toggleAcceptingOrders
+        endpoint: /rest/v1/products
+      - method: POST
+        endpoint: /rest/v1/products
+      - method: PATCH
+        endpoint: /rest/v1/products
     auth_required: true
+
+  - name: Category Management
+    description: CRUD product categories
+    files:
+      - app/admin/categories/page.tsx
+      - app/admin/categories/new/page.tsx
+    entry_route: /admin/categories
+    user_interactions:
+      - View categories list
+      - Click Nueva categoría
+      - Fill name and sort order
+      - Save category
+      - Edit or delete category
+    api_calls:
+      - method: GET
+        endpoint: /rest/v1/categories
+      - method: POST
+        endpoint: /rest/v1/categories
+    auth_required: true
+
+  - name: Ingredient Management
+    description: CRUD ingredients with unit costs
+    files:
+      - app/admin/ingredients/page.tsx
+      - app/admin/ingredients/new/page.tsx
+    entry_route: /admin/ingredients
+    user_interactions:
+      - View ingredient list with unit and cost
+      - Click Nuevo ingrediente
+      - Fill name, unit, cost per unit
+      - Save ingredient
+      - Edit or delete ingredient
+    api_calls:
+      - method: GET
+        endpoint: /rest/v1/ingredients
+      - method: POST
+        endpoint: /rest/v1/ingredients
+    auth_required: true
+
+  - name: Recipe Management
+    description: CRUD recipes with ingredient composition
+    files:
+      - app/admin/recipes/page.tsx
+      - app/admin/recipes/new/page.tsx
+      - components/admin/recipes/recipe-form-page.tsx
+    entry_route: /admin/recipes
+    user_interactions:
+      - View recipes list with cost
+      - Click Nueva receta
+      - Fill recipe name
+      - Add ingredients with quantities
+      - View calculated cost
+      - Save recipe
+    api_calls:
+      - method: GET
+        endpoint: /rest/v1/recipes
+      - method: POST
+        endpoint: /rest/v1/recipes
+      - method: POST
+        endpoint: /rest/v1/recipe_ingredients
+    auth_required: true
+
+  - name: Stock Management
+    description: Track stock levels and register purchases
+    files:
+      - app/admin/stock/page.tsx
+      - components/admin/stock/stock-dashboard.tsx
+      - components/admin/stock/purchase-dialog.tsx
+    entry_route: /admin/stock
+    user_interactions:
+      - View stock levels per product
+      - See low stock alerts
+      - Click Registrar compra
+      - Fill product, quantity and cost
+      - Confirm purchase
+    api_calls:
+      - method: GET
+        endpoint: /rest/v1/products
+      - method: POST
+        endpoint: /rest/v1/stock_movements
+    auth_required: true
+
+  - name: Table Configuration
+    description: Create and manage restaurant tables
+    files:
+      - app/admin/tables/page.tsx
+      - app/admin/tables/tables-dashboard.tsx
+    entry_route: /admin/tables
+    user_interactions:
+      - View tables list
+      - Add new table with number and section
+      - Edit table
+      - Delete table
+    api_calls:
+      - method: GET
+        endpoint: /rest/v1/restaurant_tables
+      - method: POST
+        endpoint: /rest/v1/restaurant_tables
+    auth_required: true
+
+  - name: Business Settings
+    description: Configure business name, WhatsApp number and options
+    files:
+      - app/admin/settings/page.tsx
+      - app/admin/settings/business-settings-form.tsx
+    entry_route: /admin/settings
+    user_interactions:
+      - View current settings
+      - Edit business name and contact info
+      - Toggle delivery/takeaway options
+      - Save settings
+    api_calls:
+      - method: GET
+        endpoint: /rest/v1/business_settings
+      - method: PATCH
+        endpoint: /rest/v1/business_settings
+    auth_required: true
+
+  - name: Analytics Dashboard
+    description: Sales analytics with charts by period
+    files:
+      - app/admin/analytics/page.tsx
+      - app/admin/analytics/analytics-dashboard.tsx
+    entry_route: /admin/analytics
+    user_interactions:
+      - View sales chart
+      - View revenue by category
+      - View comparative stats
+    api_calls:
+      - method: GET
+        endpoint: /rest/v1/orders
+    auth_required: true
+
+  - name: Kitchen Display
+    description: Real-time kitchen orders display
+    files:
+      - app/admin/cocina/page.tsx
+      - components/admin/cocina/comanda-card.tsx
+    entry_route: /admin/cocina
+    user_interactions:
+      - View pending comandas
+      - See elapsed time per comanda
+      - Mark comanda as completed
+    api_calls:
+      - method: GET
+        endpoint: /rest/v1/comandas
+      - method: PATCH
+        endpoint: /rest/v1/comandas
+    auth_required: true
+
 known_limitations:
-  - issue: Store coordinates are hardcoded instead of configurable
-    location: components/checkout/delivery-form.tsx
-    impact: Store location for pickup map link uses fixed coordinates
-  - issue: Admin pages use 'as any' to bypass Supabase type checking for business_settings and orders tables
-    location: app/actions/business-settings.ts, app/actions/orders.ts
-    impact: Reduced type safety for these database operations
+  - issue: POS Caja requires an active cash register session before processing orders
+    location: app/admin/caja/caja-dashboard.tsx
+    impact: Must open session first before testing Mostrador or Mesas modes
+  - issue: Delivery zone drawing requires map polygon interaction
+    location: app/admin/delivery-zones/delivery-zones-dashboard.tsx
+    impact: Zone creation via polygon drawing may not be fully automatable
+  - issue: Print actions create jobs in database but do not trigger physical printer
+    location: app/actions/print.ts
+    impact: Print flow can be triggered but output cannot be verified

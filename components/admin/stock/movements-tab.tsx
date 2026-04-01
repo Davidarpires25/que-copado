@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ArrowUp, ArrowDown, ArrowRightLeft, Filter } from 'lucide-react'
+import { ArrowUp, ArrowDown, RefreshCw, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -19,7 +19,7 @@ const MOVEMENT_ICON: Record<StockMovementType, React.ReactNode> = {
   purchase: <ArrowUp className="h-3.5 w-3.5 text-green-400" />,
   initial: <ArrowUp className="h-3.5 w-3.5 text-blue-400" />,
   return: <ArrowUp className="h-3.5 w-3.5 text-green-400" />,
-  adjustment: <ArrowRightLeft className="h-3.5 w-3.5 text-yellow-400" />,
+  adjustment: <RefreshCw className="h-3.5 w-3.5 text-yellow-400" />,
   waste: <ArrowDown className="h-3.5 w-3.5 text-red-400" />,
   sale: <ArrowDown className="h-3.5 w-3.5 text-orange-400" />,
   sale_reversal: <ArrowUp className="h-3.5 w-3.5 text-cyan-400" />,
@@ -170,7 +170,7 @@ export function MovementsTab({ initialMovements }: MovementsTabProps) {
       {/* Table */}
       {!loading && movements.length === 0 ? (
         <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] p-16 text-center">
-          <ArrowRightLeft className="h-10 w-10 text-slate-600 mx-auto mb-4" />
+          <RefreshCw className="h-10 w-10 text-slate-600 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-[var(--admin-text)] mb-1">Sin movimientos</h3>
           <p className="text-[var(--admin-text-muted)] text-sm">
             Los movimientos aparecen cuando ajustás stock o registrás compras.

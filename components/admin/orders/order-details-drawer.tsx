@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, MapPin, Phone, User, Clock, CreditCard, Truck, ExternalLink } from 'lucide-react'
+import { X, MapPin, Phone, User, Clock, Wallet, Truck, ExternalLink } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { OrderStatusBadge } from './order-status-badge'
@@ -199,7 +199,7 @@ export function OrderDetailsDrawer({
               {/* Payment Method */}
               <div className="bg-[var(--admin-bg)] rounded-xl p-4">
                 <div className="flex items-center gap-3">
-                  <CreditCard className="h-4 w-4 text-[var(--admin-text-muted)]" />
+                  <Wallet className="h-4 w-4 text-[var(--admin-text-muted)]" />
                   <div>
                     <p className="text-sm text-[var(--admin-text-muted)]">Método de pago</p>
                     <p className="text-[var(--admin-text)]">

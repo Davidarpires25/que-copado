@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import {
-  Printer, Banknote, CreditCard, Zap, QrCode,
+  Printer, Banknote, CreditCard, Landmark, QrCode,
   Loader2, AlertTriangle, Check, ChefHat,
 } from 'lucide-react'
 import { cn, formatPrice } from '@/lib/utils'
@@ -18,7 +18,7 @@ import { toast } from 'sonner'
 const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ElementType }[] = [
   { value: 'cash',        label: 'Efectivo',     icon: Banknote },
   { value: 'card',        label: 'Tarjeta',       icon: CreditCard },
-  { value: 'transfer',    label: 'Transferencia', icon: Zap },
+  { value: 'transfer',    label: 'Transferencia', icon: Landmark },
   { value: 'mercadopago', label: 'Mercado Pago',  icon: QrCode },
 ]
 
@@ -161,7 +161,7 @@ export function PendingOrderPayView({ order, loading, onBack, onPrint, onConfirm
         </span>
         <div className="flex items-center gap-1">
           <button
-            onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
+            onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
             className="text-[var(--admin-text-muted)] hover:text-orange-400 transition-colors cursor-pointer p-1"
             aria-label="Imprimir comanda cocina"
             title="Comanda cocina"
@@ -187,7 +187,7 @@ export function PendingOrderPayView({ order, loading, onBack, onPrint, onConfirm
           >
             <div className="flex-1 min-w-0 mr-3">
               <p className="text-[13px] font-medium text-[var(--admin-text)] truncate">{item.name}</p>
-              <p className="text-[11px] mt-0.5 text-[var(--admin-text-muted)]">{formatPrice(item.price)} c/u</p>
+              <p className="text-xs mt-0.5 text-[var(--admin-text-muted)]">{formatPrice(item.price)} c/u</p>
             </div>
             <span className="text-[12px] font-semibold text-[var(--admin-text-muted)] tabular-nums mr-3 shrink-0">
               ×{item.quantity}
@@ -213,7 +213,7 @@ export function PendingOrderPayView({ order, loading, onBack, onPrint, onConfirm
             Métodos de pago
           </span>
           {isSplit && (
-            <span className="text-[10px] font-bold text-[var(--admin-accent-text)] bg-[var(--admin-accent)]/10 px-2 py-0.5 rounded-full">
+            <span className="text-xs font-bold text-[var(--admin-accent-text)] bg-[var(--admin-accent)]/10 px-2 py-0.5 rounded-full">
               Pago dividido
             </span>
           )}

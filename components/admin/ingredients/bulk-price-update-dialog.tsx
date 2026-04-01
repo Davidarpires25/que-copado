@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Loader2, TrendingUp, ArrowRight, PackageOpen } from 'lucide-react'
+import { Loader2, ChevronsUp, ArrowRight, Tags } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -109,7 +109,7 @@ export function BulkPriceUpdateDialog({
       <DialogContent className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] sm:max-w-lg shadow-2xl">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold text-[var(--admin-text)] flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-[var(--admin-accent-text)]" />
+            <ChevronsUp className="h-5 w-5 text-[var(--admin-accent-text)]" />
             Actualizar Precios por Categoria
           </DialogTitle>
           <p className="text-[var(--admin-text-muted)] text-xs mt-0.5">
@@ -260,7 +260,7 @@ export function BulkPriceUpdateDialog({
 
           {selectedCategoryId && affectedIngredients.length === 0 && (
             <div className="flex flex-col items-center justify-center gap-2 py-6">
-              <PackageOpen className="h-8 w-8 text-slate-600" />
+              <Tags className="h-8 w-8 text-slate-600" />
               <p className="text-sm text-slate-400">
                 No hay ingredientes en esta categoría para actualizar.
               </p>

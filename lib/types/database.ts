@@ -392,6 +392,7 @@ export interface Database {
           added_at: string
           added_by: string | null
           metadata: Json | null
+          kitchen_print_batch_id: string | null
         }
         Insert: {
           id?: string
@@ -406,6 +407,7 @@ export interface Database {
           added_at?: string
           added_by?: string | null
           metadata?: Json | null
+          kitchen_print_batch_id?: string | null
         }
         Update: {
           id?: string
@@ -420,6 +422,7 @@ export interface Database {
           added_at?: string
           added_by?: string | null
           metadata?: Json | null
+          kitchen_print_batch_id?: string | null
         }
       }
       comandas: {

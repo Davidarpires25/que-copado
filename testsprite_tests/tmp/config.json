@@ -2,26 +2,34 @@
   "status": "commited",
   "type": "frontend",
   "scope": "codebase",
-  "localEndpoint": "http://localhost:3000",
+  "localEndpoint": "http://localhost:3000/admin",
   "executionArgs": {
     "projectName": "que-copado",
     "projectPath": "/home/david/Escritorio/CLaude_Proyectos/Proyecto/que-copado",
     "testIds": [
-      "TC001",
-      "TC002",
-      "TC003",
-      "TC004",
-      "TC008",
-      "TC011",
-      "TC014",
-      "TC015",
-      "TC019"
+      "TC033",
+      "TC034",
+      "TC035",
+      "TC036",
+      "TC037",
+      "TC038",
+      "TC039",
+      "TC040",
+      "TC041",
+      "TC042",
+      "TC043",
+      "TC044",
+      "TC045",
+      "TC046",
+      "TC047",
+      "TC048"
     ],
-    "additionalInstruction": "These are public-facing tests that don't require admin login. The app is in Spanish (Argentine). Key UI elements: category tabs are at top of product grid, \"Agregar\" button is on product cards, cart is accessible via floating cart icon, checkout form has name/phone/delivery type/payment method fields. The app runs on localhost:3000.",
+    "additionalInstruction": "CREDENCIALES DE LOGIN: email = davidarpires25@gmail.com, contraseña = Adrianachayle920. Usá SIEMPRE estas credenciales para iniciar sesión en /admin/login. NO uses example@gmail.com ni password123.",
+    "serverMode": "development",
     "envs": {
       "API_KEY": "sk-user-tGgopxSkrH867S3VBu2difhMJrIiKFkX09X9IS2ix9XN4-HbYRgX8OXHEAznu6w3LO7VqfLicCw_12nshH26vUnjwSHXvCQ5O-u_q9SyVREvbDnoHC9oRrZGUR5i_OLnleY"
     }
   },
-  "serverPort": 38409,
-  "proxy": "http://640c058a-3181-432a-bb9e-bf495b0a35ef:TAkxwVGatdqFubu8vEfucXoB74NRFpyu@tun.testsprite.com:8080"
+  "serverPort": 39193,
+  "proxy": "http://52ee13c6-cad0-4312-bc3c-82dae0ab1dc1:FdtnIpFHKLJa6p1bJWRxfZYdwfdKTSAq@tun.testsprite.com:8080"
 }

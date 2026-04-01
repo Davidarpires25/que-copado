@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, AlertTriangle, ChefHat, ExternalLink, PowerOff, Power, ClipboardList } from 'lucide-react'
+import { Search, AlertTriangle, ChefHat, ExternalLink, EyeOff, Eye, ClipboardList } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -314,9 +314,9 @@ export function ElaboradoStockSection({
                                 {isLoading ? (
                                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                                 ) : product.is_out_of_stock ? (
-                                  <Power className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+                                  <Eye className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                                 ) : (
-                                  <PowerOff className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+                                  <EyeOff className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                                 )}
                               </Button>
                             </TooltipTrigger>

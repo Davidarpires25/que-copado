@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Trash2, ShoppingCart } from 'lucide-react'
+import { Plus, Trash2, PackagePlus } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -108,7 +108,7 @@ export function PurchaseDialog({ open, onOpenChange, ingredients }: PurchaseDial
       <DialogContent className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] max-w-lg max-h-[85vh] overflow-y-auto shadow-xl shadow-black/10">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold text-[var(--admin-text)] flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5 text-[var(--admin-accent-text)]" />
+            <PackagePlus className="h-5 w-5 text-[var(--admin-accent-text)]" />
             Registrar Compra
           </DialogTitle>
         </DialogHeader>

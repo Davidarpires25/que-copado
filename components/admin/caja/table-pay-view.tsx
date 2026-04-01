@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react'
 import {
-  ArrowLeft, Users, Banknote, CreditCard, Zap, QrCode,
+  ArrowLeft, Users, Banknote, CreditCard, Landmark, QrCode,
   Loader2, AlertTriangle, Printer, Check,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -22,7 +22,7 @@ type PayMode = 'full' | 'per_guest'
 const PAYMENT_METHODS: { value: PaymentMethod; label: string; shortLabel: string; icon: React.ElementType; color: string; bg: string; border: string }[] = [
   { value: 'cash', label: 'Efectivo', shortLabel: 'Ef', icon: Banknote, color: 'text-green-400', bg: 'bg-green-400/10', border: 'border-green-400/20' },
   { value: 'card', label: 'Tarjeta', shortLabel: 'Tarj', icon: CreditCard, color: 'text-blue-400', bg: 'bg-blue-400/10', border: 'border-blue-400/20' },
-  { value: 'transfer', label: 'Transferencia', shortLabel: 'Transf', icon: Zap, color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20' },
+  { value: 'transfer', label: 'Transferencia', shortLabel: 'Transf', icon: Landmark, color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20' },
   { value: 'mercadopago', label: 'Mercado Pago', shortLabel: 'MP', icon: QrCode, color: 'text-purple-400', bg: 'bg-purple-400/10', border: 'border-purple-400/20' },
 ]
 
@@ -209,12 +209,12 @@ export function TablePayView({
 
   const handlePrintAll = () => {
     for (const { tag } of guestTags) {
-      printClientTicketAction(order.id, { guestTag: tag }).then((r) => { if (r.error) toast.error(r.error) })
+      printClientTicketAction(order.id, { guestTag: tag }).then((r) => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))
     }
   }
 
   const handlePrintGuest = (tag: string) => {
-    printClientTicketAction(order.id, { guestTag: tag }).then((r) => { if (r.error) toast.error(r.error) })
+    printClientTicketAction(order.id, { guestTag: tag }).then((r) => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))
   }
 
   // Items grouped by guest tag (for per_guest cards) — only real tags
@@ -428,7 +428,7 @@ export function TablePayView({
               {/* Ticket row */}
               <div className="border-t border-[var(--admin-border)]/60 flex items-center justify-center shrink-0" style={{ height: 40 }}>
                 <button
-                  onClick={() => printClientTicketAction(order.id).then((r) => { if (r.error) toast.error(r.error) })}
+                  onClick={() => printClientTicketAction(order.id).then((r) => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
                   className="flex items-center gap-2 text-[12px] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer"
                 >
                   <Printer className="h-3.5 w-3.5" />

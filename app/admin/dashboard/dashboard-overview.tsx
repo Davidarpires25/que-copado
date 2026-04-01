@@ -1,16 +1,16 @@
 'use client'
 
+import { useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import {
-  DollarSign,
-  ShoppingBag,
+  Banknote,
+  ClipboardList,
   TrendingUp,
   Receipt,
   ArrowRight,
-  ClipboardList,
-  UtensilsCrossed,
+  Table2,
   AlertTriangle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -60,6 +60,13 @@ export function DashboardOverview({
   operationalStatus,
 }: DashboardOverviewProps) {
   const router = useRouter()
+
+  const formattedOrders = useMemo(() => recentOrders.map((order) => ({
+    ...order,
+    items: parseOrderItems(order.items),
+    timeStr: new Date(order.created_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }),
+  })), [recentOrders])
+
   return (
     <AdminLayout title="Dashboard" description="Resumen de tu negocio">
       {/* Operational Status */}
@@ -71,7 +78,7 @@ export function DashboardOverview({
             <Link href="/admin/tables" className="group block">
               <div className="flex items-center gap-3 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl px-4 py-3.5 shadow-[var(--shadow-card)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer">
                 <div className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${operationalStatus.openTables > 0 ? 'bg-emerald-500/10' : 'bg-[var(--admin-surface-2)]'}`}>
-                  <UtensilsCrossed className={`h-[18px] w-[18px] ${operationalStatus.openTables > 0 ? 'text-emerald-500' : 'text-[var(--admin-text-placeholder)]'}`} />
+                  <Table2 className={`h-[18px] w-[18px] ${operationalStatus.openTables > 0 ? 'text-emerald-500' : 'text-[var(--admin-text-placeholder)]'}`} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs text-[var(--admin-text-muted)] leading-none mb-1">Mesas ocupadas</p>
@@ -136,7 +143,7 @@ export function DashboardOverview({
           title="Ventas Hoy"
           value={formatPrice(stats?.todayRevenue || 0)}
           subtitle={`${stats?.todayOrders || 0} pedidos`}
-          icon={DollarSign}
+          icon={Banknote}
           iconColor="text-green-500"
           iconBgColor="bg-green-500/10"
           trend={trends?.todayRevenueTrend || undefined}
@@ -158,7 +165,7 @@ export function DashboardOverview({
           title="Ventas Mes"
           value={formatPrice(stats?.monthRevenue || 0)}
           subtitle={`${stats?.monthOrders || 0} pedidos`}
-          icon={ShoppingBag}
+          icon={ClipboardList}
           iconColor="text-purple-500"
           iconBgColor="bg-purple-500/10"
           trend={trends?.monthRevenueTrend || undefined}
@@ -231,42 +238,36 @@ export function DashboardOverview({
                 </tr>
               </thead>
               <tbody>
-                {recentOrders.map((order) => {
-                  const items = parseOrderItems(order.items)
-                  const orderDate = new Date(order.created_at)
-                  const timeStr = orderDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false })
-
-                  return (
-                      <tr
-                        key={order.id}
-                        onClick={() => router.push('/admin/orders')}
-                        className="border-t border-[var(--admin-border)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer group"
-                      >
-                        <td className="px-6 py-3.5">
-                          <span className="font-mono text-sm font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors">
-                            #{getShortOrderId(order.id)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <span className="text-sm text-[var(--admin-text)]">{order.customer_name}</span>
-                        </td>
-                        <td className="px-4 py-3.5 hidden sm:table-cell">
-                          <span className="text-sm text-[var(--admin-text-muted)]">{timeStr}</span>
-                        </td>
-                        <td className="px-4 py-3.5 hidden md:table-cell">
-                          <span className="text-sm text-[var(--admin-text-muted)]">{items.length}</span>
-                        </td>
-                        <td className="px-4 py-3.5 text-right">
-                          <span className="text-sm font-semibold text-[var(--admin-accent-text)]">
-                            {formatPrice(order.total)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-3.5 text-right">
-                          <OrderStatusBadge status={order.status} size="sm" />
-                        </td>
-                      </tr>
-                  )
-                })}
+                {formattedOrders.map((order) => (
+                    <tr
+                      key={order.id}
+                      onClick={() => router.push('/admin/orders')}
+                      className="border-t border-[var(--admin-border)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer group"
+                    >
+                      <td className="px-6 py-3.5">
+                        <span className="font-mono text-sm font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors">
+                          #{getShortOrderId(order.id)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span className="text-sm text-[var(--admin-text)]">{order.customer_name}</span>
+                      </td>
+                      <td className="px-4 py-3.5 hidden sm:table-cell">
+                        <span className="text-sm text-[var(--admin-text-muted)]">{order.timeStr}</span>
+                      </td>
+                      <td className="px-4 py-3.5 hidden md:table-cell">
+                        <span className="text-sm text-[var(--admin-text-muted)]">{order.items.length}</span>
+                      </td>
+                      <td className="px-4 py-3.5 text-right">
+                        <span className="text-sm font-semibold text-[var(--admin-accent-text)]">
+                          {formatPrice(order.total)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3.5 text-right">
+                        <OrderStatusBadge status={order.status} size="sm" />
+                      </td>
+                    </tr>
+                ))}
               </tbody>
             </table>
           </div>

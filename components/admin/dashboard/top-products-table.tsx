@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { TrendingUp } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import type { TopProduct } from '@/lib/types/orders'
@@ -22,7 +23,7 @@ export function TopProductsTable({ products }: TopProductsTableProps) {
     )
   }
 
-  const maxQuantity = Math.max(...products.map((p) => p.quantity))
+  const maxQuantity = useMemo(() => Math.max(...products.map((p) => p.quantity)), [products])
 
   return (
     <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 shadow-[var(--shadow-card)] w-full h-full flex flex-col">

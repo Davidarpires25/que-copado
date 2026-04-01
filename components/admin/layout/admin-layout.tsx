@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useContext, useState, useEffect } from 'react'
 import { Menu, ChefHat } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AdminSidebar, MobileSidebar } from './admin-sidebar'
 import { cn } from '@/lib/utils'
 import { useThemeStore } from '@/lib/store/theme-store'
 import { getStockAlerts } from '@/app/actions/stock'
+import { AdminShellContext } from './admin-shell'
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -16,6 +17,34 @@ interface AdminLayoutProps {
 }
 
 export function AdminLayout({ children, title, description, hidePageHeader }: AdminLayoutProps) {
+  const shellMounted = useContext(AdminShellContext)
+
+  if (shellMounted) {
+    // Persistent shell already rendered by app/admin/layout.tsx — just render the page header
+    return (
+      <>
+        {!hidePageHeader && (
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-[var(--admin-text)]">{title}</h1>
+            {description && (
+              <p className="text-[var(--admin-text-muted)] text-sm mt-1">{description}</p>
+            )}
+          </div>
+        )}
+        {children}
+      </>
+    )
+  }
+
+  // Fallback: render full standalone layout (e.g. login, caja POS, or outside admin routes)
+  return (
+    <AdminLayoutStandalone title={title} description={description} hidePageHeader={hidePageHeader}>
+      {children}
+    </AdminLayoutStandalone>
+  )
+}
+
+function AdminLayoutStandalone({ children, title, description, hidePageHeader }: AdminLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [stockAlertCount, setStockAlertCount] = useState(0)

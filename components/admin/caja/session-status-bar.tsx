@@ -1,6 +1,6 @@
 'use client'
 
-import { Receipt, Wallet, LayoutGrid, ArrowLeftRight, LogOut } from 'lucide-react'
+import { Hash, Wallet, Table2, ArrowUpDown, LogOut } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import type { CashRegisterSession } from '@/lib/types/cash-register'
 
@@ -25,7 +25,7 @@ export function SessionStatusBar({
       {/* Left: stats inline — Pencil style */}
       <div className="flex items-center gap-5 shrink-0">
         <div className="flex items-center gap-1.5 text-[var(--admin-text-muted)]">
-          <Receipt className="h-3.5 w-3.5" />
+          <Hash className="h-3.5 w-3.5" />
           <span className="text-[13px]">
             Ventas:{' '}
             <span className="font-semibold text-[var(--admin-text)] tabular-nums">
@@ -44,7 +44,7 @@ export function SessionStatusBar({
         </div>
         {openTablesCount > 0 && (
           <div className="flex items-center gap-1.5 text-[var(--admin-text-muted)] hidden sm:flex">
-            <LayoutGrid className="h-3.5 w-3.5" />
+            <Table2 className="h-3.5 w-3.5" />
             <span className="text-[13px]">
               Mesas:{' '}
               <span className="font-semibold text-[var(--admin-text)] tabular-nums">
@@ -62,7 +62,7 @@ export function SessionStatusBar({
           className="flex items-center gap-1.5 px-3 rounded-md text-[12px] font-medium transition-colors cursor-pointer text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] bg-[var(--admin-bg)] border border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)]"
           style={{ height: 32 }}
         >
-          <ArrowLeftRight className="h-3.5 w-3.5" />
+          <ArrowUpDown className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Movimiento de Caja</span>
           <span className="sm:hidden">Movimiento</span>
         </button>

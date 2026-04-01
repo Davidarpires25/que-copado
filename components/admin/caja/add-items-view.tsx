@@ -2,12 +2,13 @@
 
 import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Loader2, ArrowLeft, Check, Minus, Plus, Trash2, MessageSquare, ShoppingCart } from 'lucide-react'
+import { Loader2, ArrowLeft, Check, Minus, Plus, Trash2, MessageSquare, ClipboardList } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import { PosProductGrid } from './product-grid'
 import { addItemsToOrder } from '@/app/actions/tables'
 import { printKitchenTicketAction } from '@/app/actions/print'
+import { sendToKitchen } from '@/app/actions/comandas'
 import type { Product, Category, ProductWithHalfConfig } from '@/lib/types/database'
 import { sendsToKitchen } from '@/lib/types/database'
 import type { RestaurantTable } from '@/lib/types/tables'
@@ -127,7 +128,11 @@ export function AddItemsView({
     if (result.error) { toast.error(result.error); return }
     const hasKitchenItems = cart.some((i) => sendsToKitchen(i.product_type ?? ''))
     if (hasKitchenItems) {
-      printKitchenTicketAction(orderId).then((r) => { if (r.error) toast.error(r.error) })
+      const newItemIds = (result.data ?? []).map((i) => i.id)
+      // Send to kitchen display (creates comanda records for newly added items only)
+      sendToKitchen(orderId).then((r) => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al enviar a cocina'))
+      // Print only the new items added in this round
+      printKitchenTicketAction(orderId, { itemIds: newItemIds }).then((r) => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir comanda'))
     }
     toast.success(`${cartItemCount} ${cartItemCount === 1 ? 'producto agregado' : 'productos agregados'}`)
     onItemsAdded()
@@ -183,7 +188,7 @@ export function AddItemsView({
         <div className="flex-1 overflow-y-auto scrollbar-hide px-5">
           {cart.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-2 text-[var(--admin-text-faint)]">
-              <ShoppingCart className="h-10 w-10" />
+              <ClipboardList className="h-10 w-10" />
               <p className="text-sm font-medium">Sin productos</p>
               <p className="text-xs">Seleccioná del menú</p>
             </div>

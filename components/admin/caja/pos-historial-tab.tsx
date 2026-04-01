@@ -6,9 +6,10 @@ import {
   ChevronDown,
   Banknote,
   CreditCard,
-  ArrowLeftRight,
+  Landmark,
+  QrCode,
   Store,
-  UtensilsCrossed,
+  Table2,
   X,
   RotateCcw,
   Check,
@@ -56,8 +57,8 @@ const PAYMENT_BADGE_CONFIG: Record<
 > = {
   cash:        { label: 'Efectivo', icon: Banknote,       textClass: 'text-emerald-400', bgClass: 'bg-emerald-400/10 border-emerald-400/20' },
   card:        { label: 'Tarjeta',  icon: CreditCard,     textClass: 'text-sky-400',     bgClass: 'bg-sky-400/10 border-sky-400/20' },
-  transfer:    { label: 'Transf.',  icon: ArrowLeftRight, textClass: 'text-violet-400',  bgClass: 'bg-violet-400/10 border-violet-400/20' },
-  mercadopago: { label: 'M. Pago',  icon: ArrowLeftRight, textClass: 'text-sky-400',     bgClass: 'bg-sky-400/10 border-sky-400/20' },
+  transfer:    { label: 'Transf.',  icon: Landmark,       textClass: 'text-violet-400',  bgClass: 'bg-violet-400/10 border-violet-400/20' },
+  mercadopago: { label: 'M. Pago',  icon: QrCode,         textClass: 'text-sky-400',     bgClass: 'bg-sky-400/10 border-sky-400/20' },
 }
 
 function PaymentMethodBadge({ method, amount }: { method: PaymentMethod; amount?: number }) {
@@ -65,7 +66,7 @@ function PaymentMethodBadge({ method, amount }: { method: PaymentMethod; amount?
   if (!config) return <span className="text-xs text-[var(--admin-text-muted)]">{method}</span>
   const Icon = config.icon
   return (
-    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium border ${config.textClass} ${config.bgClass}`}>
+    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium border ${config.textClass} ${config.bgClass}`}>
       <Icon className="h-3 w-3 shrink-0" />
       {config.label}
       {amount !== undefined && (
@@ -80,14 +81,14 @@ function PaymentMethodBadge({ method, amount }: { method: PaymentMethod; amount?
 function StatusBadge({ isCancelled }: { isCancelled: boolean }) {
   if (isCancelled) {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold border text-red-400 bg-red-400/10 border-red-400/20">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold border text-red-400 bg-red-400/10 border-red-400/20">
         <X className="h-2.5 w-2.5 shrink-0" />
         Anulada
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold border text-emerald-400 bg-emerald-400/10 border-emerald-400/20">
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold border text-emerald-400 bg-emerald-400/10 border-emerald-400/20">
       <Check className="h-2.5 w-2.5 shrink-0" />
       Pagada
     </span>
@@ -144,7 +145,7 @@ function OrderRow({
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5">
             {order.order_type === 'mesa' ? (
-              <UtensilsCrossed className="h-3 w-3 text-orange-400 shrink-0" />
+              <Table2 className="h-3 w-3 text-orange-400 shrink-0" />
             ) : (
               <Store className="h-3 w-3 text-[var(--admin-text-faint)] shrink-0" />
             )}
@@ -241,7 +242,7 @@ function OrderRow({
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
-                    printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })
+                    printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))
                   }}
                   className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] bg-[var(--admin-surface-2)] hover:bg-[var(--admin-border)] transition-colors"
                 >

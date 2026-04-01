@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Minus, Plus, ShoppingCart, Loader2, ChefHat, CreditCard, Trash2, MessageSquare } from 'lucide-react'
+import { Minus, Plus, ClipboardList, Loader2, ChefHat, CircleDollarSign, Trash2, MessageSquare } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import type { OrderItem } from '@/lib/types/orders'
 
@@ -35,6 +35,11 @@ export function OrderBuilder({
 }: OrderBuilderProps) {
   const [confirmClear, setConfirmClear] = useState(false)
   const [showNotes, setShowNotes] = useState(false)
+  const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => { if (clearTimerRef.current) clearTimeout(clearTimerRef.current) }
+  }, [])
   const [notesLocal, setNotesLocal] = useState('')
   const [itemNotesOpen, setItemNotesOpen] = useState<Set<string>>(new Set())
 
@@ -49,11 +54,12 @@ export function OrderBuilder({
 
   const handleClearCart = () => {
     if (confirmClear) {
+      if (clearTimerRef.current) clearTimeout(clearTimerRef.current)
       items.forEach((item) => onRemoveItem(item.id))
       setConfirmClear(false)
     } else {
       setConfirmClear(true)
-      setTimeout(() => setConfirmClear(false), 2500)
+      clearTimerRef.current = setTimeout(() => setConfirmClear(false), 2500)
     }
   }
 
@@ -93,7 +99,7 @@ export function OrderBuilder({
       <div className="flex-1 overflow-y-auto scrollbar-hide px-5">
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-2 text-[var(--admin-text-faint)]">
-            <ShoppingCart className="h-10 w-10" />
+            <ClipboardList className="h-10 w-10" />
             <p className="text-sm font-medium">Sin productos</p>
             <p className="text-xs">Seleccioná del menú</p>
           </div>
@@ -259,7 +265,7 @@ export function OrderBuilder({
           </>
         ) : (
           <>
-            <CreditCard className="h-5 w-5" />
+            <CircleDollarSign className="h-5 w-5" />
             {items.length > 0 ? `Cobrar ${formatPrice(subtotal)}` : 'Cobrar'}
           </>
         )}

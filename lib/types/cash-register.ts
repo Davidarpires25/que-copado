@@ -96,3 +96,12 @@ export interface SessionSummary {
   movements: CashMovement[]
   currentCash: number
 }
+
+// Movement with parent session info (for movimientos history page)
+export interface CashMovementWithSession extends CashMovement {
+  cash_register_sessions: {
+    opened_at: string
+    closed_at: string | null
+    status: string
+  } | null
+}

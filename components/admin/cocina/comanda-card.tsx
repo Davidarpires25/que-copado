@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Printer, Clock, ChefHat, Wine } from 'lucide-react'
+import { Printer, Clock, ChefHat, GlassWater } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { updateComandaStatus } from '@/app/actions/comandas'
 import { toast } from 'sonner'
@@ -19,7 +19,7 @@ const STATUS_CONFIG: Record<ComandaStatus, { label: string; next: ComandaStatus 
 
 const STATION_ICONS: Record<string, React.ReactNode> = {
   cocina: <ChefHat className="h-4 w-4" />,
-  barra: <Wine className="h-4 w-4" />,
+  barra: <GlassWater className="h-4 w-4" />,
 }
 
 function formatElapsed(createdAt: string): string {

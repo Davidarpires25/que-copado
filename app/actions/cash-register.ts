@@ -7,6 +7,7 @@ import { revalidateCaja } from '@/lib/server/revalidate'
 import type {
   CashRegisterSession,
   CashMovement,
+  CashMovementWithSession,
   OpenSessionData,
   CloseSessionData,
   CreateCashMovementData,
@@ -274,7 +275,7 @@ export async function createCashMovement(
       return { data: null, error: 'Error al registrar movimiento' }
     }
 
-    // Update session totals
+    // Atomically update session totals using increment_field RPC (see migration 013)
     const updateField =
       data.type === 'withdrawal' ? 'total_withdrawals' : 'total_deposits'
 
@@ -285,21 +286,8 @@ export async function createCashMovement(
       increment_value: data.amount,
     })
 
-    // Fallback: if RPC doesn't exist, update manually
     if (updateError) {
-      const { data: currentSession } = await supabase
-        .from('cash_register_sessions')
-        .select(updateField)
-        .eq('id', data.session_id)
-        .single()
-
-      if (currentSession) {
-        const currentVal = (currentSession as Record<string, number>)[updateField] || 0
-        await supabase
-          .from('cash_register_sessions')
-          .update({ [updateField]: currentVal + data.amount })
-          .eq('id', data.session_id)
-      }
+      devError(`CRITICAL: session totals update failed for movement ${data.type} (${data.amount}):`, updateError)
     }
 
     revalidateCaja()
@@ -336,6 +324,42 @@ export async function getRecentSessions(
     return { data: data as CashRegisterSession[], error: null }
   } catch (error) {
     devError('Error in getRecentSessions:', error)
+    return { data: null, error: 'Error inesperado' }
+  }
+}
+
+/**
+ * Obtener historial completo de movimientos de caja con info de sesión
+ */
+export async function getCashMovements(
+  limit: number = 200,
+  sessionId?: string
+): Promise<{ data: CashMovementWithSession[] | null; error: string | null }> {
+  try {
+    const supabase = await createAdminClient()
+    const user = await getAuthUser(supabase)
+    if (!user) return { data: null, error: 'No autenticado' }
+
+    let query = supabase
+      .from('cash_movements')
+      .select('*, cash_register_sessions(opened_at, closed_at, status)')
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (sessionId) {
+      query = query.eq('session_id', sessionId)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      devError('Error fetching cash movements:', error)
+      return { data: null, error: 'Error al cargar movimientos' }
+    }
+
+    return { data: data as CashMovementWithSession[], error: null }
+  } catch (error) {
+    devError('Error in getCashMovements:', error)
     return { data: null, error: 'Error inesperado' }
   }
 }

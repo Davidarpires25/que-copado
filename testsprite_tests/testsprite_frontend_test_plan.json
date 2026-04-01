@@ -1,8 +1,8 @@
 [
   {
     "id": "TC001",
-    "title": "Browse homepage catalog and verify hero, categories, and product grid render",
-    "description": "Verifies the homepage loads with the hero section, category filters, and a visible grid of product cards with key information.",
+    "title": "Product Catalog loads homepage with categories and product grid",
+    "description": "Verifies the homepage renders primary catalog browsing content.",
     "category": "Product Catalog",
     "priority": "High",
     "steps": [
@@ -12,38 +12,18 @@
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Hero section\" is visible"
+        "description": "Verify category filters are displayed"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Category filter tabs\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Product grid\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"A product card\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Product name\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Product price\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Product image\" is visible"
+        "description": "Verify a grid of product cards is displayed"
       }
     ]
   },
   {
     "id": "TC002",
-    "title": "Filter products by selecting a category tab and verify results update",
-    "description": "Verifies selecting a category filter updates the product grid to show products for that category.",
+    "title": "Filter products by category",
+    "description": "Verifies selecting a category filter updates the product grid contents.",
     "category": "Product Catalog",
     "priority": "High",
     "steps": [
@@ -52,39 +32,19 @@
         "description": "Navigate to /"
       },
       {
-        "type": "assertion",
-        "description": "Verify element \"Category filter tabs\" is visible"
-      },
-      {
         "type": "action",
-        "description": "Click on a non-default category tab in the category filter tabs"
+        "description": "Click a category filter tab"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Product grid\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"A product card\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Todos\" (or equivalent All) category tab"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Product grid\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"A product card\" is visible"
+        "description": "Verify the product grid updates to show products for the selected category"
       }
     ]
   },
   {
     "id": "TC003",
-    "title": "Add a product to the cart from a product card and verify toast and cart badge increment",
-    "description": "Verifies clicking Agregar on an in-stock product adds it to the cart, shows a confirmation toast, and increments the floating cart badge.",
+    "title": "Add a product to cart from a product card",
+    "description": "Verifies adding an item from the catalog shows confirmation and updates cart badge.",
     "category": "Product Catalog",
     "priority": "High",
     "steps": [
@@ -93,31 +53,23 @@
         "description": "Navigate to /"
       },
       {
-        "type": "assertion",
-        "description": "Verify element \"A product card with an 'Agregar' button\" is visible"
-      },
-      {
         "type": "action",
-        "description": "Click \"Agregar\" button on a product card"
+        "description": "Click the add-to-cart action on a product card"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Agregado\" is visible"
+        "description": "Verify a toast confirmation is visible"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Floating cart badge\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"1\" is visible"
+        "description": "Verify the floating cart badge increments"
       }
     ]
   },
   {
     "id": "TC004",
-    "title": "Add the same product twice and verify cart badge reflects quantity increase",
-    "description": "Verifies adding the same product multiple times increments the floating cart badge accordingly.",
+    "title": "Category with no active products shows empty state",
+    "description": "Verifies the catalog displays an empty-state message when a selected category has no active products.",
     "category": "Product Catalog",
     "priority": "Medium",
     "steps": [
@@ -126,66 +78,54 @@
         "description": "Navigate to /"
       },
       {
-        "type": "assertion",
-        "description": "Verify element \"A product card with an 'Agregar' button\" is visible"
-      },
-      {
         "type": "action",
-        "description": "Click \"Agregar\" button on a product card"
+        "description": "Click category filter tabs until you find a category that results in no available products"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Floating cart badge\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Agregar\" button on the same product card again"
+        "description": "Verify an empty state message is visible"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"2\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Agregado\" is visible"
+        "description": "Verify no product cards are displayed in the grid"
       }
     ]
   },
   {
     "id": "TC005",
-    "title": "Filter to a category with no active products and verify empty-state message",
-    "description": "Verifies selecting a category with no active products shows an empty-state message instead of product cards.",
+    "title": "Out-of-stock product cannot be added to cart",
+    "description": "Verifies an out-of-stock product shows an out-of-stock state and prevents adding to cart.",
     "category": "Product Catalog",
-    "priority": "High",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
         "description": "Navigate to /"
       },
       {
-        "type": "assertion",
-        "description": "Verify element \"Category filter tabs\" is visible"
+        "type": "action",
+        "description": "Scroll until an out-of-stock product card is visible"
       },
       {
         "type": "action",
-        "description": "Click a category tab that is expected to have no active products"
+        "description": "Attempt to add the out-of-stock product to the cart"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"No hay productos\" is visible"
+        "description": "Verify an error toast indicating the product is out of stock is visible"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Product grid\" is visible"
+        "description": "Verify the floating cart badge does not increment"
       }
     ]
   },
   {
     "id": "TC006",
-    "title": "If Agregar is clickable on an out-of-stock product, show error toast and do not increment cart",
-    "description": "Verifies that attempting to add an out-of-stock product triggers an error toast and does not increase the cart badge.",
-    "category": "Product Catalog",
-    "priority": "Medium",
+    "title": "Shopping Cart page shows items, quantity controls, and order summary",
+    "description": "Verifies the cart page displays cart contents and the order summary when items exist.",
+    "category": "Shopping Cart",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
@@ -193,36 +133,28 @@
       },
       {
         "type": "action",
-        "description": "Scroll to an out-of-stock product card (marked as sin stock / agotado or similar)"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Sin stock\" (or equivalent out-of-stock label) is visible"
+        "description": "Click the add-to-cart action on a product card"
       },
       {
         "type": "action",
-        "description": "Click \"Agregar\" on the out-of-stock product card (if the button is present)"
+        "description": "Navigate to /cart"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"sin stock\" is visible"
+        "description": "Verify a list of cart items with quantity controls is displayed"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Floating cart badge\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"0\" is visible"
+        "description": "Verify an order summary with a subtotal is displayed"
       }
     ]
   },
   {
     "id": "TC007",
-    "title": "Product cards display core details consistently after filtering",
-    "description": "Verifies that after applying a category filter, product cards still show name, price, description, and image for visible items.",
-    "category": "Product Catalog",
-    "priority": "Low",
+    "title": "Increase cart item quantity updates item subtotal and cart subtotal",
+    "description": "Verifies incrementing quantity updates pricing in real time and proceeds to checkout.",
+    "category": "Shopping Cart",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
@@ -230,479 +162,479 @@
       },
       {
         "type": "action",
-        "description": "Click on a non-default category tab in the category filter tabs"
+        "description": "Click the add-to-cart action on a product card"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /cart"
+      },
+      {
+        "type": "action",
+        "description": "Click the increase-quantity control for the cart item"
+      },
+      {
+        "type": "action",
+        "description": "Click the proceed-to-checkout action"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"A product card\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Product name\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Product price\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Product description\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Product image\" is visible"
+        "description": "Verify the user lands on the checkout page"
       }
     ]
   },
   {
     "id": "TC008",
-    "title": "Increase item quantity updates item subtotal and cart subtotal, then proceed to checkout",
-    "description": "Verifies that increasing quantity updates pricing in real time and the user can proceed to checkout.",
+    "title": "Decreasing quantity below 1 removes item and updates cart badge",
+    "description": "Verifies reducing quantity removes the item and updates totals and cart indicator.",
     "category": "Shopping Cart",
     "priority": "High",
     "steps": [
       {
         "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the add-to-cart action on a product card"
+      },
+      {
+        "type": "action",
         "description": "Navigate to /cart"
       },
       {
-        "type": "assertion",
-        "description": "Verify element \"Cart item quantity control\" is visible"
-      },
-      {
         "type": "action",
-        "description": "Click the \"+\" button on the first cart item"
+        "description": "Click the decrease-quantity control until the item is removed from the cart"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Subtotal\" is visible"
+        "description": "Verify the cart items list no longer contains the removed item"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Order summary\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Ir al checkout\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/checkout\""
+        "description": "Verify the floating cart badge reflects the updated item count"
       }
     ]
   },
   {
     "id": "TC009",
-    "title": "Decrease quantity to zero removes the item from the cart",
-    "description": "Verifies that clicking the minus button down past 1 removes the item and updates the cart view.",
+    "title": "Empty cart shows empty state and checkout is disabled",
+    "description": "Verifies the cart page empty state is shown and checkout cannot be started when there are no items.",
     "category": "Shopping Cart",
-    "priority": "High",
+    "priority": "Medium",
     "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "If the floating cart badge indicates items are present, navigate to /cart and remove items until the cart is empty"
+      },
       {
         "type": "action",
         "description": "Navigate to /cart"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Cart item row\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"-\" button on the first cart item"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"-\" button on the first cart item"
+        "description": "Verify an empty cart message is visible"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Subtotal\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Cart item row\" is not visible"
+        "description": "Verify the proceed-to-checkout action is disabled"
       }
     ]
   },
   {
     "id": "TC010",
-    "title": "Remove item using explicit remove control updates the order summary",
-    "description": "Verifies that the remove action deletes the item and recalculates the order summary.",
-    "category": "Shopping Cart",
-    "priority": "Medium",
+    "title": "Checkout delivery flow submits to WhatsApp and clears cart",
+    "description": "Verifies a delivery checkout can be completed through WhatsApp redirection and that the cart is cleared afterward.",
+    "category": "Checkout with WhatsApp",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /cart"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Remove item from cart\" is visible"
+        "description": "Navigate to /"
       },
       {
         "type": "action",
-        "description": "Click \"Remove item from cart\" for the first cart item"
+        "description": "Click the add-to-cart action on a product card"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /checkout"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the name field with Test Customer"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the phone number field with 1122334455"
+      },
+      {
+        "type": "action",
+        "description": "Select delivery type Delivery"
+      },
+      {
+        "type": "action",
+        "description": "Type a valid address into the address autocomplete field"
+      },
+      {
+        "type": "action",
+        "description": "Select an address suggestion"
+      },
+      {
+        "type": "action",
+        "description": "Select a payment method that does not require extra fields"
+      },
+      {
+        "type": "action",
+        "description": "Submit the order via WhatsApp"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Subtotal\" is visible"
+        "description": "Verify the browser navigates to a wa.me page with a prefilled message"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Order summary\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Tu carrito\" is visible"
+        "description": "Verify the cart is cleared when returning to the cart page"
       }
     ]
   },
   {
     "id": "TC011",
-    "title": "From cart, continue shopping returns to the menu/catalog",
-    "description": "Verifies that the user can return from the cart to continue browsing products.",
-    "category": "Shopping Cart",
-    "priority": "Medium",
+    "title": "Checkout pickup flow hides address/map and uses zero shipping",
+    "description": "Verifies pickup selection removes address inputs and sets shipping to zero in the order summary.",
+    "category": "Checkout with WhatsApp",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /cart"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Seguir comprando\" is visible"
+        "description": "Navigate to /"
       },
       {
         "type": "action",
-        "description": "Click \"Seguir comprando\""
+        "description": "Click the add-to-cart action on a product card"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /checkout"
+      },
+      {
+        "type": "action",
+        "description": "Select delivery type Pickup (Retiro)"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the name field with Test Customer"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the phone number field with 1122334455"
+      },
+      {
+        "type": "action",
+        "description": "Select a payment method that does not require extra fields"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/\""
+        "description": "Verify the address and map inputs are not displayed"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Promociones\" is visible"
+        "description": "Verify the order summary shows shipping cost as $0"
       }
     ]
   },
   {
     "id": "TC012",
-    "title": "Delivery order: complete checkout and open WhatsApp with formatted message",
-    "description": "Verifies a customer can place a Delivery order, see shipping applied, and be redirected to WhatsApp with a prefilled order message.",
+    "title": "Checkout validates missing phone number and blocks submission",
+    "description": "Verifies inline validation prevents submitting an order when the phone field is empty.",
     "category": "Checkout with WhatsApp",
     "priority": "High",
     "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the add-to-cart action on a product card"
+      },
       {
         "type": "action",
         "description": "Navigate to /checkout"
       },
       {
         "type": "action",
-        "description": "Fill \"{{LOGIN_USER}}\" into the name field"
+        "description": "Fill in the name field with Test Customer"
       },
       {
         "type": "action",
-        "description": "Fill \"{{LOGIN_PASSWORD}}\" into the phone number field"
+        "description": "Ensure the phone number field is empty"
       },
       {
         "type": "action",
-        "description": "Select \"Delivery\" as the delivery type"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Av. Corrientes 1234\" into the address autocomplete field"
-      },
-      {
-        "type": "action",
-        "description": "Select the first visible address suggestion from the suggestions list"
+        "description": "Submit the order via WhatsApp"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"map with a location marker\" is visible"
+        "description": "Verify an inline validation error is visible on the phone field"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Envío\" is visible"
+        "description": "Verify the browser does not navigate to a wa.me page"
       }
     ]
   },
   {
     "id": "TC013",
-    "title": "Delivery order: adjust map pin updates address and keeps shipping visible",
-    "description": "Verifies that changing the pin location updates the address shown and maintains a detected shipping section.",
-    "category": "Checkout with WhatsApp",
-    "priority": "Medium",
+    "title": "Admin login redirects to dashboard with valid credentials",
+    "description": "Verifies an admin can sign in with email/password and is redirected to the admin dashboard.",
+    "category": "Admin Login",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /checkout"
+        "description": "Navigate to /admin/login"
       },
       {
         "type": "action",
-        "description": "Select \"Delivery\" as the delivery type"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"Av. Santa Fe 2000\" into the address autocomplete field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Select the first visible address suggestion from the suggestions list"
-      },
-      {
-        "type": "action",
-        "description": "Click on the map at a different nearby point to move the pin"
+        "description": "Submit the login form"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Dirección\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Envío\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"order summary\" is visible"
+        "description": "Verify the user lands on the admin dashboard"
       }
     ]
   },
   {
     "id": "TC014",
-    "title": "Delivery order: cash payment requires entering cash amount",
-    "description": "Verifies that selecting cash prompts for cash amount and keeps the WhatsApp submission button available after completion.",
-    "category": "Checkout with WhatsApp",
+    "title": "Admin login shows error on invalid credentials and stays on login",
+    "description": "Verifies invalid email/password shows an error toast and does not navigate away from the login page.",
+    "category": "Admin Login",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /checkout"
+        "description": "Navigate to /admin/login"
       },
       {
         "type": "action",
-        "description": "Fill \"Juan Perez\" into the name field"
+        "description": "Fill invalid-admin@example.com into the email field"
       },
       {
         "type": "action",
-        "description": "Fill \"1122334455\" into the phone number field"
+        "description": "Fill wrong-password into the password field"
       },
       {
         "type": "action",
-        "description": "Select \"Delivery\" as the delivery type"
-      },
-      {
-        "type": "action",
-        "description": "Select \"Efectivo\" as the payment method"
+        "description": "Submit the login form"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"¿Con cuánto pagás?\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"20000\" into the cash amount field"
+        "description": "Verify an error toast is visible"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Enviar pedido por WhatsApp\" is visible"
+        "description": "Verify the user remains on the admin login page"
       }
     ]
   },
   {
     "id": "TC015",
-    "title": "Pickup (Retiro): address/map hidden and shipping is $0",
-    "description": "Verifies that selecting Pickup hides address/map inputs and sets shipping to $0 in the summary.",
-    "category": "Checkout with WhatsApp",
+    "title": "Admin dashboard displays primary KPI and activity content",
+    "description": "Verifies the admin dashboard loads and shows KPI cards, sales charts, and recent orders.",
+    "category": "Admin Dashboard",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /checkout"
+        "description": "Navigate to /admin/login"
       },
       {
         "type": "action",
-        "description": "Select \"Retiro\" as the delivery type"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"address autocomplete field\" is not visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"map\" is not visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"$0\" is visible"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Fill \"Maria\" into the name field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Fill \"1198765432\" into the phone number field"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin/dashboard"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Enviar pedido por WhatsApp\" is visible"
+        "description": "Verify KPI cards are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify sales charts and a recent orders list are displayed"
       }
     ]
   },
   {
     "id": "TC016",
-    "title": "Validation: missing phone blocks submission with inline error",
-    "description": "Verifies that phone is required and submission is prevented with a visible validation message.",
-    "category": "Checkout with WhatsApp",
+    "title": "Admin dashboard sidebar navigation to products works",
+    "description": "Verifies the admin can navigate from dashboard to product management using the sidebar.",
+    "category": "Admin Dashboard",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /checkout"
+        "description": "Navigate to /admin/login"
       },
       {
         "type": "action",
-        "description": "Fill \"Lucia\" into the name field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Click \"Enviar pedido por WhatsApp\""
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin/dashboard"
+      },
+      {
+        "type": "action",
+        "description": "Click the sidebar link to the products section"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Teléfono\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"obligatorio\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/checkout\""
+        "description": "Verify the admin products page is displayed"
       }
     ]
   },
   {
     "id": "TC017",
-    "title": "Delivery coverage: out-of-zone address shows coverage error and blocks order",
-    "description": "Verifies that an address outside delivery zones triggers an out-of-coverage error and prevents WhatsApp redirect.",
-    "category": "Checkout with WhatsApp",
+    "title": "Unauthenticated access to dashboard redirects to admin login",
+    "description": "Verifies visiting the admin dashboard without being authenticated redirects to the admin login page.",
+    "category": "Admin Dashboard",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /checkout"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Pedro\" into the name field"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"1133344455\" into the phone number field"
-      },
-      {
-        "type": "action",
-        "description": "Select \"Delivery\" as the delivery type"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Ruta 2 km 60\" into the address autocomplete field"
-      },
-      {
-        "type": "action",
-        "description": "Select the first visible address suggestion from the suggestions list"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Enviar pedido por WhatsApp\""
+        "description": "Navigate to /admin/dashboard"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"fuera de cobertura\" is visible"
+        "description": "Verify the user lands on the admin login page"
       }
     ]
   },
   {
     "id": "TC018",
-    "title": "Business not accepting orders: submission blocked with clear message",
-    "description": "Verifies that when the business is paused or outside operating hours, the checkout prevents submitting an order and shows a clear message.",
-    "category": "Checkout with WhatsApp",
-    "priority": "Medium",
+    "title": "Admin products page loads and shows product listing",
+    "description": "Verifies the product management page loads and displays a table/list of products.",
+    "category": "Admin Product Management",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /checkout"
+        "description": "Navigate to /admin/login"
       },
       {
         "type": "action",
-        "description": "Fill \"Sofia\" into the name field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Fill \"1144455566\" into the phone number field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Select \"Retiro\" as the delivery type"
+        "description": "Submit the login form"
       },
       {
         "type": "action",
-        "description": "Click \"Enviar pedido por WhatsApp\""
+        "description": "Navigate to /admin/products"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"no estamos tomando pedidos\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/checkout\""
+        "description": "Verify a product table or list is displayed"
       }
     ]
   },
   {
     "id": "TC019",
-    "title": "Payment method switch: changing payment hides cash amount when not needed",
-    "description": "Verifies that cash amount input appears for cash and disappears when switching to a non-cash payment method.",
-    "category": "Checkout with WhatsApp",
-    "priority": "Low",
+    "title": "Create a new product and verify it appears in the table",
+    "description": "Verifies creating a product via the new product form shows success and the product appears in the listing.",
+    "category": "Admin Product Management",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /checkout"
+        "description": "Navigate to /admin/login"
       },
       {
         "type": "action",
-        "description": "Select \"Retiro\" as the delivery type"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Select \"Efectivo\" as the payment method"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"¿Con cuánto pagás?\" is visible"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Select \"Transferencia\" as the payment method"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin/products"
+      },
+      {
+        "type": "action",
+        "description": "Open the create new product flow"
+      },
+      {
+        "type": "action",
+        "description": "Fill Test Product 12345 into the product name field"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid category in the category selector"
+      },
+      {
+        "type": "action",
+        "description": "Fill 1234 into the price field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the create product form"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"¿Con cuánto pagás?\" is not visible"
+        "description": "Verify a success confirmation is visible"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Enviar pedido por WhatsApp\" is visible"
+        "description": "Verify Test Product 12345 appears in the products table"
       }
     ]
   },
   {
     "id": "TC020",
-    "title": "Admin dashboard loads and shows KPI cards",
-    "description": "Verifies an authenticated admin can access the dashboard and see the KPI cards for sales, orders, and average ticket.",
-    "category": "Admin Dashboard",
+    "title": "Edit an existing product and verify updated data is shown",
+    "description": "Verifies editing a product updates its details and the updated value is visible in the listing.",
+    "category": "Admin Product Management",
     "priority": "High",
     "steps": [
       {
@@ -711,39 +643,47 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin/products"
+      },
+      {
+        "type": "action",
+        "description": "Open edit for the first product in the list"
+      },
+      {
+        "type": "action",
+        "description": "Fill Updated Product Name 67890 into the product name field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the edit product form"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/admin/dashboard\""
+        "description": "Verify a success confirmation is visible"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Total Sales\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Orders\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Average\" is visible"
+        "description": "Verify Updated Product Name 67890 appears in the products table"
       }
     ]
   },
   {
     "id": "TC021",
-    "title": "Admin dashboard shows sales chart section",
-    "description": "Verifies the dashboard includes a visible sales chart area for the recent period.",
-    "category": "Admin Dashboard",
+    "title": "Inline price edit updates the product price in the table",
+    "description": "Verifies updating a product price via inline editing reflects the new price in the table.",
+    "category": "Admin Product Management",
     "priority": "Medium",
     "steps": [
       {
@@ -752,40 +692,44 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/admin/dashboard\""
+        "description": "Submit the login form"
       },
       {
         "type": "action",
-        "description": "Scroll to the sales chart section"
+        "description": "Navigate to /admin/products"
+      },
+      {
+        "type": "action",
+        "description": "Start inline editing on the price cell for the first product"
+      },
+      {
+        "type": "action",
+        "description": "Fill 1999 into the inline price editor"
+      },
+      {
+        "type": "action",
+        "description": "Confirm the inline price change"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Sales\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Sales chart\" is visible"
+        "description": "Verify the first product shows price 1999 in the table"
       }
     ]
   },
   {
     "id": "TC022",
-    "title": "Admin dashboard shows recent orders list",
-    "description": "Verifies the dashboard contains a visible recent orders section with an orders list/table.",
-    "category": "Admin Dashboard",
-    "priority": "High",
+    "title": "Create product form validates required fields and prevents submission",
+    "description": "Verifies submitting the create product form with missing required fields shows validation errors and does not create a product.",
+    "category": "Admin Product Management",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
@@ -793,39 +737,47 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/admin/dashboard\""
+        "description": "Submit the login form"
       },
       {
         "type": "action",
-        "description": "Scroll to the recent orders section"
+        "description": "Navigate to /admin/products"
+      },
+      {
+        "type": "action",
+        "description": "Open the create new product flow"
+      },
+      {
+        "type": "action",
+        "description": "Clear the product name field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the create product form"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Recent Orders\" is visible"
+        "description": "Verify inline validation errors are visible"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Recent orders list\" is visible"
+        "description": "Verify the create product form remains open"
       }
     ]
   },
   {
     "id": "TC023",
-    "title": "Navigate from dashboard to Products via sidebar",
-    "description": "Verifies the sidebar navigation works from the dashboard to the Products admin page.",
-    "category": "Admin Dashboard",
+    "title": "Create a new category from the admin categories page",
+    "description": "Verifies an admin can create a new category and see it appear in the categories list.",
+    "category": "Admin Category Management",
     "priority": "High",
     "steps": [
       {
@@ -834,40 +786,48 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/admin/dashboard\""
+        "description": "Submit the login form"
       },
       {
         "type": "action",
-        "description": "Click the \"Products\" link in the sidebar"
+        "description": "Click the navigation link to manage categories"
+      },
+      {
+        "type": "action",
+        "description": "Click the action to create a new category"
+      },
+      {
+        "type": "action",
+        "description": "Fill Category TC001 into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid sort order value"
+      },
+      {
+        "type": "action",
+        "description": "Submit the category form"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/admin/products\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Products\" is visible"
+        "description": "Verify Category TC001 appears in the categories list"
       }
     ]
   },
   {
     "id": "TC024",
-    "title": "Dashboard data sections render without empty-state blocking UI",
-    "description": "Verifies that the KPI, chart, and recent orders sections render as visible UI blocks even if values are zero or lists are short.",
-    "category": "Admin Dashboard",
-    "priority": "Medium",
+    "title": "Edit an existing category name and sort order",
+    "description": "Verifies an admin can edit a category and see the updated values reflected in the list.",
+    "category": "Admin Category Management",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
@@ -875,40 +835,64 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to manage categories"
+      },
+      {
+        "type": "action",
+        "description": "Click the action to create a new category"
+      },
+      {
+        "type": "action",
+        "description": "Fill Category TC002 Original into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid sort order value"
+      },
+      {
+        "type": "action",
+        "description": "Submit the category form"
+      },
+      {
+        "type": "action",
+        "description": "Click edit for Category TC002 Original"
+      },
+      {
+        "type": "action",
+        "description": "Fill Category TC002 Updated into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Select a different valid sort order value"
+      },
+      {
+        "type": "action",
+        "description": "Submit the category form"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/admin/dashboard\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"KPI cards section\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Sales chart\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Recent orders list\" is visible"
+        "description": "Verify Category TC002 Updated appears in the categories list"
       }
     ]
   },
   {
     "id": "TC025",
-    "title": "Dashboard remains usable after refresh-style re-entry via dashboard link",
-    "description": "Verifies the admin can re-open the Dashboard via sidebar and still sees the dashboard sections.",
-    "category": "Admin Dashboard",
-    "priority": "Low",
+    "title": "Change category ordering via sort order and confirm public category filter order updates",
+    "description": "Verifies reordering categories in admin affects the order of category filters on the public homepage.",
+    "category": "Admin Category Management",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
@@ -916,44 +900,80 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to manage categories"
+      },
+      {
+        "type": "action",
+        "description": "Click the action to create a new category"
+      },
+      {
+        "type": "action",
+        "description": "Fill Category TC003 A into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid sort order value"
+      },
+      {
+        "type": "action",
+        "description": "Submit the category form"
+      },
+      {
+        "type": "action",
+        "description": "Click the action to create a new category"
+      },
+      {
+        "type": "action",
+        "description": "Fill Category TC003 B into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid sort order value"
+      },
+      {
+        "type": "action",
+        "description": "Submit the category form"
+      },
+      {
+        "type": "action",
+        "description": "Click edit for Category TC003 A"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid sort order value that places it after Category TC003 B"
+      },
+      {
+        "type": "action",
+        "description": "Submit the category form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/admin/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Orders\" link in the sidebar"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/admin/orders\""
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Dashboard\" link in the sidebar"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/admin/dashboard\""
+        "description": "Verify the category filters show Category TC003 B before Category TC003 A"
       }
     ]
   },
   {
     "id": "TC026",
-    "title": "Create a new product and verify it appears in the admin products table",
-    "description": "Verifies an admin can create a product and see a success message and the new row in the products table.",
-    "category": "Admin Product Management",
-    "priority": "High",
+    "title": "Attempt to delete a category that is constrained by existing products shows a clear outcome",
+    "description": "Verifies the delete confirmation flow and that the UI shows either successful removal or a constraint error without leaving an ambiguous state.",
+    "category": "Admin Category Management",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
@@ -961,39 +981,39 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Click the \"Iniciar sesión\" button"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to manage categories"
+      },
+      {
+        "type": "action",
+        "description": "Click delete on a category that appears to be in use"
+      },
+      {
+        "type": "action",
+        "description": "Confirm deletion"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Productos\" in the admin navigation menu"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Nuevo Producto\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Nuevo Producto\" is visible"
+        "description": "Verify either the category is removed from the list or a deletion constraint error is visible"
       }
     ]
   },
   {
     "id": "TC027",
-    "title": "Create product form requires mandatory fields and blocks submission",
-    "description": "Verifies submitting the create product form without required inputs shows validation messages and does not create a product.",
-    "category": "Admin Product Management",
+    "title": "Delete a newly created category",
+    "description": "Verifies an admin can delete a category created within the test and it disappears from the list.",
+    "category": "Admin Category Management",
     "priority": "High",
     "steps": [
       {
@@ -1002,44 +1022,56 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Click the \"Iniciar sesión\" button"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to manage categories"
+      },
+      {
+        "type": "action",
+        "description": "Click the action to create a new category"
+      },
+      {
+        "type": "action",
+        "description": "Fill Category TC005 DeleteMe into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid sort order value"
+      },
+      {
+        "type": "action",
+        "description": "Submit the category form"
+      },
+      {
+        "type": "action",
+        "description": "Click delete for Category TC005 DeleteMe"
+      },
+      {
+        "type": "action",
+        "description": "Confirm deletion"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Productos\" in the admin navigation menu"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Nuevo Producto\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Guardar\" or \"Crear\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"requerido\" is visible"
+        "description": "Verify Category TC005 DeleteMe no longer appears in the categories list"
       }
     ]
   },
   {
     "id": "TC028",
-    "title": "Edit an existing product and verify updated values are shown in the table",
-    "description": "Verifies an admin can open an existing product, update fields, save, and see the updated data in the products table.",
-    "category": "Admin Product Management",
-    "priority": "High",
+    "title": "Create category validation: prevent save when name is empty",
+    "description": "Verifies the category form enforces required name input and does not create a category with an empty name.",
+    "category": "Admin Category Management",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
@@ -1047,48 +1079,44 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Click the \"Iniciar sesión\" button"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to manage categories"
+      },
+      {
+        "type": "action",
+        "description": "Click the action to create a new category"
+      },
+      {
+        "type": "action",
+        "description": "Fill  into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the category form"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Productos\" in the admin navigation menu"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Editar\" action for the first product in the table"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Producto Editado\" into the name field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Guardar\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Producto Editado\" is visible"
+        "description": "Verify a name validation error is visible"
       }
     ]
   },
   {
     "id": "TC029",
-    "title": "Inline edit a product price from the table",
-    "description": "Verifies an admin can edit a product price inline and see the updated price reflected in the table.",
-    "category": "Admin Product Management",
-    "priority": "Medium",
+    "title": "Categories page loads and displays the list of categories",
+    "description": "Verifies the admin categories page renders its primary content (categories list) after login.",
+    "category": "Admin Category Management",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
@@ -1096,48 +1124,32 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Click the \"Iniciar sesión\" button"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to manage categories"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Productos\" in the admin navigation menu"
-      },
-      {
-        "type": "action",
-        "description": "Click the price cell for the first product in the table"
-      },
-      {
-        "type": "action",
-        "description": "Type \"9999\" into the inline price input field"
-      },
-      {
-        "type": "action",
-        "description": "Click the inline \"Guardar\" or confirmation control"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"9999\" is visible"
+        "description": "Verify a list of categories is displayed"
       }
     ]
   },
   {
     "id": "TC030",
-    "title": "Toggle out-of-stock status and verify the table reflects the new stock state",
-    "description": "Verifies an admin can toggle out-of-stock status and see the stock indicator update in the products table.",
-    "category": "Admin Product Management",
-    "priority": "Medium",
+    "title": "Update operating hours and days and save settings",
+    "description": "Verifies an admin can adjust operating hours and operating days and successfully save business settings.",
+    "category": "Admin Business Settings",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
@@ -1145,39 +1157,51 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill in the email field with {{LOGIN_USER}}"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
       },
       {
         "type": "action",
-        "description": "Click the \"Iniciar sesión\" button"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin/settings"
+      },
+      {
+        "type": "action",
+        "description": "Fill a valid opening time into the opening time field"
+      },
+      {
+        "type": "action",
+        "description": "Fill a valid closing time into the closing time field"
+      },
+      {
+        "type": "action",
+        "description": "Select at least one operating day"
+      },
+      {
+        "type": "action",
+        "description": "Save the settings"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Productos\" in the admin navigation menu"
-      },
-      {
-        "type": "action",
-        "description": "Click the out-of-stock toggle for the first product in the table"
+        "description": "Verify a success confirmation toast is visible"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Sin stock\" is visible"
+        "description": "Verify the updated opening and closing times are displayed"
       }
     ]
   },
   {
     "id": "TC031",
-    "title": "Delete a product from the products table after confirming the dialog",
-    "description": "Verifies an admin can delete a product via the confirmation dialog and the product row is removed from the table.",
-    "category": "Admin Product Management",
+    "title": "Pause orders with a custom message and block checkout",
+    "description": "Verifies pausing orders from admin settings blocks checkout and displays the custom pause message to customers.",
+    "category": "Admin Business Settings",
     "priority": "High",
     "steps": [
       {
@@ -1186,47 +1210,51 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill in the email field with {{LOGIN_USER}}"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
       },
       {
         "type": "action",
-        "description": "Click the \"Iniciar sesión\" button"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin/settings"
+      },
+      {
+        "type": "action",
+        "description": "Toggle pause orders on"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the pause message field with Pausado por mantenimiento QA"
+      },
+      {
+        "type": "action",
+        "description": "Save the settings"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /checkout"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Productos\" in the admin navigation menu"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Eliminar\" action for the first product in the table"
+        "description": "Verify the custom pause message Pausado por mantenimiento QA is displayed"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Confirmar\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Confirmar\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Eliminado\" is visible"
+        "description": "Verify order submission is blocked"
       }
     ]
   },
   {
     "id": "TC032",
-    "title": "Create a new category and verify it appears in the categories list",
-    "description": "Verifies an admin can create a category and see it immediately in the list.",
-    "category": "Admin Category Management",
+    "title": "Validation: cannot save with no operating days selected",
+    "description": "Verifies an inline validation error appears when attempting to save settings without any operating day selected.",
+    "category": "Admin Business Settings",
     "priority": "High",
     "steps": [
       {
@@ -1235,40 +1263,40 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill in the email field with {{LOGIN_USER}}"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin/settings"
+      },
+      {
+        "type": "action",
+        "description": "Deselect all operating days"
+      },
+      {
+        "type": "action",
+        "description": "Save the settings"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"Categories\" in the admin navigation menu"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"New category\" or \"Create category\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Create category\" is visible"
+        "description": "Verify an inline validation error is visible indicating at least one operating day is required"
       }
     ]
   },
   {
     "id": "TC033",
-    "title": "Save a new category with a unique name and confirm it shows in the list",
-    "description": "Verifies saving a valid new category adds it to the categories table/list view.",
-    "category": "Admin Category Management",
-    "priority": "High",
+    "title": "Configure WhatsApp business number and save",
+    "description": "Verifies an admin can set the WhatsApp business number and save it successfully.",
+    "category": "Admin Business Settings",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
@@ -1276,40 +1304,44 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill in the email field with {{LOGIN_USER}}"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
       },
       {
         "type": "action",
-        "description": "Click \"Categories\" in the admin navigation menu"
+        "description": "Navigate to /admin/settings"
       },
       {
         "type": "action",
-        "description": "Click the \"New category\" or \"Create category\" button"
+        "description": "Fill in the WhatsApp business number field with 5491112345678"
       },
       {
         "type": "action",
-        "description": "Type \"E2E Category Alpha\" into the Name field"
+        "description": "Save the settings"
       },
       {
-        "type": "action",
-        "description": "Click the \"Save\" button"
+        "type": "assertion",
+        "description": "Verify a success confirmation toast is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the WhatsApp business number field shows 5491112345678"
       }
     ]
   },
   {
     "id": "TC034",
-    "title": "Attempt to create a category with an empty name and verify validation feedback",
-    "description": "Verifies the UI prevents saving a category without a required name and shows visible feedback.",
-    "category": "Admin Category Management",
-    "priority": "High",
+    "title": "Pause orders without custom message still blocks checkout",
+    "description": "Verifies pausing orders without entering a custom pause message still blocks order submission at checkout.",
+    "category": "Admin Business Settings",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
@@ -1317,40 +1349,52 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill in the email field with {{LOGIN_USER}}"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
       },
       {
         "type": "action",
-        "description": "Click \"Categories\" in the admin navigation menu"
+        "description": "Navigate to /admin/settings"
       },
       {
         "type": "action",
-        "description": "Click the \"New category\" or \"Create category\" button"
+        "description": "Toggle pause orders on"
       },
       {
         "type": "action",
-        "description": "Click the \"Save\" button"
+        "description": "Clear the pause message field"
+      },
+      {
+        "type": "action",
+        "description": "Save the settings"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /checkout"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Name is required\" is visible"
+        "description": "Verify order submission is blocked"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a pause notice is displayed"
       }
     ]
   },
   {
     "id": "TC035",
-    "title": "View orders list table and key columns",
-    "description": "Verifies an authenticated admin can open Orders and see the orders table with status badges and key columns.",
-    "category": "Admin Order Management",
-    "priority": "High",
+    "title": "Resume orders removes checkout block",
+    "description": "Verifies resuming orders from admin settings allows checkout to proceed without pause blocking.",
+    "category": "Admin Business Settings",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
@@ -1358,39 +1402,47 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill in the email field with {{LOGIN_USER}}"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
+        "description": "Submit the login form"
       },
       {
         "type": "action",
-        "description": "Click \"Orders\" in the admin navigation"
+        "description": "Navigate to /admin/settings"
+      },
+      {
+        "type": "action",
+        "description": "Toggle pause orders off"
+      },
+      {
+        "type": "action",
+        "description": "Save the settings"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /checkout"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Orders\" is visible"
+        "description": "Verify the checkout form is available"
       },
       {
         "type": "assertion",
-        "description": "Verify an orders table is visible"
+        "description": "Verify order submission is not blocked by a pause state"
       }
     ]
   },
   {
     "id": "TC036",
-    "title": "Open order details drawer from an order row",
-    "description": "Verifies an admin can open an order’s details by clicking a row and see core sections in the details drawer.",
-    "category": "Admin Order Management",
+    "title": "POS Caja - open cash register session and verify session status bar",
+    "description": "Verifies opening a cash register session with an opening balance shows the session status bar.",
+    "category": "POS - Caja",
     "priority": "High",
     "steps": [
       {
@@ -1399,930 +1451,343 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
       },
       {
         "type": "action",
-        "description": "Click \"Orders\" in the admin navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the first order row in the orders table"
+        "description": "Navigate to /admin/caja"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Order details\" is visible"
+        "description": "Verify the page shows either an open session status bar OR a session open screen prompt"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Customer\" is visible"
+        "description": "Verify Mostrador and Mesas tabs are visible if session is open"
       }
     ]
   },
   {
     "id": "TC037",
-    "title": "Order details show customer, items, shipping cost, and payment method",
-    "description": "Verifies the order details drawer displays customer info, ordered items, shipping cost, and payment method.",
-    "category": "Admin Order Management",
+    "title": "POS Mostrador - add products to cart and confirm order",
+    "description": "Verifies adding products in Mostrador mode creates a pending order.",
+    "category": "POS - Caja",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /admin/login"
+        "description": "Navigate to /admin/login and login with valid credentials"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Navigate to /admin/caja"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Click the Mostrador tab"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Orders\" in the admin navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the first order row in the orders table"
+        "description": "Click a product card in the product grid to add it to the cart"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Items\" is visible"
+        "description": "Verify the cart shows the added product with quantity 1"
+      },
+      {
+        "type": "action",
+        "description": "Click Confirmar pedido button"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Payment\" is visible"
+        "description": "Verify a pending order chip appears in the pending orders strip at the bottom"
       }
     ]
   },
   {
     "id": "TC038",
-    "title": "Update an order status to Pagado from the details drawer",
-    "description": "Verifies an admin can change an order status to Pagado and sees a success toast and updated status badge.",
-    "category": "Admin Order Management",
+    "title": "POS Mesas - table grid loads and shows table status",
+    "description": "Verifies the Mesas tab shows the table grid with table cards.",
+    "category": "POS - Caja",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /admin/login"
+        "description": "Navigate to /admin/login and login with valid credentials"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Navigate to /admin/caja"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Orders\" in the admin navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the first order row in the orders table"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Mark as Pagado\" action in the order details drawer"
+        "description": "Click the Mesas tab"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Pagado\" is visible"
+        "description": "Verify a grid of table cards is shown"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify each table card shows a table number and status (libre or occupied)"
       }
     ]
   },
   {
     "id": "TC039",
-    "title": "Filter orders by status",
-    "description": "Verifies filtering by a specific status reduces results to matching orders.",
-    "category": "Admin Order Management",
+    "title": "POS Arqueos - session history page loads",
+    "description": "Verifies the /admin/caja/arqueos page loads and shows session history.",
+    "category": "POS - Caja",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /admin/login"
+        "description": "Navigate to /admin/login and login with valid credentials"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Orders\" in the admin navigation"
-      },
-      {
-        "type": "action",
-        "description": "Select \"Pendiente\" from the status filter dropdown"
+        "description": "Navigate to /admin/caja/arqueos"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Pendiente\" is visible"
+        "description": "Verify the page loads with a table or list of past cash register sessions"
       },
       {
         "type": "assertion",
-        "description": "Verify the orders table is visible"
+        "description": "Verify each session row shows opening balance, total sales and total orders columns"
       }
     ]
   },
   {
     "id": "TC040",
-    "title": "Filter orders by date range",
-    "description": "Verifies applying a date range filter shows results consistent with the selected range.",
-    "category": "Admin Order Management",
-    "priority": "Medium",
+    "title": "Admin orders - order list loads with status filter tabs",
+    "description": "Verifies the orders management page loads with orders and status filter tabs.",
+    "category": "Admin Orders",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /admin/login"
+        "description": "Navigate to /admin/login and login with valid credentials"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Orders\" in the admin navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the date range filter control"
-      },
-      {
-        "type": "action",
-        "description": "Select a preset option \"Last 7 days\""
+        "description": "Navigate to /admin/orders"
       },
       {
         "type": "assertion",
-        "description": "Verify the orders table is visible"
+        "description": "Verify the page shows a list of orders"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify status filter tabs are visible (abierto, recibido, pagado, etc.)"
+      },
+      {
+        "type": "action",
+        "description": "Click a status filter tab to filter orders"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the orders list updates to show only orders of that status"
       }
     ]
   },
   {
     "id": "TC041",
-    "title": "Search orders by customer name or phone",
-    "description": "Verifies searching in Orders narrows the list to matching customer name/phone entries.",
-    "category": "Admin Order Management",
-    "priority": "Medium",
+    "title": "Admin ingredients - ingredient list loads",
+    "description": "Verifies the ingredients management page loads and shows ingredients.",
+    "category": "Admin Ingredients",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /admin/login"
+        "description": "Navigate to /admin/login and login with valid credentials"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Orders\" in the admin navigation"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Juan\" into the search field"
+        "description": "Navigate to /admin/ingredients"
       },
       {
         "type": "assertion",
-        "description": "Verify the orders table is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Juan\" is visible"
+        "description": "Verify the page shows a list of ingredients with name, unit and cost columns"
       }
     ]
   },
   {
     "id": "TC042",
-    "title": "Search with no matches shows empty state",
-    "description": "Verifies searching for a non-existent customer shows an empty results state without crashing.",
-    "category": "Admin Order Management",
-    "priority": "Low",
+    "title": "Admin ingredients - create new ingredient",
+    "description": "Verifies creating a new ingredient via the form.",
+    "category": "Admin Ingredients",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /admin/login"
+        "description": "Navigate to /admin/login and login with valid credentials"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Navigate to /admin/ingredients"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Click Nueva ingrediente or New button"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Fill Test Ingredient TC042 into the name field"
       },
       {
         "type": "action",
-        "description": "Click \"Orders\" in the admin navigation"
+        "description": "Fill unit (e.g. kg) and cost per unit (e.g. 100)"
       },
       {
         "type": "action",
-        "description": "Type \"NoSuchCustomer_987654\" into the search field"
+        "description": "Submit the form"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"No orders\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify an orders table is visible"
+        "description": "Verify the new ingredient appears in the list"
       }
     ]
   },
   {
     "id": "TC043",
-    "title": "View delivery zones page with map and existing zones list",
-    "description": "Verifies an admin can reach Delivery Zones Management and see the interactive map and any existing zones displayed.",
-    "category": "Admin Delivery Zones Management",
+    "title": "Admin recipes - recipe list loads",
+    "description": "Verifies the recipes page loads showing recipe list with cost.",
+    "category": "Admin Recipes",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /admin/login"
+        "description": "Navigate to /admin/login and login with valid credentials"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
+        "description": "Navigate to /admin/recipes"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"Delivery Zones\" in the admin navigation menu"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/admin/delivery-zones\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Delivery zones map\" is visible"
+        "description": "Verify the page loads with a list of recipes showing recipe name and ingredient count or cost"
       }
     ]
   },
   {
     "id": "TC044",
-    "title": "Create a new delivery zone polygon successfully",
-    "description": "Verifies an admin can draw a new polygon, fill the zone form, save, and see the new zone added to the map and list.",
-    "category": "Admin Delivery Zones Management",
+    "title": "Admin stock - stock dashboard loads with product levels",
+    "description": "Verifies the stock page loads with product stock levels.",
+    "category": "Admin Stock",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /admin/login"
+        "description": "Navigate to /admin/login and login with valid credentials"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Navigate to /admin/stock"
       },
       {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "type": "assertion",
+        "description": "Verify the page shows stock levels for products"
       },
       {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Delivery Zones\" in the admin navigation menu"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Draw polygon\" tool on the map"
-      },
-      {
-        "type": "action",
-        "description": "Click on the map to place the first polygon point"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button for the zone"
+        "type": "assertion",
+        "description": "Verify there is a button or option to register a purchase"
       }
     ]
   },
   {
     "id": "TC045",
-    "title": "Complete zone creation by filling required fields then saving",
-    "description": "Verifies the zone form accepts name, shipping cost, free-shipping threshold, and color, and saving results in a visible new zone entry.",
-    "category": "Admin Delivery Zones Management",
-    "priority": "High",
+    "title": "Admin tables - table configuration page loads",
+    "description": "Verifies the restaurant tables configuration page loads.",
+    "category": "Admin Tables",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /admin/login"
+        "description": "Navigate to /admin/login and login with valid credentials"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Delivery Zones\" in the admin navigation menu"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Draw polygon\" tool on the map"
-      },
-      {
-        "type": "action",
-        "description": "Click on the map multiple times to create a polygon with at least three points, then finish the polygon"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Test Zone A\" into the zone name field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"500\" into the shipping cost field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"5000\" into the free shipping threshold field"
-      },
-      {
-        "type": "action",
-        "description": "Select a color from the zone color picker"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button for the zone"
+        "description": "Navigate to /admin/tables"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Test Zone A\" is visible"
+        "description": "Verify the page loads showing the list of configured tables"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify there is a button to add a new table"
       }
     ]
   },
   {
     "id": "TC046",
-    "title": "Prevent saving when polygon has fewer than 3 points",
-    "description": "Verifies validation prevents saving an invalid delivery zone polygon with insufficient points and displays an error message.",
-    "category": "Admin Delivery Zones Management",
-    "priority": "High",
+    "title": "Admin analytics - analytics dashboard loads with chart",
+    "description": "Verifies the analytics page loads with sales chart.",
+    "category": "Admin Analytics",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /admin/login"
+        "description": "Navigate to /admin/login and login with valid credentials"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Delivery Zones\" in the admin navigation menu"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Draw polygon\" tool on the map"
-      },
-      {
-        "type": "action",
-        "description": "Click on the map to place only two polygon points"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button for the zone"
+        "description": "Navigate to /admin/analytics"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"at least 3\" is visible"
+        "description": "Verify the page loads with a sales chart or analytics data"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify KPI cards or metrics are visible"
       }
     ]
   },
   {
     "id": "TC047",
-    "title": "Prevent saving when required form fields are missing",
-    "description": "Verifies the UI blocks saving a drawn polygon if required zone fields (like name or shipping cost) are empty and shows validation messages.",
-    "category": "Admin Delivery Zones Management",
+    "title": "Admin cocina - kitchen display loads with pending comandas",
+    "description": "Verifies the kitchen display page loads showing pending orders.",
+    "category": "Admin Cocina",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /admin/login"
+        "description": "Navigate to /admin/login and login with valid credentials"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Delivery Zones\" in the admin navigation menu"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Draw polygon\" tool on the map"
-      },
-      {
-        "type": "action",
-        "description": "Click on the map multiple times to create a polygon with at least three points, then finish the polygon"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button for the zone"
+        "description": "Navigate to /admin/cocina"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"required\" is visible"
+        "description": "Verify the page loads with kitchen display content"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page shows pending comandas or an empty state if no orders exist"
       }
     ]
   },
   {
     "id": "TC048",
-    "title": "Update operating hours and days and save successfully",
-    "description": "Verifies an admin can change operating hours and operating days and see a success confirmation.",
-    "category": "Admin Business Settings",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /admin/login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" in the admin navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify page title contains \"Settings\""
-      },
-      {
-        "type": "action",
-        "description": "Type \"10:00\" into the opening time field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"23:00\" into the closing time field"
-      },
-      {
-        "type": "action",
-        "description": "Select \"Monday\" as an operating day"
-      },
-      {
-        "type": "action",
-        "description": "Select \"Friday\" as an operating day"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Saved\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC049",
-    "title": "Pause orders with custom message and confirm checkout is blocked",
-    "description": "Verifies pausing orders in admin settings shows a pause message on checkout and prevents ordering.",
-    "category": "Admin Business Settings",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /admin/login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" in the admin navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Pause Orders\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Pause Orders\" toggle to turn it ON"
-      },
-      {
-        "type": "action",
-        "description": "Type \"We are temporarily closed for maintenance.\" into the pause message field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Saved\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to /checkout"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"We are temporarily closed for maintenance.\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Orders are paused\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC050",
-    "title": "Resume orders and confirm checkout is available again",
-    "description": "Verifies turning Pause Orders OFF removes the pause blocking message from checkout.",
-    "category": "Admin Business Settings",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /admin/login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" in the admin navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Pause Orders\" toggle to turn it OFF"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Saved\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to /checkout"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Place order via WhatsApp\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC051",
-    "title": "Validation error when saving with no operating days selected",
-    "description": "Verifies the settings form requires at least one operating day before saving.",
-    "category": "Admin Business Settings",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /admin/login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" in the admin navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Operating days\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click to deselect all currently selected operating days"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Select at least one operating day\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC052",
-    "title": "Update WhatsApp business number and save successfully",
-    "description": "Verifies an admin can configure the WhatsApp number used for order submission and see a success confirmation.",
-    "category": "Admin Business Settings",
+    "title": "Admin settings - business settings form loads and saves",
+    "description": "Verifies the settings page loads with current values and can be saved.",
+    "category": "Admin Settings",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /admin/login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" in the admin navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"WhatsApp\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Type \"+5491112345678\" into the WhatsApp number field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Saved\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC053",
-    "title": "Prevent saving with invalid WhatsApp number format",
-    "description": "Verifies the WhatsApp number field shows a visible validation error for an invalid value.",
-    "category": "Admin Business Settings",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /admin/login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" in the admin navigation"
-      },
-      {
-        "type": "action",
-        "description": "Type \"abc-not-a-number\" into the WhatsApp number field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Enter a valid WhatsApp number\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC054",
-    "title": "Custom pause message is required when pausing orders",
-    "description": "Verifies enabling Pause Orders without a message prompts a visible validation error.",
-    "category": "Admin Business Settings",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /admin/login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" in the admin navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Pause Orders\" toggle to turn it ON"
-      },
-      {
-        "type": "action",
-        "description": "Type \"\" into the pause message field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Pause message is required\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC055",
-    "title": "Settings persist after refresh of the settings page",
-    "description": "Verifies saved settings are reloaded and displayed after re-opening the Admin Settings page.",
-    "category": "Admin Business Settings",
-    "priority": "Low",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /admin/login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/admin\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" in the admin navigation"
-      },
-      {
-        "type": "action",
-        "description": "Type \"09:30\" into the opening time field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"22:30\" into the closing time field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Saved\" is visible"
+        "description": "Navigate to /admin/login and login with valid credentials"
       },
       {
         "type": "action",
@@ -2330,192 +1795,15 @@
       },
       {
         "type": "assertion",
-        "description": "Verify text \"09:30\" is visible"
+        "description": "Verify business settings form loads with fields (business name, WhatsApp number, etc.)"
+      },
+      {
+        "type": "action",
+        "description": "Click save without modifying values"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"22:30\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC056",
-    "title": "WhatsApp order submission opens wa.me with a pre-filled message (happy path)",
-    "description": "Verifies that submitting a checkout order opens WhatsApp via a wa.me link with an encoded, pre-filled order message.",
-    "category": "WhatsApp Integration",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /checkout"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Nombre\" with \"Test Cliente\""
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Teléfono\" with \"1112345678\""
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Dirección\" with \"Av. Siempre Viva 123\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"Enviar pedido por WhatsApp\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"wa.me\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"text=\""
-      }
-    ]
-  },
-  {
-    "id": "TC057",
-    "title": "WhatsApp link includes the configured business number",
-    "description": "Verifies that the generated wa.me URL includes the restaurant's configured WhatsApp number as the destination.",
-    "category": "WhatsApp Integration",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /checkout"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Nombre\" with \"Cliente Numero\""
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Teléfono\" with \"1199990000\""
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Dirección\" with \"Calle Falsa 742\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"Enviar pedido por WhatsApp\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"wa.me/\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"?text=\""
-      }
-    ]
-  },
-  {
-    "id": "TC058",
-    "title": "Submitting order with missing WhatsApp number shows an error toast and does not open wa.me",
-    "description": "Verifies that when the business WhatsApp number is not configured, the UI shows an error and prevents navigation to wa.me.",
-    "category": "WhatsApp Integration",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /checkout"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Nombre\" with \"Sin WhatsApp\""
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Teléfono\" with \"1100001111\""
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Dirección\" with \"Sin Numero 100\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"Enviar pedido por WhatsApp\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"WhatsApp\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/checkout\""
-      }
-    ]
-  },
-  {
-    "id": "TC059",
-    "title": "Order message is URL-encoded in the wa.me text parameter",
-    "description": "Verifies that the WhatsApp message is encoded and passed via the text query parameter in the wa.me URL.",
-    "category": "WhatsApp Integration",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /checkout"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Nombre\" with \"Mensaje Encode\""
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Teléfono\" with \"1144445555\""
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Dirección\" with \"Encode 123\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"Enviar pedido por WhatsApp\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"?text=\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"%\""
-      }
-    ]
-  },
-  {
-    "id": "TC060",
-    "title": "Submitting from checkout with empty required fields does not open WhatsApp",
-    "description": "Verifies that the checkout validation prevents WhatsApp navigation when required customer fields are missing.",
-    "category": "WhatsApp Integration",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /checkout"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Enviar pedido por WhatsApp\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/checkout\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Nombre\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Teléfono\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Dirección\" is visible"
+        "description": "Verify success toast or confirmation appears"
       }
     ]
   }

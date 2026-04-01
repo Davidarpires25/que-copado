@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { printClientTicketAction, printKitchenTicketAction } from '@/app/actions/print'
 import {
-  Plus, Receipt, CreditCard, Loader2, AlertTriangle, Printer, ChefHat,
+  Plus, Bell, CircleDollarSign, Loader2, AlertTriangle, Printer, ChefHat,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
@@ -45,6 +45,7 @@ export function TableOrderPanel({
 }: TableOrderPanelProps) {
   const [loadingAction, setLoadingAction] = useState<string | null>(null)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const pendingItemOps = useRef<Set<string>>(new Set())
 
   // Sale tags (comensales)
   const [saleTags, setSaleTags] = useState<string[]>([])
@@ -91,13 +92,19 @@ export function TableOrderPanel({
   }, [addingTag])
 
   const handleUpdateQuantity = useCallback(async (itemId: string, quantity: number) => {
+    if (pendingItemOps.current.has(itemId)) return
+    pendingItemOps.current.add(itemId)
     const result = await updateOrderItem(itemId, quantity)
+    pendingItemOps.current.delete(itemId)
     if (result.error) toast.error(result.error)
     else onOrderItemsChanged?.()
   }, [onOrderItemsChanged])
 
   const handleRemoveItem = useCallback(async (itemId: string) => {
+    if (pendingItemOps.current.has(itemId)) return
+    pendingItemOps.current.add(itemId)
     const result = await removeOrderItem(itemId)
+    pendingItemOps.current.delete(itemId)
     if (result.error) toast.error(result.error)
     else onOrderItemsChanged?.()
   }, [onOrderItemsChanged])
@@ -134,7 +141,7 @@ export function TableOrderPanel({
         'flex flex-col items-center justify-center p-6 text-[var(--admin-text-muted)] bg-[var(--admin-surface)]',
         !asSheet && 'w-[520px] border-l border-[var(--admin-border)] h-full'
       )}>
-        <Receipt className="h-8 w-8 mb-2 text-[var(--admin-text-placeholder)]" />
+        <Bell className="h-8 w-8 mb-2 text-[var(--admin-text-placeholder)]" />
         <p className="text-sm">Sin orden activa</p>
       </div>
     )
@@ -173,7 +180,7 @@ export function TableOrderPanel({
           {/* Right: print buttons */}
           <div className="flex items-center gap-1">
             <button
-              onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
+              onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
               className="text-[var(--admin-text-muted)] hover:text-orange-400 transition-colors cursor-pointer p-1"
               aria-label="Imprimir comanda cocina"
               title="Comanda cocina"
@@ -181,7 +188,7 @@ export function TableOrderPanel({
               <ChefHat className="h-4 w-4" />
             </button>
             <button
-              onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
+              onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
               className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer p-1"
               aria-label="Imprimir ticket cliente"
               title="Ticket cliente"
@@ -210,14 +217,14 @@ export function TableOrderPanel({
           </div>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
+              onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
               className="text-[var(--admin-text-muted)] hover:text-orange-400 transition-colors cursor-pointer p-1"
               title="Comanda cocina"
             >
               <ChefHat className="h-4 w-4" />
             </button>
             <button
-              onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
+              onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
               className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer p-1"
               title="Ticket cliente"
             >
@@ -365,7 +372,7 @@ export function TableOrderPanel({
             </span>
             <div className="flex items-center gap-1.5">
               <button
-                onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
+                onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
                 className="flex items-center gap-1.5 px-2.5 rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-orange-400 hover:border-orange-400/40 transition-colors cursor-pointer"
                 style={{ height: 36 }}
               >
@@ -373,7 +380,7 @@ export function TableOrderPanel({
                 <span className="text-[12px] font-medium">Comanda</span>
               </button>
               <button
-                onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) })}
+                onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
                 className="flex items-center gap-1.5 px-2.5 rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-text-placeholder)] transition-colors cursor-pointer"
                 style={{ height: 36 }}
               >
@@ -388,7 +395,7 @@ export function TableOrderPanel({
               return (
                 <button
                   key={tag}
-                  onClick={() => printClientTicketAction(order.id, { guestTag: tag }).then(r => { if (r.error) toast.error(r.error) })}
+                  onClick={() => printClientTicketAction(order.id, { guestTag: tag }).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
                   className={cn(
                     'flex-1 flex items-center justify-center gap-1.5 rounded-md border text-[11px] font-semibold transition-colors cursor-pointer hover:opacity-80',
                     colors.print
@@ -424,7 +431,7 @@ export function TableOrderPanel({
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <>
-              <CreditCard className="h-4 w-4" />
+              <CircleDollarSign className="h-4 w-4" />
               Cobrar
             </>
           )}

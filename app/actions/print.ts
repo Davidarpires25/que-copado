@@ -30,19 +30,16 @@ export async function printClientTicketAction(
     const user = await getAuthUser(supabase)
     if (!user) return { error: 'No autorizado' }
 
-    const { data: order, error } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('id', orderId)
-      .single()
+    const [{ data: order, error }, { data: rows }] = await Promise.all([
+      supabase.from('orders').select('*').eq('id', orderId).single(),
+      supabase
+        .from('order_items')
+        .select('product_name, quantity, product_price, notes, sale_tag')
+        .eq('order_id', orderId)
+        .neq('status', 'cancelado'),
+    ])
 
     if (error || !order) return { error: 'Orden no encontrada' }
-
-    const { data: rows } = await supabase
-      .from('order_items')
-      .select('product_name, quantity, product_price, notes, sale_tag')
-      .eq('order_id', orderId)
-      .neq('status', 'cancelado')
 
     let items = rows ?? []
     if (options.guestTag) {
@@ -93,7 +90,10 @@ export async function printClientTicketAction(
   }
 }
 
-export async function printKitchenTicketAction(orderId: string): Promise<{ error?: string }> {
+export async function printKitchenTicketAction(
+  orderId: string,
+  options: { itemIds?: string[] } = {}
+): Promise<{ error?: string }> {
   try {
     const supabase = await createAdminClient()
 
@@ -108,10 +108,62 @@ export async function printKitchenTicketAction(orderId: string): Promise<{ error
 
     if (error || !order) return { error: 'Orden no encontrada' }
 
+    // Determine which items to print and whether this is a new batch or a reprint
+    let targetIds: string[]
+    let newBatchId: string | null = null
+
+    if (options.itemIds && options.itemIds.length > 0) {
+      // Called from add-items-view with explicit new item IDs
+      targetIds = options.itemIds
+      newBatchId = crypto.randomUUID()
+    } else {
+      // Check for unprinted items (new round)
+      const { data: unprintedRows } = await supabase
+        .from('order_items')
+        .select('id')
+        .eq('order_id', orderId)
+        .is('kitchen_print_batch_id', null)
+        .neq('status', 'cancelado')
+
+      if (unprintedRows && unprintedRows.length > 0) {
+        // New round: print only unprinted items
+        targetIds = unprintedRows.map((r) => r.id)
+        newBatchId = crypto.randomUUID()
+      } else {
+        // Resguardo: reprint last batch (printer failure recovery)
+        const { data: lastItem } = await supabase
+          .from('order_items')
+          .select('kitchen_print_batch_id')
+          .eq('order_id', orderId)
+          .not('kitchen_print_batch_id', 'is', null)
+          .order('added_at', { ascending: false })
+          .limit(1)
+          .single()
+
+        if (!lastItem?.kitchen_print_batch_id) {
+          return { error: 'No hay comandas previas para reimprimir.' }
+        }
+
+        const { data: batchRows } = await supabase
+          .from('order_items')
+          .select('id')
+          .eq('order_id', orderId)
+          .eq('kitchen_print_batch_id', lastItem.kitchen_print_batch_id)
+          .neq('status', 'cancelado')
+
+        targetIds = (batchRows ?? []).map((r) => r.id)
+        // newBatchId stays null — don't re-stamp on reprint
+      }
+    }
+
+    if (targetIds.length === 0) {
+      return { error: 'No hay ítems para enviar a cocina.' }
+    }
+
     const { data: rows } = await supabase
       .from('order_items')
       .select('product_name, quantity, notes, products(product_type)')
-      .eq('order_id', orderId)
+      .in('id', targetIds)
       .neq('status', 'cancelado')
 
     const items = (rows ?? [])
@@ -124,6 +176,10 @@ export async function printKitchenTicketAction(orderId: string): Promise<{ error
         quantity: i.quantity,
         notes: i.notes ?? null,
       }))
+
+    if (items.length === 0) {
+      return { error: 'No hay ítems de cocina para imprimir.' }
+    }
 
     const { dateStr, timeStr } = now()
 
@@ -144,6 +200,14 @@ export async function printKitchenTicketAction(orderId: string): Promise<{ error
     if (insertError) {
       devError('printKitchenTicketAction insert:', insertError)
       return { error: 'Error al encolar el ticket de cocina.' }
+    }
+
+    // Mark items as belonging to this batch (only for new rounds, not reprints)
+    if (newBatchId) {
+      await supabase
+        .from('order_items')
+        .update({ kitchen_print_batch_id: newBatchId })
+        .in('id', targetIds)
     }
 
     return {}

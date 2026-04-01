@@ -10,6 +10,7 @@ export function validateHybridPaymentSplits(
   orderTotal: number
 ): string | null {
   if (splits.length < 2) return null
+  if (splits.some((s) => s.amount <= 0)) return 'Los montos deben ser mayores a cero'
   const nonCashSum = splits
     .filter((s) => s.method !== 'cash')
     .reduce((s, p) => s + p.amount, 0)

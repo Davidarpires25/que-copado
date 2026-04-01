@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo } from 'react'
-import { LayoutGrid } from 'lucide-react'
+import { useMemo, useCallback } from 'react'
+import { Table2 } from 'lucide-react'
 import { TableCard } from './table-card'
 import { TABLE_SECTION_LABELS } from '@/lib/types/tables'
 import type { TableWithOrder } from '@/lib/types/tables'
@@ -31,18 +31,18 @@ export function TableGrid({
     })
   }, [tables])
 
-  const handleTableClick = (table: TableWithOrder) => {
+  const handleTableClick = useCallback((table: TableWithOrder) => {
     if (table.status === 'libre') {
       onOpenTable(table)
     } else {
       onSelectTable(table)
     }
-  }
+  }, [onOpenTable, onSelectTable])
 
   if (tables.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-[var(--admin-text-muted)]">
-        <LayoutGrid className="h-12 w-12 mb-3 text-[var(--admin-text-placeholder)]" />
+        <Table2 className="h-12 w-12 mb-3 text-[var(--admin-text-placeholder)]" />
         <p className="text-sm font-medium">No hay mesas configuradas</p>
         <p className="text-xs mt-1">Configurá las mesas desde el panel de administración</p>
       </div>

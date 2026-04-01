@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Loader2, Plus, X, GitBranch, Info } from 'lucide-react'
+import { Loader2, Plus, X, ListTree, Info } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -185,7 +185,7 @@ export function IngredientSubRecipeDialog({
         <DialogHeader>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-[var(--admin-accent)]/10 rounded-lg flex items-center justify-center shrink-0">
-              <GitBranch className="h-4 w-4 text-[var(--admin-accent-text)]" />
+              <ListTree className="h-4 w-4 text-[var(--admin-accent-text)]" />
             </div>
             <div>
               <DialogTitle className="text-lg font-semibold text-[var(--admin-text)]">
@@ -231,7 +231,7 @@ export function IngredientSubRecipeDialog({
             <div className="space-y-3">
               {lines.length === 0 && (
                 <div className="py-8 text-center rounded-lg border border-dashed border-[var(--admin-border)]">
-                  <GitBranch className="h-8 w-8 text-[#3a4150] mx-auto mb-2" />
+                  <ListTree className="h-8 w-8 text-[#3a4150] mx-auto mb-2" />
                   <p className="text-sm text-[var(--admin-text-muted)]">
                     Este ingrediente no tiene sub-receta.
                   </p>
