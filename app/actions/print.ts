@@ -22,7 +22,7 @@ function now() {
 
 export async function printClientTicketAction(
   orderId: string,
-  options: { cashReceived?: number; guestTag?: string } = {}
+  options: { cashReceived?: number; guestTag?: string; itemIds?: string[] } = {}
 ): Promise<{ error?: string }> {
   try {
     const supabase = await createAdminClient()
@@ -34,7 +34,7 @@ export async function printClientTicketAction(
       supabase.from('orders').select('*').eq('id', orderId).single(),
       supabase
         .from('order_items')
-        .select('product_name, quantity, product_price, notes, sale_tag')
+        .select('id, product_name, quantity, product_price, notes, sale_tag')
         .eq('order_id', orderId)
         .neq('status', 'cancelado'),
     ])
@@ -42,8 +42,16 @@ export async function printClientTicketAction(
     if (error || !order) return { error: 'Orden no encontrada' }
 
     let items = rows ?? []
+    if (options.itemIds && options.itemIds.length > 0) {
+      const idSet = new Set(options.itemIds)
+      items = items.filter((i) => idSet.has(i.id))
+    }
     if (options.guestTag) {
       items = items.filter((i) => i.sale_tag === options.guestTag)
+    }
+
+    if (items.length === 0) {
+      return { error: 'No hay ítems para imprimir en el ticket.' }
     }
 
     const mapped = items.map((i) => ({
@@ -54,8 +62,19 @@ export async function printClientTicketAction(
     }))
 
     const subtotal = mapped.reduce((s, i) => s + i.price * i.quantity, 0)
-    const total = options.guestTag ? subtotal : order.total
+    const isRoundSnapshot = Boolean(options.itemIds && options.itemIds.length > 0)
+    const isGuestScope = Boolean(options.guestTag)
+    const total = isRoundSnapshot || isGuestScope ? subtotal : order.total
     const { dateStr, timeStr } = now()
+
+    const paymentLabel = isRoundSnapshot
+      ? 'Parcial'
+      : (PAYMENT_LABELS[order.payment_method] ?? order.payment_method)
+    const cashReceived = isRoundSnapshot ? null : options.cashReceived ?? null
+    const change =
+      isRoundSnapshot || options.cashReceived === undefined || options.cashReceived === null
+        ? null
+        : options.cashReceived - total
 
     const { error: insertError } = await supabase.from('print_jobs').insert({
       type: 'client_ticket',
@@ -70,10 +89,10 @@ export async function printClientTicketAction(
         items: mapped,
         total,
         subtotal,
-        shippingCost: order.shipping_cost ?? 0,
-        paymentLabel: PAYMENT_LABELS[order.payment_method] ?? order.payment_method,
-        cashReceived: options.cashReceived ?? null,
-        change: options.cashReceived ? options.cashReceived - total : null,
+        shippingCost: isRoundSnapshot ? 0 : order.shipping_cost ?? 0,
+        paymentLabel,
+        cashReceived,
+        change,
         guestName: options.guestTag ?? null,
       },
     })

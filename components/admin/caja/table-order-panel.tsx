@@ -188,10 +188,14 @@ export function TableOrderPanel({
               <ChefHat className="h-4 w-4" />
             </button>
             <button
-              onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
+              onClick={() =>
+                printClientTicketAction(order.id, activeSaleTag ? { guestTag: activeSaleTag } : {})
+                  .then((r) => { if (r.error) toast.error(r.error) })
+                  .catch(() => toast.error('Error al imprimir'))
+              }
               className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer p-1"
               aria-label="Imprimir ticket cliente"
-              title="Ticket cliente"
+              title={activeSaleTag ? `Ticket cliente · ${activeSaleTag}` : 'Ticket cliente (todos)'}
             >
               <Printer className="h-4 w-4" />
             </button>
@@ -224,9 +228,13 @@ export function TableOrderPanel({
               <ChefHat className="h-4 w-4" />
             </button>
             <button
-              onClick={() => printClientTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
+              onClick={() =>
+                printClientTicketAction(order.id, activeSaleTag ? { guestTag: activeSaleTag } : {})
+                  .then((r) => { if (r.error) toast.error(r.error) })
+                  .catch(() => toast.error('Error al imprimir'))
+              }
               className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer p-1"
-              title="Ticket cliente"
+              title={activeSaleTag ? `Ticket cliente · ${activeSaleTag}` : 'Ticket cliente (todos)'}
             >
               <Printer className="h-4 w-4" />
             </button>
