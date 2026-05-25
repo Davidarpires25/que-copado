@@ -2,6 +2,7 @@ require('dotenv').config()
 const { createClient } = require('@supabase/supabase-js')
 const ThermalPrinter = require('node-thermal-printer')
 
+
 const { printer: Printer, types: PrinterTypes } = ThermalPrinter
 
 // ─── Config ─────────────────────────────────────────────────────────────────
