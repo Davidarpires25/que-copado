@@ -139,38 +139,52 @@ export async function printKitchenTicketAction(
       // Check for unprinted items (new round)
       const { data: unprintedRows } = await supabase
         .from('order_items')
-        .select('id')
+        .select('id, products(product_type)')
         .eq('order_id', orderId)
         .is('kitchen_print_batch_id', null)
         .neq('status', 'cancelado')
 
-      if (unprintedRows && unprintedRows.length > 0) {
+      const unprintedKitchenRows = (unprintedRows ?? []).filter((row) => {
+        const p = row.products as unknown as { product_type: string | null } | null
+        return sendsToKitchen(p?.product_type ?? '')
+      })
+
+      if (unprintedKitchenRows.length > 0) {
         // New round: print only unprinted items
-        targetIds = unprintedRows.map((r) => r.id)
+        targetIds = unprintedKitchenRows.map((r) => r.id)
         newBatchId = crypto.randomUUID()
       } else {
         // Resguardo: reprint last batch (printer failure recovery)
-        const { data: lastItem } = await supabase
+        const { data: printedRows } = await supabase
           .from('order_items')
-          .select('kitchen_print_batch_id')
+          .select('id, kitchen_print_batch_id, products(product_type)')
           .eq('order_id', orderId)
           .not('kitchen_print_batch_id', 'is', null)
+          .neq('status', 'cancelado')
           .order('added_at', { ascending: false })
-          .limit(1)
-          .single()
 
-        if (!lastItem?.kitchen_print_batch_id) {
+        const lastKitchenRow = (printedRows ?? []).find((row) => {
+          const p = row.products as unknown as { product_type: string | null } | null
+          return sendsToKitchen(p?.product_type ?? '')
+        })
+
+        if (!lastKitchenRow?.kitchen_print_batch_id) {
           return { error: 'No hay comandas previas para reimprimir.' }
         }
 
         const { data: batchRows } = await supabase
           .from('order_items')
-          .select('id')
+          .select('id, products(product_type)')
           .eq('order_id', orderId)
-          .eq('kitchen_print_batch_id', lastItem.kitchen_print_batch_id)
+          .eq('kitchen_print_batch_id', lastKitchenRow.kitchen_print_batch_id)
           .neq('status', 'cancelado')
 
-        targetIds = (batchRows ?? []).map((r) => r.id)
+        targetIds = (batchRows ?? [])
+          .filter((row) => {
+            const p = row.products as unknown as { product_type: string | null } | null
+            return sendsToKitchen(p?.product_type ?? '')
+          })
+          .map((r) => r.id)
         // newBatchId stays null — don't re-stamp on reprint
       }
     }

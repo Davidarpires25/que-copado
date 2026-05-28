@@ -30,7 +30,7 @@ import { openTable, getTables } from '@/app/actions/tables'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
-import type { Category, ProductWithHalfConfig, PaymentMethod, Order } from '@/lib/types/database'
+import type { Category, ProductWithHalfConfig, PaymentMethod, Order, DeliveryZone } from '@/lib/types/database'
 import { sendsToKitchen } from '@/lib/types/database'
 import type { CashRegisterSession, SessionSummary, PaymentSplit, OrderWithSplits } from '@/lib/types/cash-register'
 import type { TableWithOrder } from '@/lib/types/tables'
@@ -43,6 +43,7 @@ interface PosInterfaceProps {
   session: CashRegisterSession
   initialTables: TableWithOrder[]
   initialPendingOrders: Order[]
+  initialDeliveryZones: DeliveryZone[]
   onCloseSession: (summary: SessionSummary) => void
   onSessionUpdate: (session: CashRegisterSession) => void
 }
@@ -53,6 +54,7 @@ export function PosInterface({
   session,
   initialTables,
   initialPendingOrders,
+  initialDeliveryZones,
   onCloseSession,
   onSessionUpdate,
 }: PosInterfaceProps) {
@@ -64,6 +66,8 @@ export function PosInterface({
   // Mostrador cart state
   const [items, setItems] = useState<PosCartItem[]>([])
   const [notes, setNotes] = useState('')
+  const [shippingEnabled, setShippingEnabled] = useState(false)
+  const [selectedDeliveryZoneId, setSelectedDeliveryZoneId] = useState<string | null>(null)
 
   // Mostrador UI state
   const [showMovement, setShowMovement] = useState(false)
@@ -104,6 +108,12 @@ export function PosInterface({
   }, [products])
 
   const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.price * item.quantity, 0), [items])
+  const selectedDeliveryZone = useMemo(
+    () => initialDeliveryZones.find((z) => z.id === selectedDeliveryZoneId) ?? null,
+    [initialDeliveryZones, selectedDeliveryZoneId]
+  )
+  const shippingCost = shippingEnabled ? selectedDeliveryZone?.shipping_cost ?? 0 : 0
+  const totalWithShipping = subtotal + shippingCost
   const hasKitchenItems = useMemo(() => items.some((item) => sendsToKitchen(item.product_type ?? '')), [items])
   const currentCash = useMemo(() => (
     session.opening_balance +
@@ -228,6 +238,13 @@ export function PosInterface({
     )
   }, [])
 
+  useEffect(() => {
+    if (items.length === 0) {
+      setShippingEnabled(false)
+      setSelectedDeliveryZoneId(null)
+    }
+  }, [items.length])
+
   // "Confirmar pedido" — crea orden abierta y envía a cocina
   const handleCheckout = () => {
     if (items.length === 0) return
@@ -236,6 +253,10 @@ export function PosInterface({
 
   const handleConfirmOrder = async () => {
     if (items.length === 0 || confirmLoading) return
+    if (shippingEnabled && !selectedDeliveryZoneId) {
+      toast.error('Seleccioná una zona de envío')
+      return
+    }
     setConfirmLoading(true)
 
     const { data, error } = await createMostadorOrder({
@@ -247,8 +268,10 @@ export function PosInterface({
         notes: notes || null,
         metadata: metadata ?? null,
       })),
-      total: subtotal,
+      total: totalWithShipping,
       notes: notes || null,
+      shipping_cost: shippingCost,
+      delivery_zone_id: shippingEnabled ? selectedDeliveryZoneId : null,
       session_id: session.id,
     })
 
@@ -267,6 +290,8 @@ export function PosInterface({
         toast.success('Pedido enviado a cocina')
         setItems([])
         setNotes('')
+        setShippingEnabled(false)
+        setSelectedDeliveryZoneId(null)
         await refreshPendingOrders()
         setPayingOrder(data)
       } else {
@@ -274,6 +299,8 @@ export function PosInterface({
         toast.success('Pedido registrado')
         setItems([])
         setNotes('')
+        setShippingEnabled(false)
+        setSelectedDeliveryZoneId(null)
         setPayingOrder(data)
       }
     }
@@ -584,6 +611,19 @@ export function PosInterface({
                 <OrderBuilder
                   items={items}
                   hasKitchenItems={hasKitchenItems}
+                  deliveryZones={initialDeliveryZones}
+                  shippingEnabled={shippingEnabled}
+                  selectedDeliveryZoneId={selectedDeliveryZoneId}
+                  shippingCost={shippingCost}
+                  total={totalWithShipping}
+                  onShippingEnabledChange={(enabled) => {
+                    setShippingEnabled(enabled)
+                    if (enabled && !selectedDeliveryZoneId && initialDeliveryZones.length > 0) {
+                      setSelectedDeliveryZoneId(initialDeliveryZones[0].id)
+                    }
+                    if (!enabled) setSelectedDeliveryZoneId(null)
+                  }}
+                  onSelectDeliveryZone={setSelectedDeliveryZoneId}
                   onUpdateQuantity={handleUpdateQuantity}
                   onRemoveItem={handleRemoveItem}
                   onSetNotes={setNotes}
@@ -675,7 +715,7 @@ export function PosInterface({
               className="bg-[var(--admin-accent)] text-black font-bold px-6 py-4 rounded-full shadow-lg shadow-[var(--admin-accent)]/30 flex items-center gap-2 active:scale-95 transition-transform"
             >
               <span className="text-base font-black">{items.reduce((s, i) => s + i.quantity, 0)}</span>
-              <span>productos · {formatPrice(subtotal)}</span>
+              <span>productos · {formatPrice(totalWithShipping)}</span>
             </button>
           )}
         </div>
@@ -702,6 +742,19 @@ export function PosInterface({
           <OrderBuilder
             items={items}
             loading={confirmLoading}
+            deliveryZones={initialDeliveryZones}
+            shippingEnabled={shippingEnabled}
+            selectedDeliveryZoneId={selectedDeliveryZoneId}
+            shippingCost={shippingCost}
+            total={totalWithShipping}
+            onShippingEnabledChange={(enabled) => {
+              setShippingEnabled(enabled)
+              if (enabled && !selectedDeliveryZoneId && initialDeliveryZones.length > 0) {
+                setSelectedDeliveryZoneId(initialDeliveryZones[0].id)
+              }
+              if (!enabled) setSelectedDeliveryZoneId(null)
+            }}
+            onSelectDeliveryZone={setSelectedDeliveryZoneId}
             onUpdateQuantity={handleUpdateQuantity}
             onRemoveItem={handleRemoveItem}
             onSetNotes={setNotes}

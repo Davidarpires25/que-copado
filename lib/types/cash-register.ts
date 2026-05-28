@@ -67,6 +67,8 @@ export interface CreateMostadorOrderData {
   items: OrderItem[]
   total: number
   notes?: string | null
+  shipping_cost?: number
+  delivery_zone_id?: string | null
   session_id: string
 }
 

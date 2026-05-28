@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Minus, Plus, ClipboardList, Loader2, ChefHat, CircleDollarSign, Trash2, MessageSquare } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import type { OrderItem } from '@/lib/types/orders'
+import type { DeliveryZone } from '@/lib/types/database'
+import { Switch } from '@/components/ui/switch'
 
 export interface PosCartItem extends OrderItem {
   quantity: number
@@ -16,6 +18,13 @@ interface OrderBuilderProps {
   items: PosCartItem[]
   loading?: boolean
   hasKitchenItems?: boolean
+  deliveryZones?: DeliveryZone[]
+  shippingEnabled?: boolean
+  selectedDeliveryZoneId?: string | null
+  shippingCost?: number
+  total?: number
+  onShippingEnabledChange?: (enabled: boolean) => void
+  onSelectDeliveryZone?: (zoneId: string | null) => void
   onUpdateQuantity: (id: string, delta: number) => void
   onRemoveItem: (id: string) => void
   onSetNotes: (notes: string) => void
@@ -27,6 +36,13 @@ export function OrderBuilder({
   items,
   loading = false,
   hasKitchenItems = true,
+  deliveryZones = [],
+  shippingEnabled = false,
+  selectedDeliveryZoneId = null,
+  shippingCost = 0,
+  total,
+  onShippingEnabledChange,
+  onSelectDeliveryZone,
   onUpdateQuantity,
   onRemoveItem,
   onSetNotes,
@@ -64,6 +80,7 @@ export function OrderBuilder({
   }
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const finalTotal = total ?? subtotal
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
 
   return (
@@ -83,13 +100,13 @@ export function OrderBuilder({
         {items.length > 0 && (
           <button
             onClick={handleClearCart}
-            className={`flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+            className={`text-[14px] flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               confirmClear
                 ? 'bg-red-500/10 text-red-400'
                 : 'text-[var(--admin-text-faint)] hover:text-red-400 hover:bg-red-500/10'
             }`}
           >
-            <Trash2 className="h-3 w-3" />
+            <Trash2 className="h-4 w-4" />
             {confirmClear ? 'Confirmar' : 'Limpiar'}
           </button>
         )}
@@ -116,10 +133,10 @@ export function OrderBuilder({
               >
                 {/* Left: name + price per unit + note */}
                 <div className="flex-1 min-w-0 mr-3">
-                  <p className="text-[13px] font-medium text-[var(--admin-text)] truncate leading-tight">
+                  <p className="text-[14px] font-medium text-[var(--admin-text)] truncate leading-tight">
                     {item.name}
                   </p>
-                  <p className="text-[11px] font-medium mt-0.5 text-[var(--admin-text-faint)]">
+                  <p className="text-[13px] font-medium mt-0.5 text-[var(--admin-text-faint)]">
                     {formatPrice(item.price)} c/u
                   </p>
                   {item.halfPizzaProductId ? (
@@ -135,8 +152,8 @@ export function OrderBuilder({
                         onClick={() => toggleItemNote(item.id)}
                         className="flex items-center gap-1 mt-0.5 text-[11px] text-[var(--admin-text-faint)] hover:text-[var(--admin-accent-text)] transition-colors cursor-pointer"
                       >
-                        <MessageSquare className="h-3 w-3" />
-                        <span className="truncate max-w-[100px]">{item.notes ? item.notes : 'nota'}</span>
+                        <MessageSquare className="h-4 w-4" />
+                        <span className=" text-[14px] truncate max-w-[200px]">{item.notes ? item.notes : 'nota'}</span>
                       </button>
                       {itemNotesOpen.has(item.id) && (
                         <input
@@ -145,7 +162,7 @@ export function OrderBuilder({
                           onChange={(e) => onSetItemNotes?.(item.id, e.target.value)}
                           onBlur={() => { if (!item.notes) toggleItemNote(item.id) }}
                           placeholder="sin queso, sin lechuga..."
-                          className="mt-1 w-full text-[11px] bg-transparent border-b border-[var(--admin-border)] focus:border-[var(--admin-accent)]/50 text-[var(--admin-text)] placeholder:text-[var(--admin-text-faint)] outline-none py-0.5"
+                          className="mt-1 w-full text-[14px] bg-transparent border-b border-[var(--admin-border)] focus:border-[var(--admin-accent)]/50 text-[var(--admin-text)] placeholder:text-[var(--admin-text-faint)] outline-none py-0.5"
                         />
                       )}
                     </>
@@ -217,7 +234,7 @@ export function OrderBuilder({
           ) : (
             <button
               onClick={() => setShowNotes(true)}
-              className="text-xs cursor-pointer transition-colors text-[var(--admin-text-faint)] hover:text-[var(--admin-text-muted)]"
+              className="text-[13px] cursor-pointer transition-colors text-[var(--admin-text-faint)] hover:text-[var(--admin-text-muted)]"
             >
               + Agregar nota
             </button>
@@ -228,22 +245,54 @@ export function OrderBuilder({
       {/* Totals */}
       {items.length > 0 && (
         <div className="px-5 py-4 space-y-2.5 shrink-0 border-t border-[var(--admin-border)]">
+          <div className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-2)] p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-[var(--admin-text-muted)] font-medium">Agregar envío</span>
+              <Switch
+                checked={shippingEnabled}
+                onCheckedChange={(checked) => onShippingEnabledChange?.(checked)}
+                className="data-[state=checked]:bg-[var(--admin-accent)]"
+              />
+            </div>
+            {shippingEnabled && (
+              <select
+                value={selectedDeliveryZoneId ?? ''}
+                onChange={(e) => onSelectDeliveryZone?.(e.target.value || null)}
+                className="w-full h-9 rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2 text-xs text-[var(--admin-text)] outline-none"
+              >
+                <option value="" disabled>Seleccionar zona...</option>
+                {deliveryZones.map((zone) => (
+                  <option key={zone.id} value={zone.id}>
+                    {zone.name} - {formatPrice(zone.shipping_cost)}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
           <div className="flex items-center justify-between">
             <span className="text-[14px] text-[var(--admin-text-muted)]">Subtotal</span>
             <span className="text-[14px] tabular-nums text-[var(--admin-text)]">
               {formatPrice(subtotal)}
             </span>
           </div>
+          {shippingEnabled && (
+            <div className="flex items-center justify-between">
+              <span className="text-[14px] text-[var(--admin-text-muted)]">Envío</span>
+              <span className="text-[14px] tabular-nums text-[var(--admin-text)]">
+                {formatPrice(shippingCost)}
+              </span>
+            </div>
+          )}
           <div className="h-px bg-[var(--admin-border)]" />
           <div className="flex items-center justify-between">
             <span className="text-[18px] font-bold text-[var(--admin-text)]">Total</span>
             <motion.span
-              key={subtotal}
+              key={finalTotal}
               initial={{ scale: 1.06 }}
               animate={{ scale: 1 }}
               className="text-[18px] font-bold tabular-nums text-[var(--admin-accent-text)]"
             >
-              {formatPrice(subtotal)}
+              {formatPrice(finalTotal)}
             </motion.span>
           </div>
         </div>
@@ -261,12 +310,12 @@ export function OrderBuilder({
         ) : hasKitchenItems ? (
           <>
             <ChefHat className="h-5 w-5" />
-            {items.length > 0 ? `Enviar a cocina · ${formatPrice(subtotal)}` : 'Enviar a cocina'}
+            {items.length > 0 ? `Enviar a cocina · ${formatPrice(finalTotal)}` : 'Enviar a cocina'}
           </>
         ) : (
           <>
             <CircleDollarSign className="h-5 w-5" />
-            {items.length > 0 ? `Cobrar ${formatPrice(subtotal)}` : 'Cobrar'}
+            {items.length > 0 ? `Cobrar ${formatPrice(finalTotal)}` : 'Cobrar'}
           </>
         )}
       </button>

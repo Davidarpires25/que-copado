@@ -7,7 +7,6 @@ import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import { PosProductGrid } from './product-grid'
 import { addItemsToOrder } from '@/app/actions/tables'
-import { printKitchenTicketAction } from '@/app/actions/print'
 import { sendToKitchen } from '@/app/actions/comandas'
 import type { Product, Category, ProductWithHalfConfig } from '@/lib/types/database'
 import { sendsToKitchen } from '@/lib/types/database'
@@ -128,11 +127,8 @@ export function AddItemsView({
     if (result.error) { toast.error(result.error); return }
     const hasKitchenItems = cart.some((i) => sendsToKitchen(i.product_type ?? ''))
     if (hasKitchenItems) {
-      const newItemIds = (result.data ?? []).map((i) => i.id)
       // Send to kitchen display (creates comanda records for newly added items only)
       sendToKitchen(orderId).then((r) => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al enviar a cocina'))
-      // Print only the new items added in this round
-      printKitchenTicketAction(orderId, { itemIds: newItemIds }).then((r) => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir comanda'))
     }
     toast.success(`${cartItemCount} ${cartItemCount === 1 ? 'producto agregado' : 'productos agregados'}`)
     onItemsAdded()

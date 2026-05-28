@@ -44,24 +44,14 @@ export function ZoneMapEditor({
     isInitializingRef.current = true
 
     const initMap = async () => {
-      const L = (await import('leaflet')).default
-      await import('@geoman-io/leaflet-geoman-free')
+      try {
+        const L = (await import('leaflet')).default
+        await import('@geoman-io/leaflet-geoman-free')
 
       if ((container as HTMLDivElement & { _leaflet_id?: number })._leaflet_id) {
         isInitializingRef.current = false
         return
       }
-
-      // CSS
-      const addCss = (id: string, href: string) => {
-        if (!document.getElementById(id)) {
-          const link = document.createElement('link')
-          link.id = id; link.rel = 'stylesheet'; link.href = href
-          document.head.appendChild(link)
-        }
-      }
-      addCss('leaflet-css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css')
-      addCss('leaflet-geoman-css', 'https://unpkg.com/@geoman-io/leaflet-geoman-free@2.16.0/dist/leaflet-geoman.css')
 
       // Fix marker icons
       delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
@@ -82,6 +72,7 @@ export function ZoneMapEditor({
 
       map.pm.addControls({
         position: 'topleft',
+        drawPolygon: true,
         drawCircle: true,          // ← enabled
         drawCircleMarker: false,
         drawMarker: false,
@@ -118,6 +109,12 @@ export function ZoneMapEditor({
 
       mapRef.current = map
       setIsMapReady(true)
+        setTimeout(() => map.invalidateSize(), 0)
+      } catch (error) {
+        console.error('Error inicializando ZoneMapEditor:', error)
+      } finally {
+        isInitializingRef.current = false
+      }
     }
 
     initMap()
@@ -125,10 +122,21 @@ export function ZoneMapEditor({
     return () => {
       if (mapRef.current) { mapRef.current.remove(); mapRef.current = null }
       if (container) delete (container as HTMLDivElement & { _leaflet_id?: number })._leaflet_id
-      isInitializingRef.current = false
       setIsMapReady(false)
     }
   }, [])
+
+  useEffect(() => {
+    const map = mapRef.current
+    const container = mapContainerRef.current
+    if (!map || !container) return
+
+    const observer = new ResizeObserver(() => {
+      map.invalidateSize()
+    })
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [isMapReady])
 
   // Draw all zones
   const drawZones = useCallback(async () => {

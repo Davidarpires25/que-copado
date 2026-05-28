@@ -11,7 +11,7 @@ import { AdminSidebar, MobileSidebar } from '@/components/admin/layout/admin-sid
 import { useThemeStore } from '@/lib/store/theme-store'
 import { getSessionSummary } from '@/app/actions/cash-register'
 import { cn, formatPrice } from '@/lib/utils'
-import type { Category, ProductWithHalfConfig, Order } from '@/lib/types/database'
+import type { Category, ProductWithHalfConfig, Order, DeliveryZone } from '@/lib/types/database'
 import type { CashRegisterSession, SessionSummary } from '@/lib/types/cash-register'
 import type { TableWithOrder } from '@/lib/types/tables'
 
@@ -23,6 +23,7 @@ interface CajaDashboardProps {
   initialSession: CashRegisterSession | null
   initialTables: TableWithOrder[]
   initialPendingOrders: Order[]
+  initialDeliveryZones: DeliveryZone[]
 }
 
 export function CajaDashboard({
@@ -31,6 +32,7 @@ export function CajaDashboard({
   initialSession,
   initialTables,
   initialPendingOrders,
+  initialDeliveryZones,
 }: CajaDashboardProps) {
   const [screen, setScreen] = useState<Screen>(initialSession ? 'pos' : 'open')
   const [session, setSession] = useState<CashRegisterSession | null>(initialSession)
@@ -178,6 +180,7 @@ export function CajaDashboard({
                   session={session}
                   initialTables={tables}
                   initialPendingOrders={initialPendingOrders}
+                  initialDeliveryZones={initialDeliveryZones}
                   onCloseSession={handleCloseSession}
                   onSessionUpdate={handleSessionUpdate}
                 />

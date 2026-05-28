@@ -17,7 +17,7 @@ export default async function CajaPage() {
   const session = sessionResult.data
 
   // Fetch remaining data in parallel, including pending orders if session exists
-  const [productsResult, categoriesResult, tablesResult, pendingOrdersResult] = await Promise.all([
+  const [productsResult, categoriesResult, tablesResult, pendingOrdersResult, activeZonesResult] = await Promise.all([
     supabase
       .from('products')
       .select('*, product_half_configs(*)')
@@ -39,6 +39,11 @@ export default async function CajaPage() {
       .eq('is_active', true)
       .order('sort_order'),
     session ? getPendingMostadorOrders(session.id) : Promise.resolve({ data: [], error: null }),
+    supabase
+      .from('delivery_zones')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true }),
   ])
 
   return (
@@ -48,6 +53,7 @@ export default async function CajaPage() {
       initialSession={session}
       initialTables={tablesResult.data || []}
       initialPendingOrders={pendingOrdersResult.data || []}
+      initialDeliveryZones={activeZonesResult.data || []}
     />
   )
 }
