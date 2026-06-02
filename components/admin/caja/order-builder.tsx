@@ -82,6 +82,7 @@ export function OrderBuilder({
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const finalTotal = total ?? subtotal
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
+  const checkoutDisabled = items.length === 0 || Boolean(loading)
 
   return (
     <div className="flex flex-col h-full bg-[var(--admin-surface)]">
@@ -301,7 +302,7 @@ export function OrderBuilder({
       {/* Cobrar / Enviar a cocina — flush, full width */}
       <button
         onClick={onCheckout}
-        disabled={items.length === 0 || loading}
+        disabled={checkoutDisabled}
         className="flex items-center justify-center gap-2 shrink-0 font-bold text-base transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 active:brightness-95 bg-[var(--admin-accent)] text-black"
         style={{ height: 52 }}
       >

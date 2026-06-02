@@ -84,7 +84,6 @@ export async function sendToKitchen(orderId: string): Promise<{
     const createdComandas: Comanda[] = []
 
     for (const [station, stationItems] of grouped) {
-      // Insert comanda
       const { data: comanda, error: comandaError } = await supabase
         .from('comandas')
         .insert({
@@ -100,7 +99,7 @@ export async function sendToKitchen(orderId: string): Promise<{
         continue
       }
 
-      // Insert comanda_items
+      // Insert comanda_items using authenticated admin client
       const comandaItemsToInsert = stationItems.map((item) => ({
         comanda_id: comanda.id,
         order_item_id: item.id,
