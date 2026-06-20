@@ -193,7 +193,7 @@ export function PosInterface({
             : item
         )
       }
-  rn [
+  return [
         ...prev,
         {
           id: key,
