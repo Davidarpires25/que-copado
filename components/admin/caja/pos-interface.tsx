@@ -193,6 +193,10 @@ export function PosInterface({
             : item
         )
       }
+       toast.success(`${product.name} agregado`, {
+        duration: 1000,
+        position: 'top-center',
+      })
   return [
         ...prev,
         {
