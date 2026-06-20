@@ -47,7 +47,7 @@ export function CartDrawer() {
         <Button
           variant="outline"
           size="icon"
-          className="relative border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-[#FEC501] shadow-sm hover:scale-105 active:scale-95 transition-all duration-150"
+          className="hidden md:flex relative border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-[#FEC501] shadow-sm hover:scale-105 active:scale-95 transition-all duration-150"
         >
           <ShoppingCart className="h-5 w-5 text-[#2D1A0E]" />
           {hydrated && itemCount > 0 && (

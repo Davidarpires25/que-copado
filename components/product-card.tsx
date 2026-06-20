@@ -85,7 +85,7 @@ export const ProductCard = memo(function ProductCard({ product, badge, showRatin
               <div className="absolute bottom-2 left-2">
                 <span className="inline-flex items-center gap-1 rounded-full bg-orange-500 px-2 py-0.5 text-xs font-bold text-white shadow-md">
                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                  Últimas unidades
+                  Últimas unidades 
                 </span>
               </div>
             )}
@@ -160,6 +160,7 @@ export const ProductCard = memo(function ProductCard({ product, badge, showRatin
               >
                 {justAdded ? (
                   <Check className="h-4 w-4 md:h-5 md:w-5" />
+                  
                 ) : (
                   <Plus className="h-4 w-4 md:h-5 md:w-5" />
                 )}

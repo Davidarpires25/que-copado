@@ -86,13 +86,13 @@ export function Header() {
         {/* Right Actions */}
         <div className="flex items-center gap-2 ml-auto">
           {/* Cart Drawer */}
-          <CartDrawer />
+          <CartDrawer/>
 
           {/* Mobile Menu Toggle */}
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden text-[#2D1A0E] hover:bg-[#F0EBE1]"
+            className="md:hidden  text-[#2D1A0E] hover:bg-[#F0EBE1]"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
