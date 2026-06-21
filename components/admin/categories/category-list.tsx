@@ -14,10 +14,12 @@ interface CategoryListProps {
   categories: Category[]
   onEdit: (category: Category) => void
   onDeleted: (categoryId: string) => void
+  onReorder?: (newCategories: Category[]) => void
   productCountMap?: Record<string, number>
+  isSearching?: boolean
 }
 
-export function CategoryList({ categories, onEdit, onDeleted, productCountMap = {} }: CategoryListProps) {
+export function CategoryList({ categories, onEdit, onDeleted,onReorder, isSearching= false, productCountMap = {} }: CategoryListProps) {
   const router = useRouter()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [movingId, setMovingId] = useState<string | null>(null)
@@ -46,6 +48,16 @@ export function CategoryList({ categories, onEdit, onDeleted, productCountMap = 
     const category = categories[index]
     const prevCategory = categories[index - 1]
 
+
+  if (onReorder) {
+    const newCategories = [...categories]
+    // ✅ CORRECCIÓN: Ponemos "category" en el índice de arriba (index - 1)
+    newCategories[index - 1] = { ...category, sort_order: prevCategory.sort_order }
+    // ✅ CORRECCIÓN: Ponemos "prevCategory" en el índice de abajo (index)
+    newCategories[index] = { ...prevCategory, sort_order: category.sort_order }
+    onReorder(newCategories)
+  }
+
     setMovingId(category.id)
     try {
       await updateCategory(category.id, { sort_order: prevCategory.sort_order })
@@ -63,6 +75,15 @@ export function CategoryList({ categories, onEdit, onDeleted, productCountMap = 
     const category = categories[index]
     const nextCategory = categories[index + 1]
 
+
+   if (onReorder) {
+    const newCategories = [...categories]
+    // ✅ CORRECCIÓN: Ponemos "category" en el índice de abajo (index + 1)
+    newCategories[index + 1] = { ...category, sort_order: nextCategory.sort_order }
+    // ✅ CORRECCIÓN: Ponemos "nextCategory" en el índice de arriba (index)
+    newCategories[index] = { ...nextCategory, sort_order: category.sort_order }
+    onReorder(newCategories)
+  }
     setMovingId(category.id)
     try {
       await updateCategory(category.id, { sort_order: nextCategory.sort_order })
@@ -102,10 +123,10 @@ export function CategoryList({ categories, onEdit, onDeleted, productCountMap = 
                 {/* Orden */}
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <div className="flex flex-col gap-0.5">
+                    <div className="flex flex-col gap-0">
                       <button
                         onClick={() => handleMoveUp(index)}
-                        disabled={index === 0 || movingId === category.id}
+                        disabled={index === 0 || movingId === category.id || isSearching}
                         className="p-0.5 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -114,7 +135,7 @@ export function CategoryList({ categories, onEdit, onDeleted, productCountMap = 
                       </button>
                       <button
                         onClick={() => handleMoveDown(index)}
-                        disabled={index === categories.length - 1 || movingId === category.id}
+                        disabled={index === categories.length - 1 || movingId === category.id || isSearching}
                         className="p-0.5 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

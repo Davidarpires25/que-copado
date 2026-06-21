@@ -100,72 +100,48 @@ export function PosProductGrid({
       </div>
 
       {/* Category chips — rounded-full pills (Pencil style) */}
-      <div className="px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
-        <button
-          onClick={() => setSelectedCategory(null)}
-          className={cn(
-            'px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all cursor-pointer',
-            !selectedCategory
-              ? 'bg-[var(--admin-accent)] text-black shadow-sm'
-              : 'bg-[var(--admin-surface)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)]'
-          )}
-        >
-          Todos
-        </button>
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setSelectedCategory(cat.id === selectedCategory ? null : cat.id)}
-            className={cn(
-              'flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all cursor-pointer',
-              selectedCategory === cat.id
-                ? 'bg-[var(--admin-accent)] text-black shadow-sm'
-                : 'bg-[var(--admin-surface)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)]'
-            )}
-          >
-            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: cat.color ?? '#FEC501' }} />
-            {cat.name}
-          </button>
-        ))}
-      </div>
+        
+            <div className=" px-3 flex items-center gap-0 border-b border-[var(--admin-border)] mb-5 overflow-x-auto no-scrollbar">
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className={cn(
+                  'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
+                  selectedCategory === null
+                    ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
+                    : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
+                )}
+              >
+                Todos
+               
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={cn(
+                    'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
+                    selectedCategory === cat.id
+                      ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
+                      : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
+                  )}
+                >
+                  
+                {cat.name}
+                </button>
+              ))}
+            </div>
 
       {/* Active filters indicator */}
       {hasActiveFilters && (
-        <div className="px-4 pb-2 flex items-center justify-between">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {selectedCategoryName && (
-              <span className="inline-flex items-center gap-1 bg-[var(--admin-accent)]/10 text-[var(--admin-accent-text)] text-xs font-medium px-2 py-1 rounded-full">
-                {selectedCategoryName}
-                <button
-                  onClick={() => setSelectedCategory(null)}
-                  className="hover:bg-[var(--admin-accent)]/20 rounded-full p-0.5 transition-colors cursor-pointer"
-                  aria-label="Quitar filtro"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </span>
-            )}
-            {search && (
-              <span className="inline-flex items-center gap-1 bg-[var(--admin-accent)]/10 text-[var(--admin-accent-text)] text-xs font-medium px-2 py-1 rounded-full">
-                &quot;{search}&quot;
-                <button
-                  onClick={() => setSearch('')}
-                  className="hover:bg-[var(--admin-accent)]/20 rounded-full p-0.5 transition-colors cursor-pointer"
-                  aria-label="Quitar filtro"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </span>
-            )}
-          </div>
-          <span className="text-xs text-[var(--admin-text-muted)] tabular-nums">
+        <div className="px-4 pb-0 flex items-center justify-end">
+          <span className="text-xs text-[var(--admin-text-muted)] tabular-nums ">
             {filtered.length} de {availableProducts.length}
           </span>
         </div>
       )}
 
       {/* Products grid — Pencil style: clean cards, big price */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
+      <div className="flex-1 overflow-y-auto px-3 pb-4">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5">
           {filtered.map((product) => {
             const dotColor = product.category_id

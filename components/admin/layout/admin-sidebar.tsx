@@ -170,9 +170,14 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCount = 0, userName = 'Admin', userRole = 'Administrador' }: AdminSidebarProps) {
   const pathname = usePathname()
+    // No mostrar en checkout, cart o páginas de admin
+  const hiddenRoutes = ['/admin/stock/ficha/']
+  const shouldHide = hiddenRoutes.some(route => pathname?.startsWith(route))
 
   return (
-    <aside
+    <>
+    {!shouldHide && (
+       <aside
       className={cn(
         'group/sidebar fixed left-0 top-0 z-40 h-screen bg-[var(--admin-sidebar-bg)] border-r border-[var(--admin-sidebar-border)] transition-all duration-300 flex flex-col overflow-hidden',
         collapsed ? 'w-[72px]' : 'w-64'
@@ -182,7 +187,7 @@ export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCo
       <button
         onClick={onToggleCollapse}
         aria-label={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
-        className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[var(--admin-sidebar-bg)] border border-[var(--admin-sidebar-border)] rounded-full items-center justify-center shadow-[var(--shadow-card)] hidden lg:flex opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200 z-50 text-[var(--admin-text-faint)] hover:text-[var(--admin-text)] hover:border-[var(--admin-border)]"
+        className="absolute right-0 top-1/2 translate-y-1/2 w-6 h-6 bg-[var(--admin-sidebar-bg)] border border-[var(--admin-sidebar-border)] rounded-full items-center justify-center shadow-[var(--shadow-card)] hidden lg:flex opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200 z-50 text-[var(--admin-text-faint)] hover:text-[var(--admin-text)] hover:border-[var(--admin-border)]"
       >
         {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
       </button>
@@ -214,7 +219,7 @@ export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCo
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-3 px-3 overflow-y-auto">
+      <nav className="flex-1 py-3 px-3 ">
         {navGroups.map((group, groupIndex) => (
           <div key={group.title ?? groupIndex} className={cn(groupIndex > 0 && 'mt-2')}>
             {groupIndex > 0 && <div className="h-px bg-[var(--admin-sidebar-border)] mx-2 mb-2" />}
@@ -274,7 +279,23 @@ export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCo
         </div>
       </div>
     </aside>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    )}
+   </>
   )
+
+
+
 }
 
 // ---------------------------------------------------------------------------

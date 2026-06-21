@@ -30,6 +30,10 @@ export function CategoriesDashboard({ initialCategories, productCountMap = {} }:
     setCategories(categories.filter((cat) => cat.id !== categoryId))
   }
 
+  const handleCategoryReorder = (newCategories: Category[]) => {
+    setCategories(newCategories)
+  }
+
   return (
     <AdminLayout title="Categorías" description="Gestiona las categorías de tus productos">
       {/* Search + Actions Bar */}
@@ -58,7 +62,9 @@ export function CategoriesDashboard({ initialCategories, productCountMap = {} }:
           categories={filteredCategories}
           onEdit={(category) => router.push(`/admin/categories/${category.id}/edit`)}
           onDeleted={handleCategoryDeleted}
+          onReorder={handleCategoryReorder}
           productCountMap={productCountMap}
+          isSearching={!!searchQuery}
         />
 
         {searchQuery && filteredCategories.length === 0 && categories.length > 0 && (
