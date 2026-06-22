@@ -86,7 +86,7 @@ export function Header() {
         {/* Right Actions */}
         <div className="flex items-center gap-2 ml-auto">
           {/* Cart Drawer */}
-          <CartDrawer />
+          <CartDrawer/>
 
           {/* Mobile Menu Toggle */}
           <Button

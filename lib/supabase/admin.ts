@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/config/env'
 import { getSupabaseCookieConfig } from './cookies'
 
@@ -15,4 +16,16 @@ export async function createAdminClient() {
     SUPABASE_ANON_KEY,
     await getSupabaseCookieConfig()
   )
+}
+
+/**
+ * Creates a Supabase client using the service role key (server-only).
+ * Use this sparingly for operations that must bypass RLS (audit inserts, migrations).
+ */
+export function createServiceRoleClient() {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  if (!key) {
+    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY in environment')
+  }
+  return createClient(SUPABASE_URL, key)
 }

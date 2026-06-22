@@ -73,14 +73,13 @@ export async function deductStockForOrder(
     }
   }
 
-  // After all deductions, sync elaborado availability (best-effort)
-  try {
-    await syncElaboradoAvailability(supabase)
-  } catch (err) {
+  // After all deductions, sync elaborado availability (best-effort).
+  // This can be expensive, so do not block the sale/payment flow.
+  syncElaboradoAvailability(supabase).catch((err) => {
     if (process.env.NODE_ENV === 'development') {
       console.error('[Stock] Error syncing elaborado availability:', err)
     }
-  }
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -384,13 +383,27 @@ async function _syncReventaProduct(
       .from('products')
       .update({ is_out_of_stock: true, auto_disabled: true })
       .eq('id', productId)
-    revalidateProducts()
+    // Defer revalidation to avoid calling revalidatePath during render
+    setTimeout(() => {
+      try {
+        revalidateProducts()
+      } catch (err) {
+        if (process.env.NODE_ENV === 'development') console.error('[Stock] defer revalidateProducts error:', err)
+      }
+    }, 0)
   } else if (newStock > 0 && product.is_out_of_stock && product.auto_disabled) {
     await supabase
       .from('products')
       .update({ is_out_of_stock: false, auto_disabled: false })
       .eq('id', productId)
-    revalidateProducts()
+    // Defer revalidation to avoid calling revalidatePath during render
+    setTimeout(() => {
+      try {
+        revalidateProducts()
+      } catch (err) {
+        if (process.env.NODE_ENV === 'development') console.error('[Stock] defer revalidateProducts error:', err)
+      }
+    }, 0)
   }
 }
 
@@ -435,7 +448,16 @@ async function syncElaboradoAvailability(supabase: SupabaseClient): Promise<void
     }
   }
 
-  if (anyChanged) revalidateProducts()
+  if (anyChanged) {
+    // Defer revalidation to avoid calling revalidatePath during render
+    setTimeout(() => {
+      try {
+        revalidateProducts()
+      } catch (err) {
+        if (process.env.NODE_ENV === 'development') console.error('[Stock] defer revalidateProducts error:', err)
+      }
+    }, 0)
+  }
 }
 
 type IngReq = Map<string, { requiredQty: number; currentStock: number; trackingEnabled: boolean }>

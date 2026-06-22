@@ -9,6 +9,7 @@ import { getSalesField } from '@/lib/server/cash-register-utils'
 import type { Order, PaymentMethod } from '@/lib/types/database'
 import type { CreatePosOrderData, CreateMostadorOrderData, PaymentSplit } from '@/lib/types/cash-register'
 import { validateHybridPaymentSplits } from '@/lib/utils/payment-split'
+import { recalculateOrderTotal } from '@/app/actions/tables'
 import { sendToKitchen } from './comandas'
 
 /**
@@ -319,7 +320,11 @@ export async function completeMostadorPayment(
       return { data: null, error: 'Orden no encontrada o ya procesada' }
     }
 
-    const orderData = existingOrder as Order
+    // Recalculate total from order_items to ensure up-to-date amount
+    await recalculateOrderTotal(supabase, orderId)
+    const { data: refreshedOrder } = await supabase.from('orders').select('*').eq('id', orderId).single()
+    const orderData = refreshedOrder as Order
+
     if (splits && splits.length > 1) {
       const splitErr = validateHybridPaymentSplits(splits, orderData.total)
       if (splitErr) return { data: null, error: splitErr }
@@ -348,78 +353,85 @@ export async function completeMostadorPayment(
       return { data: null, error: 'Error al procesar pago' }
     }
 
-    // Insert payment_splits when hybrid
-    if (isHybrid) {
-      const splitsToInsert = splits.map((s) => ({
-        order_id: orderId,
-        sale_tag: null,
-        amount: s.amount,
-        method: s.method,
-        session_id: sessionId,
-      }))
-      const { error: splitsError } = await supabase
-        .from('payment_splits')
-        .insert(splitsToInsert)
-      if (splitsError) {
-        devError(`CRITICAL: payment_splits insert failed for order ${orderId} — hybrid payment audit trail lost:`, splitsError)
-        // Order is already pagado — cannot rollback, but splits are required for reconciliation
-      }
-    }
+    const paidOrderData = paidOrder as Order
 
-    // Update session totals
-    const { data: currentSession, error: sessionFetchError } = await supabase
-      .from('cash_register_sessions')
-      .select('total_sales, total_orders, total_cash_sales, total_card_sales, total_transfer_sales')
-      .eq('id', sessionId)
-      .single()
-
-    if (sessionFetchError || !currentSession) {
-      devError(`CRITICAL: session ${sessionId} not found — totals NOT updated for mostrador order ${orderId} (${orderData.total}):`, sessionFetchError)
-    } else {
-      const s = currentSession as Record<string, number>
-      const sessionUpdate: Record<string, number> = {
-        total_sales: (s.total_sales || 0) + orderData.total,
-        total_orders: (s.total_orders || 0) + 1,
-      }
-
-      if (isHybrid) {
-        // Accumulate per-method from splits
-        for (const split of splits) {
-          const field = getSalesField(split.method)
-          sessionUpdate[field] = (sessionUpdate[field] ?? (s[field] || 0)) + split.amount
-        }
-      } else {
-        const salesField = getSalesField(paymentMethod)
-        sessionUpdate[salesField] = (s[salesField] || 0) + orderData.total
-      }
-
-      const { error: updateErr } = await supabase
-        .from('cash_register_sessions')
-        .update(sessionUpdate)
-        .eq('id', sessionId)
-      if (updateErr) devError(`CRITICAL: session totals update failed for mostrador order ${orderId}:`, updateErr)
-    }
-
-    // Best-effort stock deduction
     try {
-      const { data: orderItems } = await supabase
+      // Insert payment_splits when hybrid
+      if (isHybrid) {
+        const splitsToInsert = splits.map((s) => ({
+          order_id: orderId,
+          sale_tag: null,
+          amount: s.amount,
+          method: s.method,
+          session_id: sessionId,
+        }))
+        const { error: splitsError } = await supabase.from('payment_splits').insert(splitsToInsert)
+        if (splitsError) {
+          devError(`CRITICAL: payment_splits insert failed for order ${orderId}:`, splitsError)
+        }
+      }
+
+      // Update session totals
+      // Fetch session info and order_items in parallel to reduce latency
+      const sessionPromise = supabase
+        .from('cash_register_sessions')
+        .select('total_sales, total_orders, total_cash_sales, total_card_sales, total_transfer_sales')
+        .eq('id', sessionId)
+        .single()
+
+      const orderItemsPromise = supabase
         .from('order_items')
         .select('product_id, quantity')
         .eq('order_id', orderId)
         .eq('status', 'pendiente')
 
-      if (orderItems && orderItems.length > 0) {
-        await deductStockForOrder(supabase, orderItems, orderId, user.id)
+      const [{ data: currentSession, error: sessionFetchError }, { data: orderItems, error: orderItemsError }] = await Promise.all([
+        sessionPromise,
+        orderItemsPromise,
+      ])
+
+      if (sessionFetchError || !currentSession) {
+        devError(`CRITICAL: session ${sessionId} not found — totals NOT updated for mostrador order ${orderId} (${orderData.total}):`, sessionFetchError)
+      } else {
+        const s = currentSession as Record<string, number>
+        const sessionUpdate: Record<string, number> = {
+          total_sales: (s.total_sales || 0) + orderData.total,
+          total_orders: (s.total_orders || 0) + 1,
+        }
+
+        if (isHybrid) {
+          // Accumulate per-method from splits
+          for (const split of splits) {
+            const field = getSalesField(split.method)
+            sessionUpdate[field] = (sessionUpdate[field] ?? (s[field] || 0)) + split.amount
+          }
+        } else {
+          const salesField = getSalesField(paymentMethod)
+          sessionUpdate[salesField] = (s[salesField] || 0) + orderData.total
+        }
+
+        const { error: updateErr } = await supabase
+          .from('cash_register_sessions')
+          .update(sessionUpdate)
+          .eq('id', sessionId)
+        if (updateErr) devError(`CRITICAL: session totals update failed for mostrador order ${orderId}:`, updateErr)
       }
-    } catch (stockError) {
-      devError('Error deducting stock for mostrador payment:', stockError)
+
+      // Best-effort stock deduction (orderItems fetched in parallel)
+      if (orderItems && orderItems.length > 0) {
+        deductStockForOrder(supabase, orderItems, orderId, user.id).catch((stockError) => {
+          devError('Error deducting stock for mostrador payment (async):', stockError)
+        })
+      }
+
+      revalidateCaja()
+      revalidateOrders()
+      revalidateStock()
+    } catch (postPaymentError) {
+      devError('Non-critical error completing mostrador payment after order update:', postPaymentError)
     }
 
-    revalidateCaja()
-    revalidateOrders()
-    revalidateStock()
-
-    return { data: paidOrder as Order, error: null }
+    return { data: paidOrderData, error: null }
   } catch (error) {
     devError('Error in completeMostadorPayment:', error)
     return { data: null, error: 'Error inesperado' }

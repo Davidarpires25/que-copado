@@ -1071,6 +1071,8 @@ async function _calculateTheoreticalStock(
   supabase: SupabaseAdminClient,
   productId: string
 ): Promise<number | null> {
+  const tStart = Date.now()
+  console.info(`[Timing][_calculateTheoreticalStock] start ${productId}`)
   const { data: productRecipes, error: prError } = await supabase
     .from('product_recipes')
     .select(`
@@ -1133,6 +1135,7 @@ async function _calculateTheoreticalStock(
   }
 
   if (!hasAnyTracked) return null
+  console.info(`[Timing][_calculateTheoreticalStock] end ${productId} took ${Date.now() - tStart}ms`)
   return minProducible ?? 0
 }
 
@@ -1451,15 +1454,17 @@ export async function checkStockForItems(
 
     const warnings: StockWarning[] = []
 
+    // Separate reventa and elaborado products
+    const reventaWarnings: StockWarning[] = []
+    const elaboradoProducts: any[] = []
+
     for (const product of products) {
       const requested = consolidated.get(product.id) ?? 0
-
       if (product.product_type === 'reventa') {
-        // Direct stock check -- only if tracking is enabled
         if (!product.stock_tracking_enabled) continue
         const available = Number(product.current_stock)
         if (available < requested) {
-          warnings.push({
+          reventaWarnings.push({
             product_id: product.id,
             product_name: product.name,
             product_type: 'reventa',
@@ -1468,25 +1473,82 @@ export async function checkStockForItems(
           })
         }
       } else if (product.product_type === 'elaborado') {
-        // Theoretical stock via recipes/ingredients
-        try {
-          const theoreticalStock = await _calculateTheoreticalStock(supabase, product.id)
-          if (theoreticalStock !== null && theoreticalStock < requested) {
-            warnings.push({
-              product_id: product.id,
-              product_name: product.name,
-              product_type: 'elaborado',
-              requested,
-              available: theoreticalStock,
-            })
-          }
-        } catch {
-          // Skip this product silently -- don't block the sale
+        elaboradoProducts.push({ id: product.id, name: product.name, requested })
+      }
+    }
+
+    // If there are elaborado products, fetch required recipe/ingredient data once
+    if (elaboradoProducts.length > 0) {
+      const productIds = elaboradoProducts.map((p) => p.id)
+      const [prResult, subResult, ingResult] = await Promise.all([
+        supabase
+          .from('product_recipes')
+          .select(`
+            quantity,
+            product_id,
+            recipes (
+              id,
+              recipe_ingredients (
+                quantity,
+                unit,
+                ingredient_id,
+                ingredients (
+                  id,
+                  unit,
+                  waste_percentage,
+                  current_stock,
+                  stock_tracking_enabled
+                )
+              )
+            )
+          `)
+          .in('product_id', productIds),
+        supabase.from('ingredient_sub_recipes').select('parent_ingredient_id, child_ingredient_id, quantity, unit'),
+        supabase
+          .from('ingredients')
+          .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled'),
+      ])
+
+      if (prResult.error) devError('Error fetching product_recipes for batch stock check:', prResult.error)
+      if (subResult.error) devError('Error fetching ingredient_sub_recipes for batch stock check:', subResult.error)
+      if (ingResult.error) devError('Error fetching ingredients for batch stock check:', ingResult.error)
+
+      // Build maps used by the in-memory calc
+      const ingMap = new Map<string, IngData>((ingResult.data ?? []).map((i: any) => [i.id, i]))
+
+      const subMap = new Map<string, SubData[]>()
+      for (const sub of subResult.data ?? []) {
+        const arr = subMap.get(sub.parent_ingredient_id) ?? []
+        arr.push(sub)
+        subMap.set(sub.parent_ingredient_id, arr)
+      }
+
+      const prMap = new Map<string, PREntry[]>()
+      for (const pr of (prResult.data ?? []) as PREntry[]) {
+        const arr = prMap.get(pr.product_id) ?? []
+        arr.push(pr)
+        prMap.set(pr.product_id, arr)
+      }
+
+      // Compute theoretical stock for each elaborado in-memory
+      for (const prod of elaboradoProducts) {
+        const tStart = Date.now()
+        const theoreticalStock = _calcTheoreticalInMemory(prod.id, prMap, ingMap, subMap)
+        console.info(`[Timing][checkStockForItems][batch] product ${prod.id} theoreticalStock computed in ${Date.now() - tStart}ms`)
+        if (theoreticalStock !== null && theoreticalStock < prod.requested) {
+          warnings.push({
+            product_id: prod.id,
+            product_name: prod.name,
+            product_type: 'elaborado',
+            requested: prod.requested,
+            available: theoreticalStock,
+          })
         }
       }
     }
 
-    return { data: warnings, error: null }
+    // Merge reventa warnings
+    return { data: [...warnings, ...reventaWarnings], error: null }
   } catch {
     // Graceful degradation: never block the POS flow
     return { data: [], error: null }

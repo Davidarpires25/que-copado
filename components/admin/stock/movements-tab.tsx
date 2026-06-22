@@ -218,7 +218,7 @@ export function MovementsTab({ initialMovements }: MovementsTabProps) {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right hidden md:table-cell text-[var(--admin-text-muted)]">
-                      {mov.previous_stock} → {mov.new_stock}
+                      {mov.previous_stock.toFixed(mov.previous_stock % 1 === 0 ? 0 : 2)} → {mov.new_stock.toFixed(mov.new_stock % 1 === 0 ? 0 : 2)}
                     </td>
                     <td className="px-4 py-3 hidden lg:table-cell text-[var(--admin-text-muted)] max-w-xs truncate">
                       {mov.reason ?? '—'}

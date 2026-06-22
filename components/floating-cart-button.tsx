@@ -15,7 +15,8 @@ export function FloatingCartButton() {
 
   // No mostrar en checkout, cart o páginas de admin
   const hiddenRoutes = ['/checkout', '/cart', '/admin']
-  const shouldHide = hiddenRoutes.some(route => pathname?.startsWith(route))
+  const isProductDetail = /^\/productos\/[^/]+$/.test(pathname ?? '')
+  const shouldHide = hiddenRoutes.some(route => pathname?.startsWith(route)) || isProductDetail
 
   return (
     <AnimatePresence>
