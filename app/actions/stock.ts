@@ -1509,9 +1509,9 @@ export async function checkStockForItems(
           .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled'),
       ])
 
-      if (prResult.error) devError('Error fetching product_recipes for batch stock check:', prResult.error)
-      if (subResult.error) devError('Error fetching ingredient_sub_recipes for batch stock check:', subResult.error)
-      if (ingResult.error) devError('Error fetching ingredients for batch stock check:', ingResult.error)
+      if (prResult.error) devError(`Error fetching product_recipes for batch stock check: ${String(prResult.error)}`)
+      if (subResult.error) devError(`Error fetching ingredient_sub_recipes for batch stock check: ${String(subResult.error)}`)
+      if (ingResult.error) devError(`Error fetching ingredients for batch stock check: ${String(ingResult.error)}`)
 
       // Build maps used by the in-memory calc
       const ingMap = new Map<string, IngData>((ingResult.data ?? []).map((i: any) => [i.id, i]))
