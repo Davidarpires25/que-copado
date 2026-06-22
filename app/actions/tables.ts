@@ -36,10 +36,10 @@ export async function recalculateOrderTotal(
   }
   if (!items) return
 
-  const total = items.reduce((sum: number, item: OrderItemRow) => sum + (item.product_price || 0) * (item.quantity || 0), 0)
+  const total = items.reduce((sum: number, item) => sum + (item.product_price || 0) * (item.quantity || 0), 0)
 
   // Serialize to JSON format for backward compatibility
-  const itemsJson = items.map((item: OrderItemRow) => ({
+  const itemsJson = items.map((item) => ({
     id: item.product_id || item.id,
     name: item.product_name,
     price: item.product_price,
