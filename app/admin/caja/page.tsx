@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveSession, getSessionOrders } from '@/app/actions/cash-register'
 import { getPendingMostadorOrders } from '@/app/actions/pos-orders'
+import { getStockAlerts } from '@/app/actions/stock'
 import { CajaDashboard } from './caja-dashboard'
 
 export default async function CajaPage() {
@@ -17,7 +18,7 @@ export default async function CajaPage() {
   const session = sessionResult.data
 
   // Fetch remaining data in parallel, including pending orders if session exists
-  const [productsResult, categoriesResult, tablesResult, pendingOrdersResult, activeZonesResult, sessionOrdersResult] = await Promise.all([
+  const [productsResult, categoriesResult, tablesResult, pendingOrdersResult, activeZonesResult, sessionOrdersResult, stockAlertsResult] = await Promise.all([
     supabase
       .from('products')
       .select('*, product_half_configs(*)')
@@ -45,6 +46,7 @@ export default async function CajaPage() {
       .eq('is_active', true)
       .order('sort_order', { ascending: true }),
     session ? getSessionOrders(session.id) : Promise.resolve({ data: [], error: null }),
+    getStockAlerts(),
   ])
 
   return (
@@ -56,6 +58,7 @@ export default async function CajaPage() {
       initialPendingOrders={pendingOrdersResult.data || []}
       initialDeliveryZones={activeZonesResult.data || []}
       initialSessionOrders={sessionOrdersResult.data || []}
+      stockAlertCount={stockAlertsResult.data?.length ?? 0}
     />
   )
 }

@@ -80,6 +80,33 @@ const navGroups: NavGroup[] = [
   },
 ]
 
+/**
+ * Marca activo el item de navegacion que corresponde a la ruta actual.
+ *
+ * Antes se comparaba con igualdad exacta (`pathname === item.href`), asi que en
+ * cualquier subruta —/admin/products/new, /admin/stock/ficha/[id]— no quedaba
+ * ningun item marcado y se perdia la referencia de donde estabas.
+ *
+ * Coincide por prefijo, pero gana el href mas largo: estando en
+ * /admin/caja/arqueos se enciende "Arqueos" y no "Caja".
+ */
+export function isActiveRoute(pathname: string | null | undefined, href: string): boolean {
+  if (!pathname) return false
+
+  const matches = (candidate: string) =>
+    pathname === candidate || pathname.startsWith(candidate + '/')
+
+  if (!matches(href)) return false
+
+  const longestMatch = navGroups
+    .flatMap((group) => group.items)
+    .map((item) => item.href)
+    .filter(matches)
+    .reduce((best, current) => (current.length > best.length ? current : best), '')
+
+  return longestMatch === href
+}
+
 // ---------------------------------------------------------------------------
 // Shared nav item renderer
 // ---------------------------------------------------------------------------
@@ -234,7 +261,7 @@ export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCo
                 <NavItemLink
                   key={item.href}
                   item={item.href === '/admin/stock' ? { ...item, badgeCount: stockAlertCount } : item}
-                  isActive={pathname === item.href}
+                  isActive={isActiveRoute(pathname, item.href)}
                   collapsed={collapsed}
                 />
               ))}
@@ -369,7 +396,7 @@ export function MobileSidebar({ open, onClose, stockAlertCount = 0 }: MobileSide
                       <NavItemLink
                         key={item.href}
                         item={item.href === '/admin/stock' ? { ...item, badgeCount: stockAlertCount } : item}
-                        isActive={pathname === item.href}
+                        isActive={isActiveRoute(pathname, item.href)}
                         onClick={onClose}
                         pyClass="py-3"
                       />

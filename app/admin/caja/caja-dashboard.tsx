@@ -26,6 +26,7 @@ interface CajaDashboardProps {
   initialPendingOrders: Order[]
   initialDeliveryZones: DeliveryZone[]
   initialSessionOrders: OrderWithSplits[]
+  stockAlertCount: number
 }
 
 export function CajaDashboard({
@@ -36,6 +37,7 @@ export function CajaDashboard({
   initialPendingOrders,
   initialDeliveryZones,
   initialSessionOrders,
+  stockAlertCount,
 }: CajaDashboardProps) {
   const [screen, setScreen] = useState<Screen>(initialSession ? 'pos' : 'open')
   const [session, setSession] = useState<CashRegisterSession | null>(initialSession)
@@ -89,11 +91,11 @@ export function CajaDashboard({
     >
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
-        <AdminSidebar collapsed={sidebarCollapsed} onToggleCollapse={handleToggleCollapse} />
+        <AdminSidebar collapsed={sidebarCollapsed} onToggleCollapse={handleToggleCollapse} stockAlertCount={stockAlertCount} />
       </div>
 
       {/* Mobile Sidebar */}
-      <MobileSidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
+      <MobileSidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} stockAlertCount={stockAlertCount} />
 
       {/* Main content — shifted right by sidebar width */}
       <div
