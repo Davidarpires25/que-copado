@@ -45,7 +45,7 @@ export function ZoneSalesTable({ data }: ZoneSalesTableProps) {
               </div>
               <div className="flex items-center gap-3 text-xs shrink-0">
                 <span className="text-[var(--admin-text-muted)]">{zone.percentage}%</span>
-                <span className="text-[var(--admin-accent-text)] font-semibold min-w-[72px] text-right">
+                <span className="text-[var(--admin-price)] font-semibold min-w-[72px] text-right">
                   {formatPrice(zone.revenue)}
                 </span>
               </div>

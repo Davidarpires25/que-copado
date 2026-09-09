@@ -84,7 +84,7 @@ export function SalesChart({ data }: SalesChartProps) {
                 return (
                   <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-lg p-3 shadow-[var(--shadow-card-lg)]">
                     <p className="text-xs text-[var(--admin-text-muted)] mb-1">{d.dateLabel}</p>
-                    <p className="text-lg font-bold text-[var(--admin-accent-text)]">
+                    <p className="text-lg font-bold text-[var(--admin-price)]">
                       {formatPrice(d.revenue)}
                     </p>
                     <div className="text-xs text-[var(--admin-text-muted)] mt-2 space-y-0.5">

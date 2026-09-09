@@ -189,7 +189,7 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
                                     <span className="w-1.5 h-1.5 rounded-full bg-[var(--admin-text-faint)] shrink-0" />
                                     <span className="text-[var(--admin-text)]">{ri.ingredients.name}</span>
                                     <span>{ri.quantity} {unitAbbr}</span>
-                                    <span className="text-[var(--admin-accent-text)] font-medium ml-auto">
+                                    <span className="text-[var(--admin-price)] font-medium ml-auto">
                                       {formatCost(ri.quantity * factor * ri.ingredients.cost_per_unit)}
                                     </span>
                                   </div>
@@ -207,7 +207,7 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
                       </TableCell>
 
                       <TableCell>
-                        <span className="text-[var(--admin-accent-text)] font-semibold text-sm lg:text-base">
+                        <span className="text-[var(--admin-price)] font-semibold text-sm lg:text-base">
                           {formatCost(recipeCost)}
                         </span>
                       </TableCell>

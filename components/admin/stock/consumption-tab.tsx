@@ -138,7 +138,7 @@ export function ConsumptionTab({ initialData, initialPeriod = '30d' }: Consumpti
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <span className={`text-sm font-semibold ${item.total_cost > 0 ? 'text-[var(--admin-accent-text)]' : 'text-[var(--admin-text-muted)]'}`}>
+                      <span className={`text-sm font-semibold ${item.total_cost > 0 ? 'text-[var(--admin-price)]' : 'text-[var(--admin-text-muted)]'}`}>
                         {item.total_cost > 0 ? formatPrice(item.total_cost) : '—'}
                       </span>
                     </TableCell>
@@ -154,7 +154,7 @@ export function ConsumptionTab({ initialData, initialPeriod = '30d' }: Consumpti
               <span className="text-sm font-semibold text-[var(--admin-text-muted)]">
                 Costo total del período ({PERIOD_LABELS[period]})
               </span>
-              <span className="text-lg font-bold text-[var(--admin-accent-text)]">
+              <span className="text-lg font-bold text-[var(--admin-price)]">
                 {formatPrice(totalCost)}
               </span>
             </div>

@@ -654,8 +654,8 @@ export function TablePayView({
 
             {/* Total — gold en ambos, como el diseño */}
             <div className="flex items-center justify-between">
-              <span className="text-[16px] font-bold text-[var(--admin-accent-text)]">Total</span>
-              <span className="text-[16px] font-bold text-[var(--admin-accent-text)] tabular-nums">
+              <span className="text-[16px] font-bold text-[var(--admin-price)]">Total</span>
+              <span className="text-[16px] font-bold text-[var(--admin-price)] tabular-nums">
                 {formatPrice(total)}
               </span>
             </div>

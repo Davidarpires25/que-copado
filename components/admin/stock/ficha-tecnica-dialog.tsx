@@ -249,7 +249,7 @@ function FichaTecnicaContent({
             <div className="h-4 w-px bg-[var(--admin-border)]" />
             <div className="text-sm">
               <span className="text-[var(--admin-text-muted)]">Costo total: </span>
-              <span className="font-bold text-[var(--admin-accent-text)]">{formatPrice(totalCost)}</span>
+              <span className="font-bold text-[var(--admin-price)]">{formatPrice(totalCost)}</span>
             </div>
             <div className="h-4 w-px bg-[var(--admin-border)]" />
             <div className="text-sm pr-6">
@@ -380,7 +380,7 @@ function FichaTecnicaContent({
               <div className="mt-4 flex justify-end">
                 <div className="bg-[var(--admin-surface-2)] border border-[var(--admin-border)] rounded-lg px-4 py-3 text-sm flex items-center gap-2">
                   <span className="text-[var(--admin-text-muted)]">Total estimado:</span>
-                  <span className="font-bold text-lg text-[var(--admin-accent-text)]">
+                  <span className="font-bold text-lg text-[var(--admin-price)]">
                     {formatPrice(totalCost)}
                   </span>
                 </div>

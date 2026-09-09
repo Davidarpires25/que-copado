@@ -191,7 +191,7 @@ export function OrderDetailsDrawer({
                   </div>
                   <div className="flex justify-between font-bold text-lg pt-2">
                     <span className="text-[var(--admin-text)]">Total</span>
-                    <span className="text-[var(--admin-accent-text)]">{formatPrice(order.total)}</span>
+                    <span className="text-[var(--admin-price)]">{formatPrice(order.total)}</span>
                   </div>
                 </div>
               </div>

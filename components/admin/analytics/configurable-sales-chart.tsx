@@ -36,7 +36,7 @@ export function ConfigurableSalesChart({ data }: ConfigurableSalesChartProps) {
       <div className="flex items-center gap-4 mb-4 text-sm bg-[var(--admin-surface-2)] rounded-lg px-4 py-2.5">
         <div className="flex items-center gap-2">
           <span className="text-[var(--admin-text-muted)]">Total:</span>
-          <span className="text-[var(--admin-accent-text)] font-semibold">{formatPrice(totalRevenue)}</span>
+          <span className="text-[var(--admin-price)] font-semibold">{formatPrice(totalRevenue)}</span>
         </div>
         <div className="h-4 w-px bg-[var(--admin-border)]" />
         <div className="flex items-center gap-2">

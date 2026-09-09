@@ -50,7 +50,7 @@ export function TopProductsRevenue({ data }: TopProductsRevenueProps) {
                 <span className="text-[var(--admin-text-muted)]">
                   {product.percentage}%
                 </span>
-                <span className="text-[var(--admin-accent-text)] font-semibold min-w-[72px] text-right">
+                <span className="text-[var(--admin-price)] font-semibold min-w-[72px] text-right">
                   {formatPrice(product.revenue)}
                 </span>
               </div>

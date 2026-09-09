@@ -57,7 +57,7 @@ export function TopProductsTable({ products }: TopProductsTableProps) {
                   <span className="text-[var(--admin-text-muted)]">
                     {product.quantity} ventas
                   </span>
-                  <span className="text-[var(--admin-accent-text)] font-semibold min-w-[80px] text-right">
+                  <span className="text-[var(--admin-price)] font-semibold min-w-[80px] text-right">
                     {formatPrice(product.revenue)}
                   </span>
                 </div>

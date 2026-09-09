@@ -397,7 +397,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                   <span className="text-sm font-semibold text-[var(--admin-text)]">
                     Total ({recipeItems.length} {recipeItems.length === 1 ? 'ingrediente' : 'ingredientes'})
                   </span>
-                  <span className="text-base font-bold text-[var(--admin-accent-text)]">
+                  <span className="text-base font-bold text-[var(--admin-price)]">
                     {formatCost(totalCost)}
                   </span>
                 </div>
@@ -417,7 +417,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                   </p>
                 </div>
                 {totalCost > 0 && (
-                  <span className="text-xs font-semibold text-[var(--admin-accent-text)] bg-[var(--admin-accent)]/10 border border-[var(--admin-accent)]/20 px-2 py-1 rounded-md">
+                  <span className="text-xs font-semibold text-[var(--admin-price)] bg-[var(--admin-accent)]/10 border border-[var(--admin-accent)]/20 px-2 py-1 rounded-md">
                     {formatCost(totalCost)}
                   </span>
                 )}
@@ -486,7 +486,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                                   ))}
                                 </SelectContent>
                               </Select>
-                              <p className="text-xs text-[var(--admin-accent-text)] font-semibold w-14 text-right shrink-0">
+                              <p className="text-xs text-[var(--admin-price)] font-semibold w-14 text-right shrink-0">
                                 {formatCost(subtotal)}
                               </p>
                               <Button

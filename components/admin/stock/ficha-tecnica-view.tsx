@@ -347,7 +347,7 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
               <div className="h-8 w-px bg-[var(--admin-border)]" />
               <div className="text-right">
                 <p className="text-xs text-[var(--admin-text-muted)] mb-0.5">Costo unitario</p>
-                <p className="text-[17px] font-bold text-[var(--admin-accent-text)] tabular-nums">{formatPrice(unitCost)}</p>
+                <p className="text-[17px] font-bold text-[var(--admin-price)] tabular-nums">{formatPrice(unitCost)}</p>
               </div>
             </div>
 
@@ -468,7 +468,7 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
                   <span className="text-[12px] font-semibold uppercase tracking-wider text-[var(--admin-text-muted)]">
                     Total estimado ({quantity} {quantity === 1 ? 'unidad' : 'unidades'})
                   </span>
-                  <span className="text-[16px] font-bold text-[var(--admin-accent-text)] tabular-nums">
+                  <span className="text-[16px] font-bold text-[var(--admin-price)] tabular-nums">
                     {formatPrice(totalCost)}
                   </span>
                 </div>

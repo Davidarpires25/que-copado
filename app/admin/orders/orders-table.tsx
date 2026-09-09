@@ -284,7 +284,7 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
                       <span className="text-sm lg:text-base text-[var(--admin-text-muted)]">{items.length}</span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm lg:text-base font-semibold text-[var(--admin-accent-text)]">
+                      <span className="text-sm lg:text-base font-semibold text-[var(--admin-price)]">
                         {formatPrice(order.total)}
                       </span>
                     </TableCell>

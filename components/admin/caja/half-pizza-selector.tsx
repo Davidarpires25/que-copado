@@ -74,7 +74,7 @@ export function HalfPizzaSelector({ product, pizzaProducts, onConfirm, onClose }
             <p className="text-[10px] text-[var(--admin-text-faint)] font-medium leading-none mb-0.5">
               Precio
             </p>
-            <p className="text-lg font-black text-[var(--admin-accent-text)] tabular-nums">
+            <p className="text-lg font-black text-[var(--admin-price)] tabular-nums">
               {finalPrice !== null ? formatPrice(finalPrice) : formatPrice(product.price)}
             </p>
           </div>

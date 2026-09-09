@@ -119,7 +119,7 @@ export function ZoneList({
                     </p>
                     <div className="flex items-center gap-2 mt-1.5">
                       <Truck className="h-3.5 w-3.5 text-[var(--admin-text-muted)]" />
-                      <span className="text-sm text-[var(--admin-accent-text)] font-semibold">
+                      <span className="text-sm text-[var(--admin-price)] font-semibold">
                         {zone.shipping_cost === 0
                           ? 'Envío Gratis'
                           : formatPrice(zone.shipping_cost)}

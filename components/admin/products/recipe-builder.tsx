@@ -58,7 +58,7 @@ export function RecipeBuilder({ ingredients, recipeItems, onChange }: RecipeBuil
       <div className="flex items-center justify-between">
         <p className="text-[var(--admin-text-muted)] text-sm font-medium">Receta (ingredientes)</p>
         {recipeItems.length > 0 && (
-          <Badge variant="outline" className="border-[var(--admin-accent)]/30 text-[var(--admin-accent-text)] bg-[var(--admin-accent)]/10 text-xs">
+          <Badge variant="outline" className="border-[var(--admin-accent)]/30 text-[var(--admin-price)] bg-[var(--admin-accent)]/10 text-xs">
             Costo: {formatCost(totalCost)}
           </Badge>
         )}
@@ -98,7 +98,7 @@ export function RecipeBuilder({ ingredients, recipeItems, onChange }: RecipeBuil
                   </Badge>
                 </div>
 
-                <p className="text-xs text-[var(--admin-accent-text)] font-medium w-16 text-right shrink-0">
+                <p className="text-xs text-[var(--admin-price)] font-medium w-16 text-right shrink-0">
                   {formatCost(subtotal)}
                 </p>
 

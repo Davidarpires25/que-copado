@@ -263,13 +263,13 @@ export function PendingOrderPayView({ order, loading, onBack: _onBack, onPrint, 
                       if (e.key === 'Escape') { setEditingMethod(null); setEditAmount('') }
                     }}
                     onBlur={() => commitEdit(value)}
-                    className="w-28 h-10 text-right text-[14px] font-bold tabular-nums px-2.5 rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] text-[var(--admin-accent-text)] outline-none focus:border-[var(--admin-accent)]/60 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-28 h-10 text-right text-[14px] font-bold tabular-nums px-2.5 rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] text-[var(--admin-price)] outline-none focus:border-[var(--admin-accent)]/60 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0"
                   />
                 ) : (
                   <button
                     onClick={e => handleAmountPillClick(e, value)}
-                    className="h-10 min-w-[72px] px-2.5 rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] text-[14px] font-bold tabular-nums text-[var(--admin-accent-text)] hover:border-[var(--admin-accent)]/40 transition-colors cursor-pointer"
+                    className="h-10 min-w-[72px] px-2.5 rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] text-[14px] font-bold tabular-nums text-[var(--admin-price)] hover:border-[var(--admin-accent)]/40 transition-colors cursor-pointer"
                   >
                     {formatPrice(entry.amount)}
                   </button>
@@ -306,7 +306,7 @@ export function PendingOrderPayView({ order, loading, onBack: _onBack, onPrint, 
         <div className="h-px bg-[var(--admin-border)]" />
         <div className="flex items-center justify-between pt-0.5">
           <span className="text-[18px] font-bold text-[var(--admin-text)]">Total</span>
-          <span className="text-[18px] font-bold tabular-nums text-[var(--admin-accent-text)]">
+          <span className="text-[18px] font-bold tabular-nums text-[var(--admin-price)]">
             {formatPrice(total)}
           </span>
         </div>

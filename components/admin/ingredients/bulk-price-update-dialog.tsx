@@ -244,7 +244,7 @@ export function BulkPriceUpdateDialog({
                           <TableCell className="py-2 text-xs text-right">
                             <div className="flex items-center justify-end gap-1">
                               <ArrowRight className="h-3 w-3 text-[var(--admin-text-muted)]" />
-                              <span className="text-[var(--admin-accent-text)] font-semibold">
+                              <span className="text-[var(--admin-price)] font-semibold">
                                 {formatCost(newCost)}
                               </span>
                             </div>

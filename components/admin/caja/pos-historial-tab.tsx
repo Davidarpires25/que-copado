@@ -153,7 +153,7 @@ function OrderRow({
               'text-sm font-semibold tabular-nums',
               isCancelled
                 ? 'line-through text-[var(--admin-text-faint)]'
-                : 'text-[var(--admin-accent-text)]'
+                : 'text-[var(--admin-price)]'
             )}
           >
             {formatPrice(order.total)}
@@ -546,7 +546,7 @@ export function PosHistorialTab({
             </div>
             <div className="shrink-0 text-right">
               <p className="text-xs text-[var(--admin-text-faint)] font-medium mb-0.5">Total sesión</p>
-              <p className="tabular-nums text-xl font-bold text-[var(--admin-accent-text)]">
+              <p className="tabular-nums text-xl font-bold text-[var(--admin-price)]">
                 {formatPrice(grandTotal)}
               </p>
             </div>

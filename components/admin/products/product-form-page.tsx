@@ -621,7 +621,7 @@ export function ProductFormPage({
                           Precio dinámico
                         </span>
                       ) : (
-                        <p className="text-sm font-bold text-[var(--admin-accent-text)]">
+                        <p className="text-sm font-bold text-[var(--admin-price)]">
                           {previewPrice ? formatPrice(parseFloat(previewPrice)) : '$0'}
                         </p>
                       )}

@@ -113,7 +113,7 @@ function SessionDetail({ session }: SessionDetailProps) {
         {[
           { label: 'Saldo apertura', value: formatPrice(session.opening_balance), icon: Banknote, color: 'text-[var(--admin-text-muted)]' },
           { label: 'Efectivo esperado', value: formatPrice(expectedCash), icon: Banknote, color: 'text-blue-700 dark:text-blue-400' },
-          { label: 'Efectivo contado', value: session.actual_cash !== null ? formatPrice(session.actual_cash) : '—', icon: Banknote, color: 'text-[var(--admin-accent-text)]' },
+          { label: 'Efectivo contado', value: session.actual_cash !== null ? formatPrice(session.actual_cash) : '—', icon: Banknote, color: 'text-[var(--admin-price)]' },
           { label: 'Diferencia', value: session.cash_difference !== null ? formatPrice(session.cash_difference) : '—', icon: session.cash_difference === 0 ? Minus : session.cash_difference !== null && session.cash_difference > 0 ? TrendingUp : TrendingDown, color: session.cash_difference === 0 ? 'text-green-700 dark:text-green-400' : session.cash_difference !== null && session.cash_difference < 0 ? 'text-red-700 dark:text-red-400' : 'text-yellow-700 dark:text-yellow-400' },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-lg p-3">
@@ -308,7 +308,7 @@ export function ArqueosTable({ sessions }: ArqueosTableProps) {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm font-semibold text-[var(--admin-accent-text)]">
+                          <span className="text-sm font-semibold text-[var(--admin-price)]">
                             {formatPrice(session.total_sales)}
                           </span>
                           <span className="block text-xs text-[var(--admin-text-faint)]">

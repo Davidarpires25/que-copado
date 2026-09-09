@@ -161,7 +161,7 @@ function ArqueoDrawer({
                   {session.actual_cash !== null && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold text-[var(--admin-text)]">Efectivo contado</span>
-                      <span className="text-sm font-bold text-[var(--admin-accent-text)] tabular-nums">{formatPrice(session.actual_cash)}</span>
+                      <span className="text-sm font-bold text-[var(--admin-price)] tabular-nums">{formatPrice(session.actual_cash)}</span>
                     </div>
                   )}
                   {session.cash_difference !== null && (
@@ -191,7 +191,7 @@ function ArqueoDrawer({
                   ))}
                   <div className="border-t border-[var(--admin-border)] pt-2.5 flex items-center justify-between">
                     <span className="text-sm font-bold text-[var(--admin-text)]">Total ventas</span>
-                    <span className="text-sm font-bold text-[var(--admin-accent-text)] tabular-nums">{formatPrice(session.total_sales)}</span>
+                    <span className="text-sm font-bold text-[var(--admin-price)] tabular-nums">{formatPrice(session.total_sales)}</span>
                   </div>
                 </div>
                 <p className="text-xs text-[var(--admin-text-faint)] mt-3">
@@ -349,7 +349,7 @@ function ArqueosTab({
                         <span className="text-sm text-[var(--admin-text-muted)]">{formatDuration(session.opened_at, closedAt)}</span>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm font-semibold text-[var(--admin-accent-text)]">{formatPrice(session.total_sales)}</span>
+                        <span className="text-sm font-semibold text-[var(--admin-price)]">{formatPrice(session.total_sales)}</span>
                         <span className="block text-xs text-[var(--admin-text-faint)]">
                           {session.total_orders} {session.total_orders === 1 ? 'orden' : 'órdenes'}
                         </span>

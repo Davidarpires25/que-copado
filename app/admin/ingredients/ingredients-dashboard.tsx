@@ -315,7 +315,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <span className="text-[var(--admin-accent-text)] font-semibold text-sm lg:text-base">
+                      <span className="text-[var(--admin-price)] font-semibold text-sm lg:text-base">
                         {formatCost(ingredient.cost_per_unit)}
                       </span>
                       <span className="text-[var(--admin-text-muted)] text-xs ml-1">

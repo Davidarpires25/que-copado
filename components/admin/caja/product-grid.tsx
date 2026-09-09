@@ -186,7 +186,7 @@ export function PosProductGrid({
                       className="w-1.5 h-1.5 rounded-full shrink-0 mb-0.5"
                       style={{ backgroundColor: dotColor ?? 'var(--admin-border)' }}
                     />
-                    <p className="text-xl font-black text-[var(--admin-accent-text)] tabular-nums leading-none">
+                    <p className="text-xl font-black text-[var(--admin-price)] tabular-nums leading-none">
                       {formatPrice(product.price)}
                     </p>
                   </div>

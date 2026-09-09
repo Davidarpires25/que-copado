@@ -259,7 +259,7 @@ export function DashboardOverview({
                         <span className="text-sm text-[var(--admin-text-muted)]">{order.items.length}</span>
                       </td>
                       <td className="px-4 py-3.5 text-right">
-                        <span className="text-sm font-semibold text-[var(--admin-accent-text)]">
+                        <span className="text-sm font-semibold text-[var(--admin-price)]">
                           {formatPrice(order.total)}
                         </span>
                       </td>

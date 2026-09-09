@@ -585,7 +585,7 @@ export function ProductsDashboard({
                               <div>
                                 <button
                                   onClick={() => handlePriceEdit(product)}
-                                  className="flex items-center gap-1 text-[var(--admin-accent-text)] hover:text-[#E09D00] transition-all duration-200 font-semibold group/price px-1.5 py-1 rounded-lg hover:bg-[var(--admin-accent)]/10 text-sm lg:text-base"
+                                  className="flex items-center gap-1 text-[var(--admin-price)] hover:text-[var(--admin-accent-text)] hover:underline underline-offset-2 transition-all duration-200 font-semibold group/price px-1.5 py-1 rounded-lg hover:bg-[var(--admin-accent)]/10 text-sm lg:text-base"
                                 >
                                   {formatPrice(product.price)}
                                 </button>

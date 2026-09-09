@@ -298,7 +298,7 @@ export function AddItemsView({
                 key={cartTotal}
                 initial={{ scale: 1.06 }}
                 animate={{ scale: 1 }}
-                className="text-[18px] font-bold tabular-nums text-[var(--admin-accent-text)]"
+                className="text-[18px] font-bold tabular-nums text-[var(--admin-price)]"
               >
                 {formatPrice(cartTotal)}
               </motion.span>
