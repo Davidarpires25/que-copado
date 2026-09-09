@@ -24,6 +24,21 @@ export type DrawnZoneGeometry =
   | { type: 'polygon'; polygon: GeoJSONPolygon }
   | { type: 'circle'; center: ZoneCenter; radius_meters: number }
 
+/**
+ * Roles de empleado. Espeja el enum `app_role` de Postgres
+ * (supabase/migrations/016_profiles_and_roles.sql).
+ *
+ * `cajero` cubre tambien al vendedor: en este local es la misma persona, la que
+ * toma el pedido es la que cierra el turno.
+ */
+export type AppRole = 'admin' | 'cajero' | 'cocina'
+
+export const APP_ROLE_LABELS: Record<AppRole, string> = {
+  admin: 'Administrador',
+  cajero: 'Cajero',
+  cocina: 'Cocina',
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -739,6 +754,32 @@ export interface Database {
           updated_at?: string
         }
       }
+      profiles: {
+        Row: {
+          id: string
+          full_name: string
+          role: AppRole
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          full_name?: string
+          role?: AppRole
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          full_name?: string
+          role?: AppRole
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -747,7 +788,7 @@ export interface Database {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      app_role: AppRole
     }
   }
 }
@@ -775,6 +816,7 @@ export interface Order {
   updated_at: string | null
 }
 
+export type Profile = Database['public']['Tables']['profiles']['Row']
 export type Category = Database['public']['Tables']['categories']['Row']
 export type Product = Database['public']['Tables']['products']['Row']
 

@@ -14,6 +14,7 @@ import type { Category, ProductWithHalfConfig, Order, DeliveryZone } from '@/lib
 import type { CashRegisterSession, SessionSummary } from '@/lib/types/cash-register'
 import type { TableWithOrder } from '@/lib/types/tables'
 import type { OrderWithSplits } from '@/lib/types/cash-register'
+import type { CurrentUserInfo } from '@/app/actions/profile'
 import { useSidebarCollapsed } from '@/lib/hooks/use-sidebar-collapsed'
 
 type Screen = 'open' | 'pos' | 'close'
@@ -27,6 +28,7 @@ interface CajaDashboardProps {
   initialDeliveryZones: DeliveryZone[]
   initialSessionOrders: OrderWithSplits[]
   stockAlertCount: number
+  currentUser: CurrentUserInfo | null
 }
 
 export function CajaDashboard({
@@ -38,6 +40,7 @@ export function CajaDashboard({
   initialDeliveryZones,
   initialSessionOrders,
   stockAlertCount,
+  currentUser,
 }: CajaDashboardProps) {
   const [screen, setScreen] = useState<Screen>(initialSession ? 'pos' : 'open')
   const [session, setSession] = useState<CashRegisterSession | null>(initialSession)
@@ -82,6 +85,9 @@ export function CajaDashboard({
   }
 
 
+  // Sin perfil (p. ej. antes de la migracion 016) el sidebar usa sus defaults.
+  const meProps = currentUser ? { userName: currentUser.name, userRole: currentUser.roleLabel } : {}
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -91,11 +97,11 @@ export function CajaDashboard({
     >
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
-        <AdminSidebar collapsed={sidebarCollapsed} onToggleCollapse={handleToggleCollapse} stockAlertCount={stockAlertCount} />
+        <AdminSidebar collapsed={sidebarCollapsed} onToggleCollapse={handleToggleCollapse} stockAlertCount={stockAlertCount} {...meProps} />
       </div>
 
       {/* Mobile Sidebar */}
-      <MobileSidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} stockAlertCount={stockAlertCount} />
+      <MobileSidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} stockAlertCount={stockAlertCount} {...meProps} />
 
       {/* Main content — shifted right by sidebar width */}
       <div

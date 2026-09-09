@@ -7,6 +7,7 @@ import { AdminSidebar, MobileSidebar } from './admin-sidebar'
 import { cn } from '@/lib/utils'
 import { useThemeStore } from '@/lib/store/theme-store'
 import { getStockAlerts } from '@/app/actions/stock'
+import { getCurrentUserInfo, type CurrentUserInfo } from '@/app/actions/profile'
 import { AdminShellContext } from './admin-shell'
 import { useSidebarCollapsed } from '@/lib/hooks/use-sidebar-collapsed'
 
@@ -49,6 +50,7 @@ function AdminLayoutStandalone({ children, title, description, hidePageHeader }:
   const [sidebarCollapsed, handleToggleCollapse] = useSidebarCollapsed()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [stockAlertCount, setStockAlertCount] = useState(0)
+  const [me, setMe] = useState<CurrentUserInfo | null>(null)
   const { theme } = useThemeStore()
 
   // Fetch stock alert count for sidebar badge
@@ -56,6 +58,12 @@ function AdminLayoutStandalone({ children, title, description, hidePageHeader }:
     getStockAlerts().then(({ data }) => {
       if (data) setStockAlertCount(data.length)
     })
+  
+  }, [])
+
+  // Quien esta trabajando. Null mientras no exista la tabla profiles.
+  useEffect(() => {
+    getCurrentUserInfo().then(setMe).catch(() => { /* el sidebar usa su default */ })
   }, [])
 
   // Sync dark mode to html element so portals (Dialog, Select, etc.) inherit the variables
@@ -71,6 +79,9 @@ function AdminLayoutStandalone({ children, title, description, hidePageHeader }:
   }, [theme])
 
 
+  // Sin perfil (p. ej. antes de la migracion 016) el sidebar usa sus defaults.
+  const meProps = me ? { userName: me.name, userRole: me.roleLabel } : {}
+
   return (
     <div className={cn('min-h-screen bg-[var(--admin-bg)] admin-layout', theme === 'dark' && 'dark')}>
       {/* Skip link for keyboard navigation */}
@@ -83,7 +94,7 @@ function AdminLayoutStandalone({ children, title, description, hidePageHeader }:
 
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
-        <AdminSidebar collapsed={sidebarCollapsed} onToggleCollapse={handleToggleCollapse} stockAlertCount={stockAlertCount} />
+        <AdminSidebar collapsed={sidebarCollapsed} onToggleCollapse={handleToggleCollapse} stockAlertCount={stockAlertCount} {...meProps} />
       </div>
 
       {/* Mobile Sidebar */}
