@@ -49,7 +49,7 @@ export function StatsCard({
           {trend && (
             <div className={cn(
               'flex items-center gap-1 mt-2 text-sm font-medium',
-              trend.isPositive ? 'text-green-500' : 'text-red-500'
+              trend.isPositive ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-500'
             )}>
               {trend.isPositive
                 ? <TrendingUp className="h-3.5 w-3.5 shrink-0" />

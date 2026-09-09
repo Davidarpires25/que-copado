@@ -167,7 +167,7 @@ export function CategoryManagerDialog({
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-8 w-8 text-green-400 hover:text-green-300 hover:bg-green-950/30 shrink-0"
+                        className="h-8 w-8 text-green-700 dark:text-green-400 hover:text-green-300 hover:bg-green-950/30 shrink-0"
                         onClick={handleSaveEdit}
                         disabled={loadingEdit || !editingName.trim()}
                         aria-label="Guardar nombre"
@@ -206,7 +206,7 @@ export function CategoryManagerDialog({
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-7 w-7 text-red-500 hover:text-red-400 hover:bg-red-950/30"
+                          className="h-7 w-7 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-950/30"
                           onClick={() => setDeleteTarget(category.id)}
                           aria-label={`Eliminar ${category.name}`}
                         >

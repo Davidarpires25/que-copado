@@ -172,7 +172,7 @@ export function TableOrderPanel({
             {totalItemCount > 0 && (
               <div className="flex items-center gap-1 px-2 rounded-full bg-green-400/12" style={{ height: 22 }}>
                 <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                <span className="text-[11px] font-semibold text-green-400">
+                <span className="text-[11px] font-semibold text-green-700 dark:text-green-400">
                   {totalItemCount} {totalItemCount === 1 ? 'item' : 'items'}
                 </span>
               </div>
@@ -182,7 +182,7 @@ export function TableOrderPanel({
           <div className="flex items-center gap-1">
             <button
               onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
-              className="text-[var(--admin-text-muted)] hover:text-orange-400 transition-colors cursor-pointer p-1"
+              className="text-[var(--admin-text-muted)] hover:text-orange-700 dark:hover:text-orange-400 transition-colors cursor-pointer p-1"
               aria-label="Imprimir comanda cocina"
               title="Comanda cocina"
             >
@@ -223,7 +223,7 @@ export function TableOrderPanel({
           <div className="flex items-center gap-1">
             <button
               onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
-              className="text-[var(--admin-text-muted)] hover:text-orange-400 transition-colors cursor-pointer p-1"
+              className="text-[var(--admin-text-muted)] hover:text-orange-700 dark:hover:text-orange-400 transition-colors cursor-pointer p-1"
               title="Comanda cocina"
             >
               <ChefHat className="h-4 w-4" />
@@ -307,7 +307,7 @@ export function TableOrderPanel({
                 {canDelete && (
                   <button
                     onClick={() => handleRemoveTag(tag)}
-                    className="h-[40px] px-1.5 rounded-r-full bg-[var(--admin-surface-2)] border border-l-0 border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors text-xs cursor-pointer"
+                    className="h-[40px] px-1.5 rounded-r-full bg-[var(--admin-surface-2)] border border-l-0 border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors text-xs cursor-pointer"
                   >
                     ×
                   </button>
@@ -382,7 +382,7 @@ export function TableOrderPanel({
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
-                className="flex items-center gap-1.5 px-2.5 rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-orange-400 hover:border-orange-400/40 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-2.5 rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-orange-700 dark:hover:text-orange-400 hover:border-orange-400/40 transition-colors cursor-pointer"
                 style={{ height: 36 }}
               >
                 <ChefHat className="h-3.5 w-3.5" />
@@ -452,7 +452,7 @@ export function TableOrderPanel({
         <button
           onClick={() => setShowCancelConfirm(true)}
           disabled={loadingAction === 'cancel'}
-          className="w-full flex items-center justify-center gap-1.5 text-[11px] text-red-400/50 hover:text-red-400 transition-colors disabled:opacity-40 cursor-pointer"
+          className="w-full flex items-center justify-center gap-1.5 text-[11px] text-red-700 dark:text-red-400/50 hover:text-red-700 dark:hover:text-red-400 transition-colors disabled:opacity-40 cursor-pointer"
           style={{ height: 28 }}
         >
           {loadingAction === 'cancel' ? (

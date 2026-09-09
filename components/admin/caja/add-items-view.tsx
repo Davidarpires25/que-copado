@@ -172,7 +172,7 @@ export function AddItemsView({
           {cart.length > 0 && (
             <button
               onClick={() => setCart([])}
-              className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer text-[var(--admin-text-faint)] hover:text-red-400 hover:bg-red-500/10"
+              className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer text-[var(--admin-text-faint)] hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/10"
             >
               <Trash2 className="h-3 w-3" />
               Limpiar
@@ -274,7 +274,7 @@ export function AddItemsView({
                   {/* Remove */}
                   <button
                     onClick={() => handleRemove(item.id)}
-                    className="ml-2 text-[var(--admin-text-faint)] hover:text-red-400 transition-colors cursor-pointer shrink-0"
+                    className="ml-2 text-[var(--admin-text-faint)] hover:text-red-700 dark:hover:text-red-400 transition-colors cursor-pointer shrink-0"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

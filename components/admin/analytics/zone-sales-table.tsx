@@ -65,7 +65,7 @@ export function ZoneSalesTable({ data }: ZoneSalesTableProps) {
               <span>Ticket prom: <span className="text-[var(--admin-text)]">{formatPrice(zone.avgTicket)}</span></span>
               <span>Envío: <span className="text-[var(--admin-text)]">{formatPrice(zone.shippingRevenue)}</span></span>
               <span>
-                Gratis: <span className="text-green-500">{zone.freeShippingOrders}</span> | Pago: <span className="text-blue-500">{zone.paidShippingOrders}</span>
+                Gratis: <span className="text-green-700 dark:text-green-500">{zone.freeShippingOrders}</span> | Pago: <span className="text-blue-700 dark:text-blue-500">{zone.paidShippingOrders}</span>
               </span>
             </div>
           </div>

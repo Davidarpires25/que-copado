@@ -118,7 +118,7 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange }: RecipeSel
                   type="button"
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7 text-red-500 hover:text-red-400 hover:bg-red-950/30 shrink-0"
+                  className="h-7 w-7 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-950/30 shrink-0"
                   onClick={() => handleRemove(item.recipe_id)}
                 >
                   <X className="h-3.5 w-3.5" />
@@ -166,7 +166,7 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange }: RecipeSel
 
       {recipes.length === 0 && (
         <div className="rounded-lg border border-amber-500/20 bg-amber-950/10 p-3 space-y-2.5">
-          <div className="flex items-center gap-2 text-amber-400">
+          <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <p className="text-xs font-medium">Para asignar recetas, segui estos pasos:</p>
           </div>

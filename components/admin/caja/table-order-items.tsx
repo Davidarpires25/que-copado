@@ -118,7 +118,7 @@ export function TableOrderItems({
             {canModify && (
               <button
                 onClick={() => onRemoveItem(item.id)}
-                className="text-[var(--admin-text-faint)] hover:text-red-400 transition-colors cursor-pointer shrink-0"
+                className="text-[var(--admin-text-faint)] hover:text-red-700 dark:hover:text-red-400 transition-colors cursor-pointer shrink-0"
                 aria-label="Quitar ítem"
               >
                 <Trash2 className="h-4 w-4" />

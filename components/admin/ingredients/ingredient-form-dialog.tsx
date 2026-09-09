@@ -302,7 +302,7 @@ export function IngredientFormDialog({
 
           {isEditing && (
             <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-950/30 border border-amber-500/50">
-              <AlertTriangle className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
+              <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-400 mt-0.5 shrink-0" />
               <p className="text-sm text-amber-200">
                 Al cambiar el costo se recalcularan automaticamente los productos que usen este ingrediente.
               </p>

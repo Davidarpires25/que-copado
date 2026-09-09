@@ -105,7 +105,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
                 } animate-pulse`}
               />
               <div>
-                <p className={`font-semibold ${businessStatus.isOpen ? 'text-green-400' : 'text-red-400'}`}>
+                <p className={`font-semibold ${businessStatus.isOpen ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
                   {businessStatus.isOpen ? 'Abierto' : 'Cerrado'}
                 </p>
                 <p className="text-sm text-[var(--admin-text-muted)]">{businessStatus.message}</p>
@@ -119,7 +119,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
               className={
                 settings.is_paused
                   ? 'bg-green-600 hover:bg-green-700 text-white'
-                  : 'border-red-500/50 text-red-400 hover:bg-red-500/10'
+                  : 'border-red-500/50 text-red-700 dark:text-red-400 hover:bg-red-500/10'
               }
             >
               {isTogglingToggleLeft ? (
@@ -252,7 +252,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
                 {theme === 'dark' ? (
                   <Moon className="h-3.5 w-3.5 text-[#1a1d24]" />
                 ) : (
-                  <Sun className="h-3.5 w-3.5 text-amber-500" />
+                  <Sun className="h-3.5 w-3.5 text-amber-700 dark:text-amber-500" />
                 )}
               </span>
             </button>

@@ -15,9 +15,9 @@ interface CancellationCardProps {
 export function CancellationCard({ data, loading, period, onPeriodChange }: CancellationCardProps) {
   // Color thresholds: green <3%, yellow 3-5%, red >5%
   const getStatusColor = (rate: number) => {
-    if (rate < 3) return { bg: 'bg-green-500/10', text: 'text-green-500', border: 'border-green-500/30' }
-    if (rate <= 5) return { bg: 'bg-yellow-500/10', text: 'text-yellow-500', border: 'border-yellow-500/30' }
-    return { bg: 'bg-red-500/10', text: 'text-red-500', border: 'border-red-500/30' }
+    if (rate < 3) return { bg: 'bg-green-500/10', text: 'text-green-700 dark:text-green-500', border: 'border-green-500/30' }
+    if (rate <= 5) return { bg: 'bg-yellow-500/10', text: 'text-yellow-700 dark:text-yellow-500', border: 'border-yellow-500/30' }
+    return { bg: 'bg-red-500/10', text: 'text-red-700 dark:text-red-500', border: 'border-red-500/30' }
   }
 
   const status = data ? getStatusColor(data.rate) : { bg: '', text: '', border: 'border-[var(--admin-border)]' }
@@ -75,7 +75,7 @@ export function CancellationCard({ data, loading, period, onPeriodChange }: Canc
 
           {data.trend && (
             <div className="mt-2 flex items-center gap-1 text-xs bg-[var(--admin-surface-2)] rounded-lg px-2.5 py-1 w-fit">
-              <span className={data.trend.isPositive ? 'text-red-500' : 'text-green-500'}>
+              <span className={data.trend.isPositive ? 'text-red-700 dark:text-red-500' : 'text-green-700 dark:text-green-500'}>
                 {data.trend.isPositive ? '↑' : '↓'} {data.trend.value}%
               </span>
               <span className="text-[var(--admin-text-muted)]">vs. período anterior</span>

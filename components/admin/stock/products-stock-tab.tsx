@@ -123,7 +123,7 @@ export function ProductsStockTab({
       {/* Sección: Reventa */}
       <div className="flex items-center gap-3 mb-4">
         <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center shrink-0">
-          <Search className="h-4 w-4 text-blue-400" />
+          <Search className="h-4 w-4 text-blue-700 dark:text-blue-400" />
         </div>
         <div>
           <h3 className="text-sm font-semibold text-[var(--admin-text)]">Productos de reventa</h3>
@@ -150,7 +150,7 @@ export function ProductsStockTab({
       {/* Alert Banner */}
       {alerts.filter((a) => a.type === 'product').length > 0 && (
         <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
-          <AlertTriangle className="h-5 w-5 text-red-400 shrink-0" />
+          <AlertTriangle className="h-5 w-5 text-red-700 dark:text-red-400 shrink-0" />
           <p className="text-sm text-red-300">
             <span className="font-semibold">{alerts.filter((a) => a.type === 'product').length}</span>{' '}
             producto{alerts.filter((a) => a.type === 'product').length !== 1 ? 's' : ''} con stock bajo.
@@ -202,7 +202,7 @@ export function ProductsStockTab({
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {lowStock && (
-                            <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
+                            <AlertTriangle className="h-4 w-4 text-red-700 dark:text-red-400 shrink-0" />
                           )}
                           <p className="font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors text-sm lg:text-base">
                             {product.name}
@@ -211,7 +211,7 @@ export function ProductsStockTab({
                       </TableCell>
                       <TableCell>
                         {product.stock_tracking_enabled ? (
-                          <span className={`font-semibold text-sm lg:text-base ${lowStock ? 'text-red-400' : 'text-[var(--admin-text)]'}`}>
+                          <span className={`font-semibold text-sm lg:text-base ${lowStock ? 'text-red-700 dark:text-red-400' : 'text-[var(--admin-text)]'}`}>
                             {Number.isInteger(product.current_stock)
                               ? product.current_stock
                               : product.current_stock.toFixed(2)}{' '}
@@ -236,7 +236,7 @@ export function ProductsStockTab({
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <span className="text-yellow-400 text-sm font-semibold cursor-default">
+                                  <span className="text-yellow-700 dark:text-yellow-400 text-sm font-semibold cursor-default">
                                     {reserved} u
                                   </span>
                                 </TooltipTrigger>
@@ -248,13 +248,13 @@ export function ProductsStockTab({
                       </TableCell>
                       <TableCell className="text-center">
                         {status === 'ok' && (
-                          <Badge className="bg-green-500/15 text-green-400 border border-green-500/30 hover:bg-green-500/15">OK</Badge>
+                          <Badge className="bg-green-500/15 text-green-700 dark:text-green-400 border border-green-500/30 hover:bg-green-500/15">OK</Badge>
                         )}
                         {status === 'low' && (
-                          <Badge className="bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/15">Bajo</Badge>
+                          <Badge className="bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30 hover:bg-red-500/15">Bajo</Badge>
                         )}
                         {status === 'out_of_stock' && (
-                          <Badge className="bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/15">Agotado</Badge>
+                          <Badge className="bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30 hover:bg-red-500/15">Agotado</Badge>
                         )}
                         {status === 'untracked' && (
                           <Badge className="bg-slate-500/15 text-slate-400 border border-slate-500/30 hover:bg-slate-500/15">Sin tracking</Badge>

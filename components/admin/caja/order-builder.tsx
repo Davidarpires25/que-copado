@@ -103,8 +103,8 @@ export function OrderBuilder({
             onClick={handleClearCart}
             className={`text-[14px] flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               confirmClear
-                ? 'bg-red-500/10 text-red-400'
-                : 'text-[var(--admin-text-faint)] hover:text-red-400 hover:bg-red-500/10'
+                ? 'bg-red-500/10 text-red-700 dark:text-red-400'
+                : 'text-[var(--admin-text-faint)] hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/10'
             }`}
           >
             <Trash2 className="h-4 w-4" />
@@ -209,7 +209,7 @@ export function OrderBuilder({
                 {/* Remove item */}
                 <button
                   onClick={() => onRemoveItem(item.id)}
-                  className="ml-2 text-[var(--admin-text-faint)] hover:text-red-400 transition-colors cursor-pointer shrink-0"
+                  className="ml-2 text-[var(--admin-text-faint)] hover:text-red-700 dark:hover:text-red-400 transition-colors cursor-pointer shrink-0"
                   aria-label="Eliminar producto"
                 >
                   <Trash2 className="h-4 w-4" />

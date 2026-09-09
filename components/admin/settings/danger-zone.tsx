@@ -116,7 +116,7 @@ function PasswordStep({ onConfirmed, onCancel }: PasswordStepProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-5 mt-2">
       <div className="flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/30">
-        <ShieldAlert className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
+        <ShieldAlert className="h-5 w-5 text-red-700 dark:text-red-400 mt-0.5 flex-shrink-0" />
         <p className="text-sm text-red-300">
           Esta sección permite eliminar datos de forma permanente. Confirmá tu identidad para continuar.
         </p>
@@ -204,13 +204,13 @@ function DeleteStep({ counts, onDeleted, onCancel }: DeleteStepProps) {
               ? `No hay ${selectedEntity.label.toLowerCase()} para eliminar`
               : `Se eliminarán ${count} ${selectedEntity.label.toLowerCase()}`}
           </p>
-          <p className="text-xs text-red-400/80">{selectedEntity.warning}</p>
+          <p className="text-xs text-red-700 dark:text-red-400/80">{selectedEntity.warning}</p>
         </div>
 
         {count > 0 && (
           <div className="space-y-2">
             <Label className="text-[var(--admin-text-muted)] text-sm">
-              Escribí <span className="font-mono font-bold text-red-400">ELIMINAR</span> para confirmar
+              Escribí <span className="font-mono font-bold text-red-700 dark:text-red-400">ELIMINAR</span> para confirmar
             </Label>
             <Input
               value={confirmText}
@@ -264,7 +264,7 @@ function DeleteStep({ counts, onDeleted, onCancel }: DeleteStepProps) {
               className="w-full flex items-center justify-between p-4 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-2)] hover:border-red-500/40 hover:bg-red-500/5 transition-all duration-200 text-left group"
             >
               <div className="min-w-0">
-                <p className="font-medium text-[var(--admin-text)] group-hover:text-red-400 transition-colors text-sm">
+                <p className="font-medium text-[var(--admin-text)] group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors text-sm">
                   {entity.label}
                 </p>
                 <p className="text-xs text-[var(--admin-text-muted)] mt-0.5">{entity.description}</p>
@@ -273,7 +273,7 @@ function DeleteStep({ counts, onDeleted, onCancel }: DeleteStepProps) {
                 <span className={`text-sm font-semibold tabular-nums ${count === 0 ? 'text-[var(--admin-text-faint)]' : 'text-[var(--admin-text)]'}`}>
                   {count}
                 </span>
-                <Trash2 className="h-4 w-4 text-[var(--admin-text-muted)] group-hover:text-red-400 transition-colors" />
+                <Trash2 className="h-4 w-4 text-[var(--admin-text-muted)] group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors" />
               </div>
             </button>
           )
@@ -332,10 +332,10 @@ export function DangerZone() {
       <div className="mt-8 pt-8 border-t border-red-500/20">
         <div className="flex items-start gap-4 p-6 rounded-xl border border-red-500/30 bg-red-500/5">
           <div className="w-10 h-10 bg-red-500/15 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-            <ShieldAlert className="h-5 w-5 text-red-400" />
+            <ShieldAlert className="h-5 w-5 text-red-700 dark:text-red-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-red-400 mb-1">Zona de Peligro</h3>
+            <h3 className="font-semibold text-red-700 dark:text-red-400 mb-1">Zona de Peligro</h3>
             <p className="text-sm text-[var(--admin-text-muted)] mb-4">
               Eliminación permanente de datos. Estas acciones no se pueden deshacer.
               Se requiere verificación de contraseña.
@@ -343,7 +343,7 @@ export function DangerZone() {
             <Button
               type="button"
               onClick={handleOpen}
-              className="bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/40 hover:border-red-500/60 transition-all duration-200"
+              className="bg-red-600/20 hover:bg-red-600/30 text-red-700 dark:text-red-400 border border-red-500/40 hover:border-red-500/60 transition-all duration-200"
               variant="outline"
             >
               <Trash2 className="h-4 w-4 mr-2" />
@@ -357,7 +357,7 @@ export function DangerZone() {
         <DialogContent className="bg-[var(--admin-surface)] border-[var(--admin-border)] max-w-md shadow-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-[var(--admin-text)]">
-              <ShieldAlert className="h-5 w-5 text-red-400" />
+              <ShieldAlert className="h-5 w-5 text-red-700 dark:text-red-400" />
               {step === 'password' ? 'Verificar identidad' : 'Eliminar datos'}
             </DialogTitle>
           </DialogHeader>

@@ -270,7 +270,7 @@ export function ProductFormPage({
                 {/* Nombre */}
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
-                    Nombre <span className="text-red-400">*</span>
+                    Nombre <span className="text-red-700 dark:text-red-400">*</span>
                   </Label>
                   <Input
                     name="name"
@@ -299,7 +299,7 @@ export function ProductFormPage({
                 {/* Categoría */}
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
-                    Categoría <span className="text-red-400">*</span>
+                    Categoría <span className="text-red-700 dark:text-red-400">*</span>
                   </Label>
                   <Select
                     name="category_id"
@@ -375,13 +375,13 @@ export function ProductFormPage({
                       onChange={setSelectedRecipes}
                     />
                     {selectedRecipes.length === 0 && (
-                      <p className="text-xs text-amber-400/80 text-center py-1">
+                      <p className="text-xs text-amber-700 dark:text-amber-400/80 text-center py-1">
                         Los productos elaborados requieren al menos una receta para calcular el costo.
                       </p>
                     )}
                     {selectedRecipes.length > 0 && (
                       <div className="flex items-start gap-2 rounded-lg bg-blue-500/10 border border-blue-500/20 px-3 py-2.5">
-                        <Info className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
+                        <Info className="h-4 w-4 text-blue-700 dark:text-blue-400 shrink-0 mt-0.5" />
                         <p className="text-xs text-blue-300">
                           El costo se calcula automáticamente desde las recetas asociadas.
                         </p>
@@ -396,7 +396,7 @@ export function ProductFormPage({
 
                     {/* Info-box reactivo — al inicio, antes de las decisiones */}
                     <div className="flex items-start gap-2 rounded-lg bg-blue-500/10 border border-blue-500/20 px-3 py-2.5">
-                      <Info className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
+                      <Info className="h-4 w-4 text-blue-700 dark:text-blue-400 shrink-0 mt-0.5" />
                       <p className="text-xs text-blue-300">
                         {previewCategory
                           ? <>El cliente podrá combinar 2 productos activos de <span className="font-semibold text-blue-200">«{previewCategory}»</span> como mitades. El precio se calcula al momento de la venta.</>
@@ -512,7 +512,7 @@ export function ProductFormPage({
                 {productType !== 'mitad' && (
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
-                      Precio de venta <span className="text-red-400">*</span>
+                      Precio de venta <span className="text-red-700 dark:text-red-400">*</span>
                     </Label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold">$</span>

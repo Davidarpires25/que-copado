@@ -89,7 +89,7 @@ function CreateIngredientDialog({
         <form onSubmit={handleSubmit} className="space-y-3 mt-3">
           <div className="space-y-1.5">
             <Label className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
-              Nombre <span className="text-red-400 ml-0.5">*</span>
+              Nombre <span className="text-red-700 dark:text-red-400 ml-0.5">*</span>
             </Label>
             <Input
               value={name}
@@ -102,7 +102,7 @@ function CreateIngredientDialog({
           </div>
           <div className="space-y-1.5">
             <Label className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
-              Unidad base <span className="text-red-400 ml-0.5">*</span>
+              Unidad base <span className="text-red-700 dark:text-red-400 ml-0.5">*</span>
             </Label>
             <Select value={unit} onValueChange={(v) => setUnit(v as IngredientUnit)} disabled={isLoading}>
               <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-9 text-sm focus:ring-1 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50">
@@ -322,7 +322,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
 
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
-                  Nombre de la receta <span className="text-red-400">*</span>
+                  Nombre de la receta <span className="text-red-700 dark:text-red-400">*</span>
                 </Label>
                 <Input
                   value={name}
@@ -362,7 +362,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
 
               {mode === 'edit' && (
                 <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-2.5">
-                  <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                  <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-500 shrink-0 mt-0.5" />
                   <p className="text-xs text-amber-600 dark:text-amber-400">
                     Al modificar la receta se recalcularán los costos de todos los productos que la usen.
                   </p>
@@ -491,7 +491,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                               </p>
                               <Button
                                 type="button" size="icon" variant="ghost"
-                                className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-500/10 shrink-0"
+                                className="h-7 w-7 text-red-700 dark:text-red-500 hover:text-red-600 hover:bg-red-500/10 shrink-0"
                                 onClick={() => handleRemoveIngredient(item.ingredient_id)}
                               >
                                 <X className="h-3.5 w-3.5" />
@@ -503,7 +503,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <div className="flex items-center gap-1.5 mt-1.5 cursor-default">
-                                      <AlertTriangle className="h-3 w-3 text-amber-500 shrink-0" />
+                                      <AlertTriangle className="h-3 w-3 text-amber-700 dark:text-amber-500 shrink-0" />
                                       <span className="text-xs text-amber-600 dark:text-amber-400">
                                         Unidad incompatible con la base ({baseUnitAbbr})
                                       </span>
@@ -516,7 +516,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
 
                             {compatibility === 'compatible' && (
                               <div className="flex items-center gap-1.5 mt-1.5">
-                                <RefreshCw className="h-3 w-3 text-green-500 shrink-0" />
+                                <RefreshCw className="h-3 w-3 text-green-700 dark:text-green-500 shrink-0" />
                                 <span className="text-xs text-green-600 dark:text-green-400">
                                   Se convertirá desde {selectedUnitAbbr} a {baseUnitAbbr}
                                 </span>

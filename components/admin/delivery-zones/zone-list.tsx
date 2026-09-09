@@ -194,7 +194,7 @@ export function ZoneList({
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-8 w-8 text-red-500 hover:text-red-400 hover:bg-red-950/30 transition-all duration-200"
+                        className="h-8 w-8 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-950/30 transition-all duration-200"
                         onClick={(e) => {
                           e.stopPropagation()
                           setDeleteTarget(zone)

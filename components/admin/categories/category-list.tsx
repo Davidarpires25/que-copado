@@ -193,7 +193,7 @@ export function CategoryList({ categories, onEdit, onDeleted,onReorder, isSearch
                             size="icon"
                             onClick={() => setDeleteTarget(category)}
                             disabled={deletingId === category.id}
-                            className="h-8 w-8 text-[var(--admin-text-muted)] hover:text-red-400 hover:bg-red-500/10"
+                            className="h-8 w-8 text-[var(--admin-text-muted)] hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/10"
                           >
                             {deletingId === category.id ? (
                               <Loader2 className="h-3.5 w-3.5 animate-spin" />

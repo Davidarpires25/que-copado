@@ -138,7 +138,7 @@ export function CategoryFormPage({ mode, category }: CategoryFormPageProps) {
           {/* Nombre */}
           <div className="space-y-2">
             <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
-              Nombre <span className="text-red-400">*</span>
+              Nombre <span className="text-red-700 dark:text-red-400">*</span>
             </Label>
             <Input
               value={name}

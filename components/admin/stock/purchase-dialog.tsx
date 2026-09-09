@@ -186,7 +186,7 @@ export function PurchaseDialog({ open, onOpenChange, ingredients }: PurchaseDial
                 {lines.length > 1 && (
                   <button
                     onClick={() => removeLine(line.id)}
-                    className="mt-6 p-1.5 text-[var(--admin-text-muted)] hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                    className="mt-6 p-1.5 text-[var(--admin-text-muted)] hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

@@ -121,7 +121,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
               <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{activeCount}</p>
             </div>
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
-              <Check className="h-5 w-5 lg:h-6 lg:w-6 text-green-500" />
+              <Check className="h-5 w-5 lg:h-6 lg:w-6 text-green-700 dark:text-green-500" />
             </div>
           </div>
         </div>
@@ -132,7 +132,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
               <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{inactiveCount}</p>
             </div>
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-500/10 rounded-xl flex items-center justify-center">
-              <X className="h-5 w-5 lg:h-6 lg:w-6 text-red-500" />
+              <X className="h-5 w-5 lg:h-6 lg:w-6 text-red-700 dark:text-red-500" />
             </div>
           </div>
         </div>
@@ -381,7 +381,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="h-9 w-9 lg:h-10 lg:w-10 text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all"
+                                className="h-9 w-9 lg:h-10 lg:w-10 text-red-700 dark:text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all"
                                 onClick={() => setDeleteTarget(ingredient.id)}
                               >
                                 <Trash2 className="h-3.5 w-3.5 lg:h-4 lg:w-4" />

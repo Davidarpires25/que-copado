@@ -109,8 +109,8 @@ export function SessionCloseScreen({
               <h1 className="text-[22px] font-bold text-[var(--admin-text)]">Cierre de Sesión</h1>
               {hasOpenTables && (
                 <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30">
-                  <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
-                  <span className="text-[11px] font-semibold text-amber-400">
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" />
+                  <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">
                     {openTablesCount} mesa{openTablesCount > 1 ? 's' : ''} abierta{openTablesCount > 1 ? 's' : ''}
                   </span>
                 </div>
@@ -152,21 +152,21 @@ export function SessionCloseScreen({
                   value={s.total_cash_sales}
                   pct={cashPct}
                   color="bg-green-500"
-                  textColor="text-green-400"
+                  textColor="text-green-700 dark:text-green-400"
                 />
                 <PayBar
                   label="Tarjeta"
                   value={s.total_card_sales}
                   pct={cardPct}
                   color="bg-blue-500"
-                  textColor="text-blue-400"
+                  textColor="text-blue-700 dark:text-blue-400"
                 />
                 <PayBar
                   label="Transferencia / MP"
                   value={transf}
                   pct={transPct}
                   color="bg-amber-500"
-                  textColor="text-amber-400"
+                  textColor="text-amber-700 dark:text-amber-400"
                 />
               </div>
             </div>
@@ -182,19 +182,19 @@ export function SessionCloseScreen({
                     {s.total_deposits > 0 && (
                       <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[var(--admin-surface-2)] border border-[var(--admin-border)]">
                         <div className="flex items-center gap-2.5">
-                          <TrendingUp className="h-4 w-4 text-green-400 shrink-0" />
+                          <TrendingUp className="h-4 w-4 text-green-700 dark:text-green-400 shrink-0" />
                           <span className="text-[13px] text-[var(--admin-text)]">Ingresos</span>
                         </div>
-                        <span className="text-[13px] font-semibold text-green-400">+{formatPrice(s.total_deposits)}</span>
+                        <span className="text-[13px] font-semibold text-green-700 dark:text-green-400">+{formatPrice(s.total_deposits)}</span>
                       </div>
                     )}
                     {s.total_withdrawals > 0 && (
                       <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[var(--admin-surface-2)] border border-[var(--admin-border)]">
                         <div className="flex items-center gap-2.5">
-                          <TrendingDown className="h-4 w-4 text-red-400 shrink-0" />
+                          <TrendingDown className="h-4 w-4 text-red-700 dark:text-red-400 shrink-0" />
                           <span className="text-[13px] text-[var(--admin-text)]">Retiros</span>
                         </div>
-                        <span className="text-[13px] font-semibold text-red-400">-{formatPrice(s.total_withdrawals)}</span>
+                        <span className="text-[13px] font-semibold text-red-700 dark:text-red-400">-{formatPrice(s.total_withdrawals)}</span>
                       </div>
                     )}
                   </div>
@@ -233,10 +233,10 @@ export function SessionCloseScreen({
                 <div className={cn(
                   'flex items-center justify-between px-3 py-2.5 rounded-xl border',
                   difference === 0
-                    ? 'bg-green-500/10 border-green-500/25 text-green-400'
+                    ? 'bg-green-500/10 border-green-500/25 text-green-700 dark:text-green-400'
                     : difference > 0
-                      ? 'bg-blue-500/10 border-blue-500/25 text-blue-400'
-                      : 'bg-red-500/10 border-red-500/25 text-red-400'
+                      ? 'bg-blue-500/10 border-blue-500/25 text-blue-700 dark:text-blue-400'
+                      : 'bg-red-500/10 border-red-500/25 text-red-700 dark:text-red-400'
                 )}>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 shrink-0" />

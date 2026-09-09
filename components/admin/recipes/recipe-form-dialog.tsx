@@ -546,7 +546,7 @@ export function RecipeFormDialog({
                                 type="button"
                                 size="icon"
                                 variant="ghost"
-                                className="h-7 w-7 text-red-500 hover:text-red-400 hover:bg-red-950/30 shrink-0"
+                                className="h-7 w-7 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-950/30 shrink-0"
                                 onClick={() => handleRemoveIngredient(item.ingredient_id)}
                               >
                                 <X className="h-3.5 w-3.5" />
@@ -558,8 +558,8 @@ export function RecipeFormDialog({
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <div className="flex items-center gap-1.5 px-1 cursor-default">
-                                      <AlertTriangle className="h-3 w-3 text-amber-400 shrink-0" />
-                                      <span className="text-xs text-amber-400">
+                                      <AlertTriangle className="h-3 w-3 text-amber-700 dark:text-amber-400 shrink-0" />
+                                      <span className="text-xs text-amber-700 dark:text-amber-400">
                                         Unidad incompatible con la base ({baseUnitAbbr})
                                       </span>
                                     </div>
@@ -573,8 +573,8 @@ export function RecipeFormDialog({
 
                             {compatibility === 'compatible' && (
                               <div className="flex items-center gap-1.5 px-1">
-                                <RefreshCw className="h-3 w-3 text-green-400 shrink-0" />
-                                <span className="text-xs text-green-400">
+                                <RefreshCw className="h-3 w-3 text-green-700 dark:text-green-400 shrink-0" />
+                                <span className="text-xs text-green-700 dark:text-green-400">
                                   Se convertira automaticamente desde {selectedUnitAbbr} a {baseUnitAbbr}
                                 </span>
                               </div>
@@ -615,7 +615,7 @@ export function RecipeFormDialog({
 
             {isEditing && (
               <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-950/30 border border-amber-500/50">
-                <AlertTriangle className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
+                <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-400 mt-0.5 shrink-0" />
                 <p className="text-xs text-amber-200">
                   Al modificar la receta se recalcularan los costos de todos los productos que la usen.
                 </p>

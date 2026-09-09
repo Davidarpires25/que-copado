@@ -157,7 +157,7 @@ export function PendingOrderPayView({ order, loading, onBack: _onBack, onPrint, 
         <div className="flex items-center gap-1">
           <button
             onClick={() => printKitchenTicketAction(order.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
-            className="text-[var(--admin-text-muted)] hover:text-orange-400 transition-colors cursor-pointer p-1"
+            className="text-[var(--admin-text-muted)] hover:text-orange-700 dark:hover:text-orange-400 transition-colors cursor-pointer p-1"
             aria-label="Imprimir comanda cocina"
             title="Comanda cocina"
           >
@@ -293,14 +293,14 @@ export function PendingOrderPayView({ order, loading, onBack: _onBack, onPrint, 
         </div>
         {change > 0 && (
           <div className="flex items-center justify-between">
-            <span className="text-[14px] text-green-400">Vuelto</span>
-            <span className="text-[14px] font-semibold tabular-nums text-green-400">{formatPrice(change)}</span>
+            <span className="text-[14px] text-green-700 dark:text-green-400">Vuelto</span>
+            <span className="text-[14px] font-semibold tabular-nums text-green-700 dark:text-green-400">{formatPrice(change)}</span>
           </div>
         )}
         {!isComplete && activePayments.length > 0 && (
           <div className="flex items-center justify-between">
             <span className="text-[13px] text-[var(--admin-text-muted)]">Restante</span>
-            <span className="text-[13px] font-semibold tabular-nums text-amber-400">{formatPrice(remaining)}</span>
+            <span className="text-[13px] font-semibold tabular-nums text-amber-700 dark:text-amber-400">{formatPrice(remaining)}</span>
           </div>
         )}
         <div className="h-px bg-[var(--admin-border)]" />
@@ -324,7 +324,7 @@ export function PendingOrderPayView({ order, loading, onBack: _onBack, onPrint, 
           {!stockChecking && hasStockWarnings && (
             <div className="rounded-xl bg-amber-950/50 border border-amber-500/40 px-3 py-2.5 space-y-1">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+                <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-400 shrink-0" />
                 <p className="text-xs font-semibold text-amber-300">Stock insuficiente</p>
               </div>
               {stockWarnings.map(w => (

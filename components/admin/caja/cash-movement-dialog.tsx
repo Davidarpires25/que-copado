@@ -83,7 +83,7 @@ export function CashMovementDialog({
               className={cn(
                 'py-2.5 rounded-xl text-sm font-medium transition-all border',
                 type === 'withdrawal'
-                  ? 'bg-red-500/10 border-red-500 text-red-400'
+                  ? 'bg-red-500/10 border-red-500 text-red-700 dark:text-red-400'
                   : 'bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:border-[var(--admin-text-placeholder)]'
               )}
             >
@@ -94,7 +94,7 @@ export function CashMovementDialog({
               className={cn(
                 'py-2.5 rounded-xl text-sm font-medium transition-all border',
                 type === 'deposit'
-                  ? 'bg-green-500/10 border-green-500 text-green-400'
+                  ? 'bg-green-500/10 border-green-500 text-green-700 dark:text-green-400'
                   : 'bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:border-[var(--admin-text-placeholder)]'
               )}
             >

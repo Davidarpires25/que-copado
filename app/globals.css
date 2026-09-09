@@ -4,7 +4,11 @@
 @import "leaflet/dist/leaflet.css";
 @import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 
-@custom-variant dark (&:is(.dark *));
+/* `.dark` cubre el arbol del layout, pero los portales de Radix (Dialog,
+   Select, Sheet) se montan fuera de el y solo los alcanza `.admin-dark`, que
+   vive en <html>. Sin la segunda mitad, toda clase `dark:` se cae en silencio
+   dentro de un dialog: las variables CSS resuelven pero las utilidades no. */
+@custom-variant dark (&:is(.dark *, .admin-dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -390,7 +394,10 @@
   --admin-text-faint:       #94A3B8;
   --admin-text-placeholder: #CBD5E1;
   --admin-accent:           #FEC501;
-  --admin-accent-text:      #FEC501;
+  /* El relleno se mantiene ambar porque lleva texto oscuro encima (11.54:1),
+     pero como color de TEXTO sobre blanco #FEC501 da 1.59:1, contra el minimo
+     AA de 4.5:1. #8A6A00 da 5.07:1 y conserva la identidad de marca. */
+  --admin-accent-text:      #8A6A00;
   --shadow-card:    0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-card-md: 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
   --shadow-card-lg: 0 10px 24px rgba(0, 0, 0, 0.10), 0 4px 8px rgba(0, 0, 0, 0.06);
@@ -431,7 +438,10 @@ html.admin-dark {
   --admin-text-faint:       #94A3B8;
   --admin-text-placeholder: #CBD5E1;
   --admin-accent:           #FEC501;
-  --admin-accent-text:      #FEC501;
+  /* El relleno se mantiene ambar porque lleva texto oscuro encima (11.54:1),
+     pero como color de TEXTO sobre blanco #FEC501 da 1.59:1, contra el minimo
+     AA de 4.5:1. #8A6A00 da 5.07:1 y conserva la identidad de marca. */
+  --admin-accent-text:      #8A6A00;
   --shadow-card:    0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-card-md: 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
   --shadow-card-lg: 0 10px 24px rgba(0, 0, 0, 0.10), 0 4px 8px rgba(0, 0, 0, 0.06);

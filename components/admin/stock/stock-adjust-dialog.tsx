@@ -157,7 +157,7 @@ export function StockAdjustDialog({
             {!isNaN(quantity) && quantity > 0 && (
               <p className="text-sm font-bold text-[var(--admin-text-muted)]">
                 Nuevo stock:{' '}
-                <span className={`font-bold  ${previewStock < 0 ? 'text-red-400' : 'text-[var(--admin-accent-text)]'}`}>
+                <span className={`font-bold  ${previewStock < 0 ? 'text-red-700 dark:text-red-400' : 'text-[var(--admin-accent-text)]'}`}>
                   {previewStock.toFixed(previewStock % 1 === 0 ? 0 : 2)} {item.unit}
                 </span>
               </p>

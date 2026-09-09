@@ -87,7 +87,7 @@ export function MovimientosTable({ movements, sessionFilter }: MovimientosTableP
       value: formatPrice(totalDeposits),
       count: movements.filter((m) => m.type === 'deposit').length,
       icon: PlusCircle,
-      color: 'text-green-500',
+      color: 'text-green-700 dark:text-green-500',
       bg: 'bg-green-500/10',
     },
     {
@@ -95,7 +95,7 @@ export function MovimientosTable({ movements, sessionFilter }: MovimientosTableP
       value: formatPrice(totalWithdrawals),
       count: movements.filter((m) => m.type === 'withdrawal').length,
       icon: MinusCircle,
-      color: 'text-red-500',
+      color: 'text-red-700 dark:text-red-500',
       bg: 'bg-red-500/10',
     },
     {
@@ -103,7 +103,7 @@ export function MovimientosTable({ movements, sessionFilter }: MovimientosTableP
       value: formatPrice(Math.abs(netBalance)),
       count: movements.length,
       icon: netBalance >= 0 ? TrendingUp : TrendingDown,
-      color: netBalance > 0 ? 'text-blue-400' : netBalance < 0 ? 'text-red-400' : 'text-[var(--admin-text-muted)]',
+      color: netBalance > 0 ? 'text-blue-700 dark:text-blue-400' : netBalance < 0 ? 'text-red-700 dark:text-red-400' : 'text-[var(--admin-text-muted)]',
       bg: netBalance > 0 ? 'bg-blue-500/10' : netBalance < 0 ? 'bg-red-500/10' : 'bg-[var(--admin-surface-2)]',
       prefix: netBalance >= 0 ? '+' : '-',
     },
@@ -186,9 +186,9 @@ export function MovimientosTable({ movements, sessionFilter }: MovimientosTableP
                 'px-3 h-7 rounded-md text-xs font-medium transition-all cursor-pointer',
                 filterType === type
                   ? type === 'deposit'
-                    ? 'bg-green-500/20 text-green-400'
+                    ? 'bg-green-500/20 text-green-700 dark:text-green-400'
                     : type === 'withdrawal'
-                      ? 'bg-red-500/20 text-red-400'
+                      ? 'bg-red-500/20 text-red-700 dark:text-red-400'
                       : 'bg-[var(--admin-accent)]/20 text-[var(--admin-accent-text)]'
                   : 'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
               )}
@@ -276,12 +276,12 @@ export function MovimientosTable({ movements, sessionFilter }: MovimientosTableP
                     {/* Tipo badge */}
                     <TableCell>
                       {m.type === 'deposit' ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500/12 text-green-400 border border-green-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500/12 text-green-700 dark:text-green-400 border border-green-500/20">
                           <PlusCircle className="h-3 w-3" />
                           Ingreso
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/12 text-red-400 border border-red-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/12 text-red-700 dark:text-red-400 border border-red-500/20">
                           <MinusCircle className="h-3 w-3" />
                           Retiro
                         </span>
@@ -292,7 +292,7 @@ export function MovimientosTable({ movements, sessionFilter }: MovimientosTableP
                     <TableCell>
                       <span className={cn(
                         'text-sm font-bold tabular-nums',
-                        m.type === 'deposit' ? 'text-green-400' : 'text-red-400'
+                        m.type === 'deposit' ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'
                       )}>
                         {m.type === 'deposit' ? '+' : '-'}{formatPrice(m.amount)}
                       </span>
@@ -317,7 +317,7 @@ export function MovimientosTable({ movements, sessionFilter }: MovimientosTableP
                           <span className={cn(
                             'text-[10px] font-medium',
                             m.cash_register_sessions.status === 'open'
-                              ? 'text-green-400'
+                              ? 'text-green-700 dark:text-green-400'
                               : 'text-[var(--admin-text-faint)]'
                           )}>
                             {m.cash_register_sessions.status === 'open' ? '● Abierta' : 'Cerrada'}
@@ -340,14 +340,14 @@ export function MovimientosTable({ movements, sessionFilter }: MovimientosTableP
             </span>
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-1.5">
-                <PlusCircle className="h-3.5 w-3.5 text-green-400" />
-                <span className="text-xs font-semibold text-green-400 tabular-nums">
+                <PlusCircle className="h-3.5 w-3.5 text-green-700 dark:text-green-400" />
+                <span className="text-xs font-semibold text-green-700 dark:text-green-400 tabular-nums">
                   +{formatPrice(filtered.filter(m => m.type === 'deposit').reduce((s, m) => s + m.amount, 0))}
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
-                <MinusCircle className="h-3.5 w-3.5 text-red-400" />
-                <span className="text-xs font-semibold text-red-400 tabular-nums">
+                <MinusCircle className="h-3.5 w-3.5 text-red-700 dark:text-red-400" />
+                <span className="text-xs font-semibold text-red-700 dark:text-red-400 tabular-nums">
                   -{formatPrice(filtered.filter(m => m.type === 'withdrawal').reduce((s, m) => s + m.amount, 0))}
                 </span>
               </div>
@@ -359,7 +359,7 @@ export function MovimientosTable({ movements, sessionFilter }: MovimientosTableP
                   return (
                     <span className={cn(
                       'text-xs font-bold tabular-nums',
-                      net > 0 ? 'text-blue-400' : net < 0 ? 'text-red-400' : 'text-[var(--admin-text-muted)]'
+                      net > 0 ? 'text-blue-700 dark:text-blue-400' : net < 0 ? 'text-red-700 dark:text-red-400' : 'text-[var(--admin-text-muted)]'
                     )}>
                       {net >= 0 ? '+' : ''}{formatPrice(net)}
                     </span>

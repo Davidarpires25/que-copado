@@ -16,23 +16,23 @@ interface MovementsTabProps {
 }
 
 const MOVEMENT_ICON: Record<StockMovementType, React.ReactNode> = {
-  purchase: <ArrowUp className="h-3.5 w-3.5 text-green-400" />,
-  initial: <ArrowUp className="h-3.5 w-3.5 text-blue-400" />,
-  return: <ArrowUp className="h-3.5 w-3.5 text-green-400" />,
-  adjustment: <RefreshCw className="h-3.5 w-3.5 text-yellow-400" />,
-  waste: <ArrowDown className="h-3.5 w-3.5 text-red-400" />,
-  sale: <ArrowDown className="h-3.5 w-3.5 text-orange-400" />,
-  sale_reversal: <ArrowUp className="h-3.5 w-3.5 text-cyan-400" />,
+  purchase: <ArrowUp className="h-3.5 w-3.5 text-green-700 dark:text-green-400" />,
+  initial: <ArrowUp className="h-3.5 w-3.5 text-blue-700 dark:text-blue-400" />,
+  return: <ArrowUp className="h-3.5 w-3.5 text-green-700 dark:text-green-400" />,
+  adjustment: <RefreshCw className="h-3.5 w-3.5 text-yellow-700 dark:text-yellow-400" />,
+  waste: <ArrowDown className="h-3.5 w-3.5 text-red-700 dark:text-red-400" />,
+  sale: <ArrowDown className="h-3.5 w-3.5 text-orange-700 dark:text-orange-400" />,
+  sale_reversal: <ArrowUp className="h-3.5 w-3.5 text-cyan-700 dark:text-cyan-400" />,
 }
 
 const MOVEMENT_BADGE_CLASS: Record<StockMovementType, string> = {
-  purchase: 'bg-green-500/15 text-green-400 border-green-500/30',
-  initial: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-  return: 'bg-green-500/15 text-green-400 border-green-500/30',
-  adjustment: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30',
-  waste: 'bg-red-500/15 text-red-400 border-red-500/30',
-  sale: 'bg-orange-500/15 text-orange-400 border-orange-500/30',
-  sale_reversal: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',
+  purchase: 'bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/30',
+  initial: 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30',
+  return: 'bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/30',
+  adjustment: 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-500/30',
+  waste: 'bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/30',
+  sale: 'bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30',
+  sale_reversal: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400 border-cyan-500/30',
 }
 
 export function MovementsTab({ initialMovements }: MovementsTabProps) {
@@ -217,7 +217,7 @@ export function MovementsTab({ initialMovements }: MovementsTabProps) {
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className={`font-semibold ${mov.quantity >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      <span className={`font-semibold ${mov.quantity >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
                         {formatQuantity(mov)}
                       </span>
                     </td>

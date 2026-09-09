@@ -19,7 +19,7 @@ export default function AdminError({
     <div className="min-h-screen bg-[var(--admin-surface)] flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-[var(--admin-bg)] border border-red-500/30 rounded-xl p-8 text-center space-y-6">
         <div className="w-20 h-20 mx-auto rounded-full bg-red-500/10 flex items-center justify-center">
-          <AlertTriangle className="h-10 w-10 text-red-400" />
+          <AlertTriangle className="h-10 w-10 text-red-700 dark:text-red-400" />
         </div>
 
         <div>
@@ -30,7 +30,7 @@ export default function AdminError({
             Ocurrio un error inesperado. Podes intentar de nuevo o volver al dashboard.
           </p>
           {error.message && (
-            <p className="text-xs text-red-400/70 mt-3 font-mono bg-red-950/20 rounded-lg px-3 py-2 break-all">
+            <p className="text-xs text-red-700 dark:text-red-400/70 mt-3 font-mono bg-red-950/20 rounded-lg px-3 py-2 break-all">
               {error.message}
             </p>
           )}

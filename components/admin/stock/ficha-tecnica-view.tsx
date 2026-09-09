@@ -85,7 +85,7 @@ function IngredientRow({
             </span>
           )}
           {ing.waste_pct > 0 && (
-            <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-red-500 bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded">
+            <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-red-700 dark:text-red-500 bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded">
               <TrendingDown className="h-2.5 w-2.5" />
               {ing.waste_pct}%
             </span>
@@ -108,7 +108,7 @@ function IngredientRow({
         {/* Merma */}
         <div className="text-right tabular-nums text-[12px] shrink-0" style={{ width: 80 }}>
           {ing.waste_pct > 0
-            ? <span className="text-red-500 font-medium">{ing.waste_pct}%</span>
+            ? <span className="text-red-700 dark:text-red-500 font-medium">{ing.waste_pct}%</span>
             : <span className="text-[var(--admin-text-faint)]">—</span>
           }
         </div>
@@ -153,7 +153,7 @@ function ShoppingRow({ item, quantity, isEven }: {
       <div className="flex-1 min-w-0 mr-3">
         <span className={cn(
           'text-sm font-medium truncate',
-          isShort ? 'text-amber-500' : 'text-[var(--admin-text)]'
+          isShort ? 'text-amber-700 dark:text-amber-500' : 'text-[var(--admin-text)]'
         )}>
           {item.name}
         </span>
@@ -184,14 +184,14 @@ function ShoppingRow({ item, quantity, isEven }: {
         ) : isShort ? (
           <>
             <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-            <span className="text-xs font-semibold text-red-500">
+            <span className="text-xs font-semibold text-red-700 dark:text-red-500">
               falta {formatQty(Math.abs(delta!), item.unit)}
             </span>
           </>
         ) : (
           <>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-            <span className="text-xs font-semibold text-emerald-500">
+            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-500">
               Suficiente
             </span>
           </>

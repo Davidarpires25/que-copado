@@ -84,7 +84,7 @@ function IngredientRow({
               </Badge>
             )}
             {ing.waste_pct > 0 && (
-              <span className="text-[10px] text-amber-500/70 ml-1">{ing.waste_pct}% merma</span>
+              <span className="text-[10px] text-amber-700 dark:text-amber-500/70 ml-1">{ing.waste_pct}% merma</span>
             )}
           </div>
         </TableCell>
@@ -93,7 +93,7 @@ function IngredientRow({
         </TableCell>
         <TableCell className="text-right tabular-nums text-sm">
           {showGross ? (
-            <span className="text-amber-400 font-medium">{formatQty(grossQty, ing.unit)}</span>
+            <span className="text-amber-700 dark:text-amber-400 font-medium">{formatQty(grossQty, ing.unit)}</span>
           ) : (
             <span className="text-[var(--admin-text-muted)]">—</span>
           )}
@@ -127,7 +127,7 @@ function ShoppingRow({
     <TableRow className={`border-[var(--admin-border)] hover:bg-[var(--admin-surface-2)] ${isShort ? 'bg-amber-500/5' : ''}`}>
       <TableCell>
         <div className="flex items-center gap-2">
-          {isShort && <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />}
+          {isShort && <AlertTriangle className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400 shrink-0" />}
           <span className={`text-sm font-medium ${isShort ? 'text-amber-300' : 'text-[var(--admin-text)]'}`}>
             {item.name}
           </span>
@@ -138,7 +138,7 @@ function ShoppingRow({
       </TableCell>
       <TableCell className="text-right tabular-nums text-sm">
         {showGross ? (
-          <span className="text-amber-400">{formatQty(grossQty, item.unit)}</span>
+          <span className="text-amber-700 dark:text-amber-400">{formatQty(grossQty, item.unit)}</span>
         ) : (
           <span className="text-[var(--admin-text-muted)]">—</span>
         )}
@@ -154,10 +154,10 @@ function ShoppingRow({
         ) : isShort ? (
           <span className="text-amber-300 font-bold text-xs">
             {formatQty(item.current_stock, item.unit)}{' '}
-            <span className="text-amber-400/80">(falta {formatQty(Math.abs(delta!), item.unit)})</span>
+            <span className="text-amber-700 dark:text-amber-400/80">(falta {formatQty(Math.abs(delta!), item.unit)})</span>
           </span>
         ) : (
-          <span className="text-green-400 text-xs">{formatQty(item.current_stock, item.unit)} ✓</span>
+          <span className="text-green-700 dark:text-green-400 text-xs">{formatQty(item.current_stock, item.unit)} ✓</span>
         )}
       </TableCell>
     </TableRow>

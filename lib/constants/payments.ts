@@ -21,7 +21,10 @@ export interface PaymentMethodConfig {
   /** Version corta para espacios angostos (chips, columnas de tabla). */
   shortLabel: string
   icon: React.ElementType
-  /** Color del texto/icono. Incluye variante dark para contraste en ambos temas. */
+  /**
+   * Color del texto/icono. Regla del repo: `-700` en claro, `-400` en oscuro.
+   * Los tonos `-600` no llegan a 4.5:1 sobre blanco (emerald-600 da 3.77:1).
+   */
   textClass: string
   bgClass: string
   borderClass: string
@@ -35,7 +38,7 @@ export const PAYMENT_METHODS: PaymentMethodConfig[] = [
     label: 'Efectivo',
     shortLabel: 'Efectivo',
     icon: Banknote,
-    textClass: 'text-emerald-600 dark:text-emerald-400',
+    textClass: 'text-emerald-700 dark:text-emerald-400',
     bgClass: 'bg-emerald-500/10',
     borderClass: 'border-emerald-500/25',
     dotClass: 'bg-emerald-500',
@@ -45,7 +48,7 @@ export const PAYMENT_METHODS: PaymentMethodConfig[] = [
     label: 'Tarjeta',
     shortLabel: 'Tarjeta',
     icon: CreditCard,
-    textClass: 'text-sky-600 dark:text-sky-400',
+    textClass: 'text-sky-700 dark:text-sky-400',
     bgClass: 'bg-sky-500/10',
     borderClass: 'border-sky-500/25',
     dotClass: 'bg-sky-500',
@@ -55,7 +58,7 @@ export const PAYMENT_METHODS: PaymentMethodConfig[] = [
     label: 'Transferencia',
     shortLabel: 'Transf.',
     icon: Landmark,
-    textClass: 'text-violet-600 dark:text-violet-400',
+    textClass: 'text-violet-700 dark:text-violet-400',
     bgClass: 'bg-violet-500/10',
     borderClass: 'border-violet-500/25',
     dotClass: 'bg-violet-500',
@@ -65,7 +68,7 @@ export const PAYMENT_METHODS: PaymentMethodConfig[] = [
     label: 'Mercado Pago',
     shortLabel: 'M. Pago',
     icon: QrCode,
-    textClass: 'text-cyan-600 dark:text-cyan-400',
+    textClass: 'text-cyan-700 dark:text-cyan-400',
     bgClass: 'bg-cyan-500/10',
     borderClass: 'border-cyan-500/25',
     dotClass: 'bg-cyan-500',

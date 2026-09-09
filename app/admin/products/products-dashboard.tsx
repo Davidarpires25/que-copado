@@ -89,7 +89,7 @@ function StatsCards({ total, active, outOfStock }: StatsCardsProps) {
             <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{active}</p>
           </div>
           <div className="w-10 h-10 lg:w-12 lg:h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
-            <Check className="h-5 w-5 lg:h-6 lg:w-6 text-green-500" />
+            <Check className="h-5 w-5 lg:h-6 lg:w-6 text-green-700 dark:text-green-500" />
           </div>
         </div>
       </motion.div>
@@ -106,7 +106,7 @@ function StatsCards({ total, active, outOfStock }: StatsCardsProps) {
             <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{outOfStock}</p>
           </div>
           <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-500/10 rounded-xl flex items-center justify-center">
-            <X className="h-5 w-5 lg:h-6 lg:w-6 text-red-500" />
+            <X className="h-5 w-5 lg:h-6 lg:w-6 text-red-700 dark:text-red-500" />
           </div>
         </div>
       </motion.div>
@@ -541,11 +541,11 @@ export function ProductsDashboard({
                           </TableCell>
                           <TableCell className="hidden lg:table-cell">
                             {product.product_type === 'reventa' ? (
-                              <span className="text-xs bg-blue-500/15 text-blue-400 px-2 py-1 rounded-full font-medium border border-blue-500/20">
+                              <span className="text-xs bg-blue-500/15 text-blue-700 dark:text-blue-400 px-2 py-1 rounded-full font-medium border border-blue-500/20">
                                 Reventa
                               </span>
                             ) : (
-                              <span className="text-xs bg-emerald-500/15 text-emerald-400 px-2 py-1 rounded-full font-medium border border-emerald-500/20">
+                              <span className="text-xs bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 px-2 py-1 rounded-full font-medium border border-emerald-500/20">
                                 Elaborado
                               </span>
                             )}
@@ -567,7 +567,7 @@ export function ProductsDashboard({
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  className="h-9 w-9 text-green-500 hover:text-green-400 hover:bg-green-950/30 transition-colors"
+                                  className="h-9 w-9 text-green-700 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 hover:bg-green-950/30 transition-colors"
                                   onClick={() => handlePriceSave(product.id)}
                                 >
                                   <Check className="h-3.5 w-3.5" />
@@ -575,7 +575,7 @@ export function ProductsDashboard({
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  className="h-9 w-9 text-red-500 hover:text-red-400 hover:bg-red-950/30 transition-colors"
+                                  className="h-9 w-9 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-950/30 transition-colors"
                                   onClick={() => setEditingPrice(null)}
                                 >
                                   <X className="h-3.5 w-3.5" />
@@ -651,7 +651,7 @@ export function ProductsDashboard({
                                   <Button
                                     size="icon"
                                     variant="ghost"
-                                    className="h-9 w-9 lg:h-10 lg:w-10 text-red-500 hover:text-red-400 hover:bg-red-950/30 transition-all duration-200"
+                                    className="h-9 w-9 lg:h-10 lg:w-10 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-950/30 transition-all duration-200"
                                     onClick={() => setDeleteTarget(product.id)}
                                   >
                                     <Trash2 className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
@@ -690,7 +690,7 @@ export function ProductsDashboard({
               variant="ghost"
               disabled={isBulkAction}
               onClick={() => handleBulkActivate(true)}
-              className="text-green-400 hover:text-green-300 hover:bg-green-950/30 text-xs gap-1.5"
+              className="text-green-700 dark:text-green-400 hover:text-green-300 hover:bg-green-950/30 text-xs gap-1.5"
             >
               <Eye className="h-3.5 w-3.5" />
               Activar
@@ -710,7 +710,7 @@ export function ProductsDashboard({
               variant="ghost"
               disabled={isBulkAction}
               onClick={() => setBulkDeleteConfirm(true)}
-              className="text-red-400 hover:text-red-300 hover:bg-red-950/30 text-xs gap-1.5"
+              className="text-red-700 dark:text-red-400 hover:text-red-300 hover:bg-red-950/30 text-xs gap-1.5"
             >
               <Trash2 className="h-3.5 w-3.5" />
               Eliminar

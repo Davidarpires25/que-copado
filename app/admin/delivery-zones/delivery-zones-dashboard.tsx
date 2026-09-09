@@ -95,7 +95,7 @@ export function DeliveryZonesDashboard({ initialZones }: DeliveryZonesDashboardP
               <p className="text-3xl font-bold text-[var(--admin-text)] mt-1">{activeZones.length}</p>
             </div>
             <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
-              <Check className="h-6 w-6 text-green-500" />
+              <Check className="h-6 w-6 text-green-700 dark:text-green-500" />
             </div>
           </div>
         </div>

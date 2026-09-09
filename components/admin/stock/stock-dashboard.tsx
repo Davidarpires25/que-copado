@@ -149,7 +149,7 @@ export function StockDashboard({
                 {alerts.length + elaboradosAgotados}
               </p>
               {(alerts.length > 0 || elaboradosAgotados > 0) && (
-                <p className="text-sm text-red-400 mt-0.5 font-medium leading-tight">
+                <p className="text-sm text-red-700 dark:text-red-400 mt-0.5 font-medium leading-tight">
                   {ingredientAlerts.length > 0 && `${ingredientAlerts.length} ingrediente${ingredientAlerts.length !== 1 ? 's' : ''} bajo`}
                   {ingredientAlerts.length > 0 && (productAlerts.length > 0 || elaboradosAgotados > 0) && ' · '}
                   {productAlerts.length > 0 && `${productAlerts.length} reventa${productAlerts.length !== 1 ? 's' : ''} bajo`}
@@ -165,7 +165,7 @@ export function StockDashboard({
             >
               <AlertTriangle
                 className={`h-5 w-5 lg:h-6 lg:w-6 ${
-                  alerts.length > 0 || elaboradosAgotados > 0 ? 'text-red-500' : 'text-green-500'
+                  alerts.length > 0 || elaboradosAgotados > 0 ? 'text-red-700 dark:text-red-500' : 'text-green-700 dark:text-green-500'
                 }`}
               />
             </div>
@@ -187,7 +187,7 @@ export function StockDashboard({
               </p>
             </div>
             <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center ${reservedTotal > 0 ? 'bg-yellow-500/10' : 'bg-[var(--admin-surface-2)]'}`}>
-              <Lock className={`h-5 w-5 lg:h-6 lg:w-6 ${reservedTotal > 0 ? 'text-yellow-500' : 'text-[var(--admin-text-muted)]'}`} />
+              <Lock className={`h-5 w-5 lg:h-6 lg:w-6 ${reservedTotal > 0 ? 'text-yellow-700 dark:text-yellow-500' : 'text-[var(--admin-text-muted)]'}`} />
             </div>
           </div>
         </div>
@@ -207,7 +207,7 @@ export function StockDashboard({
               )}
             </div>
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-blue-500/10 rounded-xl flex items-center justify-center">
-              <RefreshCw className="h-5 w-5 lg:h-6 lg:w-6 text-blue-500" />
+              <RefreshCw className="h-5 w-5 lg:h-6 lg:w-6 text-blue-700 dark:text-blue-500" />
             </div>
           </div>
         </div>
@@ -254,7 +254,7 @@ export function StockDashboard({
       {/* Alert banner (ingredient alerts, shown above tabs) */}
       {activeTab === 'ingredientes' && ingredientAlerts.length > 0 && (
         <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
-          <AlertTriangle className="h-5 w-5 text-red-400 shrink-0" />
+          <AlertTriangle className="h-5 w-5 text-red-700 dark:text-red-400 shrink-0" />
           <p className="text-sm text-red-600 dark:text-red-300">
             <span className="font-semibold">{ingredientAlerts.length}</span>{' '}
             ingrediente{ingredientAlerts.length !== 1 ? 's' : ''} con stock bajo. Revisá los items marcados en la tabla.

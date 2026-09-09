@@ -61,7 +61,7 @@ function TheoreticalStockChip({ stock }: { stock: number | null | undefined }) {
 
   if (level === 'empty') {
     return (
-      <Badge className="bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/15 gap-1.5">
+      <Badge className="bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30 hover:bg-red-500/15 gap-1.5">
         <AlertTriangle className="h-3 w-3" />
         Agotado
       </Badge>
@@ -70,14 +70,14 @@ function TheoreticalStockChip({ stock }: { stock: number | null | undefined }) {
 
   if (level === 'critical') {
     return (
-      <Badge className="bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/15">
+      <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/15">
         Crítico: {stock}
       </Badge>
     )
   }
 
   return (
-    <Badge className="bg-green-500/15 text-green-400 border border-green-500/30 hover:bg-green-500/15">
+    <Badge className="bg-green-500/15 text-green-700 dark:text-green-400 border border-green-500/30 hover:bg-green-500/15">
       Disponible: {stock}
     </Badge>
   )
@@ -145,7 +145,7 @@ export function ElaboradoStockSection({
       {/* Banner de alertas */}
       {agotadosCount > 0 && (
         <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
+          <AlertTriangle className="h-5 w-5 text-red-700 dark:text-red-400 shrink-0 mt-0.5" />
           <p className="text-sm text-red-300">
             <span className="font-semibold">{agotadosCount}</span>{' '}
             {agotadosCount === 1 ? 'producto elaborado agotado' : 'productos elaborados agotados'}.{' '}
@@ -216,7 +216,7 @@ export function ElaboradoStockSection({
                       {/* Nombre + badges */}
                       <TableCell>
                         <div className="flex flex-wrap items-center gap-2">
-                          {isAgotado && <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />}
+                          {isAgotado && <AlertTriangle className="h-4 w-4 text-red-700 dark:text-red-400 shrink-0" />}
                           <p className="font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors text-sm lg:text-base">
                             {product.name}
                           </p>
@@ -224,7 +224,7 @@ export function ElaboradoStockSection({
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Badge className="bg-red-500/20 text-red-400 border border-red-500/40 hover:bg-red-500/20 text-xs cursor-help">
+                                  <Badge className="bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/40 hover:bg-red-500/20 text-xs cursor-help">
                                     Auto-deshabilitado
                                   </Badge>
                                 </TooltipTrigger>
@@ -260,11 +260,11 @@ export function ElaboradoStockSection({
                       {/* Estado venta */}
                       <TableCell className="text-center hidden sm:table-cell">
                         {product.is_out_of_stock ? (
-                          <Badge className="bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/15">
+                          <Badge className="bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30 hover:bg-red-500/15">
                             No disponible
                           </Badge>
                         ) : (
-                          <Badge className="bg-green-500/15 text-green-400 border border-green-500/30 hover:bg-green-500/15">
+                          <Badge className="bg-green-500/15 text-green-700 dark:text-green-400 border border-green-500/30 hover:bg-green-500/15">
                             A la venta
                           </Badge>
                         )}
@@ -300,8 +300,8 @@ export function ElaboradoStockSection({
                                 variant="ghost"
                                 className={`h-9 w-9 lg:h-10 lg:w-10 transition-all ${
                                   product.is_out_of_stock
-                                    ? 'text-green-400 hover:text-green-300 hover:bg-green-500/10'
-                                    : 'text-[var(--admin-text-muted)] hover:text-red-400 hover:bg-red-500/10'
+                                    ? 'text-green-700 dark:text-green-400 hover:text-green-300 hover:bg-green-500/10'
+                                    : 'text-[var(--admin-text-muted)] hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/10'
                                 }`}
                                 onClick={() => handleToggleAvailability(product)}
                                 disabled={isLoading}

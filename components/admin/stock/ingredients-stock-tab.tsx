@@ -117,12 +117,12 @@ export function IngredientsStockTab({
     }
     const days = forecast.days_remaining
     if (days < 3) {
-      return <span className="text-red-400 text-sm font-semibold">{days < 1 ? '<1d' : `~${Math.floor(days)}d`}</span>
+      return <span className="text-red-700 dark:text-red-400 text-sm font-semibold">{days < 1 ? '<1d' : `~${Math.floor(days)}d`}</span>
     }
     if (days < 7) {
-      return <span className="text-yellow-400 text-sm font-medium">~{Math.floor(days)}d</span>
+      return <span className="text-yellow-700 dark:text-yellow-400 text-sm font-medium">~{Math.floor(days)}d</span>
     }
-    return <span className="text-green-400 text-sm">~{Math.floor(days)}d</span>
+    return <span className="text-green-700 dark:text-green-400 text-sm">~{Math.floor(days)}d</span>
   }
 
   return (
@@ -168,7 +168,7 @@ export function IngredientsStockTab({
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {lowStock && (
-                            <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
+                            <AlertTriangle className="h-4 w-4 text-red-700 dark:text-red-400 shrink-0" />
                           )}
                           <p className="font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors text-sm lg:text-base">
                             {ingredient.name}
@@ -182,7 +182,7 @@ export function IngredientsStockTab({
                       </TableCell>
                       <TableCell>
                         {ingredient.stock_tracking_enabled ? (
-                          <span className={`font-semibold text-sm lg:text-base ${lowStock ? 'text-red-400' : 'text-[var(--admin-text)]'}`}>
+                          <span className={`font-semibold text-sm lg:text-base ${lowStock ? 'text-red-700 dark:text-red-400' : 'text-[var(--admin-text)]'}`}>
                             {formatStock(ingredient.current_stock, ingredient.unit)}
                           </span>
                         ) : (
@@ -205,12 +205,12 @@ export function IngredientsStockTab({
                       </TableCell>
                       <TableCell className="text-center">
                         {status === 'ok' && (
-                          <Badge className="bg-green-500/15 text-green-400 border border-green-500/30 hover:bg-green-500/15">
+                          <Badge className="bg-green-500/15 text-green-700 dark:text-green-400 border border-green-500/30 hover:bg-green-500/15">
                             OK
                           </Badge>
                         )}
                         {status === 'low' && (
-                          <Badge className="bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/15 animate-pulse-soft">
+                          <Badge className="bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30 hover:bg-red-500/15 animate-pulse-soft">
                             Bajo
                           </Badge>
                         )}

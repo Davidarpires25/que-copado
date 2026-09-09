@@ -156,7 +156,7 @@ export function IngredientFormPage({ mode, ingredient, categories }: IngredientF
         {/* Nombre */}
         <div className="space-y-1.5">
           <Label htmlFor="ing-name" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
-            Nombre <span className="text-red-400 ml-0.5">*</span>
+            Nombre <span className="text-red-700 dark:text-red-400 ml-0.5">*</span>
           </Label>
           <Input
             id="ing-name"
@@ -167,7 +167,7 @@ export function IngredientFormPage({ mode, ingredient, categories }: IngredientF
             disabled={isPending}
             className={nameError ? inputError : inputBase}
           />
-          {nameError && <p className="text-xs text-red-400">{nameError}</p>}
+          {nameError && <p className="text-xs text-red-700 dark:text-red-400">{nameError}</p>}
         </div>
 
         {/* Unidad + Costo */}
@@ -196,7 +196,7 @@ export function IngredientFormPage({ mode, ingredient, categories }: IngredientF
 
           <div className="space-y-1.5">
             <Label htmlFor="ing-cost" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
-              Costo / Unidad <span className="text-red-400 ml-0.5">*</span>
+              Costo / Unidad <span className="text-red-700 dark:text-red-400 ml-0.5">*</span>
             </Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold pointer-events-none">$</span>
@@ -213,7 +213,7 @@ export function IngredientFormPage({ mode, ingredient, categories }: IngredientF
                 className={`pl-7 ${costError ? inputError : inputBase}`}
               />
             </div>
-            {costError && <p className="text-xs text-red-400">{costError}</p>}
+            {costError && <p className="text-xs text-red-700 dark:text-red-400">{costError}</p>}
           </div>
         </div>
 

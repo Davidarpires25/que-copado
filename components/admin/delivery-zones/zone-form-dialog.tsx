@@ -176,7 +176,7 @@ function ZoneFormContent({ zone, drawnGeometry, onZoneUpdated, onZoneCreated, on
         </div>
       ) : (
         <div className="flex items-start gap-3 rounded-lg border border-sky-700/40 bg-sky-950/40 px-4 py-3">
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-700 dark:text-sky-400" />
           <div>
             <p className="text-sm font-medium text-sky-300 mb-0.5">Área de cobertura requerida</p>
             <p className="text-xs text-sky-300/70">

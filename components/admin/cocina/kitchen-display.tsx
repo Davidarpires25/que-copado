@@ -67,12 +67,12 @@ export function KitchenDisplay({ initialComandas }: KitchenDisplayProps) {
           </h1>
           <div className="flex items-center gap-2">
             {pendingCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400">
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-700 dark:text-amber-400">
                 {pendingCount} pendiente{pendingCount > 1 ? 's' : ''}
               </span>
             )}
             {inPrepCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400">
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-700 dark:text-blue-400">
                 {inPrepCount} en prep
               </span>
             )}

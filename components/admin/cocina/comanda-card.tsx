@@ -138,7 +138,7 @@ export function ComandaCard({ comanda }: ComandaCardProps) {
         )}
 
         {status === 'listo' && (
-          <div className="flex-1 py-1.5 rounded-lg text-xs font-bold text-center text-green-400 bg-green-500/10">
+          <div className="flex-1 py-1.5 rounded-lg text-xs font-bold text-center text-green-700 dark:text-green-400 bg-green-500/10">
             ✓ Listo
           </div>
         )}

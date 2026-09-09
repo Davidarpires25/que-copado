@@ -131,9 +131,9 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         {[
           { label: 'Total', value: statusCounts.all, color: 'text-[var(--admin-accent-text)]', bg: 'bg-[var(--admin-accent)]/10', border: 'hover:border-[var(--admin-accent)]/30', icon: ClipboardList },
-          { label: 'Abiertos', value: statusCounts.abierto + statusCounts.recibido, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'hover:border-blue-500/30', icon: Filter },
-          { label: 'Pagados', value: statusCounts.pagado + statusCounts.entregado, color: 'text-green-500', bg: 'bg-green-500/10', border: 'hover:border-green-500/30', icon: Search },
-          { label: 'Cancelados', value: statusCounts.cancelado, color: 'text-red-500', bg: 'bg-red-500/10', border: 'hover:border-red-500/30', icon: SearchX },
+          { label: 'Abiertos', value: statusCounts.abierto + statusCounts.recibido, color: 'text-blue-700 dark:text-blue-500', bg: 'bg-blue-500/10', border: 'hover:border-blue-500/30', icon: Filter },
+          { label: 'Pagados', value: statusCounts.pagado + statusCounts.entregado, color: 'text-green-700 dark:text-green-500', bg: 'bg-green-500/10', border: 'hover:border-green-500/30', icon: Search },
+          { label: 'Cancelados', value: statusCounts.cancelado, color: 'text-red-700 dark:text-red-500', bg: 'bg-red-500/10', border: 'hover:border-red-500/30', icon: SearchX },
         ].map(({ label, value, color, bg, border, icon: Icon }) => (
           <div key={label} className={`bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] ${border} transition-all`}>
             <div className="flex items-center justify-between">

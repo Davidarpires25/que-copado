@@ -235,7 +235,7 @@ function OrderRow({
                         e.stopPropagation()
                         onCancelOrder(order.id)
                       }}
-                      className="h-7 px-3 text-xs text-red-400 hover:text-red-300 hover:bg-red-950/30 active:scale-95 transition-all"
+                      className="h-7 px-3 text-xs text-red-700 dark:text-red-400 hover:text-red-300 hover:bg-red-950/30 active:scale-95 transition-all"
                     >
                       Anular
                     </Button>

@@ -267,7 +267,7 @@ export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCo
               type="submit"
               variant="ghost"
               className={cn(
-                'w-full text-[var(--admin-text-muted)] hover:text-red-500 hover:bg-red-500/10 h-9',
+                'w-full text-[var(--admin-text-muted)] hover:text-red-700 dark:hover:text-red-500 hover:bg-red-500/10 h-9',
                 collapsed ? 'justify-center px-0' : 'justify-start gap-3'
               )}
             >
@@ -384,7 +384,7 @@ export function MobileSidebar({ open, onClose, stockAlertCount = 0 }: MobileSide
                 <Button
                   type="submit"
                   variant="ghost"
-                  className="w-full justify-start gap-3 text-[var(--admin-text-muted)] hover:text-red-500 hover:bg-red-500/10 h-10"
+                  className="w-full justify-start gap-3 text-[var(--admin-text-muted)] hover:text-red-700 dark:hover:text-red-500 hover:bg-red-500/10 h-10"
                 >
                   <LogOut className="h-5 w-5" />
                   <span className="font-medium">Cerrar Sesion</span>

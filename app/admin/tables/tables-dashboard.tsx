@@ -149,7 +149,7 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
             <p className="text-xs text-[var(--admin-text-muted)] mt-1">Total</p>
           </div>
           <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-green-400">{activeCount}</p>
+            <p className="text-2xl font-bold text-green-700 dark:text-green-400">{activeCount}</p>
             <p className="text-xs text-[var(--admin-text-muted)] mt-1">Activas</p>
           </div>
           <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 text-center">
@@ -284,7 +284,7 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
                               size="icon"
                               onClick={() => setDeleteTarget(table)}
                               disabled={deletingId === table.id}
-                              className="h-9 w-9 text-[var(--admin-text-muted)] hover:text-red-400 hover:bg-red-500/10"
+                              className="h-9 w-9 text-[var(--admin-text-muted)] hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/10"
                             >
                               {deletingId === table.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />

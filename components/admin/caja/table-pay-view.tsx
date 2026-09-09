@@ -303,7 +303,7 @@ export function TablePayView({
                 </div>
                 {totalItemCount > 0 && (
                   <div className="flex items-center gap-1.5 px-2.5 rounded-full bg-green-400/10 border border-green-400/20" style={{ height: 24 }}>
-                    <span className="text-[11px] font-semibold text-green-400">
+                    <span className="text-[11px] font-semibold text-green-700 dark:text-green-400">
                       {totalItemCount} {totalItemCount === 1 ? 'item' : 'items'}
                     </span>
                   </div>
@@ -631,16 +631,16 @@ export function TablePayView({
                   </div>
                   {!isComplete && activePayments.length > 0 && (
                     <div className="flex items-center justify-between">
-                      <span className="text-[13px] font-medium text-amber-400">Restante</span>
-                      <span className="text-[13px] font-semibold text-amber-400 tabular-nums">
+                      <span className="text-[13px] font-medium text-amber-700 dark:text-amber-400">Restante</span>
+                      <span className="text-[13px] font-semibold text-amber-700 dark:text-amber-400 tabular-nums">
                         {formatPrice(remaining)}
                       </span>
                     </div>
                   )}
                   {change > 0 && (
                     <div className="flex items-center justify-between">
-                      <span className="text-[13px] font-medium text-green-400">Vuelto</span>
-                      <span className="text-[13px] font-semibold text-green-400 tabular-nums">
+                      <span className="text-[13px] font-medium text-green-700 dark:text-green-400">Vuelto</span>
+                      <span className="text-[13px] font-semibold text-green-700 dark:text-green-400 tabular-nums">
                         {formatPrice(change)}
                       </span>
                     </div>
@@ -674,7 +674,7 @@ export function TablePayView({
             {!stockChecking && hasStockWarnings && (
               <div className="rounded-xl bg-amber-950/50 border border-amber-500/40 px-4 py-3 space-y-2">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+                  <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-400 shrink-0" />
                   <p className="text-sm font-semibold text-amber-300">Stock insuficiente</p>
                 </div>
                 <ul className="space-y-1 pl-6">

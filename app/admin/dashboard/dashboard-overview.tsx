@@ -78,11 +78,11 @@ export function DashboardOverview({
             <Link href="/admin/tables" className="group block">
               <div className="flex items-center gap-3 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl px-4 py-3.5 shadow-[var(--shadow-card)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer">
                 <div className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${operationalStatus.openTables > 0 ? 'bg-emerald-500/10' : 'bg-[var(--admin-surface-2)]'}`}>
-                  <Table2 className={`h-[18px] w-[18px] ${operationalStatus.openTables > 0 ? 'text-emerald-500' : 'text-[var(--admin-text-placeholder)]'}`} />
+                  <Table2 className={`h-[18px] w-[18px] ${operationalStatus.openTables > 0 ? 'text-emerald-700 dark:text-emerald-500' : 'text-[var(--admin-text-placeholder)]'}`} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs text-[var(--admin-text-muted)] leading-none mb-1">Mesas ocupadas</p>
-                  <p className={`text-xl font-bold leading-none num-tabular ${operationalStatus.openTables > 0 ? 'text-emerald-500' : 'text-[var(--admin-text-muted)]'}`}>
+                  <p className={`text-xl font-bold leading-none num-tabular ${operationalStatus.openTables > 0 ? 'text-emerald-700 dark:text-emerald-500' : 'text-[var(--admin-text-muted)]'}`}>
                     {operationalStatus.openTables}
                   </p>
                 </div>
@@ -93,11 +93,11 @@ export function DashboardOverview({
             <Link href="/admin/orders" className="group block">
               <div className="flex items-center gap-3 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl px-4 py-3.5 shadow-[var(--shadow-card)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer">
                 <div className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${operationalStatus.activeOrders > 0 ? 'bg-blue-500/10' : 'bg-[var(--admin-surface-2)]'}`}>
-                  <ClipboardList className={`h-[18px] w-[18px] ${operationalStatus.activeOrders > 0 ? 'text-blue-500' : 'text-[var(--admin-text-placeholder)]'}`} />
+                  <ClipboardList className={`h-[18px] w-[18px] ${operationalStatus.activeOrders > 0 ? 'text-blue-700 dark:text-blue-500' : 'text-[var(--admin-text-placeholder)]'}`} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs text-[var(--admin-text-muted)] leading-none mb-1">Pedidos activos</p>
-                  <p className={`text-xl font-bold leading-none num-tabular ${operationalStatus.activeOrders > 0 ? 'text-blue-500' : 'text-[var(--admin-text-muted)]'}`}>
+                  <p className={`text-xl font-bold leading-none num-tabular ${operationalStatus.activeOrders > 0 ? 'text-blue-700 dark:text-blue-500' : 'text-[var(--admin-text-muted)]'}`}>
                     {operationalStatus.activeOrders}
                   </p>
                 </div>
@@ -113,16 +113,16 @@ export function DashboardOverview({
                   : 'bg-[var(--admin-surface-2)]'
                 }`}>
                   <AlertTriangle className={`h-[18px] w-[18px] ${
-                    operationalStatus.stockAlerts.length > 3 ? 'text-red-500'
-                    : operationalStatus.stockAlerts.length > 0 ? 'text-amber-500'
+                    operationalStatus.stockAlerts.length > 3 ? 'text-red-700 dark:text-red-500'
+                    : operationalStatus.stockAlerts.length > 0 ? 'text-amber-700 dark:text-amber-500'
                     : 'text-[var(--admin-text-placeholder)]'
                   }`} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs text-[var(--admin-text-muted)] leading-none mb-1">Alertas de stock</p>
                   <p className={`text-xl font-bold leading-none num-tabular ${
-                    operationalStatus.stockAlerts.length > 3 ? 'text-red-500'
-                    : operationalStatus.stockAlerts.length > 0 ? 'text-amber-500'
+                    operationalStatus.stockAlerts.length > 3 ? 'text-red-700 dark:text-red-500'
+                    : operationalStatus.stockAlerts.length > 0 ? 'text-amber-700 dark:text-amber-500'
                     : 'text-[var(--admin-text-muted)]'
                   }`}>
                     {operationalStatus.stockAlerts.length}
@@ -144,7 +144,7 @@ export function DashboardOverview({
           value={formatPrice(stats?.todayRevenue || 0)}
           subtitle={`${stats?.todayOrders || 0} pedidos`}
           icon={Banknote}
-          iconColor="text-green-500"
+          iconColor="text-green-700 dark:text-green-500"
           iconBgColor="bg-green-500/10"
           trend={trends?.todayRevenueTrend || undefined}
           delay={0.1}
@@ -155,7 +155,7 @@ export function DashboardOverview({
           value={formatPrice(stats?.weekRevenue || 0)}
           subtitle={`${stats?.weekOrders || 0} pedidos`}
           icon={TrendingUp}
-          iconColor="text-blue-500"
+          iconColor="text-blue-700 dark:text-blue-500"
           iconBgColor="bg-blue-500/10"
           trend={trends?.weekRevenueTrend || undefined}
           delay={0.15}
@@ -166,7 +166,7 @@ export function DashboardOverview({
           value={formatPrice(stats?.monthRevenue || 0)}
           subtitle={`${stats?.monthOrders || 0} pedidos`}
           icon={ClipboardList}
-          iconColor="text-purple-500"
+          iconColor="text-purple-700 dark:text-purple-500"
           iconBgColor="bg-purple-500/10"
           trend={trends?.monthRevenueTrend || undefined}
           delay={0.2}
