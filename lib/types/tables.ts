@@ -42,30 +42,43 @@ export interface TableWithOrder extends RestaurantTable {
   orders: OrderWithItems | null
 }
 
-// Table status config for UI
+/**
+ * Config unica de estados de mesa.
+ *
+ * `table-card.tsx` tenia su propia copia (`STATUS_STYLES`) que pintaba
+ * "Cuenta pedida" de rojo mientras esta la pintaba de naranja, asi que la misma
+ * mesa cambiaba de color entre el plano y el panel. Se unifico en rojo: es el
+ * unico estado que exige una accion inmediata y tiene que saltar en el salon.
+ */
 export const TABLE_STATUS_CONFIG: Record<TableStatus, {
   label: string
+  /** Color del texto. */
   color: string
   bgColor: string
   borderColor: string
+  /** Fondo solido para puntos e indicadores de estado. */
+  dotColor: string
 }> = {
   libre: {
     label: 'Libre',
     color: 'text-green-400',
     bgColor: 'bg-green-500/10',
     borderColor: 'border-green-500/30',
+    dotColor: 'bg-green-400',
   },
   ocupada: {
     label: 'Ocupada',
     color: 'text-[#FEC501]',
     bgColor: 'bg-[#FEC501]/10',
     borderColor: 'border-[#FEC501]/30',
+    dotColor: 'bg-[#FEC501]',
   },
   cuenta_pedida: {
     label: 'Cuenta Pedida',
-    color: 'text-orange-400',
-    bgColor: 'bg-orange-500/10',
-    borderColor: 'border-orange-500/30',
+    color: 'text-red-400',
+    bgColor: 'bg-red-500/10',
+    borderColor: 'border-red-500/30',
+    dotColor: 'bg-red-400',
   },
 }
 

@@ -20,6 +20,7 @@ import {
 import { AdminLayout } from '@/components/admin/layout'
 import { formatPrice, cn } from '@/lib/utils'
 import type { CashMovementWithSession } from '@/lib/types/cash-register'
+import { StatTile, StatTileGrid } from '@/components/admin/stat-tile'
 
 interface MovimientosTableProps {
   movements: CashMovementWithSession[]
@@ -145,31 +146,23 @@ export function MovimientosTable({ movements, sessionFilter }: MovimientosTableP
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        {stats.map(({ label, value, count, icon: Icon, color, bg, prefix }) => (
-          <div
+      <StatTileGrid>
+        {stats.map(({ label, value, count, icon, color, bg, prefix }) => (
+          <StatTile
             key={label}
-            className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] transition-all"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[var(--admin-text-muted)] text-sm font-medium">{label}</p>
-                <p className={cn('text-2xl lg:text-3xl font-bold mt-1 tabular-nums', color)}>
-                  {prefix}{value}
-                </p>
-                {count !== null && (
-                  <p className="text-xs text-[var(--admin-text-faint)] mt-0.5">
-                    {count} {count === 1 ? 'registro' : 'registros'}
-                  </p>
-                )}
-              </div>
-              <div className={cn('w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center', bg)}>
-                <Icon className={cn('h-5 w-5 lg:h-6 lg:w-6', color)} />
-              </div>
-            </div>
-          </div>
+            label={label}
+            value={value}
+            icon={icon}
+            colorClass={color}
+            iconBgClass={bg}
+            prefix={prefix}
+            tintValue
+            hint={count !== null && count !== undefined
+              ? `${count} ${count === 1 ? 'registro' : 'registros'}`
+              : undefined}
+          />
         ))}
-      </div>
+      </StatTileGrid>
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">

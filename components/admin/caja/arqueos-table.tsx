@@ -17,6 +17,7 @@ import { AdminLayout } from '@/components/admin/layout'
 import { formatPrice, cn } from '@/lib/utils'
 import type { CashRegisterSession, CashMovement } from '@/lib/types/cash-register'
 import { getSessionSummary } from '@/app/actions/cash-register'
+import { StatTile, StatTileGrid } from '@/components/admin/stat-tile'
 
 interface ArqueosTableProps {
   sessions: CashRegisterSession[]
@@ -203,26 +204,15 @@ export function ArqueosTable({ sessions }: ArqueosTableProps) {
   return (
     <AdminLayout title="Arqueos de Caja" description="Historial de cierres y arqueos de sesiones">
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Sesiones', value: sessions.length, color: 'text-[var(--admin-accent-text)]', bg: 'bg-[var(--admin-accent)]/10', icon: History },
-          { label: 'Ventas totales', value: formatPrice(totalSales), color: 'text-green-500', bg: 'bg-green-500/10', icon: TrendingUp },
-          { label: 'Órdenes totales', value: totalOrders, color: 'text-blue-500', bg: 'bg-blue-500/10', icon: Wallet },
-          { label: 'Con diferencia', value: totalWithDiff, color: 'text-red-500', bg: 'bg-red-500/10', icon: TrendingDown },
-        ].map(({ label, value, color, bg, icon: Icon }) => (
-          <div key={label} className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[var(--admin-text-muted)] text-sm font-medium">{label}</p>
-                <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{value}</p>
-              </div>
-              <div className={`w-10 h-10 lg:w-12 lg:h-12 ${bg} rounded-xl flex items-center justify-center`}>
-                <Icon className={`h-5 w-5 lg:h-6 lg:w-6 ${color}`} />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <StatTileGrid>
+        <StatTile label="Sesiones" value={sessions.length} icon={History} />
+        <StatTile label="Ventas totales" value={formatPrice(totalSales)} icon={TrendingUp}
+          colorClass="text-green-500" iconBgClass="bg-green-500/10" />
+        <StatTile label="Órdenes totales" value={totalOrders} icon={Wallet}
+          colorClass="text-blue-500" iconBgClass="bg-blue-500/10" />
+        <StatTile label="Con diferencia" value={totalWithDiff} icon={TrendingDown}
+          colorClass="text-red-500" iconBgClass="bg-red-500/10" />
+      </StatTileGrid>
 
       {/* Search bar */}
       <div className="flex items-center gap-3 mb-4">

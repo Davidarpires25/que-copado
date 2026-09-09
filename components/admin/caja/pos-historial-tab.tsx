@@ -5,9 +5,6 @@ import { printClientTicketAction } from '@/app/actions/print'
 import {
   ChevronDown,
   Banknote,
-  CreditCard,
-  Landmark,
-  QrCode,
   Store,
   Table2,
   X,
@@ -28,6 +25,7 @@ import {
 } from '@/components/ui/table'
 import { OrderStatusBadge } from '@/components/admin/orders'
 import { formatPrice, cn } from '@/lib/utils'
+import { PAYMENT_METHOD_CONFIG, paymentMethodLabel } from '@/lib/constants/payments'
 import type { PaymentMethod, Json } from '@/lib/types/database'
 import type { OrderItem } from '@/lib/types/orders'
 import type { OrderWithSplits } from '@/lib/types/cash-register'
@@ -58,22 +56,6 @@ function formatTime(dateStr: string): string {
   })
 }
 
-function formatPaymentMethod(method: PaymentMethod | string): string {
-  if (method === 'cash') return 'Efectivo'
-  if (method === 'card') return 'Tarjeta'
-  if (method === 'transfer' || method === 'mercadopago') return 'Transferencia'
-  return '—'
-}
-
-const PAYMENT_ICON_CONFIG: Record<
-  PaymentMethod,
-  { label: string; icon: React.ElementType; textClass: string }
-> = {
-  cash:        { label: 'Efectivo', icon: Banknote,   textClass: 'text-emerald-400' },
-  card:        { label: 'Tarjeta',  icon: CreditCard, textClass: 'text-sky-400' },
-  transfer:    { label: 'Transf.',  icon: Landmark,   textClass: 'text-violet-400' },
-  mercadopago: { label: 'M. Pago',  icon: QrCode,     textClass: 'text-sky-400' },
-}
 
 const TABLE_HEAD_CLASS =
   'text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold'
@@ -159,7 +141,7 @@ function OrderRow({
                 key={i}
                 className="text-sm text-[var(--admin-text-muted)] capitalize"
               >
-                {formatPaymentMethod(method)}
+                {paymentMethodLabel(method)}
               </span>
             ))}
           </div>
@@ -219,7 +201,7 @@ function OrderRow({
                     <div className="flex items-center gap-2 flex-wrap">
                       {order.payment_splits.map((s, i) => (
                         <span key={i} className="text-xs text-[var(--admin-text-muted)]">
-                          {formatPaymentMethod(s.method)}: {formatPrice(s.amount)}
+                          {paymentMethodLabel(s.method)}: {formatPrice(s.amount)}
                         </span>
                       ))}
                     </div>
@@ -281,7 +263,7 @@ function PaymentSummaryRow({
 }) {
   if (count === 0) return null
 
-  const config = PAYMENT_ICON_CONFIG[method]
+  const config = PAYMENT_METHOD_CONFIG[method]
   const Icon = config?.icon ?? Banknote
 
   return (

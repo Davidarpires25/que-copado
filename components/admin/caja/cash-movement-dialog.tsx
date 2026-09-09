@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 import { createCashMovement } from '@/app/actions/cash-register'
 import { toast } from 'sonner'
 import type { CashMovementType } from '@/lib/types/database'
+import { parseARS } from '@/lib/utils/currency'
 
 interface CashMovementDialogProps {
   open: boolean
@@ -34,7 +35,7 @@ export function CashMovementDialog({
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async () => {
-    const parsedAmount = parseFloat(amount)
+    const parsedAmount = parseARS(amount)
     if (!parsedAmount || parsedAmount <= 0) {
       toast.error('Ingresa un monto valido')
       return
@@ -105,7 +106,8 @@ export function CashMovementDialog({
           <div className="space-y-1">
             <label className="text-sm font-medium text-[var(--admin-text-muted)]">Monto</label>
             <Input
-              type="number"
+              type="text"
+              inputMode="decimal"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0"

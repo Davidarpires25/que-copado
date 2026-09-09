@@ -21,6 +21,7 @@ import {
 import { AdminLayout } from '@/components/admin/layout'
 import { formatPrice, cn } from '@/lib/utils'
 import type { CashRegisterSession, CashMovementWithSession } from '@/lib/types/cash-register'
+import { StatTile, StatTileGrid } from '@/components/admin/stat-tile'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -644,7 +645,7 @@ export function CajaHistorial({ sessions, movements }: CajaHistorialProps) {
   return (
     <AdminLayout title="Arqueos de Caja" description="Arqueos de sesión y movimientos de caja">
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+      <StatTileGrid>
         {[
           { label: 'Sesiones', value: sessions.length, color: 'text-[var(--admin-accent-text)]', bg: 'bg-[var(--admin-accent)]/10', icon: History },
           { label: 'Ventas totales', value: formatPrice(totalSales), color: 'text-green-500', bg: 'bg-green-500/10', icon: TrendingUp },
@@ -657,20 +658,11 @@ export function CajaHistorial({ sessions, movements }: CajaHistorialProps) {
             icon: netBalance >= 0 ? TrendingUp : TrendingDown,
             prefix: netBalance > 0 ? '+' : netBalance < 0 ? '-' : '',
           },
-        ].map(({ label, value, color, bg, icon: Icon, prefix = '' }) => (
-          <div key={label} className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[var(--admin-text-muted)] text-sm font-medium">{label}</p>
-                <p className={cn('text-2xl lg:text-3xl font-bold mt-1 tabular-nums', color)}>{prefix}{value}</p>
-              </div>
-              <div className={cn('w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center', bg)}>
-                <Icon className={cn('h-5 w-5 lg:h-6 lg:w-6', color)} />
-              </div>
-            </div>
-          </div>
+        ].map(({ label, value, color, bg, icon, prefix }) => (
+          <StatTile key={label} label={label} value={value} icon={icon}
+            colorClass={color} iconBgClass={bg} prefix={prefix} tintValue />
         ))}
-      </div>
+      </StatTileGrid>
 
       {/* Tab bar — orders-style */}
       <div className="flex items-center gap-0 border-b border-[var(--admin-border)] mb-0 overflow-x-auto no-scrollbar">

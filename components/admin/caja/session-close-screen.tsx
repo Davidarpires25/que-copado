@@ -10,6 +10,7 @@ import { closeSession } from '@/app/actions/cash-register'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import type { SessionSummary } from '@/lib/types/cash-register'
+import { parseARS } from '@/lib/utils/currency'
 
 interface SessionCloseScreenProps {
   summary: SessionSummary
@@ -31,9 +32,9 @@ export function SessionCloseScreen({
 
   const s = summary.session
   const expectedCash = summary.currentCash
-  const enteredCash = parseFloat(actualCash) || 0
+  const enteredCash = parseARS(actualCash) ?? 0
   const difference = enteredCash - expectedCash
-  const hasEntered = actualCash !== ''
+  const hasEntered = parseARS(actualCash) !== null
 
   // Session duration
   const openedAt = new Date(s.opened_at)
@@ -216,7 +217,8 @@ export function SessionCloseScreen({
               <div className="relative flex items-center rounded-xl bg-[var(--admin-surface-2)] border border-[var(--admin-accent)]/40" style={{ height: 40 }}>
                 <span className="absolute left-3 text-[13px] font-medium text-[var(--admin-text-muted)]">Efectivo contado</span>
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   value={actualCash}
                   onChange={(e) => setActualCash(e.target.value)}
                   placeholder="0"

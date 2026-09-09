@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import {
-  Printer, Banknote, CreditCard, Landmark, QrCode,
-  Loader2, AlertTriangle, Check, ChefHat,
+import { CreditCard,
+  Printer, Loader2, AlertTriangle, Check, ChefHat,
 } from 'lucide-react'
 import { cn, formatPrice } from '@/lib/utils'
 import { clampAmountForSplitMethod } from '@/lib/utils/payment-split'
@@ -14,13 +13,9 @@ import { checkStockForItems } from '@/app/actions/stock'
 import type { StockWarning } from '@/app/actions/stock'
 import { printKitchenTicketAction } from '@/app/actions/print'
 import { toast } from 'sonner'
+import { parseARS } from '@/lib/utils/currency'
+import { PAYMENT_METHODS } from '@/lib/constants/payments'
 
-const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ElementType }[] = [
-  { value: 'cash',        label: 'Efectivo',     icon: Banknote },
-  { value: 'card',        label: 'Tarjeta',       icon: CreditCard },
-  { value: 'transfer',    label: 'Transferencia', icon: Landmark },
-  { value: 'mercadopago', label: 'Mercado Pago',  icon: QrCode },
-]
 
 interface ActivePayment {
   method: PaymentMethod
@@ -89,7 +84,7 @@ export function PendingOrderPayView({ order, loading, onBack: _onBack, onPrint, 
   }, [order.id])
 
   const commitEdit = (method: PaymentMethod) => {
-    const num = parseFloat(editAmount) || 0
+    const num = parseARS(editAmount) ?? 0
     setActivePayments((prev) => {
       if (num <= 0) {
         return prev.filter((p) => p.method !== method)
@@ -257,7 +252,8 @@ export function PendingOrderPayView({ order, loading, onBack: _onBack, onPrint, 
                 isEditing ? (
                   <input
                     ref={inputRef}
-                    type="number"
+                    type="text"
+                    inputMode="decimal"
                     value={editAmount}
                     onChange={e => setEditAmount(e.target.value)}
                     onClick={e => e.stopPropagation()}

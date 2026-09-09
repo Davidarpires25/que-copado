@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useEffect, useMemo, useRef } from 'react'
-import {
-  ArrowLeft, Users, Banknote, CreditCard, Landmark, QrCode,
-  Loader2, AlertTriangle, Printer, Check,
+import { CreditCard,
+  ArrowLeft, Users, Loader2, AlertTriangle, Printer, Check,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
@@ -15,16 +14,12 @@ import type { StockWarning } from '@/app/actions/stock'
 import type { PaymentMethod, Order } from '@/lib/types/database'
 import type { PaymentSplit, CashRegisterSession } from '@/lib/types/cash-register'
 import { TAG_COLORS } from '@/lib/types/tables'
+import { PAYMENT_METHODS } from '@/lib/constants/payments'
 import type { OrderWithItems, RestaurantTable } from '@/lib/types/tables'
+import { parseARS } from '@/lib/utils/currency'
 
 type PayMode = 'full' | 'per_guest'
 
-const PAYMENT_METHODS: { value: PaymentMethod; label: string; shortLabel: string; icon: React.ElementType; color: string; bg: string; border: string }[] = [
-  { value: 'cash', label: 'Efectivo', shortLabel: 'Ef', icon: Banknote, color: 'text-green-400', bg: 'bg-green-400/10', border: 'border-green-400/20' },
-  { value: 'card', label: 'Tarjeta', shortLabel: 'Tarj', icon: CreditCard, color: 'text-blue-400', bg: 'bg-blue-400/10', border: 'border-blue-400/20' },
-  { value: 'transfer', label: 'Transferencia', shortLabel: 'Transf', icon: Landmark, color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20' },
-  { value: 'mercadopago', label: 'Mercado Pago', shortLabel: 'MP', icon: QrCode, color: 'text-purple-400', bg: 'bg-purple-400/10', border: 'border-purple-400/20' },
-]
 
 
 interface TablePayViewProps {
@@ -96,7 +91,7 @@ export function TablePayView({
     }
     return Object.entries(byMethod).map(([m, amt]) => {
       const opt = PAYMENT_METHODS.find((o) => o.value === m)
-      return { method: m, label: opt?.label ?? m, amount: amt, color: opt?.color ?? '' }
+      return { method: m, label: opt?.label ?? m, amount: amt, color: opt?.textClass ?? '' }
     })
   }, [payMode, guestTags, guestMethods])
 
@@ -140,7 +135,7 @@ export function TablePayView({
   }, [payMode])
 
   const commitEdit = (method: PaymentMethod) => {
-    const num = parseFloat(editAmount) || 0
+    const num = parseARS(editAmount) ?? 0
     setActivePayments((prev) => {
       if (num <= 0) {
         return prev.filter((p) => p.method !== method)
@@ -352,7 +347,7 @@ export function TablePayView({
                     const entry = activePayments.find(p => p.method === opt.value)
                     const isActive = !!entry
                     const isEditing = editingMethod === opt.value
-                    const dotColor = opt.color.replace('text-', 'bg-')
+                    const dotColor = opt.dotClass
                     return (
                       <div
                         key={opt.value}
@@ -360,7 +355,7 @@ export function TablePayView({
                         className={cn(
                           'flex items-center justify-between px-2 cursor-pointer transition-all select-none border',
                           isActive
-                            ? `${opt.bg} ${opt.border}`
+                            ? `${opt.bgClass} ${opt.borderClass}`
                             : 'bg-[var(--admin-surface-2)] border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)]'
                         )}
                         style={{ height: 30, borderRadius: 6 }}
@@ -378,7 +373,7 @@ export function TablePayView({
                           </div>
                           <span className={cn(
                             'text-[11px] font-semibold',
-                            isActive ? opt.color : 'text-[var(--admin-text-muted)]'
+                            isActive ? opt.textClass : 'text-[var(--admin-text-muted)]'
                           )}>
                             {opt.label}
                           </span>
@@ -389,7 +384,8 @@ export function TablePayView({
                           isEditing ? (
                             <input
                               ref={amountInputRef}
-                              type="number"
+                              type="text"
+                              inputMode="decimal"
                               value={editAmount}
                               onChange={e => setEditAmount(e.target.value)}
                               onClick={e => e.stopPropagation()}
@@ -401,7 +397,7 @@ export function TablePayView({
                               onBlur={() => commitEdit(opt.value)}
                               className={cn(
                                 'w-24 h-9 text-right text-[13px] font-bold tabular-nums px-2 rounded-md bg-[var(--admin-surface-2)] border outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
-                                opt.border, opt.color
+                                opt.borderClass, opt.textClass
                               )}
                               placeholder="0"
                             />
@@ -410,7 +406,7 @@ export function TablePayView({
                               onClick={e => handleAmountPillClick(e, opt.value)}
                               className={cn(
                                 'h-9 min-w-[60px] px-2 rounded-md bg-[var(--admin-surface-2)] border text-[13px] font-bold tabular-nums transition-colors cursor-pointer hover:opacity-80',
-                                opt.border, opt.color
+                                opt.borderClass, opt.textClass
                               )}
                             >
                               {formatPrice(entry.amount)}
@@ -484,7 +480,7 @@ export function TablePayView({
                       </p>
                       {PAYMENT_METHODS.map((opt) => {
                         const isActive = guestMethod === opt.value
-                        const dotColor = opt.color.replace('text-', 'bg-')
+                        const dotColor = opt.dotClass
                         return (
                           <button
                             key={opt.value}
@@ -492,7 +488,7 @@ export function TablePayView({
                             className={cn(
                               'w-full flex items-center justify-between px-2 border transition-all cursor-pointer select-none',
                               isActive
-                                ? `${opt.bg} ${opt.border}`
+                                ? `${opt.bgClass} ${opt.borderClass}`
                                 : 'bg-[var(--admin-surface-2)] border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)]'
                             )}
                             style={{ height: 30, borderRadius: 6 }}
@@ -507,11 +503,11 @@ export function TablePayView({
                               >
                                 {isActive && <Check className="h-2 w-2 text-white" strokeWidth={3} />}
                               </div>
-                              <span className={cn('text-[11px] font-semibold', isActive ? opt.color : 'text-[var(--admin-text-muted)]')}>
+                              <span className={cn('text-[11px] font-semibold', isActive ? opt.textClass : 'text-[var(--admin-text-muted)]')}>
                                 {opt.label}
                               </span>
                             </div>
-                            <span className={cn('text-[11px] font-bold tabular-nums', isActive ? opt.color : 'text-[var(--admin-text-faint)]')}>
+                            <span className={cn('text-[11px] font-bold tabular-nums', isActive ? opt.textClass : 'text-[var(--admin-text-faint)]')}>
                               {isActive ? formatPrice(subtotal) : '—'}
                             </span>
                           </button>
@@ -585,7 +581,7 @@ export function TablePayView({
                     return (
                       <div key={m} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className={cn('w-2 h-2 rounded-full shrink-0', opt?.color.replace('text-', 'bg-'))} />
+                          <div className={cn('w-2 h-2 rounded-full shrink-0', opt?.dotClass)} />
                           <span className="text-[12px] font-medium text-[var(--admin-text-muted)]">{label}</span>
                         </div>
                         <span className="text-[12px] font-semibold text-[var(--admin-text)] tabular-nums">
@@ -617,7 +613,7 @@ export function TablePayView({
                       return (
                         <div key={m} className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <div className={cn('w-2 h-2 rounded-full shrink-0', opt?.color.replace('text-', 'bg-'))} />
+                            <div className={cn('w-2 h-2 rounded-full shrink-0', opt?.dotClass)} />
                             <span className="text-[13px] font-medium text-[var(--admin-text-muted)]">{opt?.label ?? m}</span>
                           </div>
                           <span className="text-[13px] font-semibold text-[var(--admin-text)] tabular-nums">

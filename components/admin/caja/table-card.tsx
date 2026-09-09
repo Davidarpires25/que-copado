@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { cn, formatPrice } from '@/lib/utils'
+import { TABLE_STATUS_CONFIG } from '@/lib/types/tables'
 import type { TableWithOrder } from '@/lib/types/tables'
 
 interface TableCardProps {
@@ -10,32 +11,9 @@ interface TableCardProps {
   onClick: () => void
 }
 
-const STATUS_STYLES = {
-  libre: {
-    label: 'Libre',
-    dot: 'bg-green-400',
-    text: 'text-green-400',
-    badge: 'bg-green-400/15',
-    border: 'border-green-400/20',
-  },
-  ocupada: {
-    label: 'Ocupada',
-    dot: 'bg-[var(--admin-accent)]',
-    text: 'text-[var(--admin-accent-text)]',
-    badge: 'bg-[var(--admin-accent)]/10',
-    border: 'border-[var(--admin-accent)]/30',
-  },
-  cuenta_pedida: {
-    label: 'Cuenta Pedida',
-    dot: 'bg-red-400',
-    text: 'text-red-400',
-    badge: 'bg-red-400/15',
-    border: 'border-red-400/20',
-  },
-} as const
 
 export function TableCard({ table, isSelected, onClick }: TableCardProps) {
-  const cfg = STATUS_STYLES[table.status] ?? STATUS_STYLES.libre
+  const cfg = TABLE_STATUS_CONFIG[table.status] ?? TABLE_STATUS_CONFIG.libre
   const isOccupied = table.status !== 'libre'
 
   const orderInfo = useMemo(() => {
@@ -54,7 +32,7 @@ export function TableCard({ table, isSelected, onClick }: TableCardProps) {
         'hover:bg-[var(--admin-hover)]',
         isSelected
           ? 'border-2 border-[var(--admin-accent)] bg-[var(--admin-hover)]'
-          : `border ${cfg.border}`
+          : `border ${cfg.borderColor}`
       )}
       style={{ height: 80 }}
     >
@@ -69,10 +47,10 @@ export function TableCard({ table, isSelected, onClick }: TableCardProps) {
 
         <div className={cn(
           'flex items-center gap-1 px-1.5 rounded-full shrink-0',
-          cfg.badge
+          cfg.bgColor
         )} style={{ height: 18 }}>
-          <div className={cn('w-1.5 h-1.5 rounded-full shrink-0', cfg.dot)} />
-          <span className={cn('text-[11px] font-semibold leading-none', cfg.text)}>
+          <div className={cn('w-1.5 h-1.5 rounded-full shrink-0', cfg.dotColor)} />
+          <span className={cn('text-[11px] font-semibold leading-none', cfg.color)}>
             {cfg.label}
           </span>
         </div>
@@ -84,7 +62,7 @@ export function TableCard({ table, isSelected, onClick }: TableCardProps) {
           {table.capacity} pers.
         </span>
         {isOccupied && orderInfo && (
-          <span className={cn('text-[12px] font-semibold tabular-nums leading-none', cfg.text)}>
+          <span className={cn('text-[12px] font-semibold tabular-nums leading-none', cfg.color)}>
             {formatPrice(orderInfo.total)}
           </span>
         )}

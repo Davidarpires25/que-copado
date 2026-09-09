@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { openSession } from '@/app/actions/cash-register'
 import { toast } from 'sonner'
 import type { CashRegisterSession } from '@/lib/types/cash-register'
+import { parseARS } from '@/lib/utils/currency'
 
 interface SessionOpenScreenProps {
   onSessionOpened: (session: CashRegisterSession) => void
@@ -17,7 +18,7 @@ export function SessionOpenScreen({ onSessionOpened }: SessionOpenScreenProps) {
   const [loading, setLoading] = useState(false)
 
   const handleOpen = async () => {
-    const balance = parseFloat(amount) || 0
+    const balance = parseARS(amount) ?? 0
     if (balance < 0) {
       toast.error('El monto no puede ser negativo')
       return
@@ -59,7 +60,8 @@ export function SessionOpenScreen({ onSessionOpened }: SessionOpenScreenProps) {
             <div className="relative">
               <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--admin-text-muted)]" />
               <Input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0"
