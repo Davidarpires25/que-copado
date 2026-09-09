@@ -22,6 +22,7 @@ import {
   Boxes,
   ChefHat,
   Scale,
+  Users,
   } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -74,6 +75,7 @@ const navGroups: NavGroup[] = [
   {
     title: 'Configuración',
     items: [
+      { href: '/admin/empleados', label: 'Equipo', icon: Users },
       { href: '/admin/delivery-zones', label: 'Zonas de Envío', icon: MapPin },
       { href: '/admin/settings', label: 'Ajustes', icon: Settings },
     ],

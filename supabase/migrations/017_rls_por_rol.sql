@@ -20,6 +20,12 @@
 -- Si aparece alguna politica que este archivo no contempla, avisame antes de
 -- seguir: no quiero pisar algo que no vi.
 
+-- Todo en una transaccion: si algo falla, no queda a medio camino. Sin esto, un
+-- error entre el DROP de las politicas viejas y el CREATE de las nuevas dejaria
+-- las tablas con RLS activo y sin ninguna politica, o sea la tienda publica sin
+-- poder mostrar productos ni tomar pedidos.
+BEGIN;
+
 -- ============================================================================
 -- 0. Helpers de legibilidad
 -- ============================================================================
@@ -246,6 +252,8 @@ CREATE POLICY "admin corrige stock" ON stock_movements
   FOR UPDATE TO authenticated USING (puede_administrar()) WITH CHECK (puede_administrar());
 CREATE POLICY "admin borra stock" ON stock_movements
   FOR DELETE TO authenticated USING (puede_administrar());
+
+COMMIT;
 
 -- ============================================================================
 -- Verificacion
