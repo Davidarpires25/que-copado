@@ -394,10 +394,11 @@
   --admin-text-faint:       #94A3B8;
   --admin-text-placeholder: #CBD5E1;
   --admin-accent:           #FEC501;
-  /* El relleno se mantiene ambar porque lleva texto oscuro encima (11.54:1),
-     pero como color de TEXTO sobre blanco #FEC501 da 1.59:1, contra el minimo
-     AA de 4.5:1. #8A6A00 da 5.07:1 y conserva la identidad de marca. */
-  --admin-accent-text:      #8A6A00;
+  /* Como TEXTO el ambar no sirve sobre blanco: #FEC501 da 1.59:1 y oscurecerlo
+     hasta pasar AA lo vuelve marron. La marca no se pierde: --admin-accent
+     #FEC501 sigue puro en 423 bordes, rellenos y rings, que es donde el amarillo
+     puede ser amarillo. El texto de estado activo/hover va en tinta. */
+  --admin-accent-text:      #0F172A;
   /* El dinero se lee como dato, no como accion: en claro va en tinta. El ambar
      queda para estados activos y hover, donde el color si significa algo. */
   --admin-price:            #0F172A;
@@ -443,10 +444,11 @@ html.admin-dark {
   --admin-text-faint:       #94A3B8;
   --admin-text-placeholder: #CBD5E1;
   --admin-accent:           #FEC501;
-  /* El relleno se mantiene ambar porque lleva texto oscuro encima (11.54:1),
-     pero como color de TEXTO sobre blanco #FEC501 da 1.59:1, contra el minimo
-     AA de 4.5:1. #8A6A00 da 5.07:1 y conserva la identidad de marca. */
-  --admin-accent-text:      #8A6A00;
+  /* Como TEXTO el ambar no sirve sobre blanco: #FEC501 da 1.59:1 y oscurecerlo
+     hasta pasar AA lo vuelve marron. La marca no se pierde: --admin-accent
+     #FEC501 sigue puro en 423 bordes, rellenos y rings, que es donde el amarillo
+     puede ser amarillo. El texto de estado activo/hover va en tinta. */
+  --admin-accent-text:      #0F172A;
   /* El dinero se lee como dato, no como accion: en claro va en tinta. El ambar
      queda para estados activos y hover, donde el color si significa algo. */
   --admin-price:            #0F172A;
