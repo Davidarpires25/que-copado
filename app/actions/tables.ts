@@ -591,6 +591,10 @@ export async function payTableOrder(
 
       console.info(`[Timing][payTableOrder] session.fetch ${sessionId} took ${Date.now() - t3}ms`)
 
+      if (orderItemsError) {
+        devError(`Error fetching order_items for order ${orderId} — el descuento de stock puede quedar incompleto:`, orderItemsError)
+      }
+
       if (sessionFetchError || !currentSession) {
         throw new Error('Session not found during table payment')
       }

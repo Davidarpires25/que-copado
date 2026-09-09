@@ -37,7 +37,7 @@ interface AddItemsViewProps {
 export function AddItemsView({
   products,
   categories,
-  table,
+  table: _table,
   orderId,
   saleTag,
   getHalfOptions,

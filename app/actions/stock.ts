@@ -1456,7 +1456,7 @@ export async function checkStockForItems(
 
     // Separate reventa and elaborado products
     const reventaWarnings: StockWarning[] = []
-    const elaboradoProducts: any[] = []
+    const elaboradoProducts: { id: string; name: string; requested: number }[] = []
 
     for (const product of products) {
       const requested = consolidated.get(product.id) ?? 0
@@ -1514,7 +1514,9 @@ export async function checkStockForItems(
       if (ingResult.error) devError(`Error fetching ingredients for batch stock check: ${String(ingResult.error)}`)
 
       // Build maps used by the in-memory calc
-      const ingMap = new Map<string, IngData>((ingResult.data ?? []).map((i: any) => [i.id, i]))
+      const ingMap = new Map<string, IngData>(
+        (ingResult.data ?? []).map((i: IngData) => [i.id, i] as const)
+      )
 
       const subMap = new Map<string, SubData[]>()
       for (const sub of subResult.data ?? []) {

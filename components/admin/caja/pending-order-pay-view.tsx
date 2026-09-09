@@ -35,7 +35,7 @@ interface PendingOrderPayViewProps {
   onConfirm: (method: PaymentMethod, splits?: PaymentSplit[]) => void
 }
 
-export function PendingOrderPayView({ order, loading, onBack, onPrint, onConfirm }: PendingOrderPayViewProps) {
+export function PendingOrderPayView({ order, loading, onBack: _onBack, onPrint, onConfirm }: PendingOrderPayViewProps) {
   const [activePayments, setActivePayments] = useState<ActivePayment[]>([])
   const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null)
   const [editAmount, setEditAmount] = useState('')

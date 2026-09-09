@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, Home, UtensilsCrossed } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CartDrawer } from './cart-drawer'
-import { BurgerIcon } from '@/components/icons'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -40,6 +39,7 @@ export function Header() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element -- Logo SVG vectorial: next/image no lo optimiza sin dangerouslyAllowSVG. */}
             <img
               src="/logo.svg"
               alt="Que Copado"

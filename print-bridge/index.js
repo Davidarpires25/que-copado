@@ -55,14 +55,6 @@ function leftRight(left, right) {
   return safeLeft + ' '.repeat(LINE_WIDTH - safeLeft.length - right.length) + right
 }
 
-function centerLine(text, width = LINE_WIDTH) {
-  const value = String(text ?? '')
-  if (value.length >= width) return value.slice(0, width)
-  const leftPad = Math.floor((width - value.length) / 2)
-  const rightPad = width - value.length - leftPad
-  return ' '.repeat(leftPad) + value + ' '.repeat(rightPad)
-}
-
 function wrapText(text, width = LINE_WIDTH) {
   if (!text) return ['']
   const words = String(text).trim().split(/\s+/)

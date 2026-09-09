@@ -7,22 +7,15 @@ import { AdminSidebar, MobileSidebar } from './admin-sidebar'
 import { cn } from '@/lib/utils'
 import { useThemeStore } from '@/lib/store/theme-store'
 import { getStockAlerts } from '@/app/actions/stock'
+import { useSidebarCollapsed } from '@/lib/hooks/use-sidebar-collapsed'
 
 export const AdminShellContext = createContext(false)
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, handleToggleCollapse] = useSidebarCollapsed()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [stockAlertCount, setStockAlertCount] = useState(0)
   const { theme } = useThemeStore()
-
-  // Load collapsed state from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('admin-sidebar-collapsed')
-    if (saved !== null) {
-      setSidebarCollapsed(JSON.parse(saved))
-    }
-  }, [])
 
   // Fetch stock alert count for sidebar badge
   useEffect(() => {
@@ -43,11 +36,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     }
   }, [theme])
 
-  const handleToggleCollapse = () => {
-    const newValue = !sidebarCollapsed
-    setSidebarCollapsed(newValue)
-    localStorage.setItem('admin-sidebar-collapsed', JSON.stringify(newValue))
-  }
 
   return (
     <AdminShellContext.Provider value={true}>

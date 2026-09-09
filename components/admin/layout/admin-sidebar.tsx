@@ -21,10 +21,8 @@ import {
   BookOpen,
   Boxes,
   ChefHat,
-  History,
   Scale,
-  ArrowLeftRight,
-} from 'lucide-react'
+  } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { signOut } from '@/app/actions/auth'
@@ -194,6 +192,7 @@ export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCo
       {/* Logo */}
       <div className="h-20 flex items-center px-4 border-b border-[var(--admin-sidebar-border)]">
         <Link href="/admin/dashboard" className="flex items-center gap-3 flex-1 min-w-0">
+          {/* eslint-disable-next-line @next/next/no-img-element -- Logo SVG vectorial: next/image no lo optimiza sin dangerouslyAllowSVG. */}
           <img
             src="/logo.svg"
             alt="Que Copado"
@@ -332,6 +331,7 @@ export function MobileSidebar({ open, onClose, stockAlertCount = 0 }: MobileSide
           >
             <div className="h-20 flex items-center justify-between px-4 border-b border-[var(--admin-sidebar-border)]">
               <Link href="/admin/dashboard" className="flex items-center gap-3" onClick={onClose}>
+                {/* eslint-disable-next-line @next/next/no-img-element -- Logo SVG vectorial: next/image no lo optimiza sin dangerouslyAllowSVG. */}
                 <img
                     src="/logo.svg"
                     alt="Que Copado"

@@ -36,6 +36,7 @@ export default function LoginPage() {
       >
         <Card className="w-full max-w-md bg-[#1a1d24]/80 backdrop-blur-xl border-[#252a35] shadow-2xl">
           <CardHeader className="text-center pb-6 space-y-4">
+            {/* eslint-disable-next-line @next/next/no-img-element -- Logo SVG vectorial: next/image no lo optimiza sin dangerouslyAllowSVG. */}
             <img
               src="/logo.svg"
               alt="Que Copado"

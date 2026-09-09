@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { Package, AlertTriangle, RefreshCw, PackagePlus, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -82,13 +82,18 @@ export function StockDashboard({
     [initialReserved]
   )
 
-  // Sync server props to state when router.refresh() delivers new data
-  useEffect(() => {
+  // Los hijos aplican updates optimistas sobre este estado, asi que las props
+  // del server son una semilla que hay que re-sembrar cuando router.refresh()
+  // trae datos nuevos. Se hace en render (patron "ajustar estado al cambiar
+  // props") en vez de en un efecto: evita pintar una vez con los datos viejos.
+  const [syncedFrom, setSyncedFrom] = useState(initialIngredients)
+  if (syncedFrom !== initialIngredients) {
+    setSyncedFrom(initialIngredients)
     setIngredients(initialIngredients)
     setProducts(initialProducts)
     setAlerts(initialAlerts)
     setMovements(initialMovements)
-  }, [initialIngredients, initialProducts, initialAlerts, initialMovements])
+  }
 
   const trackedCount = useMemo(() => {
     const trackedIngredients = ingredients.filter((i) => i.stock_tracking_enabled).length

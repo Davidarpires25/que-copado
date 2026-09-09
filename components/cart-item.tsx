@@ -6,7 +6,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { Trash2, ImageOff } from 'lucide-react'
 import { QuantityStepper } from '@/components/ui/quantity-stepper'
 import type { CartItem as CartItemType } from '@/lib/store/cart-store'
-import { getCartItemKey, getCartItemName, getCartItemPrice } from '@/lib/store/cart-store'
+import { getCartItemName, getCartItemPrice } from '@/lib/store/cart-store'
 import { formatPrice } from '@/lib/utils'
 
 interface CartItemProps {

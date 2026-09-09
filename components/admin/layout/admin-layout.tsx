@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { useThemeStore } from '@/lib/store/theme-store'
 import { getStockAlerts } from '@/app/actions/stock'
 import { AdminShellContext } from './admin-shell'
+import { useSidebarCollapsed } from '@/lib/hooks/use-sidebar-collapsed'
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -45,18 +46,10 @@ export function AdminLayout({ children, title, description, hidePageHeader }: Ad
 }
 
 function AdminLayoutStandalone({ children, title, description, hidePageHeader }: AdminLayoutProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, handleToggleCollapse] = useSidebarCollapsed()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [stockAlertCount, setStockAlertCount] = useState(0)
   const { theme } = useThemeStore()
-
-  // Load collapsed state from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('admin-sidebar-collapsed')
-    if (saved !== null) {
-      setSidebarCollapsed(JSON.parse(saved))
-    }
-  }, [])
 
   // Fetch stock alert count for sidebar badge
   useEffect(() => {
@@ -77,12 +70,6 @@ function AdminLayoutStandalone({ children, title, description, hidePageHeader }:
     }
   }, [theme])
 
-  // Save collapsed state to localStorage
-  const handleToggleCollapse = () => {
-    const newValue = !sidebarCollapsed
-    setSidebarCollapsed(newValue)
-    localStorage.setItem('admin-sidebar-collapsed', JSON.stringify(newValue))
-  }
 
   return (
     <div className={cn('min-h-screen bg-[var(--admin-bg)] admin-layout', theme === 'dark' && 'dark')}>

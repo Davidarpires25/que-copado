@@ -21,7 +21,7 @@ import { createRecipe, updateRecipe, getRecipeWithIngredients } from '@/app/acti
 import { createIngredient } from '@/app/actions/ingredients'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import type { Ingredient, IngredientUnit, Recipe, RecipeWithIngredients } from '@/lib/types/database'
+import type { Ingredient, IngredientUnit, RecipeWithIngredients } from '@/lib/types/database'
 import { INGREDIENT_UNIT_ABBR } from '@/lib/types/database'
 import { UNIT_TO_BASE, UNIT_FAMILY, ALL_UNITS, formatCost } from '@/lib/constants/recipe-units'
 import { IngredientCombobox } from './ingredient-combobox'
@@ -167,7 +167,9 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
   const [description, setDescription] = useState(recipe?.description ?? '')
   const [isActive, setIsActive] = useState(recipe?.is_active ?? true)
   const [recipeItems, setRecipeItems] = useState<RecipeIngredientItem[]>([])
-  const [isLoadingRecipe, setIsLoadingRecipe] = useState(false)
+  // En modo edicion arranca cargando: sembrar esto desde un efecto obligaba a
+  // un render extra con el form vacio antes del spinner.
+  const [isLoadingRecipe, setIsLoadingRecipe] = useState(mode === 'edit' && !!recipe)
   const [allIngredients, setAllIngredients] = useState<Ingredient[]>(ingredients)
   const [showCreateIngredient, setShowCreateIngredient] = useState(false)
   const [createIngredientName, setCreateIngredientName] = useState('')
@@ -176,7 +178,6 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
   // Load recipe ingredients on mount (edit mode)
   useEffect(() => {
     if (mode === 'edit' && recipe) {
-      setIsLoadingRecipe(true)
       getRecipeWithIngredients(recipe.id).then((result) => {
         if (result.data?.recipe_ingredients) {
           setRecipeItems(

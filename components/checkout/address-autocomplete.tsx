@@ -42,7 +42,7 @@ export function AddressAutocomplete({
     if (value !== query) {
       setQuery(value)
     }
-  }, [value, setQuery])
+  }, [value, query, setQuery])
 
   // Cierra el dropdown al hacer clic fuera
   useEffect(() => {

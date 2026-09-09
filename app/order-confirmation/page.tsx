@@ -40,6 +40,9 @@ export default function OrderConfirmationPage() {
   const [order, setOrder] = useState<PendingOrder | null>(null)
   const shouldReduceMotion = useReducedMotion()
 
+  // La orden vive en sessionStorage, que no existe en el server. Leerla en un
+  // inicializador de useState romperia la hidratacion (el server renderiza
+  // null), asi que este efecto post-hidratacion es el patron correcto.
   useEffect(() => {
     const raw = sessionStorage.getItem(SESSION_KEY)
     if (!raw) {
@@ -48,6 +51,7 @@ export default function OrderConfirmationPage() {
     }
     try {
       const data: PendingOrder = JSON.parse(raw)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOrder(data)
       sessionStorage.removeItem(SESSION_KEY)
       clearCart()
@@ -134,7 +138,7 @@ export default function OrderConfirmationPage() {
       className="bg-white rounded-2xl border border-[#F0EBE1] shadow-warm overflow-hidden"
     >
       <div className="divide-y divide-[#F0EBE1]">
-        {summaryRows.map((row, i) => (
+        {summaryRows.map((row) => (
           <div key={row.label} className="flex items-start gap-3 px-5 py-3.5">
             <row.icon className="h-4.5 w-4.5 text-[#B0A99F] mt-0.5 shrink-0" />
             <div className="flex-1 min-w-0">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Plus, X, Search, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { INGREDIENT_UNIT_ABBR } from '@/lib/types/database'
@@ -35,20 +35,28 @@ export function IngredientCombobox({
 
   const showCreateOption = !exactMatch
 
+  // La busqueda se limpia en el propio cierre (ver closePopover) en vez de
+  // reaccionar a `open` desde un efecto.
+  const closePopover = useCallback(() => {
+    setOpen(false)
+    setSearch('')
+  }, [])
+
   useEffect(() => {
-    if (!open) { setSearch(''); return }
-    setTimeout(() => inputRef.current?.focus(), 50)
+    if (!open) return
+    const id = setTimeout(() => inputRef.current?.focus(), 50)
+    return () => clearTimeout(id)
   }, [open])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
+        closePopover()
       }
     }
     if (open) document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [open])
+  }, [open, closePopover])
 
   return (
     <div ref={containerRef} className="relative">
@@ -102,7 +110,7 @@ export function IngredientCombobox({
               <li key={ing.id}>
                 <button
                   type="button"
-                  onClick={() => { onSelect(ing.id); setOpen(false) }}
+                  onClick={() => { onSelect(ing.id); closePopover() }}
                   className="w-full flex items-center justify-between px-3 py-2 text-sm text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors text-left"
                 >
                   <span className="truncate">{ing.name}</span>
@@ -117,7 +125,7 @@ export function IngredientCombobox({
               <li className="border-t border-[var(--admin-border)] mt-1 pt-1">
                 <button
                   type="button"
-                  onClick={() => { setOpen(false); onCreateRequest(search.trim()) }}
+                  onClick={() => { const name = search.trim(); closePopover(); onCreateRequest(name) }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 transition-colors text-left"
                 >
                   <Plus className="h-3.5 w-3.5 shrink-0" />

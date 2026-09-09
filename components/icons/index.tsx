@@ -10,9 +10,9 @@ type IconProps = SVGProps<SVGSVGElement> & {
 export function BurgerIcon({ size = 24, ...props }: IconProps) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24">
+    width={size}
+    height={size}
+    viewBox="0 0 24 24" {...props}>
     <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
     <path d="M5 12a2 2 0 0 1-2-2a9 7 0 0 1 18 0a2 2 0 0 1-2 2l-3.5 4.1c-.8 1-2.4 1.1-3.4.3L7 12"/>
     <path d="M11.7 16H4a2 2 0 0 1 0-4h16a2 2 0 0 1 0 4h-4.3M5 16a2 2 0 0 0-2 2c0 1.7 1.3 3 3 3h12c1.7 0 3-1.3 3-3a2 2 0 0 0-2-2"/></g></svg>
@@ -22,21 +22,21 @@ export function BurgerIcon({ size = 24, ...props }: IconProps) {
 // Papas fritas
 export function FriesIcon({ size = 24, ...props }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" fillRule="evenodd"><path d="m12.594 23.258l-.012.002l-.071.035l-.02.004l-.014-.004l-.071-.036q-.016-.004-.024.006l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.016-.018m.264-.113l-.014.002l-.184.093l-.01.01l-.003.011l.018.43l.005.012l.008.008l.201.092q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.003-.011l.018-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M14 2a2 2 0 0 1 2 2h1a2 2 0 0 1 2 2v3.003a2 2 0 0 1 1.885 2.196l-.71 7.1A3 3 0 0 1 17.19 21H6.81a3 3 0 0 1-2.985-2.701l-.71-7.1A2 2 0 0 1 5 9.003V5a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2h1V4a2 2 0 0 1 2-2zm-7.24 9H5.105l.71 7.1l.019.115a1 1 0 0 0 .86.778L6.81 19h10.38l.117-.007a1 1 0 0 0 .86-.778l.018-.116l.71-7.099H17.24l-.019.01a.3.3 0 0 0-.081.088A6 6 0 0 1 12 14a6 6 0 0 1-5.14-2.902a.3.3 0 0 0-.08-.089zM14 4h-1v7.874l.262-.077q.26-.086.501-.205l.237-.127zm-3 3h-1v4.465l.237.127q.242.119.5.205l.263.077zm6-1h-1v3.425l.145-.101c.199-.128.423-.225.668-.278L17 9.014zM8 5H7v4.014c.319.038.607.15.855.31L8 9.425z"/></g></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" {...props}><g fill="none" fillRule="evenodd"><path d="m12.594 23.258l-.012.002l-.071.035l-.02.004l-.014-.004l-.071-.036q-.016-.004-.024.006l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.016-.018m.264-.113l-.014.002l-.184.093l-.01.01l-.003.011l.018.43l.005.012l.008.008l.201.092q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.003-.011l.018-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M14 2a2 2 0 0 1 2 2h1a2 2 0 0 1 2 2v3.003a2 2 0 0 1 1.885 2.196l-.71 7.1A3 3 0 0 1 17.19 21H6.81a3 3 0 0 1-2.985-2.701l-.71-7.1A2 2 0 0 1 5 9.003V5a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2h1V4a2 2 0 0 1 2-2zm-7.24 9H5.105l.71 7.1l.019.115a1 1 0 0 0 .86.778L6.81 19h10.38l.117-.007a1 1 0 0 0 .86-.778l.018-.116l.71-7.099H17.24l-.019.01a.3.3 0 0 0-.081.088A6 6 0 0 1 12 14a6 6 0 0 1-5.14-2.902a.3.3 0 0 0-.08-.089zM14 4h-1v7.874l.262-.077q.26-.086.501-.205l.237-.127zm-3 3h-1v4.465l.237.127q.242.119.5.205l.263.077zm6-1h-1v3.425l.145-.101c.199-.128.423-.225.668-.278L17 9.014zM8 5H7v4.014c.319.038.607.15.855.31L8 9.425z"/></g></svg>
   )
 }
 
 // Bebida/Soda
 export function SodaIcon({ size = 24, ...props }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32"><path fill="currentColor" d="m23 10.414l3-3L24.586 6l-3.293 3.293A1 1 0 0 0 21 10v4h-7.074l1.143 16h8.862l1.143-16H23zM22.07 28h-5.14l-.856-12h6.852z"/><path fill="currentColor" d="M15 1h-5a1 1 0 0 0-1 1v7.37c-1.067.606-3 2.178-3 5.63v14a1 1 0 0 0 1 1h5v-2H8V15c0-3.754 3-4.28 3-4.28V3h3v7h2V2a1 1 0 0 0-1-1"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 32 32" {...props}><path fill="currentColor" d="m23 10.414l3-3L24.586 6l-3.293 3.293A1 1 0 0 0 21 10v4h-7.074l1.143 16h8.862l1.143-16H23zM22.07 28h-5.14l-.856-12h6.852z"/><path fill="currentColor" d="M15 1h-5a1 1 0 0 0-1 1v7.37c-1.067.606-3 2.178-3 5.63v14a1 1 0 0 0 1 1h5v-2H8V15c0-3.754 3-4.28 3-4.28V3h3v7h2V2a1 1 0 0 0-1-1"/></svg>
   )
 }
 
 // Pizza
 export function PizzaIcon({ size = 24, ...props }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6.234 16.925a15.98 15.98 0 0 1 10.69-10.691M7.582 7.58a18.76 18.76 0 0 1 7.33-4.53c.536-.18 1.103.136 1.265.678l4.779 15.928a1.042 1.042 0 0 1-1.298 1.298L3.73 16.176c-.542-.162-.858-.729-.679-1.266a18.76 18.76 0 0 1 4.53-7.33M11 15l.354.354M15 11l.354.354M16 16l.354.354"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" {...props}><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6.234 16.925a15.98 15.98 0 0 1 10.69-10.691M7.582 7.58a18.76 18.76 0 0 1 7.33-4.53c.536-.18 1.103.136 1.265.678l4.779 15.928a1.042 1.042 0 0 1-1.298 1.298L3.73 16.176c-.542-.162-.858-.729-.679-1.266a18.76 18.76 0 0 1 4.53-7.33M11 15l.354.354M15 11l.354.354M16 16l.354.354"/></svg>
   )
 }
 
@@ -171,14 +171,14 @@ export function WhatsAppIcon({ size = 24, ...props }: IconProps) {
 // Fuego/Hot
 export function FireIcon({ size = 24, ...props }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 16 16"><path fill="#000000" d="M8 16c3.314 0 6-2 6-5.5c0-1.5-.5-4-2.5-6c.25 1.5-1.25 2-1.25 2C11 4 9 .5 6 0c.357 2 .5 4-2 6c-1.25 1-2 2.729-2 4.5C2 14 4.686 16 8 16m0-1c-1.657 0-3-1-3-2.75c0-.75.25-2 1.25-3C6.125 10 7 10.5 7 10.5c-.375-1.25.5-3.25 2-3.5c-.179 1-.25 2 1 3c.625.5 1 1.364 1 2.25C11 14 9.657 15 8 15"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 16 16" {...props}><path fill="#000000" d="M8 16c3.314 0 6-2 6-5.5c0-1.5-.5-4-2.5-6c.25 1.5-1.25 2-1.25 2C11 4 9 .5 6 0c.357 2 .5 4-2 6c-1.25 1-2 2.729-2 4.5C2 14 4.686 16 8 16m0-1c-1.657 0-3-1-3-2.75c0-.75.25-2 1.25-3C6.125 10 7 10.5 7 10.5c-.375-1.25.5-3.25 2-3.5c-.179 1-.25 2 1 3c.625.5 1 1.364 1 2.25C11 14 9.657 15 8 15"/></svg>
   )
 }
 
 // Sandwich/Lomito
 export function SandwichIcon({ size = 24, ...props }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="m2.37 11.223l8.372-6.777a2 2 0 0 1 2.516 0l8.371 6.777M21 15a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-5.25M3 15a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h9"/><path d="m6.67 15l6.13 4.6a2 2 0 0 0 2.8-.4l3.15-4.2"/><rect width="20" height="4" x="2" y="11" rx="1"/></g></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" {...props}><g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="m2.37 11.223l8.372-6.777a2 2 0 0 1 2.516 0l8.371 6.777M21 15a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-5.25M3 15a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h9"/><path d="m6.67 15l6.13 4.6a2 2 0 0 0 2.8-.4l3.15-4.2"/><rect width="20" height="4" x="2" y="11" rx="1"/></g></svg>
 
   )
 }
@@ -233,7 +233,7 @@ export function StarFilledIcon({ size = 24, ...props }: IconProps) {
 
 export function ComboIcon({ size = 24, ...props }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" stroke="currentColor" d="M18.06 23h1.66c.84 0 1.53-.65 1.63-1.47L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26c1.44 1.42 2.43 2.89 2.43 5.29zM1 22v-1h15.03v1c0 .54-.45 1-1.03 1H2c-.55 0-1-.46-1-1m15.03-7C16.03 7 1 7 1 15zM1 17h15v2H1z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" {...props}><path fill="currentColor" stroke="currentColor" d="M18.06 23h1.66c.84 0 1.53-.65 1.63-1.47L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26c1.44 1.42 2.43 2.89 2.43 5.29zM1 22v-1h15.03v1c0 .54-.45 1-1.03 1H2c-.55 0-1-.46-1-1m15.03-7C16.03 7 1 7 1 15zM1 17h15v2H1z"/></svg>
   
   )
 
@@ -242,7 +242,7 @@ export function ComboIcon({ size = 24, ...props }: IconProps) {
 
 export function LomosIcon({ size = 24, ...props }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 15 15"><path fill="currentColor" d="M8.5 9.5L10 11l1.5-1.5H14v.5c0 1.11-.89 2-2 2H3a2 2 0 0 1-2-2v-.5zM2.5 8c.28 0 .5.22.5.5s-.22.5-.5.5h-1c-.28 0-.5-.22-.5-.5s.22-.5.5-.5zm4 0h-2c-.28 0-.5.22-.5.5s.22.5.5.5h2c.28 0 .5-.22.5-.5S6.78 8 6.5 8m7 0h-2c-.28 0-.5.22-.5.5s.22.5.5.5h2c.28 0 .5-.22.5-.5s-.22-.5-.5-.5m-4 0h-1c-.28 0-.5.22-.5.5s.22.5.5.5h1c.28 0 .5-.22.5-.5S9.78 8 9.5 8m-.18-4l-.75 1.24c-.14.24-.06.55.17.69c.24.14.55.06.69-.17L10.5 4H12c1.11 0 2 .89 2 2v1.5H1V6a2 2 0 0 1 2-2h1.32l-.75 1.24c-.14.24-.06.55.17.69c.24.14.55.06.69-.17L5.5 4h1.32l-.75 1.24c-.14.24-.06.55.17.69c.24.14.55.06.69-.17L8 4z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 15 15" {...props}><path fill="currentColor" d="M8.5 9.5L10 11l1.5-1.5H14v.5c0 1.11-.89 2-2 2H3a2 2 0 0 1-2-2v-.5zM2.5 8c.28 0 .5.22.5.5s-.22.5-.5.5h-1c-.28 0-.5-.22-.5-.5s.22-.5.5-.5zm4 0h-2c-.28 0-.5.22-.5.5s.22.5.5.5h2c.28 0 .5-.22.5-.5S6.78 8 6.5 8m7 0h-2c-.28 0-.5.22-.5.5s.22.5.5.5h2c.28 0 .5-.22.5-.5s-.22-.5-.5-.5m-4 0h-1c-.28 0-.5.22-.5.5s.22.5.5.5h1c.28 0 .5-.22.5-.5S9.78 8 9.5 8m-.18-4l-.75 1.24c-.14.24-.06.55.17.69c.24.14.55.06.69-.17L10.5 4H12c1.11 0 2 .89 2 2v1.5H1V6a2 2 0 0 1 2-2h1.32l-.75 1.24c-.14.24-.06.55.17.69c.24.14.55.06.69-.17L5.5 4h1.32l-.75 1.24c-.14.24-.06.55.17.69c.24.14.55.06.69-.17L8 4z"/></svg>
   )
 }
 

@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { useRef, useEffect } from 'react'
-import { Truck, Check, Loader2, Store, AlertCircle, MapPin } from 'lucide-react'
+import { Truck, Loader2, Store, AlertCircle, MapPin } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { AddressAutocomplete } from './address-autocomplete'

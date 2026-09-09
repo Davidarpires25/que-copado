@@ -1,5 +1,9 @@
 'use client'
 
+/* eslint-disable @next/next/no-img-element -- Las imagenes de producto las
+   carga el admin pegando una URL arbitraria; next/image falla en runtime si
+   el host no esta en images.remotePatterns, asi que <img> es lo correcto. */
+
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'

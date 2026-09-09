@@ -55,10 +55,6 @@ export function PosProductGrid({
   )
 
   const hasActiveFilters = !!selectedCategory || !!search
-  const selectedCategoryName = selectedCategory
-    ? categories.find((c) => c.id === selectedCategory)?.name
-    : null
-
   const categoryColorMap = useMemo(() => {
     const map: Record<string, string> = {}
     categories.forEach((cat) => {

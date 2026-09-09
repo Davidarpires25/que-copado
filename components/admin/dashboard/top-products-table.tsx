@@ -10,6 +10,12 @@ interface TopProductsTableProps {
 }
 
 export function TopProductsTable({ products }: TopProductsTableProps) {
+  // Debe ejecutarse antes de cualquier return temprano (rules-of-hooks)
+  const maxQuantity = useMemo(
+    () => (products.length > 0 ? Math.max(...products.map((p) => p.quantity)) : 0),
+    [products]
+  )
+
   if (products.length === 0) {
     return (
       <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 shadow-[var(--shadow-card)] w-full h-full flex flex-col">
@@ -22,8 +28,6 @@ export function TopProductsTable({ products }: TopProductsTableProps) {
       </div>
     )
   }
-
-  const maxQuantity = useMemo(() => Math.max(...products.map((p) => p.quantity)), [products])
 
   return (
     <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 shadow-[var(--shadow-card)] w-full h-full flex flex-col">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -167,30 +167,43 @@ function ShoppingRow({
 // ---------------------------------------------------------------------------
 // Main dialog
 // ---------------------------------------------------------------------------
+/**
+ * Shell del dialog. El contenido se monta solo cuando `open` es true, asi el
+ * estado (ficha cargada, cantidad simulada) nace limpio en cada apertura en vez
+ * de resetearse con un efecto que reacciona a `open`.
+ */
 export function FichaTecnicaDialog({ open, onOpenChange, product }: FichaTecnicaDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {open && <FichaTecnicaContent product={product} onOpenChange={onOpenChange} />}
+    </Dialog>
+  )
+}
+
+function FichaTecnicaContent({
+  product,
+  onOpenChange,
+}: Omit<FichaTecnicaDialogProps, 'open'>) {
   const [sheet, setSheet] = useState<ProductionSheetResult | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [quantityStr, setQuantityStr] = useState('10')
   const quantity = Math.max(1, parseInt(quantityStr) || 1)
 
-  const loadSheet = useCallback(async () => {
-    setIsLoading(true)
-    const result = await getProductionSheet(product.id)
-    setIsLoading(false)
-    if (result.error) {
-      toast.error(result.error)
-      return
-    }
-    setSheet(result.data)
-  }, [product.id])
-
   useEffect(() => {
-    if (open) {
-      setSheet(null)
-      setQuantityStr('10')
-      loadSheet()
+    let cancelled = false
+    getProductionSheet(product.id).then((result) => {
+      if (cancelled) return
+      setIsLoading(false)
+      if (result.error) {
+        toast.error(result.error)
+        return
+      }
+      setSheet(result.data)
+    })
+    return () => {
+      cancelled = true
     }
-  }, [open, loadSheet])
+  }, [product.id])
 
   const totalCost =
     sheet?.shopping_list.reduce(
@@ -199,215 +212,210 @@ export function FichaTecnicaDialog({ open, onOpenChange, product }: FichaTecnica
     ) ?? 0
 
   return (
-    <>
+    <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)]">
+      {/* Header */}
+      <DialogHeader className="ficha-tecnica-no-print shrink-0">
+        <DialogTitle className="text-lg font-bold text-[var(--admin-text)] flex items-center gap-2">
+          <ClipboardList className="h-5 w-5 text-[var(--admin-accent-text)]" />
+          Ficha Técnica — {product.name}
+        </DialogTitle>
+        <p className="text-xs text-[var(--admin-text-muted)]">
+          Simulación de ingredientes y costos para la producción
+        </p>
+      </DialogHeader>
 
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)]">
-          {/* Header */}
-          <DialogHeader className="ficha-tecnica-no-print shrink-0">
-            <DialogTitle className="text-lg font-bold text-[var(--admin-text)] flex items-center gap-2">
-              <ClipboardList className="h-5 w-5 text-[var(--admin-accent-text)]" />
-              Ficha Técnica — {product.name}
-            </DialogTitle>
-            <p className="text-xs text-[var(--admin-text-muted)]">
-              Simulación de ingredientes y costos para la producción
-            </p>
-          </DialogHeader>
-
-          {/* Quantity + cost bar */}
-          <div className="ficha-tecnica-no-print shrink-0 flex flex-wrap items-center gap-4 px-1 py-3 bg-[var(--admin-surface-2)] border-y border-[var(--admin-border)] -mx-6">
-            <div className="flex items-center gap-2 pl-6">
-              <span className="text-sm text-[var(--admin-text-muted)] whitespace-nowrap">
-                Simular producción de
-              </span>
-              <Input
-                type="number"
-                min={1}
-                max={9999}
-                value={quantityStr}
-                onChange={(e) => setQuantityStr(e.target.value)}
-                onBlur={() => {
-                  const v = parseInt(quantityStr)
-                  setQuantityStr(String(isNaN(v) || v < 1 ? 1 : v > 9999 ? 9999 : v))
-                }}
-                className="w-20 h-8 text-center bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm font-mono"
-              />
-              <span className="text-sm text-[var(--admin-text-muted)]">unidades</span>
+      {/* Quantity + cost bar */}
+      <div className="ficha-tecnica-no-print shrink-0 flex flex-wrap items-center gap-4 px-1 py-3 bg-[var(--admin-surface-2)] border-y border-[var(--admin-border)] -mx-6">
+        <div className="flex items-center gap-2 pl-6">
+          <span className="text-sm text-[var(--admin-text-muted)] whitespace-nowrap">
+            Simular producción de
+          </span>
+          <Input
+            type="number"
+            min={1}
+            max={9999}
+            value={quantityStr}
+            onChange={(e) => setQuantityStr(e.target.value)}
+            onBlur={() => {
+              const v = parseInt(quantityStr)
+              setQuantityStr(String(isNaN(v) || v < 1 ? 1 : v > 9999 ? 9999 : v))
+            }}
+            className="w-20 h-8 text-center bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm font-mono"
+          />
+          <span className="text-sm text-[var(--admin-text-muted)]">unidades</span>
+        </div>
+        {sheet && (
+          <>
+            <div className="h-4 w-px bg-[var(--admin-border)]" />
+            <div className="text-sm">
+              <span className="text-[var(--admin-text-muted)]">Costo total: </span>
+              <span className="font-bold text-[var(--admin-accent-text)]">{formatPrice(totalCost)}</span>
             </div>
-            {sheet && (
-              <>
-                <div className="h-4 w-px bg-[var(--admin-border)]" />
-                <div className="text-sm">
-                  <span className="text-[var(--admin-text-muted)]">Costo total: </span>
-                  <span className="font-bold text-[var(--admin-accent-text)]">{formatPrice(totalCost)}</span>
-                </div>
-                <div className="h-4 w-px bg-[var(--admin-border)]" />
-                <div className="text-sm pr-6">
-                  <span className="text-[var(--admin-text-muted)]">Por unidad: </span>
-                  <span className="font-semibold text-[var(--admin-text)]">
-                    {formatPrice(quantity > 0 ? totalCost / quantity : 0)}
-                  </span>
-                </div>
-              </>
-            )}
+            <div className="h-4 w-px bg-[var(--admin-border)]" />
+            <div className="text-sm pr-6">
+              <span className="text-[var(--admin-text-muted)]">Por unidad: </span>
+              <span className="font-semibold text-[var(--admin-text)]">
+                {formatPrice(quantity > 0 ? totalCost / quantity : 0)}
+              </span>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="flex flex-col items-center gap-3">
+              <span className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--admin-accent)] border-t-transparent" />
+              <p className="text-sm text-[var(--admin-text-muted)]">Calculando ficha técnica...</p>
+            </div>
           </div>
+        ) : !sheet ? (
+          <div className="flex items-center justify-center py-16">
+            <p className="text-sm text-[var(--admin-text-muted)]">
+              Este producto no tiene recetas configuradas.
+            </p>
+          </div>
+        ) : (
+          <Tabs defaultValue="desglose" className="flex flex-col flex-1 min-h-0">
+            <TabsList className="ficha-tecnica-no-print shrink-0 mx-0 mt-3 bg-[var(--admin-bg)] border border-[var(--admin-border)] p-1 h-auto w-fit">
+              <TabsTrigger
+                value="desglose"
+                className="data-[state=active]:bg-[var(--admin-accent)]/15 data-[state=active]:text-[var(--admin-accent-text)] text-[var(--admin-text-muted)] px-4 py-1.5 text-sm font-medium transition-colors"
+              >
+                Desglose
+              </TabsTrigger>
+              <TabsTrigger
+                value="compras"
+                className="data-[state=active]:bg-[var(--admin-accent)]/15 data-[state=active]:text-[var(--admin-accent-text)] text-[var(--admin-text-muted)] px-4 py-1.5 text-sm font-medium transition-colors"
+              >
+                Lista de compras
+                {sheet.shopping_list.some(
+                  (i) => i.stock_tracking_enabled && i.current_stock < i.gross_qty_per_unit * quantity
+                ) && (
+                  <span className="ml-1.5 inline-flex h-2 w-2 rounded-full bg-red-500" />
+                )}
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Content */}
-          <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-16">
-                <div className="flex flex-col items-center gap-3">
-                  <span className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--admin-accent)] border-t-transparent" />
-                  <p className="text-sm text-[var(--admin-text-muted)]">Calculando ficha técnica...</p>
-                </div>
-              </div>
-            ) : !sheet ? (
-              <div className="flex items-center justify-center py-16">
-                <p className="text-sm text-[var(--admin-text-muted)]">
-                  Este producto no tiene recetas configuradas.
-                </p>
-              </div>
-            ) : (
-              <Tabs defaultValue="desglose" className="flex flex-col flex-1 min-h-0">
-                <TabsList className="ficha-tecnica-no-print shrink-0 mx-0 mt-3 bg-[var(--admin-bg)] border border-[var(--admin-border)] p-1 h-auto w-fit">
-                  <TabsTrigger
-                    value="desglose"
-                    className="data-[state=active]:bg-[var(--admin-accent)]/15 data-[state=active]:text-[var(--admin-accent-text)] text-[var(--admin-text-muted)] px-4 py-1.5 text-sm font-medium transition-colors"
-                  >
-                    Desglose
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="compras"
-                    className="data-[state=active]:bg-[var(--admin-accent)]/15 data-[state=active]:text-[var(--admin-accent-text)] text-[var(--admin-text-muted)] px-4 py-1.5 text-sm font-medium transition-colors"
-                  >
-                    Lista de compras
-                    {sheet.shopping_list.some(
-                      (i) => i.stock_tracking_enabled && i.current_stock < i.gross_qty_per_unit * quantity
-                    ) && (
-                      <span className="ml-1.5 inline-flex h-2 w-2 rounded-full bg-red-500" />
-                    )}
-                  </TabsTrigger>
-                </TabsList>
-
-                {/* DESGLOSE tab */}
-                <TabsContent value="desglose" className="flex-1 overflow-y-auto mt-3 pb-2">
-                  <div className="space-y-5">
-                    {sheet.recipes.map((recipe) => (
-                      <div key={recipe.recipe_id}>
-                        <div className="flex items-center gap-2 mb-2.5">
-                          <h4 className="text-sm font-semibold text-[var(--admin-text)]">
-                            Receta: {recipe.recipe_name}
-                          </h4>
-                          {recipe.multiplier !== 1 && (
-                            <Badge className="bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)] border border-[var(--admin-accent)]/30 hover:bg-[var(--admin-accent)]/15 text-xs">
-                              ×{recipe.multiplier}
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="rounded-lg border border-[var(--admin-border)] overflow-hidden">
-                          <Table>
-                            <TableHeader>
-                              <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)] bg-[var(--admin-bg)]">
-                                <TableHead className="text-[var(--admin-text-muted)] font-semibold text-xs py-2.5">
-                                  Ingrediente
-                                </TableHead>
-                                <TableHead className="text-right text-[var(--admin-text-muted)] font-semibold text-xs py-2.5 w-32">
-                                  Neto
-                                </TableHead>
-                                <TableHead className="text-right text-[var(--admin-text-muted)] font-semibold text-xs py-2.5 w-36">
-                                  Bruto (con merma)
-                                </TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {recipe.ingredients.map((ing) => (
-                                <IngredientRow
-                                  key={ing.ingredient_id}
-                                  ing={ing}
-                                  depth={0}
-                                  quantity={quantity}
-                                />
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </TabsContent>
-
-                {/* LISTA DE COMPRAS tab */}
-                <TabsContent value="compras" className="flex-1 overflow-y-auto mt-3 pb-2">
-                  <div className="rounded-lg border border-[var(--admin-border)] overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)] bg-[var(--admin-bg)]">
-                          <TableHead className="text-[var(--admin-text-muted)] font-semibold text-xs py-2.5">
-                            Ingrediente
-                          </TableHead>
-                          <TableHead className="text-right text-[var(--admin-text-muted)] font-semibold text-xs py-2.5 w-28">
-                            Neto
-                          </TableHead>
-                          <TableHead className="text-right text-[var(--admin-text-muted)] font-semibold text-xs py-2.5 w-28">
-                            Bruto
-                          </TableHead>
-                          <TableHead className="text-right text-[var(--admin-text-muted)] font-semibold text-xs py-2.5 w-32">
-                            Costo total
-                          </TableHead>
-                          <TableHead className="text-right text-[var(--admin-text-muted)] font-semibold text-xs py-2.5 w-40">
-                            Disponible (Δ)
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {sheet.shopping_list.map((item) => (
-                          <ShoppingRow key={item.ingredient_id} item={item} quantity={quantity} />
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-
-                  <div className="mt-4 flex justify-end">
-                    <div className="bg-[var(--admin-surface-2)] border border-[var(--admin-border)] rounded-lg px-4 py-3 text-sm flex items-center gap-2">
-                      <span className="text-[var(--admin-text-muted)]">Total estimado:</span>
-                      <span className="font-bold text-lg text-[var(--admin-accent-text)]">
-                        {formatPrice(totalCost)}
-                      </span>
+            {/* DESGLOSE tab */}
+            <TabsContent value="desglose" className="flex-1 overflow-y-auto mt-3 pb-2">
+              <div className="space-y-5">
+                {sheet.recipes.map((recipe) => (
+                  <div key={recipe.recipe_id}>
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <h4 className="text-sm font-semibold text-[var(--admin-text)]">
+                        Receta: {recipe.recipe_name}
+                      </h4>
+                      {recipe.multiplier !== 1 && (
+                        <Badge className="bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)] border border-[var(--admin-accent)]/30 hover:bg-[var(--admin-accent)]/15 text-xs">
+                          ×{recipe.multiplier}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="rounded-lg border border-[var(--admin-border)] overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)] bg-[var(--admin-bg)]">
+                            <TableHead className="text-[var(--admin-text-muted)] font-semibold text-xs py-2.5">
+                              Ingrediente
+                            </TableHead>
+                            <TableHead className="text-right text-[var(--admin-text-muted)] font-semibold text-xs py-2.5 w-32">
+                              Neto
+                            </TableHead>
+                            <TableHead className="text-right text-[var(--admin-text-muted)] font-semibold text-xs py-2.5 w-36">
+                              Bruto (con merma)
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {recipe.ingredients.map((ing) => (
+                            <IngredientRow
+                              key={ing.ingredient_id}
+                              ing={ing}
+                              depth={0}
+                              quantity={quantity}
+                            />
+                          ))}
+                        </TableBody>
+                      </Table>
                     </div>
                   </div>
-                </TabsContent>
-              </Tabs>
-            )}
-          </div>
+                ))}
+              </div>
+            </TabsContent>
 
-          {/* Footer */}
-          <div className="ficha-tecnica-no-print shrink-0 flex items-center justify-between gap-3 pt-3 border-t border-[var(--admin-border)]">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                window.open(
-                  `/admin/stock/ficha/${product.id}/print?qty=${quantity}`,
-                  '_blank'
-                )
-              }
-              disabled={!sheet}
-              className="border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] gap-2"
-            >
-              <Printer className="h-4 w-4" />
-              Imprimir
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onOpenChange(false)}
-              className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
-            >
-              Cerrar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+            {/* LISTA DE COMPRAS tab */}
+            <TabsContent value="compras" className="flex-1 overflow-y-auto mt-3 pb-2">
+              <div className="rounded-lg border border-[var(--admin-border)] overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)] bg-[var(--admin-bg)]">
+                      <TableHead className="text-[var(--admin-text-muted)] font-semibold text-xs py-2.5">
+                        Ingrediente
+                      </TableHead>
+                      <TableHead className="text-right text-[var(--admin-text-muted)] font-semibold text-xs py-2.5 w-28">
+                        Neto
+                      </TableHead>
+                      <TableHead className="text-right text-[var(--admin-text-muted)] font-semibold text-xs py-2.5 w-28">
+                        Bruto
+                      </TableHead>
+                      <TableHead className="text-right text-[var(--admin-text-muted)] font-semibold text-xs py-2.5 w-32">
+                        Costo total
+                      </TableHead>
+                      <TableHead className="text-right text-[var(--admin-text-muted)] font-semibold text-xs py-2.5 w-40">
+                        Disponible (Δ)
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sheet.shopping_list.map((item) => (
+                      <ShoppingRow key={item.ingredient_id} item={item} quantity={quantity} />
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              <div className="mt-4 flex justify-end">
+                <div className="bg-[var(--admin-surface-2)] border border-[var(--admin-border)] rounded-lg px-4 py-3 text-sm flex items-center gap-2">
+                  <span className="text-[var(--admin-text-muted)]">Total estimado:</span>
+                  <span className="font-bold text-lg text-[var(--admin-accent-text)]">
+                    {formatPrice(totalCost)}
+                  </span>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="ficha-tecnica-no-print shrink-0 flex items-center justify-between gap-3 pt-3 border-t border-[var(--admin-border)]">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() =>
+            window.open(
+              `/admin/stock/ficha/${product.id}/print?qty=${quantity}`,
+              '_blank'
+            )
+          }
+          disabled={!sheet}
+          className="border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] gap-2"
+        >
+          <Printer className="h-4 w-4" />
+          Imprimir
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onOpenChange(false)}
+          className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
+        >
+          Cerrar
+        </Button>
+      </div>
+    </DialogContent>
   )
 }

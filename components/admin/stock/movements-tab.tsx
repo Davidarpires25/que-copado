@@ -43,9 +43,13 @@ export function MovementsTab({ initialMovements }: MovementsTabProps) {
   const [dateTo, setDateTo] = useState('')
   const [loading, setLoading] = useState(initialMovements.length === 0)
 
-  // Lazy load on first render — movements are not shown on initial page load
+  // Lazy load on first render — movements are not shown on initial page load.
+  // La decision se congela al montar: si el server ya mando movimientos no se
+  // vuelve a pedir aunque router.refresh() cambie la prop.
+  const [needsLazyLoad] = useState(() => initialMovements.length === 0)
+
   useEffect(() => {
-    if (initialMovements.length > 0) return
+    if (!needsLazyLoad) return
     let cancelled = false
     getStockMovements({ limit: 50 }).then((result) => {
       if (!cancelled) {
@@ -54,7 +58,7 @@ export function MovementsTab({ initialMovements }: MovementsTabProps) {
       }
     })
     return () => { cancelled = true }
-  }, [])
+  }, [needsLazyLoad])
 
   const applyFilters = async () => {
     setLoading(true)

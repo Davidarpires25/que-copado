@@ -390,6 +390,10 @@ export async function completeMostadorPayment(
         orderItemsPromise,
       ])
 
+      if (orderItemsError) {
+        devError(`Error fetching order_items for order ${orderId} — el descuento de stock puede quedar incompleto:`, orderItemsError)
+      }
+
       if (sessionFetchError || !currentSession) {
         devError(`CRITICAL: session ${sessionId} not found — totals NOT updated for mostrador order ${orderId} (${orderData.total}):`, sessionFetchError)
       } else {

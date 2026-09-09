@@ -92,7 +92,7 @@ export function ZoneList({
         </div>
       ) : (
         <div className="divide-y divide-[var(--admin-surface-2)]">
-          {zones.map((zone, index) => (
+          {zones.map((zone, _index) => (
             <div
               key={zone.id}
               className={`p-4 transition-all duration-200 cursor-pointer group ${

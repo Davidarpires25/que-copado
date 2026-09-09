@@ -9,11 +9,9 @@ import { DeliveryForm } from '@/components/checkout/delivery-form'
 import { CheckoutSummary } from '@/components/checkout/checkout-summary'
 import { Button } from '@/components/ui/button'
 import { useCheckout } from '@/lib/hooks/use-checkout'
-import { useUIStore } from '@/lib/store/ui-store'
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const setCartDrawerOpen = useUIStore((s) => s.setCartDrawerOpen)
   const {
     items,
     deliveryType,

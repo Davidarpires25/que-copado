@@ -91,7 +91,7 @@ export function TablePayView({
     if (payMode !== 'per_guest') return []
     const byMethod: Record<string, number> = {}
     for (const { tag, subtotal } of guestTags) {
-      const m = getGuestMethod(tag)
+      const m = guestMethods[tag] ?? 'cash'
       byMethod[m] = (byMethod[m] ?? 0) + subtotal
     }
     return Object.entries(byMethod).map(([m, amt]) => {

@@ -9,8 +9,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  } from '@/components/ui/select'
 import type { Ingredient, IngredientUnit } from '@/lib/types/database'
 import { INGREDIENT_UNIT_ABBR } from '@/lib/types/database'
 import { formatCost } from '@/lib/constants/recipe-units'

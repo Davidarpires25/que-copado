@@ -30,7 +30,7 @@ const SalesChart = dynamic(
 )
 import { OrderStatusBadge } from '@/components/admin/orders'
 import { formatPrice } from '@/lib/utils'
-import { formatRelativeDate, getShortOrderId, parseOrderItems } from '@/lib/services/order-formatter'
+import { getShortOrderId, parseOrderItems } from '@/lib/services/order-formatter'
 import type { DashboardStats, TopProduct, SalesChartData } from '@/lib/types/orders'
 import type { OrderWithZone } from '@/lib/types/database'
 import type { ComparativeStats } from '@/app/actions/analytics'

@@ -99,6 +99,7 @@ export function ImageUploader({ initialUrl, onChange }: ImageUploaderProps) {
           className="relative group rounded-xl overflow-hidden border border-[var(--admin-border)] bg-[var(--admin-bg)]"
           style={{ height: 180 }}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element -- URL cargada a mano por el admin: puede ser de cualquier host y next/image falla si no esta en remotePatterns. */}
           <img
             src={url}
             alt="Imagen del producto"

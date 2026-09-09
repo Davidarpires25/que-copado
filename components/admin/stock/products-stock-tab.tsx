@@ -19,7 +19,7 @@ import { StockAdjustDialog } from './stock-adjust-dialog'
 import { ElaboradoStockSection } from './elaborado-stock-section'
 import { toggleStockTracking } from '@/app/actions/stock'
 import { toast } from 'sonner'
-import type { ProductWithStock, StockAlert, ReservedStockItem } from '@/lib/types/stock'
+import type { ProductWithStock, StockAlert } from '@/lib/types/stock'
 import type { Product } from '@/lib/types/database'
 
 interface ProductsStockTabProps {

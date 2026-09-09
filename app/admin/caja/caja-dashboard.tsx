@@ -9,11 +9,12 @@ import { PosInterface } from '@/components/admin/caja/pos-interface'
 import { SessionCloseScreen } from '@/components/admin/caja/session-close-screen'
 import { AdminSidebar, MobileSidebar } from '@/components/admin/layout/admin-sidebar'
 import { useThemeStore } from '@/lib/store/theme-store'
-import { getSessionSummary } from '@/app/actions/cash-register'
 import { cn, formatPrice } from '@/lib/utils'
 import type { Category, ProductWithHalfConfig, Order, DeliveryZone } from '@/lib/types/database'
 import type { CashRegisterSession, SessionSummary } from '@/lib/types/cash-register'
 import type { TableWithOrder } from '@/lib/types/tables'
+import type { OrderWithSplits } from '@/lib/types/cash-register'
+import { useSidebarCollapsed } from '@/lib/hooks/use-sidebar-collapsed'
 
 type Screen = 'open' | 'pos' | 'close'
 
@@ -24,6 +25,7 @@ interface CajaDashboardProps {
   initialTables: TableWithOrder[]
   initialPendingOrders: Order[]
   initialDeliveryZones: DeliveryZone[]
+  initialSessionOrders: OrderWithSplits[]
 }
 
 export function CajaDashboard({
@@ -33,12 +35,16 @@ export function CajaDashboard({
   initialTables,
   initialPendingOrders,
   initialDeliveryZones,
+  initialSessionOrders,
 }: CajaDashboardProps) {
   const [screen, setScreen] = useState<Screen>(initialSession ? 'pos' : 'open')
   const [session, setSession] = useState<CashRegisterSession | null>(initialSession)
   const [closeSummary, setCloseSummary] = useState<SessionSummary | null>(null)
-  const [tables, setTables] = useState<TableWithOrder[]>(initialTables)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  // Sin estado local: PosInterface llama a router.refresh() tras cada cambio de
+  // mesa, asi que la prop del server ya trae el dato fresco. Copiarla a
+  // useState congelaba `openTablesCount` hasta recargar la pagina.
+  const tables = initialTables
+  const [sidebarCollapsed, handleToggleCollapse] = useSidebarCollapsed()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Sync dark mode to html element when not in AdminLayout
@@ -50,12 +56,6 @@ export function CajaDashboard({
       document.documentElement.classList.remove('admin-dark')
     }
   }, [theme])
-
-  // Load sidebar collapsed state from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('admin-sidebar-collapsed')
-    if (saved !== null) setSidebarCollapsed(JSON.parse(saved) as boolean)
-  }, [])
 
   const openTablesCount = tables.filter((t) => t.status !== 'libre').length
 
@@ -69,13 +69,6 @@ export function CajaDashboard({
     setScreen('close')
   }
 
-  // Fetches summary then transitions to close screen — used by top bar button
-  const handleCloseRequest = async () => {
-    if (!session) return
-    const { data: summary } = await getSessionSummary(session.id)
-    if (summary) handleCloseSession(summary)
-  }
-
   const handleSessionClosed = () => {
     setSession(null)
     setCloseSummary(null)
@@ -86,11 +79,6 @@ export function CajaDashboard({
     setSession(updatedSession)
   }
 
-  const handleToggleCollapse = () => {
-    const newValue = !sidebarCollapsed
-    setSidebarCollapsed(newValue)
-    localStorage.setItem('admin-sidebar-collapsed', JSON.stringify(newValue))
-  }
 
   return (
     <motion.div
@@ -181,6 +169,7 @@ export function CajaDashboard({
                   initialTables={tables}
                   initialPendingOrders={initialPendingOrders}
                   initialDeliveryZones={initialDeliveryZones}
+                  initialSessionOrders={initialSessionOrders}
                   onCloseSession={handleCloseSession}
                   onSessionUpdate={handleSessionUpdate}
                 />

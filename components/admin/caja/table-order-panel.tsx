@@ -34,12 +34,12 @@ interface TableOrderPanelProps {
 
 export function TableOrderPanel({
   table,
-  session,
+  session: _session,
   onAddItems,
-  onRequestBill,
+  onRequestBill: _onRequestBill,
   onPayOrder,
   onCancelOrder,
-  onClose,
+  onClose: _onClose,
   onOrderItemsChanged,
   asSheet = false,
 }: TableOrderPanelProps) {
@@ -60,10 +60,11 @@ export function TableOrderPanel({
   const canModify = orderStatus === 'abierto' || orderStatus === 'cuenta_pedida'
   const sectionLabel = TABLE_SECTION_LABELS[table.section] || table.section
 
-  const activeItems = useMemo(() => {
-    if (!order?.order_items) return []
-    return order.order_items.filter((item) => item.status !== 'cancelado')
-  }, [order?.order_items])
+  const orderItems = order?.order_items
+  const activeItems = useMemo(
+    () => (orderItems ?? []).filter((item) => item.status !== 'cancelado'),
+    [orderItems]
+  )
 
   const existingTags = useMemo(() => {
     const tags = new Set<string>()

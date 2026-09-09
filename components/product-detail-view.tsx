@@ -1,33 +1,19 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowLeft, UtensilsCrossed, Minus, Plus, ShoppingCart, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useCartStore } from '@/lib/store/cart-store'
 import { formatPrice } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { Product } from '@/lib/types/database'
+import { useMediaQuery } from '@/lib/hooks/use-media-query'
 
 interface ProductDetailViewProps {
   product: Product
-}
-
-function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false)
-
-  useEffect(() => {
-    const mql = window.matchMedia(query)
-    setMatches(mql.matches)
-    const handler = (e: MediaQueryListEvent) => setMatches(e.matches)
-    mql.addEventListener('change', handler)
-    return () => mql.removeEventListener('change', handler)
-  }, [query])
-
-  return matches
 }
 
 const OBS_MAX_LENGTH = 140

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MapPin, CircleDot, Hexagon, Info } from 'lucide-react'
+import { CircleDot, Hexagon, Info } from 'lucide-react'
 import {
   Dialog,
   DialogContent,

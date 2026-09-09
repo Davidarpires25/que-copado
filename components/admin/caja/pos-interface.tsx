@@ -44,6 +44,7 @@ interface PosInterfaceProps {
   initialTables: TableWithOrder[]
   initialPendingOrders: Order[]
   initialDeliveryZones: DeliveryZone[]
+  initialSessionOrders: OrderWithSplits[]
   onCloseSession: (summary: SessionSummary) => void
   onSessionUpdate: (session: CashRegisterSession) => void
 }
@@ -55,6 +56,7 @@ export function PosInterface({
   initialTables,
   initialPendingOrders,
   initialDeliveryZones,
+  initialSessionOrders,
   onCloseSession,
   onSessionUpdate,
 }: PosInterfaceProps) {
@@ -73,7 +75,7 @@ export function PosInterface({
   const [showMovement, setShowMovement] = useState(false)
   const [historialLoading, setHistorialLoading] = useState(false)
   const [confirmLoading, setConfirmLoading] = useState(false)
-  const [sessionOrders, setSessionOrders] = useState<OrderWithSplits[]>([])
+  const [sessionOrders, setSessionOrders] = useState<OrderWithSplits[]>(initialSessionOrders)
 
   // Pending mostrador orders (abierto)
   const [pendingOrders, setPendingOrders] = useState<Order[]>(initialPendingOrders)
@@ -112,7 +114,10 @@ export function PosInterface({
     () => initialDeliveryZones.find((z) => z.id === selectedDeliveryZoneId) ?? null,
     [initialDeliveryZones, selectedDeliveryZoneId]
   )
-  const shippingCost = shippingEnabled ? selectedDeliveryZone?.shipping_cost ?? 0 : 0
+  // Con el carrito vacio no hay envio que cobrar. Se deriva en render en vez
+  // de resetear el estado desde un efecto (evita el render en cascada).
+  const shippingActive = shippingEnabled && items.length > 0
+  const shippingCost = shippingActive ? selectedDeliveryZone?.shipping_cost ?? 0 : 0
   const totalWithShipping = subtotal + shippingCost
   const hasKitchenItems = useMemo(() => items.some((item) => sendsToKitchen(item.product_type ?? '')), [items])
   const currentCash = useMemo(() => (
@@ -160,11 +165,6 @@ export function PosInterface({
   const debouncedRefreshHistorial = useCallback(() => {
     if (refreshHistorialTimerRef.current) clearTimeout(refreshHistorialTimerRef.current)
     refreshHistorialTimerRef.current = setTimeout(() => void handleLoadHistorial(true), 300)
-  }, [handleLoadHistorial])
-
-  // Preload historial en background para mantenerlo al día
-  useEffect(() => {
-    void handleLoadHistorial(true)
   }, [handleLoadHistorial])
 
   // ─── Realtime subscriptions ───────────────────────────────
@@ -257,13 +257,6 @@ export function PosInterface({
     )
   }, [])
 
-  useEffect(() => {
-    if (items.length === 0) {
-      setShippingEnabled(false)
-      setSelectedDeliveryZoneId(null)
-    }
-  }, [items.length])
-
   // "Confirmar pedido" — crea orden abierta y envía a cocina
   const handleCheckout = () => {
     if (items.length === 0) return
@@ -272,7 +265,7 @@ export function PosInterface({
 
   const handleConfirmOrder = async () => {
     if (items.length === 0 || confirmLoading) return
-    if (shippingEnabled && !selectedDeliveryZoneId) {
+    if (shippingActive && !selectedDeliveryZoneId) {
       toast.error('Seleccioná una zona de envío')
       return
     }
@@ -290,7 +283,7 @@ export function PosInterface({
       total: totalWithShipping,
       notes: notes || null,
       shipping_cost: shippingCost,
-      delivery_zone_id: shippingEnabled ? selectedDeliveryZoneId : null,
+      delivery_zone_id: shippingActive ? selectedDeliveryZoneId : null,
       session_id: session.id,
     })
 
@@ -628,7 +621,7 @@ export function PosInterface({
                   items={items}
                   hasKitchenItems={hasKitchenItems}
                   deliveryZones={initialDeliveryZones}
-                  shippingEnabled={shippingEnabled}
+                  shippingEnabled={shippingActive}
                   selectedDeliveryZoneId={selectedDeliveryZoneId}
                   shippingCost={shippingCost}
                   total={totalWithShipping}
@@ -758,7 +751,7 @@ export function PosInterface({
             items={items}
             loading={confirmLoading}
             deliveryZones={initialDeliveryZones}
-            shippingEnabled={shippingEnabled}
+            shippingEnabled={shippingActive}
             selectedDeliveryZoneId={selectedDeliveryZoneId}
             shippingCost={shippingCost}
             total={totalWithShipping}

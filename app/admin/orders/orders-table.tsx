@@ -22,7 +22,6 @@ import {
   getShortOrderId,
   parseOrderItems,
 } from '@/lib/services/order-formatter'
-import { ORDER_STATUS_CONFIG } from '@/lib/types/orders'
 import type { OrderWithZone, OrderStatus } from '@/lib/types/database'
 
 interface OrdersTableProps {

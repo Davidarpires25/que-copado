@@ -179,7 +179,7 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
               {TABLE_SECTION_LABELS[section] || section}
             </h3>
             <div className="space-y-2">
-              {sectionTables.map((table, index) => {
+              {sectionTables.map((table, _index) => {
                 const globalIndex = tables.findIndex((t) => t.id === table.id)
                 return (
                   <div
