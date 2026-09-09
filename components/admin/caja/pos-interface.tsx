@@ -149,6 +149,24 @@ export function PosInterface({
     if (!silent) setPendingLoading(false)
   }, [session.id])
 
+  const handleLoadHistorial = useCallback(async (silent = false) => {
+    if (!silent) setHistorialLoading(true)
+    const { data } = await getSessionOrders(session.id)
+    if (data) setSessionOrders(data)
+    if (!silent) setHistorialLoading(false)
+  }, [session.id])
+
+  const refreshHistorialTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const debouncedRefreshHistorial = useCallback(() => {
+    if (refreshHistorialTimerRef.current) clearTimeout(refreshHistorialTimerRef.current)
+    refreshHistorialTimerRef.current = setTimeout(() => void handleLoadHistorial(true), 300)
+  }, [handleLoadHistorial])
+
+  // Preload historial en background para mantenerlo al día
+  useEffect(() => {
+    void handleLoadHistorial(true)
+  }, [handleLoadHistorial])
+
   // ─── Realtime subscriptions ───────────────────────────────
   useEffect(() => {
     const supabase = createClient()
@@ -157,9 +175,10 @@ export function PosInterface({
       .on('postgres_changes', { event: '*', schema: 'public', table: 'restaurant_tables' },
         () => { debouncedRefreshTables() }
       )
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `session_id=eq.${session.id}` },
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `cash_register_session_id=eq.${session.id}` },
         () => {
           void refreshPendingOrders(true)
+          debouncedRefreshHistorial()
           debouncedRefreshTables()
         }
       )
@@ -169,7 +188,7 @@ export function PosInterface({
       .subscribe()
 
     return () => { void supabase.removeChannel(channel) }
-  }, [debouncedRefreshTables, refreshPendingOrders, session.id])
+  }, [debouncedRefreshTables, debouncedRefreshHistorial, refreshPendingOrders, session.id])
 
   // ─── Mostrador handlers ─────────────────────────────────
   const handleAddItem = useCallback((
@@ -306,16 +325,11 @@ export function PosInterface({
     }
   }
 
-  const handleLoadHistorial = useCallback(async () => {
-    setHistorialLoading(true)
-    const { data } = await getSessionOrders(session.id)
-    if (data) setSessionOrders(data)
-    setHistorialLoading(false)
-  }, [session.id])
-
   const handleSwitchToHistorial = async () => {
     setMode('historial')
-    await handleLoadHistorial()
+    if (sessionOrders.length === 0) {
+      await handleLoadHistorial()
+    }
   }
 
   const handleSwitchToMostrador = () => {
@@ -337,7 +351,7 @@ export function PosInterface({
       await refreshPendingOrders()
     } else {
       router.refresh()
-      await handleLoadHistorial()
+      await handleLoadHistorial(true)
       const { data: summaryData } = await getSessionSummary(session.id)
       if (summaryData) onSessionUpdate(summaryData.session)
     }
@@ -381,6 +395,7 @@ export function PosInterface({
       setPayingOrder(null)
       router.refresh()
       await refreshPendingOrders()
+      void handleLoadHistorial(true)
 
       const orderTotal = payingOrder.total
       const sessionDelta: Partial<CashRegisterSession> = {
@@ -450,6 +465,7 @@ export function PosInterface({
     setSelectedTable(null)
     router.refresh()
     await refreshTables()
+    void handleLoadHistorial(true)
     const { data: summary } = await getSessionSummary(session.id)
     if (summary) {
       onSessionUpdate(summary.session)
@@ -699,7 +715,6 @@ export function PosInterface({
             <PosHistorialTab
               orders={sessionOrders}
               loading={historialLoading}
-              onRefresh={handleLoadHistorial}
               onCancelOrder={(orderId) => setCancelOrderId(orderId)}
             />
           </div>
