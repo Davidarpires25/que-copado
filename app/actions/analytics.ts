@@ -5,6 +5,7 @@ import { getAuthUser } from '@/lib/server/auth'
 import { devError } from '@/lib/server/logger'
 import { parseOrderItems } from '@/lib/services/order-formatter'
 import type { Json } from '@/lib/types/database'
+import { requireRole } from '@/lib/server/profile'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -176,6 +177,8 @@ export async function getComparativeStats(): Promise<{
     const supabase = await createClient()
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
+    const denied = await requireRole('admin')
+    if (denied) return { data: null, ...denied }
 
     const now = new Date()
 
@@ -282,6 +285,8 @@ export async function getHourlySales(
     const supabase = await createClient()
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
+    const denied = await requireRole('admin')
+    if (denied) return { data: null, ...denied }
 
     const startDate = getPeriodStartDate(period)
 
@@ -336,6 +341,8 @@ export async function getWeekdaySales(
     const supabase = await createClient()
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
+    const denied = await requireRole('admin')
+    if (denied) return { data: null, ...denied }
 
     const startDate = getPeriodStartDate(period)
     const days = { '7d': 7, '30d': 30, '90d': 90 }
@@ -394,6 +401,8 @@ export async function getCancellationRate(
     const supabase = await createClient()
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
+    const denied = await requireRole('admin')
+    if (denied) return { data: null, ...denied }
 
     const days = { '7d': 7, '30d': 30, '90d': 90 }
     const startDate = getPeriodStartDate(period)
@@ -461,6 +470,8 @@ export async function getPaymentMethodDistribution(
     const supabase = await createClient()
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
+    const denied = await requireRole('admin')
+    if (denied) return { data: null, ...denied }
 
     const startDate = getPeriodStartDate(period)
 
@@ -518,6 +529,8 @@ export async function getTopProductsByRevenue(
     const supabase = await createClient()
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
+    const denied = await requireRole('admin')
+    if (denied) return { data: null, ...denied }
 
     const startDate = getPeriodStartDate(period)
 
@@ -576,6 +589,8 @@ export async function getConfigurableSalesChart(
     const supabase = await createClient()
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
+    const denied = await requireRole('admin')
+    if (denied) return { data: null, ...denied }
 
     const days = { '7d': 7, '30d': 30, '90d': 90 }
     const numDays = days[period]
@@ -682,6 +697,8 @@ export async function getZoneSales(
     const supabase = await createClient()
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
+    const denied = await requireRole('admin')
+    if (denied) return { data: null, ...denied }
 
     const startDate = getPeriodStartDate(period)
 
@@ -790,6 +807,8 @@ export async function getShippingAnalysis(
     const supabase = await createClient()
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
+    const denied = await requireRole('admin')
+    if (denied) return { data: null, ...denied }
 
     const startDate = getPeriodStartDate(period)
 
@@ -869,6 +888,8 @@ export async function getProfitabilityReport(
     const supabase = await createClient()
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
+    const denied = await requireRole('admin')
+    if (denied) return { data: null, ...denied }
 
     const startDate = getPeriodStartDate(period)
 

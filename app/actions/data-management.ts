@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
+import { requireRole } from '@/lib/server/profile'
 
 export interface EntityCounts {
   orders: number
@@ -16,6 +17,8 @@ export async function getEntityCounts(): Promise<{ data: EntityCounts | null; er
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { data: null, error: 'No autorizado' }
+  const denied = await requireRole('admin')
+  if (denied) return { data: null, ...denied }
 
   const [orders, products, categories, ingredients, recipes, stockMovements] = await Promise.all([
     supabase.from('orders').select('id', { count: 'exact', head: true }),
@@ -45,6 +48,8 @@ export async function deleteAllOrders(): Promise<{ error: string | null }> {
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { error: 'No autorizado' }
+  const denied = await requireRole('admin')
+  if (denied) return { ...denied }
 
   // Skip orders with status 'abierto' (active open tables/counters)
   const { data: toDelete } = await supabase
@@ -70,6 +75,8 @@ export async function deleteAllProducts(): Promise<{ error: string | null }> {
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { error: 'No autorizado' }
+  const denied = await requireRole('admin')
+  if (denied) return { ...denied }
 
   // Remove FK references in order_items (keep history, just unlink product)
   await supabase.from('order_items').update({ product_id: null }).not('product_id', 'is', null)
@@ -88,6 +95,8 @@ export async function deleteAllCategories(): Promise<{ error: string | null }> {
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { error: 'No autorizado' }
+  const denied = await requireRole('admin')
+  if (denied) return { ...denied }
 
   // Must delete products first (FK products.category_id → categories.id)
   const productResult = await deleteAllProducts()
@@ -103,6 +112,8 @@ export async function deleteAllIngredients(): Promise<{ error: string | null }> 
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { error: 'No autorizado' }
+  const denied = await requireRole('admin')
+  if (denied) return { ...denied }
 
   // Delete dependents first
   await supabase.from('stock_movements').delete().not('ingredient_id', 'is', null)
@@ -119,6 +130,8 @@ export async function deleteAllRecipes(): Promise<{ error: string | null }> {
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { error: 'No autorizado' }
+  const denied = await requireRole('admin')
+  if (denied) return { ...denied }
 
   await supabase.from('recipe_ingredients').delete().not('id', 'is', null)
   await supabase.from('product_recipes').delete().not('id', 'is', null)
@@ -133,6 +146,8 @@ export async function deleteAllStockMovements(): Promise<{ error: string | null 
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { error: 'No autorizado' }
+  const denied = await requireRole('admin')
+  if (denied) return { ...denied }
 
   const { error } = await supabase.from('stock_movements').delete().not('id', 'is', null)
   if (error) return { error: 'Error al eliminar movimientos de stock' }
