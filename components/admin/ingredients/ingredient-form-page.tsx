@@ -103,7 +103,7 @@ export function IngredientFormPage({ mode, ingredient, categories }: IngredientF
   const inputError = 'bg-[var(--admin-bg)] border-red-500/60 text-[var(--admin-text)] h-10 text-sm focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-[1200px] mx-auto space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-[var(--admin-text-muted)] mb-6">
         <button

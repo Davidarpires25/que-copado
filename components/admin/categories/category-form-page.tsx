@@ -78,8 +78,9 @@ export function CategoryFormPage({ mode, category }: CategoryFormPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--admin-bg)]">
-      <form onSubmit={handleSubmit} className="px-8 xl:px-10 py-8 max-w-[800px] mx-auto space-y-6">
+    <div>
+      {/* Sin padding propio: el <main> de AdminLayout ya aplica el suyo. */}
+      <form onSubmit={handleSubmit} className="max-w-[1200px] mx-auto space-y-6">
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm">

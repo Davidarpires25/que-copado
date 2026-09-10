@@ -178,14 +178,14 @@ export function ProductFormPage({
   }
 
   return (
-    <div className="min-h-screen bg-[var(--admin-bg)] font-sans">
+    <div className="font-sans">
       <form action={handleSubmit} className="h-full">
         {/* Hidden inputs for toggles */}
         <input type="hidden" name="product_type" value={productType} />
         <input type="hidden" name="is_active" value={isActive ? 'true' : 'false'} />
         <input type="hidden" name="is_out_of_stock" value={isOutOfStock ? 'true' : 'false'} />
 
-        <div className="px-8 xl:px-10 py-8 max-w-[1200px] mx-auto space-y-6">
+        <div className="max-w-[1200px] mx-auto space-y-6">
 
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-sm">

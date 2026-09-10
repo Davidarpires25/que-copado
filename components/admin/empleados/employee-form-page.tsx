@@ -44,7 +44,7 @@ export function EmployeeFormPage({ roles }: Props) {
   // toda la atencion en vez de vivir en un dialogo que se cierra sin querer.
   if (credencial) {
     return (
-      <div className="space-y-6">
+      <div className="max-w-[1200px] mx-auto space-y-6">
         <nav className="flex items-center gap-2 text-sm">
           <Link href={VOLVER} className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors">
             Equipo
@@ -104,7 +104,7 @@ export function EmployeeFormPage({ roles }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="max-w-[1200px] mx-auto space-y-6">
       <div className="space-y-4">
         <nav className="flex items-center gap-2 text-sm">
           <Link href={VOLVER} className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors">

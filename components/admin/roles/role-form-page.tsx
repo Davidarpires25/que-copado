@@ -82,7 +82,7 @@ export function RoleFormPage({ mode, role }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="max-w-[1200px] mx-auto space-y-6">
       <div className="space-y-4">
         <nav className="flex items-center gap-2 text-sm">
           <Link

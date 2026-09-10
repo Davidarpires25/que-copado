@@ -274,8 +274,8 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
   }
 
   return (
-    <div className="min-h-screen bg-[var(--admin-bg)]">
-      <form onSubmit={handleSubmit} className="px-8 xl:px-10 py-8 max-w-[1200px] mx-auto space-y-6">
+    <div>
+      <form onSubmit={handleSubmit} className="max-w-[1200px] mx-auto space-y-6">
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm">
