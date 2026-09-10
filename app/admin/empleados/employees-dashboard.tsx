@@ -1,12 +1,11 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { UserPlus, KeyRound, Copy, Check, ShieldAlert } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/admin-layout'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
@@ -15,7 +14,7 @@ import {
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import {
-  createEmployee, updateEmployeeRole, setEmployeeActive, resetEmployeePassword,
+  updateEmployeeRole, setEmployeeActive, resetEmployeePassword,
   type Employee,
 } from '@/app/actions/employees'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -69,25 +68,10 @@ export function EmployeesDashboard({
   const [employees, setEmployees] = useState(initialEmployees)
   const roles = initialRoles
   const [pending, startTransition] = useTransition()
-  const [addOpen, setAddOpen] = useState(false)
   const [credential, setCredential] = useState<{ name: string; password: string } | null>(null)
 
-  const [form, setForm] = useState({ fullName: '', email: '', role: initialRoles[0]?.key ?? 'cajero' })
 
   const refresh = (updater: (prev: Employee[]) => Employee[]) => setEmployees(updater)
-
-  const handleCreate = () => {
-    startTransition(async () => {
-      const { data, error } = await createEmployee(form)
-      if (error || !data) { toast.error(error ?? 'No se pudo crear'); return }
-      setAddOpen(false)
-      setCredential({ name: form.fullName, password: data.tempPassword })
-      setForm({ fullName: '', email: '', role: roles[0]?.key ?? 'cajero' })
-      toast.success('Empleado creado')
-      // La lista se recarga en el próximo render del server; mientras tanto,
-      // se muestra la credencial, que es lo único que no se puede recuperar.
-    })
-  }
 
   const handleRole = (id: string, role: string) => {
     const previous = employees
@@ -169,10 +153,13 @@ export function EmployeesDashboard({
         <p className="text-sm text-[var(--admin-text-muted)]">
           {employees.length} {employees.length === 1 ? 'persona' : 'personas'}
         </p>
-        <Button onClick={() => setAddOpen(true)} className="gap-2 bg-[var(--admin-accent)] text-black hover:bg-[var(--admin-accent)] hover:brightness-95">
+        <Link
+          href="/admin/empleados/nuevo"
+          className="inline-flex items-center gap-2 rounded-md bg-[var(--admin-accent)] px-3 py-2 text-sm font-semibold text-black hover:bg-[var(--admin-accent)] hover:brightness-95 transition-all"
+        >
           <UserPlus className="h-4 w-4" />
           Agregar empleado
-        </Button>
+        </Link>
       </div>
 
       <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] overflow-x-auto">
@@ -255,64 +242,6 @@ export function EmployeesDashboard({
       </p>
       </>
       )}
-
-      {/* ── Alta ── */}
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] sm:max-w-md">
-          <DialogHeader><DialogTitle>Agregar empleado</DialogTitle></DialogHeader>
-          <div className="grid gap-4 py-2">
-            <div className="grid gap-2">
-              <Label htmlFor="nm">Nombre y apellido</Label>
-              <Input id="nm" value={form.fullName} autoFocus
-                onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-                className="bg-[var(--admin-bg)] border-[var(--admin-border)]" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="em">Email</Label>
-              <Input id="em" type="email" value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="bg-[var(--admin-bg)] border-[var(--admin-border)]" />
-            </div>
-            <div className="grid gap-2">
-              <Label>Rol</Label>
-              <div className="grid gap-2 max-h-64 overflow-y-auto">
-                {roles.map((r) => (
-                  <button
-                    key={r.key} type="button"
-                    onClick={() => setForm({ ...form, role: r.key })}
-                    className={cn(
-                      'text-left rounded-lg border px-3 py-2 transition-colors cursor-pointer',
-                      form.role === r.key
-                        ? 'border-[var(--admin-accent)] bg-[var(--admin-accent)]/10'
-                        : 'border-[var(--admin-border)] hover:border-[var(--admin-text-faint)]'
-                    )}
-                  >
-                    <span className="block text-sm font-semibold">{r.name}</span>
-                    <span className="block text-xs text-[var(--admin-text-muted)]">
-                      {r.description || `${r.permissions.length} permisos`}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <button
-              type="button" onClick={() => setAddOpen(false)}
-              className={cn(
-                'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ',
-                'px-4 py-2 text-sm text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)]'
-              )}
-            >
-              Cancelar
-            </button>
-            <Button onClick={handleCreate} disabled={pending}
-              className="bg-[var(--admin-accent)] text-black hover:bg-[var(--admin-accent)] hover:brightness-95">
-              {pending ? 'Creando…' : 'Crear cuenta'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* ── Credencial: se muestra una sola vez ── */}
       <Dialog open={!!credential} onOpenChange={(v) => !v && setCredential(null)}>
