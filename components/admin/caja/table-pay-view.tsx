@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { CreditCard,
-  ArrowLeft, Users, Loader2, Printer, Check,
+  ArrowLeft, Users, Loader2, Printer,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import { usePaymentSplit } from '@/lib/hooks/use-payment-split'
-import { PaymentMethods, PaymentMethodsLabel } from './payment-methods'
+import { PaymentMethods, PaymentMethodsLabel, PaymentMethodPicker } from './payment-methods'
 import { PaymentSummary } from './payment-summary'
 import { StockAlert } from './stock-alert'
 import { payTableOrder } from '@/app/actions/tables'
@@ -327,44 +327,14 @@ export function TablePayView({
 
                     {/* Payment methods */}
                     <div className="px-4 border-t border-[var(--admin-border)]/60 space-y-1.5" style={{ paddingTop: 10, paddingBottom: 14 }}>
-                      <p className="text-[10px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-[0.5px] mb-2">
+                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--admin-text-muted)]">
                         Métodos de pago
                       </p>
-                      {PAYMENT_METHODS.map((opt) => {
-                        const isActive = guestMethod === opt.value
-                        const dotColor = opt.dotClass
-                        return (
-                          <button
-                            key={opt.value}
-                            onClick={() => setGuestMethod(tag, opt.value)}
-                            className={cn(
-                              'w-full flex items-center justify-between px-2 border transition-all cursor-pointer select-none',
-                              isActive
-                                ? `${opt.bgClass} ${opt.borderClass}`
-                                : 'bg-[var(--admin-surface-2)] border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)]'
-                            )}
-                            style={{ height: 30, borderRadius: 6 }}
-                          >
-                            <div className="flex items-center gap-1.5">
-                              <div
-                                className={cn(
-                                  'flex items-center justify-center shrink-0 transition-all',
-                                  isActive ? dotColor : 'border border-[var(--admin-text-muted)]/40 bg-transparent'
-                                )}
-                                style={{ width: 12, height: 12, borderRadius: 3 }}
-                              >
-                                {isActive && <Check className="h-2 w-2 text-white" strokeWidth={3} />}
-                              </div>
-                              <span className={cn('text-[11px] font-semibold', isActive ? opt.textClass : 'text-[var(--admin-text-muted)]')}>
-                                {opt.label}
-                              </span>
-                            </div>
-                            <span className={cn('text-[11px] font-bold tabular-nums', isActive ? opt.textClass : 'text-[var(--admin-text-faint)]')}>
-                              {isActive ? formatPrice(subtotal) : '—'}
-                            </span>
-                          </button>
-                        )
-                      })}
+                      <PaymentMethodPicker
+                        selected={guestMethod}
+                        amount={subtotal}
+                        onSelect={(m) => setGuestMethod(tag, m)}
+                      />
                     </div>
 
                     {/* Ticket row */}

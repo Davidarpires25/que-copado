@@ -37,35 +37,7 @@ export function PaymentMethods({
         const isOn = !!entry || isEditing
 
         return (
-          <div
-            key={value}
-            onClick={() => onToggle(value)}
-            className={cn(
-              'flex h-10 items-center justify-between rounded-xl px-3 cursor-pointer transition-colors select-none',
-              isOn
-                // El borde va a opacidad plena. Con el relleno al 10% y el
-                // borde al 35%, la fila activa quedaba en #FFF9E6: mas clara
-                // que las inactivas (#F5F6FA) y casi igual al panel blanco.
-                // Seleccionar hacia retroceder la fila.
-                ? 'bg-[var(--admin-accent)]/15 border border-[var(--admin-accent)]'
-                : 'bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)]'
-            )}
-          >
-            <div className="flex items-center gap-2">
-              <span className={cn(
-                'grid h-4 w-4 shrink-0 place-items-center rounded transition-colors',
-                isOn ? 'bg-[var(--admin-accent)]' : 'border-[1.5px] border-[var(--admin-text-muted)]/40'
-              )}>
-                {isOn && <Check className="h-2.5 w-2.5 text-black" strokeWidth={3} />}
-              </span>
-              <span className={cn(
-                'text-[13px] font-semibold',
-                isOn ? 'text-[var(--admin-text)]' : 'text-[var(--admin-text-muted)]'
-              )}>
-                {label}
-              </span>
-            </div>
-
+          <Row key={value} on={isOn} label={label} onClick={() => onToggle(value)} multi>
             {isEditing ? (
               <input
                 ref={inputRef}
@@ -94,9 +66,96 @@ export function PaymentMethods({
             ) : (
               <span className="pr-1 text-[13px] text-[var(--admin-text-muted)]">—</span>
             )}
-          </div>
+          </Row>
         )
       })}
+    </div>
+  )
+}
+
+/**
+ * Los cuatro medios en seleccion unica, con el monto fijo. Lo usa el cobro por
+ * comensal, donde cada persona paga su parte con un solo medio.
+ *
+ * Tenia su propia implementacion: filas de 30px con la paleta de cada medio,
+ * al lado de las de 40px en ambar de cuenta unica. Dos lenguajes visuales para
+ * el mismo control en la misma pantalla.
+ *
+ * Y dibujaba un cuadrado con tilde, que promete poder marcar varios, cuando en
+ * realidad elegir uno reemplaza al anterior. El punto redondo no miente.
+ */
+export function PaymentMethodPicker({
+  selected, amount, onSelect,
+}: {
+  selected: PaymentMethod
+  /** Lo que paga esta persona. No se edita: sale de lo que consumio. */
+  amount: number
+  onSelect: (method: PaymentMethod) => void
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      {PAYMENT_METHODS.map(({ value, label }) => {
+        const on = selected === value
+        return (
+          <Row key={value} on={on} label={label} onClick={() => onSelect(value)}>
+            <span className={cn(
+              'pr-1 text-[13px] font-bold tabular-nums',
+              on ? 'text-[var(--admin-price)]' : 'text-[var(--admin-text-muted)]'
+            )}>
+              {on ? formatPrice(amount) : '—'}
+            </span>
+          </Row>
+        )
+      })}
+    </div>
+  )
+}
+
+/**
+ * La carcasa de la fila. El borde va a opacidad plena cuando esta activa: con
+ * el relleno al 10% y el borde al 35%, la fila seleccionada quedaba en #FFF9E6,
+ * mas clara que las inactivas (#F5F6FA) y casi igual al panel blanco. Elegir
+ * hacia retroceder la fila.
+ */
+function Row({
+  on, label, onClick, multi, children,
+}: {
+  on: boolean
+  label: string
+  onClick: () => void
+  /** Cuadrado con tilde si se pueden combinar medios; punto redondo si es uno solo. */
+  multi?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <div
+      onClick={onClick}
+      className={cn(
+        'flex h-10 cursor-pointer select-none items-center justify-between rounded-xl px-3 transition-colors',
+        on
+          ? 'bg-[var(--admin-accent)]/15 border border-[var(--admin-accent)]'
+          : 'bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)]'
+      )}
+    >
+      <div className="flex items-center gap-2">
+        <span className={cn(
+          'grid h-4 w-4 shrink-0 place-items-center transition-colors',
+          multi ? 'rounded' : 'rounded-full',
+          on ? 'bg-[var(--admin-accent)]' : 'border-[1.5px] border-[var(--admin-text-muted)]/40'
+        )}>
+          {on && (multi
+            ? <Check className="h-2.5 w-2.5 text-black" strokeWidth={3} />
+            : <span className="h-1.5 w-1.5 rounded-full bg-black" />
+          )}
+        </span>
+        <span className={cn(
+          'text-[13px] font-semibold',
+          on ? 'text-[var(--admin-text)]' : 'text-[var(--admin-text-muted)]'
+        )}>
+          {label}
+        </span>
+      </div>
+      {children}
     </div>
   )
 }
