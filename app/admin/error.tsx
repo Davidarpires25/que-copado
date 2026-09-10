@@ -30,7 +30,7 @@ export default function AdminError({
             Ocurrio un error inesperado. Podes intentar de nuevo o volver al dashboard.
           </p>
           {error.message && (
-            <p className="text-xs text-red-700 dark:text-red-400/70 mt-3 font-mono bg-red-950/20 rounded-lg px-3 py-2 break-all">
+            <p className="text-xs text-red-700 dark:text-red-400/70 mt-3 font-mono bg-red-50 dark:bg-red-950/20 rounded-lg px-3 py-2 break-all">
               {error.message}
             </p>
           )}

@@ -146,7 +146,7 @@ export function ElaboradoStockSection({
       {agotadosCount > 0 && (
         <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 text-red-700 dark:text-red-400 shrink-0 mt-0.5" />
-          <p className="text-sm text-red-300">
+          <p className="text-sm text-red-800 dark:text-red-300">
             <span className="font-semibold">{agotadosCount}</span>{' '}
             {agotadosCount === 1 ? 'producto elaborado agotado' : 'productos elaborados agotados'}.{' '}
             No hay ingredientes suficientes para prepararlos.
@@ -300,7 +300,7 @@ export function ElaboradoStockSection({
                                 variant="ghost"
                                 className={`h-9 w-9 lg:h-10 lg:w-10 transition-all ${
                                   product.is_out_of_stock
-                                    ? 'text-green-700 dark:text-green-400 hover:text-green-300 hover:bg-green-500/10'
+                                    ? 'text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 hover:bg-green-500/10'
                                     : 'text-[var(--admin-text-muted)] hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/10'
                                 }`}
                                 onClick={() => handleToggleAvailability(product)}

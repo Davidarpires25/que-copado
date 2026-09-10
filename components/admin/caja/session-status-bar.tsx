@@ -68,7 +68,7 @@ export function SessionStatusBar({
         </button>
         <button
           onClick={onCloseSession}
-          className="flex items-center gap-1.5 px-3 rounded-md text-[12px] font-medium transition-colors cursor-pointer text-red-700 dark:text-red-400 hover:text-red-300 bg-red-500/10 border border-red-500/20 hover:bg-red-500/15 hover:border-red-500/30"
+          className="flex items-center gap-1.5 px-3 rounded-md text-[12px] font-medium transition-colors cursor-pointer text-red-700 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 bg-red-500/10 border border-red-500/20 hover:bg-red-500/15 hover:border-red-500/30"
           style={{ height: 32 }}
         >
           <LogOut className="h-3.5 w-3.5" />

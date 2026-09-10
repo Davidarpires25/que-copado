@@ -672,14 +672,14 @@ export function TablePayView({
             )}
 
             {!stockChecking && hasStockWarnings && (
-              <div className="rounded-xl bg-amber-950/50 border border-amber-500/40 px-4 py-3 space-y-2">
+              <div className="rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-500/40 px-4 py-3 space-y-2">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-400 shrink-0" />
-                  <p className="text-sm font-semibold text-amber-300">Stock insuficiente</p>
+                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Stock insuficiente</p>
                 </div>
                 <ul className="space-y-1 pl-6">
                   {stockWarnings.map((w) => (
-                    <li key={w.product_id} className="text-xs text-amber-200">
+                    <li key={w.product_id} className="text-xs text-amber-800 dark:text-amber-200">
                       {w.available === 0
                         ? `${w.product_name}: pediste ${w.requested}, sin stock`
                         : `${w.product_name}: pediste ${w.requested}, hay ${w.available}`}

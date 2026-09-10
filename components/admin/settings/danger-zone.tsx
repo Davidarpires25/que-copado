@@ -117,7 +117,7 @@ function PasswordStep({ onConfirmed, onCancel }: PasswordStepProps) {
     <form onSubmit={handleSubmit} className="space-y-5 mt-2">
       <div className="flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/30">
         <ShieldAlert className="h-5 w-5 text-red-700 dark:text-red-400 mt-0.5 flex-shrink-0" />
-        <p className="text-sm text-red-300">
+        <p className="text-sm text-red-800 dark:text-red-300">
           Esta sección permite eliminar datos de forma permanente. Confirmá tu identidad para continuar.
         </p>
       </div>
@@ -199,7 +199,7 @@ function DeleteStep({ counts, onDeleted, onCancel }: DeleteStepProps) {
     return (
       <div className="space-y-5 mt-2">
         <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 space-y-2">
-          <p className="text-sm font-semibold text-red-300">
+          <p className="text-sm font-semibold text-red-800 dark:text-red-300">
             {count === 0
               ? `No hay ${selectedEntity.label.toLowerCase()} para eliminar`
               : `Se eliminarán ${count} ${selectedEntity.label.toLowerCase()}`}

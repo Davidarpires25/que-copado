@@ -322,13 +322,13 @@ export function PendingOrderPayView({ order, loading, onBack: _onBack, onPrint, 
             </div>
           )}
           {!stockChecking && hasStockWarnings && (
-            <div className="rounded-xl bg-amber-950/50 border border-amber-500/40 px-3 py-2.5 space-y-1">
+            <div className="rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-500/40 px-3 py-2.5 space-y-1">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-400 shrink-0" />
-                <p className="text-xs font-semibold text-amber-300">Stock insuficiente</p>
+                <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">Stock insuficiente</p>
               </div>
               {stockWarnings.map(w => (
-                <p key={w.product_id} className="text-xs text-amber-200 pl-6">
+                <p key={w.product_id} className="text-xs text-amber-800 dark:text-amber-200 pl-6">
                   {w.product_name}: {w.available === 0 ? 'sin stock' : `${w.available} disponibles`}
                 </p>
               ))}

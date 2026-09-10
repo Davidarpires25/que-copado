@@ -382,7 +382,7 @@ export function ProductFormPage({
                     {selectedRecipes.length > 0 && (
                       <div className="flex items-start gap-2 rounded-lg bg-blue-500/10 border border-blue-500/20 px-3 py-2.5">
                         <Info className="h-4 w-4 text-blue-700 dark:text-blue-400 shrink-0 mt-0.5" />
-                        <p className="text-xs text-blue-300">
+                        <p className="text-xs text-blue-800 dark:text-blue-300">
                           El costo se calcula automáticamente desde las recetas asociadas.
                         </p>
                       </div>
@@ -397,9 +397,9 @@ export function ProductFormPage({
                     {/* Info-box reactivo — al inicio, antes de las decisiones */}
                     <div className="flex items-start gap-2 rounded-lg bg-blue-500/10 border border-blue-500/20 px-3 py-2.5">
                       <Info className="h-4 w-4 text-blue-700 dark:text-blue-400 shrink-0 mt-0.5" />
-                      <p className="text-xs text-blue-300">
+                      <p className="text-xs text-blue-800 dark:text-blue-300">
                         {previewCategory
-                          ? <>El cliente podrá combinar 2 productos activos de <span className="font-semibold text-blue-200">«{previewCategory}»</span> como mitades. El precio se calcula al momento de la venta.</>
+                          ? <>El cliente podrá combinar 2 productos activos de <span className="font-semibold text-blue-800 dark:text-blue-200">«{previewCategory}»</span> como mitades. El precio se calcula al momento de la venta.</>
                           : 'Seleccioná una categoría arriba para definir qué productos podrá combinar el cliente como mitades.'}
                       </p>
                     </div>

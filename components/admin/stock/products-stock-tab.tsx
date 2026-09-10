@@ -151,7 +151,7 @@ export function ProductsStockTab({
       {alerts.filter((a) => a.type === 'product').length > 0 && (
         <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 text-red-700 dark:text-red-400 shrink-0" />
-          <p className="text-sm text-red-300">
+          <p className="text-sm text-red-800 dark:text-red-300">
             <span className="font-semibold">{alerts.filter((a) => a.type === 'product').length}</span>{' '}
             producto{alerts.filter((a) => a.type === 'product').length !== 1 ? 's' : ''} con stock bajo.
           </p>

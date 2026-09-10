@@ -567,7 +567,7 @@ export function ProductsDashboard({
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  className="h-9 w-9 text-green-700 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 hover:bg-green-950/30 transition-colors"
+                                  className="h-9 w-9 text-green-700 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 transition-colors"
                                   onClick={() => handlePriceSave(product.id)}
                                 >
                                   <Check className="h-3.5 w-3.5" />
@@ -575,7 +575,7 @@ export function ProductsDashboard({
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  className="h-9 w-9 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-950/30 transition-colors"
+                                  className="h-9 w-9 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                                   onClick={() => setEditingPrice(null)}
                                 >
                                   <X className="h-3.5 w-3.5" />
@@ -651,7 +651,7 @@ export function ProductsDashboard({
                                   <Button
                                     size="icon"
                                     variant="ghost"
-                                    className="h-9 w-9 lg:h-10 lg:w-10 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-950/30 transition-all duration-200"
+                                    className="h-9 w-9 lg:h-10 lg:w-10 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all duration-200"
                                     onClick={() => setDeleteTarget(product.id)}
                                   >
                                     <Trash2 className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
@@ -690,7 +690,7 @@ export function ProductsDashboard({
               variant="ghost"
               disabled={isBulkAction}
               onClick={() => handleBulkActivate(true)}
-              className="text-green-700 dark:text-green-400 hover:text-green-300 hover:bg-green-950/30 text-xs gap-1.5"
+              className="text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/30 text-xs gap-1.5"
             >
               <Eye className="h-3.5 w-3.5" />
               Activar
@@ -710,7 +710,7 @@ export function ProductsDashboard({
               variant="ghost"
               disabled={isBulkAction}
               onClick={() => setBulkDeleteConfirm(true)}
-              className="text-red-700 dark:text-red-400 hover:text-red-300 hover:bg-red-950/30 text-xs gap-1.5"
+              className="text-red-700 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 text-xs gap-1.5"
             >
               <Trash2 className="h-3.5 w-3.5" />
               Eliminar

@@ -214,9 +214,9 @@ export function IngredientSubRecipeDialog({
 
           {/* Info alert when there are lines */}
           {lines.length > 0 && (
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-950/30 border border-blue-500/40">
-              <Info className="h-4 w-4 text-blue-300 mt-0.5 shrink-0" />
-              <p className="text-sm text-blue-200">
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-500/40">
+              <Info className="h-4 w-4 text-blue-800 dark:text-blue-300 mt-0.5 shrink-0" />
+              <p className="text-sm text-blue-800 dark:text-blue-200">
                 Al guardar, el costo de este ingrediente se recalculara automaticamente.
               </p>
             </div>
@@ -318,7 +318,7 @@ export function IngredientSubRecipeDialog({
                       type="button"
                       size="icon"
                       variant="ghost"
-                      className="h-7 w-7 shrink-0 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-950/30"
+                      className="h-7 w-7 shrink-0 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
                       onClick={() => handleRemoveLine(line.id)}
                     >
                       <X className="h-3.5 w-3.5" />
