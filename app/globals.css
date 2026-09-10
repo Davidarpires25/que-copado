@@ -436,6 +436,29 @@ html.admin-dark {
   --accent:            var(--admin-hover);
   --accent-foreground: var(--admin-text);
 
+  /* El resto de los tokens de shadcn tambien salen de la paleta del panel.
+     Sin esto se heredaban los de la tienda, que en oscuro son de matiz 25
+     —marron calido— contra el #1C2333 del admin, que es matiz 222: azul frio.
+     El buscador de la caja pide `dark:bg-input/30` y terminaba pintando marron
+     al 30% sobre navy. No desentonaba por casualidad: eran dos paletas
+     superpuestas.
+
+     Quedan afuera --primary, --destructive y los --chart-*: ahi el color
+     significa algo por si mismo y no es una superficie. */
+  --background:         var(--admin-bg);
+  --foreground:         var(--admin-text);
+  --card:               var(--admin-surface);
+  --card-foreground:    var(--admin-text);
+  --popover:            var(--admin-surface);
+  --popover-foreground: var(--admin-text);
+  --muted:              var(--admin-surface-2);
+  --muted-foreground:   var(--admin-text-muted);
+  --secondary:          var(--admin-surface-2);
+  --secondary-foreground: var(--admin-text);
+  --border:             var(--admin-border);
+  --input:              var(--admin-surface-2);
+  --ring:               var(--admin-accent);
+
   --admin-bg:               #0F1117;
   --admin-surface:          #1C2333;
   --admin-surface-2:        #252B3B;
