@@ -70,7 +70,7 @@ export default function RootLayout({
         */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(location.pathname.indexOf('/admin')===0){var s=localStorage.getItem('admin-theme');if(s&&JSON.parse(s).state.theme==='dark'){document.documentElement.classList.add('admin-dark')}}}catch(e){}`,
+            __html: `try{if(location.pathname.indexOf('/admin')===0){var d=localStorage.getItem('admin-dark');if(d===null){var s=localStorage.getItem('admin-theme');d=s&&JSON.parse(s).state&&JSON.parse(s).state.theme==='dark'?'1':'0'}if(d==='1'){document.documentElement.classList.add('admin-dark')}}}catch(e){}`,
           }}
         />
       </head>
