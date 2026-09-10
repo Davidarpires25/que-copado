@@ -53,13 +53,13 @@ export function PaymentMethods({
                   if (e.key === 'Escape') onCancel()
                 }}
                 onBlur={() => onCommit(value)}
-                className="h-10 w-28 rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 text-right text-[14px] font-bold tabular-nums text-[var(--admin-price)] outline-none focus:border-[var(--admin-accent)]/60"
+                className="h-8 w-28 rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 text-right text-[14px] font-bold tabular-nums text-[var(--admin-price)] outline-none focus:border-[var(--admin-accent)]/60"
               />
             ) : entry ? (
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onEdit(value) }}
-                className="h-10 min-w-[76px] rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 text-[14px] font-bold tabular-nums text-[var(--admin-price)] hover:border-[var(--admin-accent)]/40 transition-colors cursor-pointer"
+                className="h-8 min-w-[76px] rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 text-[14px] font-bold tabular-nums text-[var(--admin-price)] hover:border-[var(--admin-accent)]/40 transition-colors cursor-pointer"
               >
                 {formatPrice(entry.amount)}
               </button>
@@ -137,6 +137,9 @@ function Row({
           : 'bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)]'
       )}
     >
+      {/* El control del monto va en h-8, no en h-10: la fila mide 40px y con su
+          borde deja 38px adentro, asi que un hijo de 40px sobresale por arriba
+          y por abajo y el pill blanco queda pegado al borde ambar. */}
       <div className="flex items-center gap-2">
         <span className={cn(
           'grid h-4 w-4 shrink-0 place-items-center transition-colors',
