@@ -215,25 +215,29 @@ export async function openTable(
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
 
-    // Verify table is libre
-    const { data: table, error: tableError } = await supabase
-      .from('restaurant_tables')
-      .select('*')
-      .eq('id', tableId)
-      .eq('status', 'libre')
-      .single()
+    // Las dos verificaciones no dependen una de otra, asi que van juntas. En
+    // serie eran dos viajes al servidor antes de empezar a hacer nada.
+    const [
+      { data: table, error: tableError },
+      { data: session },
+    ] = await Promise.all([
+      supabase
+        .from('restaurant_tables')
+        .select('*')
+        .eq('id', tableId)
+        .eq('status', 'libre')
+        .single(),
+      supabase
+        .from('cash_register_sessions')
+        .select('id, status')
+        .eq('id', sessionId)
+        .eq('status', 'open')
+        .single(),
+    ])
 
     if (tableError || !table) {
       return { data: null, error: 'La mesa no esta disponible' }
     }
-
-    // Verify session is open
-    const { data: session } = await supabase
-      .from('cash_register_sessions')
-      .select('id, status')
-      .eq('id', sessionId)
-      .eq('status', 'open')
-      .single()
 
     if (!session) {
       return { data: null, error: 'La caja no esta abierta' }

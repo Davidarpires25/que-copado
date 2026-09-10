@@ -466,18 +466,28 @@ export function PosInterface({
       toast.error(error)
       return
     }
-    if (data) {
-      toast.success(`Mesa ${table.number} abierta`)
-      const { data: updatedTables } = await getTables()
-      if (updatedTables) {
-        setTables(updatedTables)
-        const opened = updatedTables.find((t) => t.id === table.id)
-        if (opened) {
-          setSelectedTable(opened)
-          setShowMobileTablePanel(true)
-        }
-      }
+    if (!data) return
+
+    toast.success(`Mesa ${table.number} abierta`)
+
+    // La mesa se abre con lo que ya devolvio el servidor. Antes se esperaba un
+    // segundo viaje —getTables(), que trae TODAS las mesas con sus items— solo
+    // para encontrar la que se acababa de abrir, y ese era el tiempo que se
+    // sentia al tocarla.
+    //
+    // No es una aproximacion optimista: una mesa recien abierta no tiene items,
+    // asi que `order_items: []` es su estado exacto.
+    const abierta: TableWithOrder = {
+      ...data.table,
+      orders: { ...data.order, order_items: [] },
     }
+
+    setTables((prev) => prev.map((t) => (t.id === abierta.id ? abierta : t)))
+    setSelectedTable(abierta)
+    setShowMobileTablePanel(true)
+
+    // El resto de las mesas se reconcilia despues, sin bloquear la apertura.
+    debouncedRefreshTables()
   }
 
   const handleSelectTable = (table: TableWithOrder) => {
