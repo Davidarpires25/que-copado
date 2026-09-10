@@ -186,6 +186,16 @@ export function PosInterface({
           debouncedRefreshTables()
         }
       )
+      // Los pedidos web nacen sin sesion de caja —se la asigna recien quien los
+      // cobra— asi que no matchean el filtro de arriba y su llegada no
+      // disparaba nada. Hacen falta las dos suscripciones: esta los ve entrar,
+      // la de arriba los ve cobrarse.
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: 'order_source=eq.web' },
+        () => {
+          void refreshPendingOrders(true)
+          debouncedRefreshHistorial()
+        }
+      )
       .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' },
         () => { debouncedRefreshTables() }
       )
