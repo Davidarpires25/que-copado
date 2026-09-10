@@ -629,6 +629,7 @@ export function PosInterface({
                 <PendingOrderPayView
                   order={payingOrder}
                   loading={payingOrderLoading}
+                  deliveryZones={initialDeliveryZones}
                   onBack={() => setPayingOrder(null)}
                   onPrint={() => printClientTicketAction(payingOrder.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
                   onConfirm={handlePayPendingOrder}

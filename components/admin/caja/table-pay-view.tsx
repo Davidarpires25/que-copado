@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { CreditCard,
   ArrowLeft, Users, Loader2, AlertTriangle, Printer, Check,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
-import { clampAmountForSplitMethod } from '@/lib/utils/payment-split'
+import { usePaymentSplit } from '@/lib/hooks/use-payment-split'
+import { PaymentMethods, PaymentMethodsLabel } from './payment-methods'
+import { PaymentSummary } from './payment-summary'
 import { payTableOrder } from '@/app/actions/tables'
 import { printClientTicketAction } from '@/app/actions/print'
 import { checkStockForItems } from '@/app/actions/stock'
@@ -16,7 +18,6 @@ import type { PaymentSplit, CashRegisterSession } from '@/lib/types/cash-registe
 import { TAG_COLORS } from '@/lib/types/tables'
 import { PAYMENT_METHODS } from '@/lib/constants/payments'
 import type { OrderWithItems, RestaurantTable } from '@/lib/types/tables'
-import { parseARS } from '@/lib/utils/currency'
 
 type PayMode = 'full' | 'per_guest'
 
@@ -40,23 +41,18 @@ export function TablePayView({
   onPaid,
 }: TablePayViewProps) {
   const [payMode, setPayMode] = useState<PayMode>('full')
-  // Hybrid payment (full mode)
-  const [activePayments, setActivePayments] = useState<{ method: PaymentMethod; amount: number }[]>([])
-  const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null)
-  const [editAmount, setEditAmount] = useState('')
-  const amountInputRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(false)
   const [stockWarnings, setStockWarnings] = useState<StockWarning[]>([])
   const [stockChecking, setStockChecking] = useState(false)
   const [guestMethods, setGuestMethods] = useState<Record<string, PaymentMethod>>({})
 
   const total = order.total
-  const coveredAmount = activePayments.reduce((s, p) => s + p.amount, 0)
-  const remaining = Math.max(0, total - coveredAmount)
-  const isComplete = coveredAmount >= total - 0.01
-  const isSplit = activePayments.length > 1
-  const cashEntry = activePayments.find(p => p.method === 'cash')
-  const change = cashEntry && isComplete ? Math.max(0, coveredAmount - total) : 0
+
+  // El mismo mecanismo que usa la pantalla de mostrador. Se reinicia al cambiar
+  // de pedido y tambien al cambiar de modo: los montos de cuenta unica no valen
+  // cuando pasas a dividir por comensal.
+  const pago = usePaymentSplit(total, `${order.id}:${payMode}`)
+  const { payments: activePayments, remaining, isComplete, change } = pago
   const hasStockWarnings = stockWarnings.length > 0
 
   const activeItems = useMemo(
@@ -122,63 +118,9 @@ export function TablePayView({
     return () => { cancelled = true }
   }, [activeItems])
 
-  // Focus amount input when editing starts
-  useEffect(() => {
-    if (editingMethod) setTimeout(() => amountInputRef.current?.focus(), 30)
-  }, [editingMethod])
-
-  // Reset payments when switching modes
-  useEffect(() => {
-    setActivePayments([])
-    setEditingMethod(null)
-    setEditAmount('')
-  }, [payMode])
-
-  const commitEdit = (method: PaymentMethod) => {
-    const num = parseARS(editAmount) ?? 0
-    setActivePayments((prev) => {
-      if (num <= 0) {
-        return prev.filter((p) => p.method !== method)
-      }
-      const otherSum = prev.filter((p) => p.method !== method).reduce((s, p) => s + p.amount, 0)
-      const amount = clampAmountForSplitMethod(method, num, otherSum, total)
-      if (amount <= 0) {
-        return prev.filter((p) => p.method !== method)
-      }
-      return prev.map((p) => (p.method === method ? { ...p, amount } : p))
-    })
-    setEditingMethod(null)
-    setEditAmount('')
-  }
-
-  const handleToggleMethod = (method: PaymentMethod) => {
-    if (editingMethod && editingMethod !== method) commitEdit(editingMethod)
-    const isActive = activePayments.some(p => p.method === method)
-    if (isActive) {
-      setActivePayments(prev => prev.filter(p => p.method !== method))
-      if (editingMethod === method) { setEditingMethod(null); setEditAmount('') }
-    } else {
-      if (remaining <= 0.01 && activePayments.length > 0) return
-      const defaultAmount = remaining
-      setActivePayments(prev => [...prev, { method, amount: defaultAmount }])
-      setEditAmount(defaultAmount.toFixed(0))
-      setEditingMethod(method)
-    }
-  }
-
-  const handleAmountPillClick = (e: React.MouseEvent, method: PaymentMethod) => {
-    e.stopPropagation()
-    if (editingMethod === method) return
-    if (editingMethod) commitEdit(editingMethod)
-    const entry = activePayments.find(p => p.method === method)
-    if (!entry) return
-    setEditAmount(entry.amount.toFixed(0))
-    setEditingMethod(method)
-  }
-
   const handleConfirm = async () => {
     if (loading) return
-    if (editingMethod) commitEdit(editingMethod)
+    if (pago.editing) pago.commit(pago.editing)
     setLoading(true)
 
     let result: { data: Order | null; error: string | null }
@@ -193,7 +135,7 @@ export function TablePayView({
     } else {
       if (!isComplete || activePayments.length === 0) { setLoading(false); return }
       const primaryMethod = activePayments.reduce((a, b) => a.amount >= b.amount ? a : b).method
-      const splits = isSplit ? activePayments : undefined
+      const splits = activePayments.length > 1 ? activePayments : undefined
       result = await payTableOrder(order.id, table.id, primaryMethod, session.id, splits)
     }
 
@@ -331,94 +273,19 @@ export function TablePayView({
               </div>
 
               {/* Payment method section */}
-              <div className="border-t border-[var(--admin-border)]/60 px-5 pt-3.5 pb-4 space-y-2 shrink-0">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-[12px] font-semibold text-[var(--admin-text-muted)] tracking-[0.5px]">
-                    Métodos de pago
-                  </p>
-                  {isSplit && (
-                    <div className="flex items-center justify-center px-2 rounded-[10px] bg-[var(--admin-accent)]/12" style={{ height: 20 }}>
-                      <span className="text-[11px] font-semibold text-[var(--admin-accent-text)]">Pago dividido</span>
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-1.5">
-                  {PAYMENT_METHODS.map((opt) => {
-                    const entry = activePayments.find(p => p.method === opt.value)
-                    const isActive = !!entry
-                    const isEditing = editingMethod === opt.value
-                    const dotColor = opt.dotClass
-                    return (
-                      <div
-                        key={opt.value}
-                        onClick={() => handleToggleMethod(opt.value)}
-                        className={cn(
-                          'flex items-center justify-between px-2 cursor-pointer transition-all select-none border',
-                          isActive
-                            ? `${opt.bgClass} ${opt.borderClass}`
-                            : 'bg-[var(--admin-surface-2)] border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)]'
-                        )}
-                        style={{ height: 30, borderRadius: 6 }}
-                      >
-                        {/* Check + label */}
-                        <div className="flex items-center gap-1.5">
-                          <div
-                            className={cn(
-                              'flex items-center justify-center shrink-0 transition-all',
-                              isActive ? dotColor : 'border border-[var(--admin-text-muted)]/40 bg-transparent'
-                            )}
-                            style={{ width: 12, height: 12, borderRadius: 3 }}
-                          >
-                            {isActive && <Check className="h-2 w-2 text-white" strokeWidth={3} />}
-                          </div>
-                          <span className={cn(
-                            'text-[11px] font-semibold',
-                            isActive ? opt.textClass : 'text-[var(--admin-text-muted)]'
-                          )}>
-                            {opt.label}
-                          </span>
-                        </div>
-
-                        {/* Amount editable */}
-                        {isActive ? (
-                          isEditing ? (
-                            <input
-                              ref={amountInputRef}
-                              type="text"
-                              inputMode="decimal"
-                              value={editAmount}
-                              onChange={e => setEditAmount(e.target.value)}
-                              onClick={e => e.stopPropagation()}
-                              onKeyDown={e => {
-                                e.stopPropagation()
-                                if (e.key === 'Enter') commitEdit(opt.value)
-                                if (e.key === 'Escape') { setEditingMethod(null); setEditAmount('') }
-                              }}
-                              onBlur={() => commitEdit(opt.value)}
-                              className={cn(
-                                'w-24 h-9 text-right text-[13px] font-bold tabular-nums px-2 rounded-md bg-[var(--admin-surface-2)] border outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
-                                opt.borderClass, opt.textClass
-                              )}
-                              placeholder="0"
-                            />
-                          ) : (
-                            <button
-                              onClick={e => handleAmountPillClick(e, opt.value)}
-                              className={cn(
-                                'h-9 min-w-[60px] px-2 rounded-md bg-[var(--admin-surface-2)] border text-[13px] font-bold tabular-nums transition-colors cursor-pointer hover:opacity-80',
-                                opt.borderClass, opt.textClass
-                              )}
-                            >
-                              {formatPrice(entry.amount)}
-                            </button>
-                          )
-                        ) : (
-                          <span className="text-[11px] text-[var(--admin-text-muted)]">—</span>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
+              <div className="shrink-0 space-y-2.5 border-t border-[var(--admin-border)]/60 px-5 pt-3.5 pb-4">
+                <PaymentMethodsLabel count={activePayments.length} />
+                <PaymentMethods
+                  payments={activePayments}
+                  editing={pago.editing}
+                  draft={pago.draft}
+                  inputRef={pago.inputRef}
+                  onDraftChange={pago.setDraft}
+                  onToggle={pago.toggle}
+                  onEdit={pago.edit}
+                  onCommit={pago.commit}
+                  onCancel={pago.cancel}
+                />
               </div>
 
               {/* Ticket row */}
@@ -590,19 +457,22 @@ export function TablePayView({
                       </div>
                     )
                   })}
-                  <div className="flex items-center justify-between">
-                    <span className="text-[13px] font-medium text-[var(--admin-text-muted)]">Subtotal</span>
-                    <span className="text-[13px] font-semibold text-[var(--admin-text)] tabular-nums">
-                      {formatPrice(total)}
-                    </span>
-                  </div>
+                </div>
+
+                <div className="h-px bg-[var(--admin-border)]" />
+
+                <div className="flex items-center justify-between">
+                  <span className="text-[16px] font-bold text-[var(--admin-price)]">Total</span>
+                  <span className="text-[16px] font-bold tabular-nums text-[var(--admin-price)]">
+                    {formatPrice(total)}
+                  </span>
                 </div>
               </>
             ) : (
               <>
                 {/* Full mode — Desglose de pago */}
                 <div className="space-y-3">
-                  <p className="text-[10px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-[0.5px]">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.5px] text-[var(--admin-text-muted)]">
                     Desglose de pago
                   </p>
                   {activePayments.length === 0 ? (
@@ -613,52 +483,31 @@ export function TablePayView({
                       return (
                         <div key={m} className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <div className={cn('w-2 h-2 rounded-full shrink-0', opt?.dotClass)} />
+                            <div className={cn('h-2 w-2 shrink-0 rounded-full', opt?.dotClass)} />
                             <span className="text-[13px] font-medium text-[var(--admin-text-muted)]">{opt?.label ?? m}</span>
                           </div>
-                          <span className="text-[13px] font-semibold text-[var(--admin-text)] tabular-nums">
+                          <span className="text-[13px] font-semibold tabular-nums text-[var(--admin-text)]">
                             {formatPrice(amount)}
                           </span>
                         </div>
                       )
                     })
                   )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-[13px] font-medium text-[var(--admin-text-muted)]">Subtotal</span>
-                    <span className="text-[13px] font-semibold text-[var(--admin-text)] tabular-nums">
-                      {formatPrice(total)}
-                    </span>
-                  </div>
-                  {!isComplete && activePayments.length > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-[13px] font-medium text-amber-700 dark:text-amber-400">Restante</span>
-                      <span className="text-[13px] font-semibold text-amber-700 dark:text-amber-400 tabular-nums">
-                        {formatPrice(remaining)}
-                      </span>
-                    </div>
-                  )}
-                  {change > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-[13px] font-medium text-green-700 dark:text-green-400">Vuelto</span>
-                      <span className="text-[13px] font-semibold text-green-700 dark:text-green-400 tabular-nums">
-                        {formatPrice(change)}
-                      </span>
-                    </div>
-                  )}
                 </div>
+
+                <div className="h-px bg-[var(--admin-border)]" />
+
+                <PaymentSummary
+                  total={total}
+                  cashReceived={pago.cashReceived}
+                  change={change}
+                  covered={pago.covered}
+                  isComplete={isComplete}
+                  methodCount={activePayments.length}
+                />
               </>
             )}
 
-            {/* Divider */}
-            <div className="h-px bg-[var(--admin-border)]" />
-
-            {/* Total — gold en ambos, como el diseño */}
-            <div className="flex items-center justify-between">
-              <span className="text-[16px] font-bold text-[var(--admin-price)]">Total</span>
-              <span className="text-[16px] font-bold text-[var(--admin-price)] tabular-nums">
-                {formatPrice(total)}
-              </span>
-            </div>
           </div>
 
           {/* Footer */}
