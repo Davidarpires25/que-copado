@@ -1,27 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Rubik, Geist_Mono, Inter } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { FloatingCartButton } from "@/components/floating-cart-button";
 import "./globals.css";
 
-const rubik = Rubik({
-  variable: "--font-rubik",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-});
-
+// Sin preload: se usa a cuentagotas y no justifica una descarga anticipada en
+// cada pagina. Se carga igual cuando algo la pide.
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
-
-// Inter: fuente para el panel de administración.
-// Diseñada para alta densidad de información, con figuras tabulares
-// nativas — ideal para dashboards y POS con columnas de precios.
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -81,7 +69,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${rubik.variable} ${geistMono.variable} ${inter.variable} antialiased`}
+        className={`${geistMono.variable} antialiased`}
       >
         {children}
         <FloatingCartButton />

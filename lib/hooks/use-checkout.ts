@@ -13,7 +13,7 @@ import { toast } from 'sonner'
 import type { DeliveryZone, ShippingResult } from '@/lib/types/database'
 import type { DeliveryFormData, DeliveryType, PaymentMethod } from '@/components/checkout/delivery-form'
 import type { OrderItem } from '@/lib/types/orders'
-import type { PendingOrder } from '@/app/order-confirmation/page'
+import type { PendingOrder } from '@/app/(public)/order-confirmation/page'
 import { esTelefonoValido } from '@/lib/utils/phone'
 
 const SHIPPING_CALC_DEBOUNCE_MS = 300
