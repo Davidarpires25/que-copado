@@ -20,13 +20,26 @@ export async function recalculateOrderTotal(
   orderId: string
 ) {
   const tStart = Date.now()
-  // Fetch minimal fields for non-cancelled items to reduce payload and CPU
-  const { data: items, error: itemsError } = await supabase
-    .from('order_items')
-    .select('id, product_id, product_name, product_price, quantity')
-    .eq('order_id', orderId)
-    .neq('status', 'cancelado')
-    .order('added_at')
+  // El envio no vive en order_items sino en la orden, asi que hay que traerlo
+  // aparte. Si se calcula el total solo con los items, este update lo borra: es
+  // lo que pasaba al cobrar un pedido de mostrador con envio, que quedaba
+  // registrado por menos de lo que se cobro y descuadraba la caja en silencio.
+  // El resto de la app asume lo contrario — order-details-drawer.tsx deriva el
+  // subtotal como `total - shipping_cost`.
+  const [{ data: items, error: itemsError }, { data: order, error: orderError }] = await Promise.all([
+    // Fetch minimal fields for non-cancelled items to reduce payload and CPU
+    supabase
+      .from('order_items')
+      .select('id, product_id, product_name, product_price, quantity')
+      .eq('order_id', orderId)
+      .neq('status', 'cancelado')
+      .order('added_at'),
+    supabase
+      .from('orders')
+      .select('shipping_cost')
+      .eq('id', orderId)
+      .single(),
+  ])
 
   console.info(`[Timing][recalculateOrderTotal] fetch items for ${orderId} took ${Date.now() - tStart}ms`)
 
@@ -36,7 +49,14 @@ export async function recalculateOrderTotal(
   }
   if (!items) return
 
-  const total = items.reduce((sum: number, item) => sum + (item.product_price || 0) * (item.quantity || 0), 0)
+  // Sin el envio a la vista no se escribe nada: un total a ciegas se lo come.
+  if (orderError || !order) {
+    devError(`Error fetching shipping_cost for recalculate (order ${orderId}) — total NO actualizado:`, orderError)
+    return
+  }
+
+  const itemsTotal = items.reduce((sum: number, item) => sum + (item.product_price || 0) * (item.quantity || 0), 0)
+  const total = itemsTotal + Number(order.shipping_cost ?? 0)
 
   // Serialize to JSON format for backward compatibility
   const itemsJson = items.map((item) => ({
