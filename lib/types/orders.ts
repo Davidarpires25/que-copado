@@ -63,6 +63,18 @@ export interface SalesChartData {
 
 // Configuración de estados con colores y labels
 /**
+ * Estados en los que la plata efectivamente entro.
+ *
+ * Analytics contaba como ingreso todo lo que no estuviera 'cancelado', asi que
+ * sumaba los pedidos de mostrador sin cobrar ('abierto') y los de la web sin
+ * atender ('recibido'). Con los datos de David eso inflaba el panel en $166.000
+ * sobre $498.300 reales: un 33%.
+ *
+ * Un pedido con la cuenta pedida tampoco pago todavia.
+ */
+export const ESTADOS_COBRADOS = ['pagado', 'entregado'] as const
+
+/**
  * Estados de pedido.
  *
  * `textColor` va en pares claro/oscuro: los tonos `-400` y `-500` estaban

@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { printClientTicketAction, printKitchenTicketAction } from '@/app/actions/print'
-import { Store, Table2, History } from 'lucide-react'
+import { Store, Table2, History, Globe } from 'lucide-react'
 import { PosProductGrid } from './product-grid'
 import { OrderBuilder, type PosCartItem } from './order-builder'
 import { PendingOrderPayView } from './pending-order-pay-view'
@@ -24,7 +24,7 @@ import {
   completeMostadorPayment,
   cancelPosOrder,
   cancelMostadorOrder,
-  getPendingMostadorOrders,
+  getPendingOrders,
 } from '@/app/actions/pos-orders'
 import { getSessionOrders, getSessionSummary } from '@/app/actions/cash-register'
 import { openTable, getTables } from '@/app/actions/tables'
@@ -153,7 +153,7 @@ export function PosInterface({
 
   const refreshPendingOrders = useCallback(async (silent = false) => {
     if (!silent) setPendingLoading(true)
-    const { data } = await getPendingMostadorOrders(session.id)
+    const { data } = await getPendingOrders(session.id)
     if (data) setPendingOrders(data)
     if (!silent) setPendingLoading(false)
   }, [session.id])
@@ -605,7 +605,17 @@ export function PosInterface({
                             : 'bg-amber-400 border border-amber-400 text-black hover:bg-amber-300'
                         )}
                         style={{ height: 32, borderRadius: 8 }}
+                        title={
+                          order.order_source === 'web'
+                            ? `Pedido web de ${order.customer_name ?? 'cliente'}`
+                            : undefined
+                        }
                       >
+                        {/* El pedido web se distingue del de mostrador: llega
+                            solo, con cliente y direccion, y hay que atenderlo. */}
+                        {order.order_source === 'web' && (
+                          <Globe className="mr-1.5 h-3.5 w-3.5 shrink-0" />
+                        )}
                         {orderLabel(order)} — {formatPrice(order.total)}
                       </button>
                     )

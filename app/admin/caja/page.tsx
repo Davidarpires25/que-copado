@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveSession, getSessionOrders } from '@/app/actions/cash-register'
-import { getPendingMostadorOrders } from '@/app/actions/pos-orders'
+import { getPendingOrders } from '@/app/actions/pos-orders'
 import { getStockAlerts } from '@/app/actions/stock'
 import { getCurrentUserInfo } from '@/app/actions/profile'
 import { CajaDashboard } from './caja-dashboard'
@@ -40,7 +40,7 @@ export default async function CajaPage() {
       `)
       .eq('is_active', true)
       .order('sort_order'),
-    session ? getPendingMostadorOrders(session.id) : Promise.resolve({ data: [], error: null }),
+    session ? getPendingOrders(session.id) : Promise.resolve({ data: [], error: null }),
     supabase
       .from('delivery_zones')
       .select('*')

@@ -313,17 +313,32 @@ export async function completeMostadorPayment(
       .from('orders')
       .select('*')
       .eq('id', orderId)
-      .eq('order_type', 'mostrador')
       .single()
 
-    if (!existingOrder || existingOrder.status !== 'abierto') {
+    const previo = existingOrder as Order | null
+    const esWeb = previo?.order_source === 'web'
+
+    // Dos origenes con estados distintos: el de mostrador nace 'abierto', el de
+    // la web nace 'recibido'.
+    const cobrable =
+      previo != null &&
+      ((previo.order_type === 'mostrador' && previo.status === 'abierto') ||
+        (esWeb && previo.status === 'recibido'))
+
+    if (!cobrable) {
       return { data: null, error: 'Orden no encontrada o ya procesada' }
     }
 
-    // Recalculate total from order_items to ensure up-to-date amount
-    await recalculateOrderTotal(supabase, orderId)
-    const { data: refreshedOrder } = await supabase.from('orders').select('*').eq('id', orderId).single()
-    const orderData = refreshedOrder as Order
+    // El pedido web guarda sus productos en la columna JSON `items` y no tiene
+    // filas en `order_items`, asi que recalcular desde ahi le pondria el total
+    // en cero. Su total ya lo valido el servidor en el checkout.
+    let orderData = previo as Order
+    if (!esWeb) {
+      // Recalculate total from order_items to ensure up-to-date amount
+      await recalculateOrderTotal(supabase, orderId)
+      const { data: refreshedOrder } = await supabase.from('orders').select('*').eq('id', orderId).single()
+      orderData = refreshedOrder as Order
+    }
 
     if (splits && splits.length > 1) {
       const splitErr = validateHybridPaymentSplits(splits, orderData.total)
@@ -343,6 +358,8 @@ export async function completeMostadorPayment(
         status: 'pagado',
         payment_method: primaryMethod,
         updated_at: new Date().toISOString(),
+        // El pedido web nace sin turno: entra al de quien lo cobra.
+        ...(esWeb ? { cash_register_session_id: sessionId } : {}),
       })
       .eq('id', orderId)
       .select()
@@ -421,10 +438,15 @@ export async function completeMostadorPayment(
         if (updateErr) devError(`CRITICAL: session totals update failed for mostrador order ${orderId}:`, updateErr)
       }
 
-      // Best-effort stock deduction (orderItems fetched in parallel)
-      if (orderItems && orderItems.length > 0) {
-        deductStockForOrder(supabase, orderItems, orderId, user.id).catch((stockError) => {
-          devError('Error deducting stock for mostrador payment (async):', stockError)
+      // Best-effort stock deduction. El pedido web no tiene filas en
+      // `order_items`: sus productos estan en el JSON de la orden.
+      const itemsParaStock = esWeb
+        ? ((orderData.items as unknown as { quantity: number }[]) ?? [])
+        : (orderItems ?? [])
+
+      if (itemsParaStock.length > 0) {
+        deductStockForOrder(supabase, itemsParaStock, orderId, user.id).catch((stockError) => {
+          devError('Error deducting stock for payment (async):', stockError)
         })
       }
 
@@ -443,9 +465,21 @@ export async function completeMostadorPayment(
 }
 
 /**
- * Obtiene pedidos mostrador pendientes (status='abierto') de una sesion
+ * Pedidos que esperan cobro, de los dos origenes.
+ *
+ * Antes esto miraba solo el mostrador, filtrando por `order_type = 'mostrador'`
+ * y por sesion de caja. Los pedidos que entran por la web no tienen ninguna de
+ * las dos cosas —el CHECK de `order_type` solo admite mostrador o mesa, y la
+ * sesion se les asigna recien al cobrarlos—, asi que la caja no los veia nunca.
+ * Quedaban en 'recibido' para siempre: nadie los atendia, nadie los cobraba, y
+ * aun asi contaban como ingreso en analytics.
+ *
+ * El de mostrador se acota a la sesion actual porque nace dentro de ella. El de
+ * la web no: entro cuando entro, y sigue esperando aunque hayan cerrado la caja
+ * en el medio. Por eso se listan todos los 'recibido', del mas viejo al mas
+ * nuevo, que es el orden en que hay que atenderlos.
  */
-export async function getPendingMostadorOrders(
+export async function getPendingOrders(
   sessionId: string
 ): Promise<{ data: Order[] | null; error: string | null }> {
   try {
@@ -453,22 +487,32 @@ export async function getPendingMostadorOrders(
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
 
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('cash_register_session_id', sessionId)
-      .eq('order_type', 'mostrador')
-      .eq('status', 'abierto')
-      .order('created_at', { ascending: true })
+    const [mostrador, web] = await Promise.all([
+      supabase
+        .from('orders')
+        .select('*')
+        .eq('cash_register_session_id', sessionId)
+        .eq('order_type', 'mostrador')
+        .eq('status', 'abierto'),
+      supabase
+        .from('orders')
+        .select('*')
+        .eq('order_source', 'web')
+        .eq('status', 'recibido'),
+    ])
 
-    if (error) {
-      devError('Error fetching pending mostrador orders:', error)
+    if (mostrador.error || web.error) {
+      devError('Error fetching pending orders:', mostrador.error ?? web.error)
       return { data: null, error: 'Error al obtener pedidos pendientes' }
     }
 
-    return { data: data as Order[], error: null }
+    const todos = [...(mostrador.data ?? []), ...(web.data ?? [])].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    )
+
+    return { data: todos as Order[], error: null }
   } catch (error) {
-    devError('Error in getPendingMostadorOrders:', error)
+    devError('Error in getPendingOrders:', error)
     return { data: null, error: 'Error inesperado' }
   }
 }

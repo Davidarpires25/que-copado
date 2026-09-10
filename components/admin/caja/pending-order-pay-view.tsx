@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { CreditCard, Printer, Loader2, ChefHat } from 'lucide-react'
+import { CreditCard, Printer, Loader2, ChefHat, Globe } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import { usePaymentSplit } from '@/lib/hooks/use-payment-split'
@@ -29,6 +29,7 @@ export function PendingOrderPayView({
   order, loading, deliveryZones, onBack: _onBack, onPrint, onConfirm,
 }: PendingOrderPayViewProps) {
   const total = order.total
+  const esWeb = order.order_source === 'web'
   const shipping = Number(order.shipping_cost ?? 0)
   const zona = deliveryZones?.find((z) => z.id === order.delivery_zone_id)?.name ?? null
   const orderItems = (order.items as OrderItem[] | null) ?? []
@@ -71,8 +72,16 @@ export function PendingOrderPayView({
     <div className="flex h-full flex-col bg-[var(--admin-surface)]">
 
       <div className="flex h-[52px] shrink-0 items-center justify-between border-b border-[var(--admin-border)] px-5">
-        <span className="text-[15px] font-bold text-[var(--admin-text)]">
-          Pedido <span className="text-[var(--admin-accent-text)]">{etiqueta}</span>
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="text-[15px] font-bold text-[var(--admin-text)]">
+            Pedido <span className="text-[var(--admin-accent-text)]">{etiqueta}</span>
+          </span>
+          {esWeb && (
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700 dark:text-sky-400">
+              <Globe className="h-2.5 w-2.5" />
+              Web
+            </span>
+          )}
         </span>
         <div className="flex items-center gap-1">
           <button
@@ -95,6 +104,28 @@ export function PendingOrderPayView({
           </button>
         </div>
       </div>
+
+      {/* El pedido de mostrador esta parado enfrente; el de la web hay que
+          llevarselo a alguien. Sin estos datos no se puede despachar. */}
+      {esWeb && (order.customer_name || order.customer_address) && (
+        <div className="shrink-0 space-y-0.5 border-b border-[var(--admin-border)] bg-[var(--admin-surface-2)] px-5 py-2.5">
+          {order.customer_name && (
+            <p className="text-[13px] font-semibold text-[var(--admin-text)]">{order.customer_name}</p>
+          )}
+          {order.customer_phone && (
+            <a
+              href={`https://wa.me/${order.customer_phone.replace(/\D/g, '')}`}
+              target="_blank" rel="noopener noreferrer"
+              className="block text-[12px] text-[var(--admin-accent-text)] hover:underline"
+            >
+              {order.customer_phone}
+            </a>
+          )}
+          {order.customer_address && (
+            <p className="text-[12px] leading-snug text-[var(--admin-text-muted)]">{order.customer_address}</p>
+          )}
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto scrollbar-hide px-5">
         {orderItems.map((item, idx) => (

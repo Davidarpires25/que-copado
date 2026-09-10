@@ -1,5 +1,7 @@
 'use server'
 
+import { ESTADOS_COBRADOS } from '@/lib/types/orders'
+
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/server/auth'
 import { devError } from '@/lib/server/logger'
@@ -221,7 +223,7 @@ export async function getComparativeStats(): Promise<{
     let prevMonthRevenue = 0, prevMonthOrders = 0
 
     for (const order of orders) {
-      if (order.status === 'cancelado') continue
+      if (!(ESTADOS_COBRADOS as readonly string[]).includes(order.status)) continue
       const orderDate = new Date(order.created_at)
       const revenue = Number(order.total)
 
@@ -294,7 +296,7 @@ export async function getHourlySales(
       .from('orders')
       .select('total, created_at')
       .gte('created_at', startDate.toISOString())
-      .neq('status', 'cancelado') as { data: { total: number; created_at: string }[] | null; error: unknown }
+      .in('status', ESTADOS_COBRADOS) as { data: { total: number; created_at: string }[] | null; error: unknown }
 
     if (error || !orders) {
       devError('Error fetching hourly sales:', error)
@@ -352,7 +354,7 @@ export async function getWeekdaySales(
       .from('orders')
       .select('total, created_at')
       .gte('created_at', startDate.toISOString())
-      .neq('status', 'cancelado') as { data: { total: number; created_at: string }[] | null; error: unknown }
+      .in('status', ESTADOS_COBRADOS) as { data: { total: number; created_at: string }[] | null; error: unknown }
 
     if (error || !orders) {
       devError('Error fetching weekday sales:', error)
@@ -479,7 +481,7 @@ export async function getPaymentMethodDistribution(
       .from('orders')
       .select('total, payment_method')
       .gte('created_at', startDate.toISOString())
-      .neq('status', 'cancelado') as { data: { total: number; payment_method: string }[] | null; error: unknown }
+      .in('status', ESTADOS_COBRADOS) as { data: { total: number; payment_method: string }[] | null; error: unknown }
 
     if (error || !orders) {
       devError('Error fetching payment method distribution:', error)
@@ -538,7 +540,7 @@ export async function getTopProductsByRevenue(
       .from('orders')
       .select('items')
       .gte('created_at', startDate.toISOString())
-      .neq('status', 'cancelado') as { data: { items: unknown }[] | null; error: unknown }
+      .in('status', ESTADOS_COBRADOS) as { data: { items: unknown }[] | null; error: unknown }
 
     if (error || !orders) {
       devError('Error fetching top products:', error)
@@ -600,7 +602,7 @@ export async function getConfigurableSalesChart(
       .from('orders')
       .select('total, created_at')
       .gte('created_at', startDate.toISOString())
-      .neq('status', 'cancelado') as { data: { total: number; created_at: string }[] | null; error: unknown }
+      .in('status', ESTADOS_COBRADOS) as { data: { total: number; created_at: string }[] | null; error: unknown }
 
     if (error || !orders) {
       devError('Error fetching configurable sales:', error)
@@ -707,7 +709,7 @@ export async function getZoneSales(
       .from('orders')
       .select('total, shipping_cost, delivery_zone_id, created_at')
       .gte('created_at', startDate.toISOString())
-      .neq('status', 'cancelado') as { data: OrderRow[] | null; error: unknown }
+      .in('status', ESTADOS_COBRADOS) as { data: OrderRow[] | null; error: unknown }
 
     if (ordersError || !ordersData) {
       devError('Error fetching zone sales orders:', ordersError)
@@ -816,7 +818,7 @@ export async function getShippingAnalysis(
       .from('orders')
       .select('total, shipping_cost')
       .gte('created_at', startDate.toISOString())
-      .neq('status', 'cancelado') as { data: { total: number; shipping_cost: number }[] | null; error: unknown }
+      .in('status', ESTADOS_COBRADOS) as { data: { total: number; shipping_cost: number }[] | null; error: unknown }
 
     if (error || !orders) {
       devError('Error fetching shipping analysis:', error)
@@ -898,7 +900,7 @@ export async function getProfitabilityReport(
       .from('orders')
       .select('items')
       .gte('created_at', startDate.toISOString())
-      .neq('status', 'cancelado') as { data: { items: unknown }[] | null; error: unknown }
+      .in('status', ESTADOS_COBRADOS) as { data: { items: unknown }[] | null; error: unknown }
 
     if (ordersError || !ordersData) {
       devError('Error fetching orders for profitability:', ordersError)

@@ -8,7 +8,6 @@ import { checkBusinessStatus } from '@/lib/services/business-hours'
 import { getAuthUser } from '@/lib/server/auth'
 import { devError } from '@/lib/server/logger'
 import { revalidateOrders } from '@/lib/server/revalidate'
-import { deductStockForOrder } from '@/lib/server/stock-deduction'
 import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
 import { checkRateLimit } from '@/lib/server/rate-limit'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -337,10 +336,12 @@ export async function createOrder(
         }
       })
 
-    // Deduct stock for web order (best-effort, never blocks the sale)
-    deductStockForOrder(supabase, data.items, order.id, null).catch((err) => {
-      devError('Error deducting stock for web order:', err)
-    })
+    // El stock NO se descuenta aca.
+    //
+    // Antes se descontaba al crear el pedido, o sea antes de que nadie lo
+    // aceptara: cualquiera que abriera el checkout y confirmara bajaba el
+    // inventario, aunque el pedido no llegara nunca a cocina. Ahora se descuenta
+    // al cobrarlo en caja, que es lo que ya hacen mostrador y mesa.
 
     revalidateOrders()
 
