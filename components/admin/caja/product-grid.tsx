@@ -155,13 +155,18 @@ export function PosProductGrid({
                 key={product.id}
                 onClick={() => handleProductClick(product)}
                 className={cn(
-                  'relative bg-[var(--admin-surface)] rounded-xl p-3 text-left cursor-pointer',
-                  'hover:bg-[var(--admin-surface-2)] active:scale-[0.97]',
-                  'transition-all duration-150 min-h-[84px] flex flex-col justify-between',
-                  'border',
+                  'relative flex min-h-[84px] flex-col justify-between rounded-xl border p-3 text-left',
+                  'cursor-pointer transition-all duration-150 active:scale-[0.97]',
+                  'ring-1 ring-inset ring-transparent',
                   qty > 0
-                    ? 'border-[var(--admin-accent)]/50 bg-[var(--admin-accent)]/5'
-                    : 'border-[var(--admin-border)]'
+                    // El relleno estaba en /5 y el borde en /50: sobre blanco la
+                    // tarjeta que ya estaba en el carrito quedaba casi igual a
+                    // las demas. Y el hover no estaba condicionado, asi que
+                    // pasar el mouse por encima la pintaba de gris y le borraba
+                    // el ambar. Mismo tratamiento que las filas de pago y las
+                    // tarjetas de mesa.
+                    ? 'border-[var(--admin-accent)] ring-[var(--admin-accent)] bg-[var(--admin-accent)]/10'
+                    : 'border-[var(--admin-border)] bg-[var(--admin-surface)] hover:bg-[var(--admin-surface-2)] hover:border-[var(--admin-text-placeholder)]'
                 )}
               >
                 {/* Quantity badge */}
