@@ -273,22 +273,6 @@ export function TablePayView({
                 ))}
               </div>
 
-              {/* Payment method section */}
-              <div className="shrink-0 space-y-2.5 border-t border-[var(--admin-border)]/60 px-5 pt-3.5 pb-4">
-                <PaymentMethodsLabel count={activePayments.length} />
-                <PaymentMethods
-                  payments={activePayments}
-                  editing={pago.editing}
-                  draft={pago.draft}
-                  inputRef={pago.inputRef}
-                  onDraftChange={pago.setDraft}
-                  onToggle={pago.toggle}
-                  onEdit={pago.edit}
-                  onCommit={pago.commit}
-                  onCancel={pago.cancel}
-                />
-              </div>
-
               {/* Ticket row */}
               <div className="border-t border-[var(--admin-border)]/60 flex items-center justify-center shrink-0" style={{ height: 40 }}>
                 <button
@@ -403,7 +387,7 @@ export function TablePayView({
         {/* ── Right Column ────────────────────────────────────── */}
         <div className="w-[380px] bg-[var(--admin-surface)] border-l border-[var(--admin-border)] flex flex-col shrink-0">
           {/* Header */}
-          <div className="px-6 py-5 border-b border-[var(--admin-border)]">
+          <div className="px-5 py-5 border-b border-[var(--admin-border)]">
             <h2 className="text-[16px] font-bold text-[var(--admin-text)]">Resumen de Cobro</h2>
             <p className="text-[12px] font-medium text-[var(--admin-text-muted)] mt-0.5">
               Mesa {table.number} — {sectionLabel}
@@ -411,7 +395,7 @@ export function TablePayView({
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
             {payMode === 'per_guest' ? (
               <>
                 {/* Por comensal */}
@@ -471,29 +455,24 @@ export function TablePayView({
               </>
             ) : (
               <>
-                {/* Full mode — Desglose de pago */}
-                <div className="space-y-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.5px] text-[var(--admin-text-muted)]">
-                    Desglose de pago
-                  </p>
-                  {activePayments.length === 0 ? (
-                    <p className="text-[12px] text-[var(--admin-text-faint)]">Sin métodos seleccionados</p>
-                  ) : (
-                    activePayments.map(({ method: m, amount }) => {
-                      const opt = PAYMENT_METHODS.find(o => o.value === m)
-                      return (
-                        <div key={m} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className={cn('h-2 w-2 shrink-0 rounded-full', opt?.dotClass)} />
-                            <span className="text-[13px] font-medium text-[var(--admin-text-muted)]">{opt?.label ?? m}</span>
-                          </div>
-                          <span className="text-[13px] font-semibold tabular-nums text-[var(--admin-text)]">
-                            {formatPrice(amount)}
-                          </span>
-                        </div>
-                      )
-                    })
-                  )}
+                {/* Los medios y sus montos, al lado del total y del boton.
+                    Antes esto vivia en la columna central, estirado a todo el
+                    ancho libre: el checkbox a la izquierda y su monto a mil
+                    quinientos pixeles. Y aca al lado habia un "Desglose de
+                    pago" que listaba exactamente lo mismo. */}
+                <div className="space-y-2.5">
+                  <PaymentMethodsLabel count={activePayments.length} />
+                  <PaymentMethods
+                    payments={activePayments}
+                    editing={pago.editing}
+                    draft={pago.draft}
+                    inputRef={pago.inputRef}
+                    onDraftChange={pago.setDraft}
+                    onToggle={pago.toggle}
+                    onEdit={pago.edit}
+                    onCommit={pago.commit}
+                    onCancel={pago.cancel}
+                  />
                 </div>
 
                 <div className="h-px bg-[var(--admin-border)]" />
@@ -512,7 +491,7 @@ export function TablePayView({
           </div>
 
           {/* Footer */}
-          <div className="px-6 pt-4 pb-6 border-t border-[var(--admin-border)] space-y-2.5">
+          <div className="px-5 pt-4 pb-5 border-t border-[var(--admin-border)] space-y-2.5">
             {/* Stock warnings */}
             {(stockChecking || hasStockWarnings) && (
               <StockAlert checking={stockChecking} warnings={stockWarnings} />
