@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -8,7 +8,6 @@ import { SessionOpenScreen } from '@/components/admin/caja/session-open-screen'
 import { PosInterface } from '@/components/admin/caja/pos-interface'
 import { SessionCloseScreen } from '@/components/admin/caja/session-close-screen'
 import { AdminSidebar, MobileSidebar } from '@/components/admin/layout/admin-sidebar'
-import { useThemeStore } from '@/lib/store/theme-store'
 import { cn } from '@/lib/utils'
 import type { Category, ProductWithHalfConfig, Order, DeliveryZone } from '@/lib/types/database'
 import type { CashRegisterSession, SessionSummary } from '@/lib/types/cash-register'
@@ -51,16 +50,6 @@ export function CajaDashboard({
   const tables = initialTables
   const [sidebarCollapsed, handleToggleCollapse] = useSidebarCollapsed()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-  // Sync dark mode to html element when not in AdminLayout
-  const { theme } = useThemeStore()
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('admin-dark')
-    } else {
-      document.documentElement.classList.remove('admin-dark')
-    }
-  }, [theme])
 
   const openTablesCount = tables.filter((t) => t.status !== 'libre').length
 

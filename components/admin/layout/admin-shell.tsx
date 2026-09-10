@@ -5,7 +5,6 @@ import { Menu, ChefHat } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AdminSidebar, MobileSidebar } from './admin-sidebar'
 import { cn } from '@/lib/utils'
-import { useThemeStore } from '@/lib/store/theme-store'
 import { getStockAlerts } from '@/app/actions/stock'
 import { getCurrentUserInfo, type CurrentUserInfo } from '@/app/actions/profile'
 import { useSidebarCollapsed } from '@/lib/hooks/use-sidebar-collapsed'
@@ -17,7 +16,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [stockAlertCount, setStockAlertCount] = useState(0)
   const [me, setMe] = useState<CurrentUserInfo | null>(null)
-  const { theme } = useThemeStore()
 
   // Fetch stock alert count for sidebar badge
   useEffect(() => {
@@ -31,18 +29,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     getCurrentUserInfo().then(setMe).catch(() => { /* el sidebar usa su default */ })
   }, [])
-
-  // Sync dark mode to html element so portals (Dialog, Select, etc.) inherit the variables
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('admin-dark')
-    } else {
-      document.documentElement.classList.remove('admin-dark')
-    }
-    return () => {
-      document.documentElement.classList.remove('admin-dark')
-    }
-  }, [theme])
 
 
   // Sin perfil (p. ej. antes de la migracion 016) el sidebar usa sus defaults.
