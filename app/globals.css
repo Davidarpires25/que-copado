@@ -59,74 +59,74 @@
 
 :root {
   --radius: 0.75rem;
-  --background: 253 99% 97%;
-  --foreground: 25 25% 20%;
-  --gold: 47 99% 50%;
-  --gold-hover: 47 99% 45%;
-  --gold-foreground: 0 0% 0%;
-  --card: 0 0% 100%;
-  --card-foreground: 25 25% 20%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 25 25% 20%;
-  --primary: 18 100% 60%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 40 100% 58%;
-  --secondary-foreground: 25 25% 20%;
-  --muted: 30 40% 96%;
-  --muted-foreground: 25 8% 72%;
-  --accent: 160 84% 39%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 84% 60%;
-  --border: 30 25% 90%;
-  --input: 30 25% 88%;
-  --ring: 18 100% 60%;
-  --chart-1: 18 100% 60%;
-  --chart-2: 40 100% 58%;
-  --chart-3: 160 84% 39%;
-  --chart-4: 280 80% 60%;
-  --chart-5: 340 80% 55%;
-  --sidebar: 0 0% 100%;
-  --sidebar-foreground: 25 25% 20%;
-  --sidebar-primary: 18 100% 60%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 30 40% 96%;
-  --sidebar-accent-foreground: 25 25% 20%;
-  --sidebar-border: 30 25% 90%;
-  --sidebar-ring: 18 100% 60%;
+  --background: hsl(253 99% 97%);
+  --foreground: hsl(25 25% 20%);
+  --gold: hsl(47 99% 50%);
+  --gold-hover: hsl(47 99% 45%);
+  --gold-foreground: hsl(0 0% 0%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(25 25% 20%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(25 25% 20%);
+  --primary: hsl(18 100% 60%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(40 100% 58%);
+  --secondary-foreground: hsl(25 25% 20%);
+  --muted: hsl(30 40% 96%);
+  --muted-foreground: hsl(25 8% 72%);
+  --accent: hsl(160 84% 39%);
+  --accent-foreground: hsl(0 0% 100%);
+  --destructive: hsl(0 84% 60%);
+  --border: hsl(30 25% 90%);
+  --input: hsl(30 25% 88%);
+  --ring: hsl(18 100% 60%);
+  --chart-1: hsl(18 100% 60%);
+  --chart-2: hsl(40 100% 58%);
+  --chart-3: hsl(160 84% 39%);
+  --chart-4: hsl(280 80% 60%);
+  --chart-5: hsl(340 80% 55%);
+  --sidebar: hsl(0 0% 100%);
+  --sidebar-foreground: hsl(25 25% 20%);
+  --sidebar-primary: hsl(18 100% 60%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(30 40% 96%);
+  --sidebar-accent-foreground: hsl(25 25% 20%);
+  --sidebar-border: hsl(30 25% 90%);
+  --sidebar-ring: hsl(18 100% 60%);
 }
 
 .dark {
-  --background: 25 20% 12%;
-  --foreground: 30 40% 96%;
-  --card: 25 18% 16%;
-  --card-foreground: 30 40% 96%;
-  --popover: 25 18% 16%;
-  --popover-foreground: 30 40% 96%;
-  --primary: 18 100% 60%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 40 100% 58%;
-  --secondary-foreground: 25 25% 20%;
-  --muted: 25 15% 20%;
-  --muted-foreground: 30 20% 65%;
-  --accent: 160 84% 39%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 84% 60%;
-  --border: 25 15% 25%;
-  --input: 25 15% 22%;
-  --ring: 18 100% 60%;
-  --chart-1: 18 100% 60%;
-  --chart-2: 40 100% 58%;
-  --chart-3: 160 84% 39%;
-  --chart-4: 280 80% 60%;
-  --chart-5: 340 80% 55%;
-  --sidebar: 25 18% 16%;
-  --sidebar-foreground: 30 40% 96%;
-  --sidebar-primary: 18 100% 60%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 25 15% 20%;
-  --sidebar-accent-foreground: 30 40% 96%;
-  --sidebar-border: 25 15% 25%;
-  --sidebar-ring: 18 100% 60%;
+  --background: hsl(25 20% 12%);
+  --foreground: hsl(30 40% 96%);
+  --card: hsl(25 18% 16%);
+  --card-foreground: hsl(30 40% 96%);
+  --popover: hsl(25 18% 16%);
+  --popover-foreground: hsl(30 40% 96%);
+  --primary: hsl(18 100% 60%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(40 100% 58%);
+  --secondary-foreground: hsl(25 25% 20%);
+  --muted: hsl(25 15% 20%);
+  --muted-foreground: hsl(30 20% 65%);
+  --accent: hsl(160 84% 39%);
+  --accent-foreground: hsl(0 0% 100%);
+  --destructive: hsl(0 84% 60%);
+  --border: hsl(25 15% 25%);
+  --input: hsl(25 15% 22%);
+  --ring: hsl(18 100% 60%);
+  --chart-1: hsl(18 100% 60%);
+  --chart-2: hsl(40 100% 58%);
+  --chart-3: hsl(160 84% 39%);
+  --chart-4: hsl(280 80% 60%);
+  --chart-5: hsl(340 80% 55%);
+  --sidebar: hsl(25 18% 16%);
+  --sidebar-foreground: hsl(30 40% 96%);
+  --sidebar-primary: hsl(18 100% 60%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(25 15% 20%);
+  --sidebar-accent-foreground: hsl(30 40% 96%);
+  --sidebar-border: hsl(25 15% 25%);
+  --sidebar-ring: hsl(18 100% 60%);
 }
 
 @layer base {
@@ -356,6 +356,12 @@
    - Estándar de la industria: Linear, Vercel, Figma usan Inter
    ─────────────────────────────────────────────────────────────────────────── */
 .admin-layout {
+  /* shadcn usa --accent para el hover de ghost/outline y de los items de Select
+     y Dialog. En el resto de la app ese token es verde, que en el admin —ambar—
+     no significa nada. Se remapea al hover neutro del panel. */
+  --accent:            var(--admin-hover);
+  --accent-foreground: var(--admin-text);
+
   font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
@@ -412,6 +418,12 @@
 
 /* Dark mode — aplicado en html por AdminLayout via useEffect */
 html.admin-dark {
+  /* shadcn usa --accent para el hover de ghost/outline y de los items de Select
+     y Dialog. En el resto de la app ese token es verde, que en el admin —ambar—
+     no significa nada. Se remapea al hover neutro del panel. */
+  --accent:            var(--admin-hover);
+  --accent-foreground: var(--admin-text);
+
   --admin-bg:               #0F1117;
   --admin-surface:          #1C2333;
   --admin-surface-2:        #252B3B;
@@ -465,6 +477,12 @@ html.admin-dark {
 }
 
 .admin-layout.dark {
+  /* shadcn usa --accent para el hover de ghost/outline y de los items de Select
+     y Dialog. En el resto de la app ese token es verde, que en el admin —ambar—
+     no significa nada. Se remapea al hover neutro del panel. */
+  --accent:            var(--admin-hover);
+  --accent-foreground: var(--admin-text);
+
   --admin-bg:               #0F1117;
   --admin-surface:          #1C2333;
   --admin-surface-2:        #252B3B;
