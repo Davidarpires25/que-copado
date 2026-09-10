@@ -93,7 +93,7 @@ export function CajaDashboard({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.18, ease: 'easeOut' }}
-      className={cn('h-screen overflow-hidden admin-layout', theme === 'dark' && 'dark')}
+      className="h-screen overflow-hidden admin-layout"
     >
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">

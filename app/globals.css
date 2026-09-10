@@ -476,31 +476,13 @@ html.admin-dark {
   --shadow-card-lg: 0 10px 24px rgba(0, 0, 0, 0.10), 0 4px 8px rgba(0, 0, 0, 0.06);
 }
 
-.admin-layout.dark {
-  /* shadcn usa --accent para el hover de ghost/outline y de los items de Select
-     y Dialog. En el resto de la app ese token es verde, que en el admin —ambar—
-     no significa nada. Se remapea al hover neutro del panel. */
-  --accent:            var(--admin-hover);
-  --accent-foreground: var(--admin-text);
+/* El tema oscuro del admin vive solo en `html.admin-dark`, mas arriba.
+   Aca habia un bloque `.admin-layout.dark` con los mismos 21 tokens y los
+   mismos valores, aplicado por una clase que ponia el componente segun el store
+   de zustand. Ese store persiste en localStorage y rehidrata de forma sincrona,
+   asi que el servidor renderizaba el div sin la clase y el navegador con ella:
+   HTML distinto en los dos lados, o sea el "Minified React error #418" en cada
+   carga del admin en oscuro, y de rebote el fallo de $RS al regenerar el arbol.
 
-  --admin-bg:               #0F1117;
-  --admin-surface:          #1C2333;
-  --admin-surface-2:        #252B3B;
-  --admin-skeleton:         #272E40;
-  --admin-hover:            #252B3B;
-  --admin-border:           #2D3448;
-  --admin-sidebar-bg:       #161B2C;
-  --admin-sidebar-border:   #2D3448;
-  --admin-text:             #F1F3F8;
-  --admin-text-muted:       #8B9BB4;
-  --admin-text-faint:       #5A677D;
-  --admin-text-placeholder: #3A3F4A;
-  --admin-accent:           #FEC501;
-  --admin-accent-text:      #FEC501;
-  /* Sobre fondo oscuro el ambar de marca da 9.87:1 y se ve bien. */
-  --admin-price:            #FEC501;
-  --shadow-card:    0 1px 3px rgba(0, 0, 0, 0.30), 0 1px 2px rgba(0, 0, 0, 0.20);
-  --shadow-card-md: 0 4px 12px rgba(0, 0, 0, 0.40), 0 2px 4px rgba(0, 0, 0, 0.25);
-  --shadow-card-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.35);
-  --shadow-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
+   Poniendolo en el <html> —que ya lo hace el script bloqueante del layout— el
+   tema esta resuelto antes del primer pintado y no depende de ningun render. */

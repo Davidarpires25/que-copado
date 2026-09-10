@@ -50,7 +50,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <AdminShellContext.Provider value={true}>
-      <div className={cn('min-h-screen bg-[var(--admin-bg)] admin-layout', theme === 'dark' && 'dark')}>
+      <div className="min-h-screen bg-[var(--admin-bg)] admin-layout">
         {/* Skip link for keyboard navigation */}
         <a
           href="#main-content"

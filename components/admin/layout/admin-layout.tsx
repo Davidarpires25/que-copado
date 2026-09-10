@@ -83,7 +83,7 @@ function AdminLayoutStandalone({ children, title, description, hidePageHeader }:
   const meProps = me ? { userName: me.name, userRole: me.roleLabel, permissions: me.permissions } : {}
 
   return (
-    <div className={cn('min-h-screen bg-[var(--admin-bg)] admin-layout', theme === 'dark' && 'dark')}>
+    <div className="min-h-screen bg-[var(--admin-bg)] admin-layout">
       {/* Skip link for keyboard navigation */}
       <a
         href="#main-content"
