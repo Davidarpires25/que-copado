@@ -50,9 +50,21 @@ export interface TableWithOrder extends RestaurantTable {
  * mesa cambiaba de color entre el plano y el panel. Se unifico en rojo: es el
  * unico estado que exige una accion inmediata y tiene que saltar en el salon.
  */
+/**
+ * Estados de mesa.
+ *
+ * Los colores eran tonos `-400` y un `#FEC501` crudo, calibrados para fondo
+ * oscuro: sobre el blanco del admin claro daban 1.6:1, muy por debajo del 4.5:1
+ * de AA. En la grilla de mesas "Ocupada" salia en un amarillo lavado y, como la
+ * tarjeta pintaba tambien el monto con este color, la plata heredaba el mismo
+ * problema.
+ *
+ * Ahora siguen la regla del repo, la misma que `lib/constants/payments.ts`:
+ * `-700` en claro, `-400` en oscuro.
+ */
 export const TABLE_STATUS_CONFIG: Record<TableStatus, {
   label: string
-  /** Color del texto. */
+  /** Color del texto. Par claro/oscuro, nunca un tono suelto. */
   color: string
   bgColor: string
   borderColor: string
@@ -61,24 +73,24 @@ export const TABLE_STATUS_CONFIG: Record<TableStatus, {
 }> = {
   libre: {
     label: 'Libre',
-    color: 'text-green-400',
-    bgColor: 'bg-green-500/10',
-    borderColor: 'border-green-500/30',
-    dotColor: 'bg-green-400',
+    color: 'text-emerald-700 dark:text-emerald-400',
+    bgColor: 'bg-emerald-500/10',
+    borderColor: 'border-emerald-500/30',
+    dotColor: 'bg-emerald-500',
   },
   ocupada: {
     label: 'Ocupada',
-    color: 'text-[#FEC501]',
-    bgColor: 'bg-[#FEC501]/10',
-    borderColor: 'border-[#FEC501]/30',
-    dotColor: 'bg-[#FEC501]',
+    color: 'text-amber-700 dark:text-amber-400',
+    bgColor: 'bg-amber-500/10',
+    borderColor: 'border-amber-500/30',
+    dotColor: 'bg-amber-500',
   },
   cuenta_pedida: {
     label: 'Cuenta Pedida',
-    color: 'text-red-400',
-    bgColor: 'bg-red-500/10',
-    borderColor: 'border-red-500/30',
-    dotColor: 'bg-red-400',
+    color: 'text-rose-700 dark:text-rose-400',
+    bgColor: 'bg-rose-500/10',
+    borderColor: 'border-rose-500/30',
+    dotColor: 'bg-rose-500',
   },
 }
 
