@@ -61,10 +61,16 @@ export default function RootLayout({
 
           Va como script bloqueante en el head a proposito: cualquier otra cosa
           corre despues del primer frame, que es justo lo que hay que evitar.
+
+          Y se limita a /admin. Este layout envuelve tambien la tienda, y
+          `admin-dark` en el <html> activa las variantes `dark:` de
+          components/ui —button, badge, select, tabs—, que las dos mitades
+          comparten. Sin el guard, alguien que dejo el panel en oscuro veia los
+          botones de la tienda en oscuro sobre fondo claro.
         */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var s=localStorage.getItem('admin-theme');if(s&&JSON.parse(s).state.theme==='dark'){document.documentElement.classList.add('admin-dark')}}catch(e){}`,
+            __html: `try{if(location.pathname.indexOf('/admin')===0){var s=localStorage.getItem('admin-theme');if(s&&JSON.parse(s).state.theme==='dark'){document.documentElement.classList.add('admin-dark')}}}catch(e){}`,
           }}
         />
       </head>

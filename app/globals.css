@@ -382,7 +382,6 @@
 /* ─── Admin Theme Variables ───────────────────────────────────────────────────
    Variables definidas en :root para que los portales (Dialog, Select, Tooltip)
    que se renderizan fuera del .admin-layout también hereden los valores.
-   .admin-layout repite las mismas para mayor especificidad.
    html.admin-dark activa el dark mode globalmente (incluyendo portales).
    ──────────────────────────────────────────────────────────────────────────── */
 
@@ -446,35 +445,23 @@ html.admin-dark {
   --shadow-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-/* .admin-layout repite las variables para mayor especificidad dentro del layout */
-.admin-layout {
-  --admin-bg:               #F3F4F8;
-  --admin-surface:          #FFFFFF;
-  --admin-surface-2:        #F5F6FA;
-  /* Los skeletons no pueden usar surface-2: sobre --admin-bg quedan a dos
-     unidades de diferencia, o sea invisibles en tema claro. */
-  --admin-skeleton:         #DFE2EB;
-  --admin-hover:            #ECEDF2;
-  --admin-border:           #E0E2EA;
-  --admin-sidebar-bg:       #FFFFFF;
-  --admin-sidebar-border:   #ECEDF2;
-  --admin-text:             #0F172A;
-  --admin-text-muted:       #475569;
-  --admin-text-faint:       #94A3B8;
-  --admin-text-placeholder: #CBD5E1;
-  --admin-accent:           #FEC501;
-  /* Como TEXTO el ambar no sirve sobre blanco: #FEC501 da 1.59:1 y oscurecerlo
-     hasta pasar AA lo vuelve marron. La marca no se pierde: --admin-accent
-     #FEC501 sigue puro en 423 bordes, rellenos y rings, que es donde el amarillo
-     puede ser amarillo. El texto de estado activo/hover va en tinta. */
-  --admin-accent-text:      #0F172A;
-  /* El dinero se lee como dato, no como accion: en claro va en tinta. El ambar
-     queda para estados activos y hover, donde el color si significa algo. */
-  --admin-price:            #0F172A;
-  --shadow-card:    0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-card-md: 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-card-lg: 0 10px 24px rgba(0, 0, 0, 0.10), 0 4px 8px rgba(0, 0, 0, 0.06);
-}
+/* El tema del panel vive SOLO en el <html>.
+   ────────────────────────────────────────────────────────────────────────────
+   Aca habia un `.admin-layout` que repetia los 18 tokens claros —copia byte a
+   byte de :root— "para mayor especificidad dentro del layout". El efecto real
+   era el contrario: las custom properties se resuelven desde el ancestro mas
+   cercano que las define, y ese div esta mas cerca del contenido que el <html>,
+   asi que su bloque claro le ganaba a `html.admin-dark` y el tema oscuro no se
+   aplicaba nunca por si solo. Para taparlo existia un `.admin-layout.dark`, que
+   ponia el componente leyendo un store persistido: el servidor renderizaba el
+   div sin esa clase y el navegador con ella, y eso era el error #418 de
+   hidratacion en cada carga del panel en oscuro.
+
+   Ahora :root da el claro y html.admin-dark el oscuro. Los dos apuntan al mismo
+   elemento y el segundo gana por especificidad (0,1,1 contra 0,1,0), asi que no
+   hace falta ninguna clase en ningun componente y el tema queda resuelto antes
+   del primer render. Los portales, que se montan fuera del layout, heredan
+   igual porque todo cuelga del <html>. */
 
 /* El tema oscuro del admin vive solo en `html.admin-dark`, mas arriba.
    Aca habia un bloque `.admin-layout.dark` con los mismos 21 tokens y los
