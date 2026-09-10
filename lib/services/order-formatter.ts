@@ -87,6 +87,8 @@ export function formatDateTime(dateString: string): string {
  */
 interface WhatsAppMessageOptions {
   orderId: string
+  /** El correlativo del dia. Es el numero que el cliente despues te dice por telefono. */
+  orderNumber?: number | null
   customerName: string
   customerPhone: string
   address: string
@@ -108,6 +110,7 @@ interface WhatsAppMessageOptions {
 export function generateWhatsAppMessage(options: WhatsAppMessageOptions): string {
   const {
     orderId,
+    orderNumber,
     customerName,
     customerPhone,
     address,
@@ -155,7 +158,7 @@ export function generateWhatsAppMessage(options: WhatsAppMessageOptions): string
   }
 
   let message = `🍔 *NUEVO PEDIDO - QUE COPADO*\n\n`
-  message += `*Pedido #${orderId.slice(0, 8).toUpperCase()}*\n\n`
+  message += `*Pedido ${orderNumber != null ? `#${orderNumber}` : `#${orderId.slice(-4).toUpperCase()}`}*\n\n`
   message += `*Cliente:* ${customerName}\n`
   message += `*Teléfono:* ${customerPhone}\n`
   message += `*Dirección:* ${address}${zoneInfo}\n`
@@ -176,13 +179,6 @@ export function generateWhatsAppMessage(options: WhatsAppMessageOptions): string
   message += `_Enviado desde queCopado.com_`
 
   return message
-}
-
-/**
- * Genera un ID corto para mostrar (primeros 8 caracteres)
- */
-export function getShortOrderId(orderId: string): string {
-  return orderId.slice(0, 8).toUpperCase()
 }
 
 function isOrderItemLike(item: Json): item is { [key: string]: Json | undefined } & { name: Json; price: Json } {

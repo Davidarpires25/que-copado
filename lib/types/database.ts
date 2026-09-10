@@ -807,6 +807,8 @@ export interface Database {
 // Convenience type aliases with proper business types
 export interface Order {
   id: string
+  /** Correlativo por dia, lo asigna un trigger al insertar. */
+  order_number: number | null
   created_at: string
   total: number
   items: Json

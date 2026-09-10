@@ -285,6 +285,7 @@ export function useCheckout() {
 
       const message = generateWhatsAppMessage({
         orderId: order.id,
+        orderNumber: order.order_number,
         customerName: deliveryData.name,
         customerPhone: deliveryData.phone,
         address: fullAddress,

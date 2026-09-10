@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import { orderLabel } from '@/lib/utils/order-number'
 import { useRouter } from 'next/navigation'
 import { Search, ClipboardList, SearchX, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -19,7 +20,6 @@ import { createClient } from '@/lib/supabase/client'
 import { OrderStatusBadge, OrderDetailsDrawer } from '@/components/admin/orders'
 import { formatPrice, cn } from '@/lib/utils'
 import {
-  getShortOrderId,
   parseOrderItems,
 } from '@/lib/services/order-formatter'
 import type { OrderWithZone, OrderStatus } from '@/lib/types/database'
@@ -269,7 +269,7 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
                   >
                     <TableCell>
                       <span className="font-mono text-sm lg:text-base font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors">
-                        #{getShortOrderId(order.id)}
+                        {orderLabel(order)}
                       </span>
                     </TableCell>
                     <TableCell>

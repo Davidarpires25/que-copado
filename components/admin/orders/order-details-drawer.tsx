@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { X, MapPin, Phone, User, Clock, Wallet, Truck, ExternalLink } from 'lucide-react'
+import { X, Clock, Wallet, Truck } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import { CustomerBlock } from './customer-block'
+import { orderLabel } from '@/lib/utils/order-number'
 import { OrderStatusBadge } from './order-status-badge'
 import { ChangeStatusDialog } from './change-status-dialog'
 import { formatPrice } from '@/lib/utils'
@@ -12,7 +14,6 @@ import {
   getPaymentMethodLabel,
   getPaymentMethodIcon,
   parseOrderItems,
-  getShortOrderId,
 } from '@/lib/services/order-formatter'
 import type { OrderWithZone, OrderStatus } from '@/lib/types/database'
 
@@ -69,7 +70,7 @@ export function OrderDetailsDrawer({
             <div className="flex items-center justify-between p-4 border-b border-[var(--admin-border)]">
               <div>
                 <h2 className="text-lg font-bold text-[var(--admin-text)]">
-                  Pedido #{getShortOrderId(order.id)}
+                  Pedido {orderLabel(order)}
                 </h2>
                 <p className="text-sm text-[var(--admin-text-muted)] flex items-center gap-1 mt-0.5">
                   <Clock className="h-3.5 w-3.5" />
@@ -101,59 +102,21 @@ export function OrderDetailsDrawer({
                 </Button>
               </div>
 
-              {/* Customer Info */}
-              <div className="bg-[var(--admin-bg)] rounded-xl p-4 space-y-3">
-                <h3 className="font-semibold text-[var(--admin-text)] mb-3">Cliente</h3>
+              <CustomerBlock
+                name={order.customer_name}
+                phone={order.customer_phone}
+                address={order.customer_address}
+                zoneName={order.delivery_zones?.name}
+                mapsUrl={googleMapsUrl}
+              />
 
-                <div className="flex items-start gap-3">
-                  <User className="h-4 w-4 text-[var(--admin-text-muted)] mt-0.5" />
-                  <div>
-                    <p className="text-[var(--admin-text)]">{order.customer_name}</p>
-                  </div>
+              {/* Las notas quedan aparte: son del pedido, no del cliente. */}
+              {order.notes && (
+                <div className="rounded-xl bg-[var(--admin-bg)] p-4">
+                  <p className="text-sm text-[var(--admin-text-muted)]">Notas</p>
+                  <p className="mt-1 text-[var(--admin-text)]">{order.notes}</p>
                 </div>
-
-                <div className="flex items-start gap-3">
-                  <Phone className="h-4 w-4 text-[var(--admin-text-muted)] mt-0.5" />
-                  <div>
-                    <a
-                      href={`tel:${order.customer_phone}`}
-                      className="text-[var(--admin-accent-text)] hover:underline"
-                    >
-                      {order.customer_phone}
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-4 w-4 text-[var(--admin-text-muted)] mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-[var(--admin-text)]">{order.customer_address}</p>
-                    {order.delivery_zones && (
-                      <p className="text-sm text-[var(--admin-text-muted)] mt-0.5">
-                        Zona: {order.delivery_zones.name}
-                      </p>
-                    )}
-                    {googleMapsUrl && (
-                      <a
-                        href={googleMapsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm text-[var(--admin-accent-text)] hover:underline mt-1"
-                      >
-                        Ver en Google Maps
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-
-                {order.notes && (
-                  <div className="pt-2 border-t border-[var(--admin-border)]">
-                    <p className="text-sm text-[var(--admin-text-muted)]">Notas:</p>
-                    <p className="text-[var(--admin-text)] mt-1">{order.notes}</p>
-                  </div>
-                )}
-              </div>
+              )}
 
               {/* Order Items */}
               <div className="bg-[var(--admin-bg)] rounded-xl p-4">

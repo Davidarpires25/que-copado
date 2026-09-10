@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { orderLabel } from '@/lib/utils/order-number'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
@@ -30,7 +31,7 @@ const SalesChart = dynamic(
 )
 import { OrderStatusBadge } from '@/components/admin/orders'
 import { formatPrice } from '@/lib/utils'
-import { getShortOrderId, parseOrderItems } from '@/lib/services/order-formatter'
+import { parseOrderItems } from '@/lib/services/order-formatter'
 import type { DashboardStats, TopProduct, SalesChartData } from '@/lib/types/orders'
 import type { OrderWithZone } from '@/lib/types/database'
 import type { ComparativeStats } from '@/app/actions/analytics'
@@ -246,7 +247,7 @@ export function DashboardOverview({
                     >
                       <td className="px-6 py-3.5">
                         <span className="font-mono text-sm font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors">
-                          #{getShortOrderId(order.id)}
+                          {orderLabel(order)}
                         </span>
                       </td>
                       <td className="px-4 py-3.5">

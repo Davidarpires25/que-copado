@@ -80,6 +80,7 @@ export async function printClientTicketAction(
       type: 'client_ticket',
       data: {
         orderId,
+        orderNumber: order.order_number ?? null,
         orderLabel:
           order.order_type === 'mesa' && order.table_number
             ? `Mesa ${order.table_number}`
@@ -258,6 +259,7 @@ export async function printKitchenTicketAction(
       type: 'kitchen_ticket',
       data: {
         orderId,
+        orderNumber: order.order_number ?? null,
         orderLabel:
           order.order_type === 'mesa' && order.table_number
             ? `Mesa ${order.table_number}`

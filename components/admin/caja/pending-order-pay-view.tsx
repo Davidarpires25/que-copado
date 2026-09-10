@@ -1,15 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { CreditCard, Printer, Loader2, ChefHat, Globe, MessageCircle } from 'lucide-react'
+import { CreditCard, Printer, Loader2, ChefHat, Globe } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import { usePaymentSplit } from '@/lib/hooks/use-payment-split'
 import { PaymentMethods, PaymentMethodsLabel } from './payment-methods'
 import { PaymentSummary } from './payment-summary'
 import { StockAlert } from './stock-alert'
+import { CustomerBlock } from '@/components/admin/orders/customer-block'
 import { orderLabel } from '@/lib/utils/order-number'
-import { telefonoWhatsApp } from '@/lib/utils/phone'
 import type { PaymentMethod, Order, DeliveryZone } from '@/lib/types/database'
 import type { PaymentSplit } from '@/lib/types/cash-register'
 import type { OrderItem } from '@/lib/types/orders'
@@ -31,7 +31,6 @@ export function PendingOrderPayView({
 }: PendingOrderPayViewProps) {
   const total = order.total
   const esWeb = order.order_source === 'web'
-  const whatsapp = order.customer_phone ? telefonoWhatsApp(order.customer_phone) : null
   const shipping = Number(order.shipping_cost ?? 0)
   const zona = deliveryZones?.find((z) => z.id === order.delivery_zone_id)?.name ?? null
   const orderItems = (order.items as OrderItem[] | null) ?? []
@@ -108,48 +107,15 @@ export function PendingOrderPayView({
       </div>
 
       {/* El pedido de mostrador esta parado enfrente; el de la web hay que
-          llevarselo a alguien. Sin estos datos no se puede despachar.
-
-          Sin fondo gris: --admin-surface-2 es el mismo token de las filas de
-          metodo inactivas, dos centimetros mas abajo, asi que los datos del
-          cliente se leian como algo apagado cuando son lo mas importante
-          despues del total. El borde inferior ya los separa.
-
-          El telefono lleva icono en vez de etiqueta: es el unico de los tres
-          que no se entiende solo por su forma, y una columna de etiquetas se
-          come un tercio de un panel de 340px. */}
-      {esWeb && (order.customer_name || order.customer_address) && (
-        <div className="shrink-0 space-y-1 border-b border-[var(--admin-border)] px-5 py-3">
-          {order.customer_name && (
-            <p className="text-[13px] font-semibold text-[var(--admin-text)]">{order.customer_name}</p>
-          )}
-
-          {order.customer_phone && (
-            whatsapp ? (
-              <a
-                href={`https://wa.me/${whatsapp}`}
-                target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-[12px] text-[var(--admin-accent-text)] hover:underline"
-              >
-                <MessageCircle className="h-3.5 w-3.5 shrink-0" />
-                {order.customer_phone}
-              </a>
-            ) : (
-              // Pedido viejo con un telefono que no sirve para armar el link.
-              // Se muestra igual, pero apagado y sin prometer que abre algo.
-              <span
-                title="No se puede abrir WhatsApp con este número"
-                className="inline-flex items-center gap-1.5 text-[12px] text-[var(--admin-text-muted)]"
-              >
-                <MessageCircle className="h-3.5 w-3.5 shrink-0" />
-                {order.customer_phone}
-              </span>
-            )
-          )}
-
-          {order.customer_address && (
-            <p className="text-[12px] leading-snug text-[var(--admin-text-muted)]">{order.customer_address}</p>
-          )}
+          llevarselo a alguien. Mismo bloque que el drawer de pedidos. */}
+      {esWeb && (
+        <div className="shrink-0">
+          <CustomerBlock
+            variant="plain"
+            name={order.customer_name}
+            phone={order.customer_phone}
+            address={order.customer_address}
+          />
         </div>
       )}
 

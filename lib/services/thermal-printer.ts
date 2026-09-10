@@ -41,6 +41,8 @@ function createPrinter() {
 
 export interface TicketData {
   orderId: string
+  /** Correlativo del dia. Sin el, el ticket imprimia un pedazo del UUID. */
+  orderNumber?: number | null
   orderLabel: string
   dateStr: string
   timeStr: string
@@ -55,6 +57,7 @@ export interface TicketData {
 }
 
 export interface KitchenData {
+  orderNumber?: number | null
   orderId: string
   orderLabel: string
   dateStr: string
@@ -113,7 +116,7 @@ export async function printClientTicket(data: TicketData): Promise<void> {
 
   printer.alignCenter()
   printer.println('Gracias!')
-  printer.println(`#${data.orderId.slice(-8).toUpperCase()}`)
+  printer.println(`#${data.orderNumber ?? data.orderId.slice(-4).toUpperCase()}`)
   printer.cut()
 
   await printer.execute()
@@ -139,7 +142,7 @@ export async function printKitchenTicket(data: KitchenData): Promise<void> {
 
   // date + id en text-xs normal
   printer.println(`${data.dateStr} · ${data.timeStr}`)
-  printer.println(`#${data.orderId.slice(-8).toUpperCase()}`)
+  printer.println(`#${data.orderNumber ?? data.orderId.slice(-4).toUpperCase()}`)
   printer.println(LINE)
 
   // Items: texto grande (text-lg) + bold

@@ -329,7 +329,22 @@ export async function createOrder(
       return { data: null, error: 'Error al crear el pedido' }
     }
 
-    const order = { ...newOrder, created_at: new Date().toISOString() } as unknown as Order
+    // El correlativo lo asigna un trigger al insertar, asi que hay que leerlo
+    // de vuelta: es el numero que el cliente ve en su WhatsApp y el que despues
+    // te dice por telefono. Va en una consulta aparte y no en un
+    // `.insert().select()` a proposito — ese RETURNING es el que fallaba por RLS
+    // y hacia que el pedido no se guardara.
+    const { data: numerado } = await supabase
+      .from('orders')
+      .select('order_number')
+      .eq('id', orderId)
+      .single()
+
+    const order = {
+      ...newOrder,
+      order_number: numerado?.order_number ?? null,
+      created_at: new Date().toISOString(),
+    } as unknown as Order
 
     // Log initial status in history (non-blocking)
     supabase
