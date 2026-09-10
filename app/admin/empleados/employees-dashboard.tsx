@@ -112,7 +112,7 @@ export function EmployeesDashboard({ initialEmployees, loadError, currentUserId 
         <p className="text-sm text-[var(--admin-text-muted)]">
           {employees.length} {employees.length === 1 ? 'persona' : 'personas'}
         </p>
-        <Button onClick={() => setAddOpen(true)} className="gap-2 bg-[var(--admin-accent)] text-black hover:opacity-90">
+        <Button onClick={() => setAddOpen(true)} className="gap-2 bg-[var(--admin-accent)] text-black hover:bg-[var(--admin-accent)] hover:brightness-95">
           <UserPlus className="h-4 w-4" />
           Agregar empleado
         </Button>
@@ -246,7 +246,7 @@ export function EmployeesDashboard({ initialEmployees, loadError, currentUserId 
               Cancelar
             </button>
             <Button onClick={handleCreate} disabled={pending}
-              className="bg-[var(--admin-accent)] text-black hover:opacity-90">
+              className="bg-[var(--admin-accent)] text-black hover:bg-[var(--admin-accent)] hover:brightness-95">
               {pending ? 'Creando…' : 'Crear cuenta'}
             </Button>
           </DialogFooter>
@@ -263,7 +263,7 @@ export function EmployeesDashboard({ initialEmployees, loadError, currentUserId 
           <CredentialBox password={credential?.password ?? ''} />
           <DialogFooter>
             <Button onClick={() => setCredential(null)}
-              className="bg-[var(--admin-accent)] text-black hover:opacity-90">Listo</Button>
+              className="bg-[var(--admin-accent)] text-black hover:bg-[var(--admin-accent)] hover:brightness-95">Listo</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
