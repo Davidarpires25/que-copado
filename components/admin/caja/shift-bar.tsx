@@ -21,11 +21,12 @@ interface ShiftBarProps {
 /**
  * Estado del turno en una sola banda.
  *
- * Antes esto vivia partido en dos: la barra superior mostraba "Caja Abierta" y
- * el total vendido, y una barra al pie mostraba ventas, efectivo y mesas. Eran
- * datos del mismo objeto separados por toda la altura de la pantalla, y ademas
- * "vendido" arriba y "Efectivo" abajo son dos montos distintos que se prestaban
- * a confusion.
+ * Solo lleva lo que no se ve en ningun otro lado. Las operaciones y las mesas
+ * abiertas viven en los contadores de las pestañas, treinta pixeles mas abajo,
+ * asi que repetirlas aca era ruido: mismo dato, dos veces, en la misma pantalla.
+ *
+ * El motivo del semaforo tampoco ocupa lugar fijo: aparece escrito solo cuando
+ * hay algo que avisar.
  */
 export function ShiftBar({
   session,
@@ -37,7 +38,13 @@ export function ShiftBar({
 }: ShiftBarProps) {
   const minutos = useElapsedMinutes(session.opened_at)
   const turnoLargo = minutos >= TURNO_LARGO_MIN
-  const requiereAtencion = openTablesCount > 0 || turnoLargo
+
+  // Las mesas sin cobrar mandan sobre el turno largo: es lo accionable.
+  const aviso = openTablesCount > 0
+    ? `${openTablesCount} ${openTablesCount === 1 ? 'mesa sin cobrar' : 'mesas sin cobrar'}`
+    : turnoLargo
+      ? 'turno largo'
+      : null
 
   return (
     <div className="shrink-0 flex items-center gap-4 px-3 lg:px-4 h-[52px] bg-[var(--admin-sidebar-bg)] border-b border-[var(--admin-border)] overflow-x-auto scrollbar-hide">
@@ -52,40 +59,28 @@ export function ShiftBar({
         </button>
       )}
 
-      {/* Semáforo + tiempo. El color dice si algo pide atención, no solo que
-          hay una caja abierta. */}
+      {/* Semáforo, tiempo y —solo si hace falta— el motivo del ámbar. */}
       <div className="flex items-center gap-2 shrink-0">
         <span
           className={cn(
             'h-2 w-2 rounded-full shrink-0',
-            requiereAtencion ? 'bg-amber-500' : 'bg-emerald-500'
+            aviso ? 'bg-amber-500' : 'bg-emerald-500'
           )}
         />
-        <span className="text-[13px] font-semibold text-[var(--admin-text)] whitespace-nowrap">
-          Turno #{session.id.slice(-4).toUpperCase()}
-        </span>
-        <span
-          className={cn(
-            'text-[12px] tabular-nums whitespace-nowrap',
-            turnoLargo ? 'text-amber-700 dark:text-amber-400 font-medium' : 'text-[var(--admin-text-muted)]'
-          )}
-          title={turnoLargo ? 'El turno lleva más de 8 horas abierto' : undefined}
-        >
+        <span className="text-[13px] font-medium tabular-nums whitespace-nowrap text-[var(--admin-text)]">
           {formatElapsed(minutos)}
         </span>
+        {aviso && (
+          <span className="text-[12px] whitespace-nowrap text-amber-700 dark:text-amber-400">
+            · {aviso}
+          </span>
+        )}
       </div>
 
       <Divider />
 
       <Metric label="Vendido" value={formatPrice(session.total_sales)} strong />
       <Metric label="En caja" value={formatPrice(currentCash)} hint="Efectivo que debería haber ahora" />
-      <Metric label="Operaciones" value={String(session.total_orders)} />
-      <Metric
-        label="Mesas"
-        value={String(openTablesCount)}
-        warn={openTablesCount > 0}
-        hint={openTablesCount > 0 ? 'Hay mesas sin cobrar' : undefined}
-      />
 
       <div className="flex-1 min-w-2" />
 
@@ -123,12 +118,11 @@ function Divider() {
 }
 
 function Metric({
-  label, value, strong, warn, hint,
+  label, value, strong, hint,
 }: {
   label: string
   value: string
   strong?: boolean
-  warn?: boolean
   hint?: string
 }) {
   return (
@@ -136,9 +130,8 @@ function Metric({
       <span className="text-[11px] text-[var(--admin-text-muted)] whitespace-nowrap">{label}</span>
       <span
         className={cn(
-          'tabular-nums whitespace-nowrap font-semibold',
-          strong ? 'text-[15px]' : 'text-[13px]',
-          warn ? 'text-amber-700 dark:text-amber-400' : 'text-[var(--admin-text)]'
+          'tabular-nums whitespace-nowrap font-semibold text-[var(--admin-text)]',
+          strong ? 'text-[15px]' : 'text-[13px]'
         )}
       >
         {value}
@@ -170,7 +163,13 @@ function useElapsedMinutes(openedAt: string): number {
   return minutos
 }
 
+/**
+ * Pasadas las 48 horas las horas dejan de decir nada: "1970h 56m" es ruido
+ * donde "82 días" se lee de un vistazo.
+ */
 function formatElapsed(min: number): string {
   if (min < 60) return `${min}m`
-  return `${Math.floor(min / 60)}h ${String(min % 60).padStart(2, '0')}m`
+  if (min < 48 * 60) return `${Math.floor(min / 60)}h ${String(min % 60).padStart(2, '0')}m`
+  const dias = Math.floor(min / 1440)
+  return `${dias} días`
 }
