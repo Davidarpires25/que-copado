@@ -53,7 +53,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    // suppressHydrationWarning va aca por el script de abajo: le agrega la clase
+    // `admin-dark` al <html> antes de que React hidrate, asi que el servidor
+    // manda un elemento y el navegador encuentra otro. Eso disparaba
+    // "Minified React error #418" en cada carga del admin en tema oscuro.
+    //
+    // Solo silencia el desajuste de este elemento —no se propaga a los hijos—
+    // y es el patron documentado para el anti-FOUC de temas.
+    <html lang="es" suppressHydrationWarning>
       <head>
         {/*
           Aplica el tema del admin antes del primer pintado.
