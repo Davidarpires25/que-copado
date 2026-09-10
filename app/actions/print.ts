@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
+import { SIN_ASIGNAR, etiquetaComensal } from '@/lib/constants/sale-tags'
 import { devError } from '@/lib/server/logger'
 import { sendsToKitchen } from '@/lib/types/database'
 
@@ -46,7 +47,11 @@ export async function printClientTicketAction(
       const idSet = new Set(options.itemIds)
       items = items.filter((i) => idSet.has(i.id))
     }
-    if (options.guestTag) {
+    if (options.guestTag === SIN_ASIGNAR) {
+      // Los items compartidos, o los cargados antes de que existiera el primer
+      // comensal. Filtrar por la clave literal no encontraria ninguno.
+      items = items.filter((i) => !i.sale_tag)
+    } else if (options.guestTag) {
       items = items.filter((i) => i.sale_tag === options.guestTag)
     }
 
@@ -94,7 +99,7 @@ export async function printClientTicketAction(
         paymentLabel,
         cashReceived,
         change,
-        guestName: options.guestTag ?? null,
+        guestName: options.guestTag ? etiquetaComensal(options.guestTag) : null,
       },
     })
 

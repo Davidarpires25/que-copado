@@ -9,6 +9,7 @@ import { cn, formatPrice } from '@/lib/utils'
 import { usePaymentSplit } from '@/lib/hooks/use-payment-split'
 import { PaymentMethods, PaymentMethodsLabel, PaymentMethodPicker } from './payment-methods'
 import { PaymentSummary } from './payment-summary'
+import { SIN_ASIGNAR, etiquetaComensal } from '@/lib/constants/sale-tags'
 import { StockAlert } from './stock-alert'
 import { payTableOrder } from '@/app/actions/tables'
 import { printClientTicketAction } from '@/app/actions/print'
@@ -61,17 +62,39 @@ export function TablePayView({
     [order.order_items]
   )
 
-  // Guest tags with subtotals — only items WITH a real sale_tag
+  /**
+   * Grupos de cobro: cada comensal con consumo, mas lo que no tiene dueño.
+   *
+   * Antes esto salteaba los items sin comensal (`if (!item.sale_tag) continue`),
+   * asi que los splits sumaban menos que el total y el servidor rechazaba el
+   * cobro con "La suma de los medios es menor al total del pedido". Una mesa con
+   * items cargados antes de crear el primer comensal no se podia cobrar
+   * dividida, y no habia forma de arreglarlo: `sale_tag` solo se escribe al
+   * insertar el item.
+   *
+   * Ademas lo compartido —una picada, la gaseosa de la mesa— no tiene dueño, y
+   * forzarle uno seria mentir sobre quien consumio que.
+   *
+   * Los comensales sin consumo no aparecen: no hay nada que cobrarles.
+   */
   const guestTags = useMemo(() => {
-    const tagMap = new Map<string, number>()
+    const mapa = new Map<string, number>()
     for (const item of activeItems) {
-      if (!item.sale_tag) continue
-      tagMap.set(item.sale_tag, (tagMap.get(item.sale_tag) ?? 0) + item.product_price * item.quantity)
+      const clave = item.sale_tag ?? SIN_ASIGNAR
+      mapa.set(clave, (mapa.get(clave) ?? 0) + item.product_price * item.quantity)
     }
-    return Array.from(tagMap.entries()).map(([tag, subtotal]) => ({ tag, subtotal }))
+    return Array.from(mapa.entries())
+      .filter(([, subtotal]) => subtotal > 0)
+      .map(([tag, subtotal]) => ({
+        tag,
+        subtotal,
+        label: etiquetaComensal(tag),
+      }))
   }, [activeItems])
 
-  const hasGuests = guestTags.length > 0
+  // Dividir tiene sentido si hay al menos un comensal de verdad. Un unico grupo
+  // "Sin asignar" es la cuenta entera con otro nombre.
+  const hasGuests = guestTags.some((g) => g.tag !== SIN_ASIGNAR)
 
   // Guest method helpers
   const getGuestMethod = (tag: string): PaymentMethod => guestMethods[tag] ?? 'cash'
@@ -159,10 +182,12 @@ export function TablePayView({
   const itemsByGuest = useMemo(() => {
     const map = new Map<string, typeof activeItems>()
     for (const item of activeItems) {
-      if (!item.sale_tag) continue
-      const list = map.get(item.sale_tag) ?? []
+      // Sin `?? SIN_ASIGNAR` la tarjeta de lo compartido saldria vacia aunque
+      // tenga monto, que es peor que no mostrarla.
+      const clave = item.sale_tag ?? SIN_ASIGNAR
+      const list = map.get(clave) ?? []
       list.push(item)
-      map.set(item.sale_tag, list)
+      map.set(clave, list)
     }
     return map
   }, [activeItems])
@@ -289,7 +314,7 @@ export function TablePayView({
           {/* ── Per-guest mode content ────────────────────────── */}
           {payMode === 'per_guest' && (
             <div className="flex-1 flex gap-4 min-h-0">
-              {guestTags.map(({ tag, subtotal }, idx) => {
+              {guestTags.map(({ tag, subtotal, label }, idx) => {
                 const colors = TAG_COLORS[idx % TAG_COLORS.length]
                 const guestMethod = getGuestMethod(tag)
                 const items = itemsByGuest.get(tag) ?? []
@@ -303,7 +328,7 @@ export function TablePayView({
                     <div className="flex items-center justify-between px-4 border-b border-[var(--admin-border)]/60" style={{ paddingTop: 14, paddingBottom: 14 }}>
                       <div className="flex items-center gap-2">
                         <div className={cn('w-2 h-2 rounded-full shrink-0', colors.dot)} />
-                        <span className="text-[13px] font-semibold text-[var(--admin-text)]">{tag}</span>
+                        <span className="text-[13px] font-semibold text-[var(--admin-text)]">{label}</span>
                       </div>
                       <span className="text-[14px] font-bold text-[var(--admin-text)] tabular-nums">
                         {formatPrice(subtotal)}
@@ -344,7 +369,7 @@ export function TablePayView({
                         className="flex items-center gap-1.5 text-[11px] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer font-medium"
                       >
                         <Printer className="h-3 w-3" />
-                        Imprimir ticket {tag}
+                        Imprimir ticket {label}
                       </button>
                     </div>
                   </div>
@@ -373,7 +398,7 @@ export function TablePayView({
               <>
                 {/* Por comensal */}
                 <div className="space-y-3">
-                  {guestTags.map(({ tag, subtotal }, idx) => {
+                  {guestTags.map(({ tag, subtotal, label }, idx) => {
                     const colors = TAG_COLORS[idx % TAG_COLORS.length]
                     const gm = getGuestMethod(tag)
                     const gmOpt = PAYMENT_METHODS.find((o) => o.value === gm)
@@ -382,7 +407,7 @@ export function TablePayView({
                         <div className="flex items-center gap-2 min-w-0">
                           <div className={cn('w-2 h-2 rounded-full shrink-0', colors.dot)} />
                           <span className="text-[13px] font-medium text-[var(--admin-text-muted)] truncate">
-                            {tag} — {gmOpt?.label ?? gm}
+                            {label} — {gmOpt?.label ?? gm}
                           </span>
                         </div>
                         <span className="text-[13px] font-semibold text-[var(--admin-text)] tabular-nums ml-2 shrink-0">

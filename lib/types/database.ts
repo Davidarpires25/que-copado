@@ -195,6 +195,7 @@ export interface Database {
           order_type: string | null
           /** Correlativo por dia, lo asigna un trigger al insertar. */
           order_number: number | null
+          sale_tags: string[]
           table_number: number | null
           cash_register_session_id: string | null
           opened_at: string | null
@@ -809,6 +810,8 @@ export interface Order {
   id: string
   /** Correlativo por dia, lo asigna un trigger al insertar. */
   order_number: number | null
+  /** Comensales de la mesa. Existen aunque todavia no hayan pedido nada. */
+  sale_tags: string[]
   created_at: string
   total: number
   items: Json

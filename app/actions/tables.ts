@@ -120,6 +120,49 @@ export async function getTables(): Promise<{
 }
 
 /**
+ * Agrega o saca un comensal de la mesa.
+ *
+ * Los comensales viven en `orders.sale_tags` y no solo en las etiquetas de los
+ * items: uno recien creado, que todavia no pidio nada, tiene que sobrevivir a
+ * que el mesero entre a cargar items —esa vista desmonta el panel— y a que
+ * alguien recargue la pagina.
+ *
+ * Se usa array_append/array_remove en vez de leer, modificar y escribir para
+ * que dos dispositivos tocando la misma mesa no se pisen.
+ */
+export async function toggleSaleTag(
+  orderId: string,
+  tag: string,
+  accion: 'agregar' | 'quitar'
+): Promise<{ error: string | null }> {
+  try {
+    const nombre = tag.trim()
+    if (!nombre) return { error: 'El nombre no puede estar vacio' }
+
+    const supabase = await createAdminClient()
+    const user = await getAuthUser(supabase)
+    if (!user) return { error: 'No autenticado' }
+
+    const { error } = await supabase.rpc('toggle_order_sale_tag', {
+      p_order_id: orderId,
+      p_tag: nombre,
+      p_agregar: accion === 'agregar',
+    })
+
+    if (error) {
+      devError('Error toggling sale tag:', error)
+      return { error: 'No se pudo actualizar el comensal' }
+    }
+
+    revalidateCaja()
+    return { error: null }
+  } catch (error) {
+    devError('Error in toggleSaleTag:', error)
+    return { error: 'Error inesperado' }
+  }
+}
+
+/**
  * Obtener una mesa con su orden y items
  */
 export async function getTableWithOrder(tableId: string): Promise<{

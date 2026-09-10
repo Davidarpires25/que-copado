@@ -14,6 +14,7 @@ import {
   updateOrderItem,
   removeOrderItem,
   cancelTableOrder,
+  toggleSaleTag,
 } from '@/app/actions/tables'
 import type { TableWithOrder } from '@/lib/types/tables'
 import type { CashRegisterSession } from '@/lib/types/cash-register'
@@ -47,8 +48,10 @@ export function TableOrderPanel({
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const pendingItemOps = useRef<Set<string>>(new Set())
 
-  // Sale tags (comensales)
-  const [saleTags, setSaleTags] = useState<string[]>([])
+  // Comensales creados en esta pantalla y todavia no confirmados por el
+  // servidor. Sirven para que el chip aparezca al instante; la fuente de verdad
+  // es `order.sale_tags`.
+  const [saleTagsOptimistas, setSaleTagsOptimistas] = useState<string[]>([])
   const [activeSaleTag, setActiveSaleTag] = useState<string | null>(null)
   const [addingTag, setAddingTag] = useState(false)
   const [newTagName, setNewTagName] = useState('')
@@ -74,10 +77,17 @@ export function TableOrderPanel({
     return Array.from(tags)
   }, [activeItems])
 
+  // La orden manda. Se le suman los items ya etiquetados —por si un comensal
+  // fue borrado del array pero tiene consumo— y los recien creados que el
+  // servidor todavia no devolvio.
   const allTags = useMemo(() => {
-    const merged = new Set([...existingTags, ...saleTags])
+    const merged = new Set([
+      ...(order?.sale_tags ?? []),
+      ...existingTags,
+      ...saleTagsOptimistas,
+    ])
     return Array.from(merged)
-  }, [existingTags, saleTags])
+  }, [order?.sale_tags, existingTags, saleTagsOptimistas])
 
   // Items filtered by tag for display + total
   const displayedItems = useMemo(() => {
@@ -121,18 +131,39 @@ export function TableOrderPanel({
     }
   }
 
-  const handleAddTag = () => {
+  const handleAddTag = async () => {
     const name = newTagName.trim()
-    if (!name) { setAddingTag(false); return }
-    if (!saleTags.includes(name)) setSaleTags((prev) => [...prev, name])
+    if (!name || !order) { setAddingTag(false); return }
+
+    setSaleTagsOptimistas((prev) => (prev.includes(name) ? prev : [...prev, name]))
     setActiveSaleTag(name)
     setNewTagName('')
     setAddingTag(false)
+
+    const { error } = await toggleSaleTag(order.id, name, 'agregar')
+    if (error) {
+      // Se deshace: si no quedo guardado, mostrarlo miente sobre lo que hay.
+      setSaleTagsOptimistas((prev) => prev.filter((t) => t !== name))
+      setActiveSaleTag((actual) => (actual === name ? null : actual))
+      toast.error(error)
+    }
   }
 
-  const handleRemoveTag = (tag: string) => {
-    setSaleTags((prev) => prev.filter((t) => t !== tag))
+  const handleRemoveTag = async (tag: string) => {
+    if (!order) return
+
+    // Un comensal con consumo no se puede sacar de un chip: primero hay que
+    // resolver que pasa con lo que pidio.
+    if (existingTags.includes(tag)) {
+      toast.error('Ese comensal tiene items. Sacaselos primero.')
+      return
+    }
+
+    setSaleTagsOptimistas((prev) => prev.filter((t) => t !== tag))
     if (activeSaleTag === tag) setActiveSaleTag(null)
+
+    const { error } = await toggleSaleTag(order.id, tag, 'quitar')
+    if (error) toast.error(error)
   }
 
   // ─── Empty state (no order) ──────────────────────────────────────────────
