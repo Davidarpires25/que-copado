@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { CreditCard,
-  ArrowLeft, Users, Loader2, AlertTriangle, Printer, Check,
+  ArrowLeft, Users, Loader2, Printer, Check,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import { usePaymentSplit } from '@/lib/hooks/use-payment-split'
 import { PaymentMethods, PaymentMethodsLabel } from './payment-methods'
 import { PaymentSummary } from './payment-summary'
+import { StockAlert } from './stock-alert'
 import { payTableOrder } from '@/app/actions/tables'
 import { printClientTicketAction } from '@/app/actions/print'
 import { checkStockForItems } from '@/app/actions/stock'
@@ -513,29 +514,8 @@ export function TablePayView({
           {/* Footer */}
           <div className="px-6 pt-4 pb-6 border-t border-[var(--admin-border)] space-y-2.5">
             {/* Stock warnings */}
-            {stockChecking && (
-              <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[var(--admin-surface-2)] border border-[var(--admin-border)]">
-                <Loader2 className="h-4 w-4 animate-spin text-[var(--admin-text-muted)] shrink-0" />
-                <span className="text-sm text-[var(--admin-text-muted)]">Verificando stock...</span>
-              </div>
-            )}
-
-            {!stockChecking && hasStockWarnings && (
-              <div className="rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-500/40 px-4 py-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-400 shrink-0" />
-                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Stock insuficiente</p>
-                </div>
-                <ul className="space-y-1 pl-6">
-                  {stockWarnings.map((w) => (
-                    <li key={w.product_id} className="text-xs text-amber-800 dark:text-amber-200">
-                      {w.available === 0
-                        ? `${w.product_name}: pediste ${w.requested}, sin stock`
-                        : `${w.product_name}: pediste ${w.requested}, hay ${w.available}`}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            {(stockChecking || hasStockWarnings) && (
+              <StockAlert checking={stockChecking} warnings={stockWarnings} />
             )}
 
             {/* Print all (per_guest) */}

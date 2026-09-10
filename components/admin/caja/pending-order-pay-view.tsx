@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { CreditCard, Printer, Loader2, AlertTriangle, ChefHat } from 'lucide-react'
+import { CreditCard, Printer, Loader2, ChefHat } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import { usePaymentSplit } from '@/lib/hooks/use-payment-split'
 import { PaymentMethods, PaymentMethodsLabel } from './payment-methods'
 import { PaymentSummary } from './payment-summary'
+import { StockAlert } from './stock-alert'
 import type { PaymentMethod, Order, DeliveryZone } from '@/lib/types/database'
 import type { PaymentSplit } from '@/lib/types/cash-register'
 import type { OrderItem } from '@/lib/types/orders'
@@ -145,25 +146,7 @@ export function PendingOrderPayView({
 
       {(stockChecking || hasStockWarnings) && (
         <div className="shrink-0 px-5 pb-3">
-          {stockChecking && (
-            <div className="flex items-center gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-2)] px-3 py-2">
-              <Loader2 className="h-4 w-4 animate-spin text-[var(--admin-text-muted)]" />
-              <span className="text-xs text-[var(--admin-text-muted)]">Verificando stock...</span>
-            </div>
-          )}
-          {!stockChecking && hasStockWarnings && (
-            <div className="space-y-1 rounded-xl border border-amber-500/40 bg-amber-50 px-3 py-2.5 dark:bg-amber-950/50">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" />
-                <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">Stock insuficiente</p>
-              </div>
-              {stockWarnings.map((w) => (
-                <p key={w.product_id} className="pl-6 text-xs text-amber-800 dark:text-amber-200">
-                  {w.product_name}: {w.available === 0 ? 'sin stock' : `${w.available} disponibles`}
-                </p>
-              ))}
-            </div>
-          )}
+          <StockAlert checking={stockChecking} warnings={stockWarnings} />
         </div>
       )}
 
