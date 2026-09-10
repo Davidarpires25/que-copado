@@ -8,6 +8,7 @@ import { usePaymentSplit } from '@/lib/hooks/use-payment-split'
 import { PaymentMethods, PaymentMethodsLabel } from './payment-methods'
 import { PaymentSummary } from './payment-summary'
 import { StockAlert } from './stock-alert'
+import { orderLabel } from '@/lib/utils/order-number'
 import type { PaymentMethod, Order, DeliveryZone } from '@/lib/types/database'
 import type { PaymentSplit } from '@/lib/types/cash-register'
 import type { OrderItem } from '@/lib/types/orders'
@@ -64,14 +65,14 @@ export function PendingOrderPayView({
     else onConfirm(pago.payments[0].method, pago.payments)
   }
 
-  const orderNum = order.id.slice(-4).toUpperCase()
+  const etiqueta = orderLabel(order)
 
   return (
     <div className="flex h-full flex-col bg-[var(--admin-surface)]">
 
       <div className="flex h-[52px] shrink-0 items-center justify-between border-b border-[var(--admin-border)] px-5">
         <span className="text-[15px] font-bold text-[var(--admin-text)]">
-          Pedido <span className="text-[var(--admin-accent-text)]">#{orderNum}</span>
+          Pedido <span className="text-[var(--admin-accent-text)]">{etiqueta}</span>
         </span>
         <div className="flex items-center gap-1">
           <button

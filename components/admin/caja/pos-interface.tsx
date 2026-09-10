@@ -7,6 +7,7 @@ import { Store, Table2, History } from 'lucide-react'
 import { PosProductGrid } from './product-grid'
 import { OrderBuilder, type PosCartItem } from './order-builder'
 import { PendingOrderPayView } from './pending-order-pay-view'
+import { orderLabel } from '@/lib/utils/order-number'
 import { ShiftBar } from './shift-bar'
 import { CashMovementDialog } from './cash-movement-dialog'
 import { PosHistorialTab } from './pos-historial-tab'
@@ -605,7 +606,7 @@ export function PosInterface({
                         )}
                         style={{ height: 32, borderRadius: 8 }}
                       >
-                        #{order.id.slice(-4).toUpperCase()} — {formatPrice(order.total)}
+                        {orderLabel(order)} — {formatPrice(order.total)}
                       </button>
                     )
                   })
@@ -751,7 +752,7 @@ export function PosInterface({
       <BottomSheet
         open={showMobileCart}
         onClose={() => { setShowMobileCart(false); if (payingOrder) setPayingOrder(null) }}
-        title={payingOrder ? `Cobrar #${payingOrder.id.slice(-4).toUpperCase()}` : 'Venta mostrador'}
+        title={payingOrder ? `Cobrar ${orderLabel(payingOrder)}` : 'Venta mostrador'}
       >
         {payingOrder ? (
           <PendingOrderPayView

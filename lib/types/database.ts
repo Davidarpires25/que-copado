@@ -193,6 +193,8 @@ export interface Database {
           status: string
           order_source: string
           order_type: string | null
+          /** Correlativo por dia, lo asigna un trigger al insertar. */
+          order_number: number | null
           table_number: number | null
           cash_register_session_id: string | null
           opened_at: string | null

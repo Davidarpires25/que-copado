@@ -7,14 +7,11 @@ interface PageProps {
   searchParams: Promise<{ cash?: string; kitchen?: string; tag?: string }>
 }
 
-export async function generateMetadata({ params, searchParams }: PageProps) {
-  const { orderId } = await params
+export async function generateMetadata({ searchParams }: PageProps) {
   const { kitchen } = await searchParams
   const isKitchen = kitchen === '1'
   return {
-    title: isKitchen
-      ? `Cocina #${orderId.slice(-8).toUpperCase()}`
-      : `Ticket #${orderId.slice(-8).toUpperCase()}`,
+    title: isKitchen ? 'Comanda de cocina' : 'Ticket',
   }
 }
 

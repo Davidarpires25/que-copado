@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { formatPrice } from '@/lib/utils'
 import type { Order } from '@/lib/types/database'
+import { orderLabel as numeroDePedido } from '@/lib/utils/order-number'
 
 interface TicketItem {
   name: string
@@ -71,7 +72,7 @@ export function TicketPrintLayout({ order, items, cashReceived, isKitchen = fals
             <p className="text-xs">──────────────────────</p>
             <p className="font-bold text-base">{orderLabel}</p>
             <p className="text-xs">{dateStr} · {timeStr}</p>
-            <p className="text-xs opacity-60 mt-0.5">#{order.id.slice(-8).toUpperCase()}</p>
+            <p className="text-xs opacity-60 mt-0.5">{numeroDePedido(order)}</p>
           </div>
 
           {items.length === 0 ? (
@@ -160,7 +161,7 @@ export function TicketPrintLayout({ order, items, cashReceived, isKitchen = fals
         {/* Footer */}
         <div className="text-center text-xs mt-3 pt-2 border-t border-dashed border-black">
           <p>Gracias!</p>
-          <p className="text-xs opacity-60">#{order.id.slice(-8).toUpperCase()}</p>
+          <p className="text-xs opacity-60">{numeroDePedido(order)}</p>
         </div>
       </div>
     </>

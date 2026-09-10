@@ -16,16 +16,16 @@ export default async function ComandaPrintPage({ params }: PageProps) {
     .select(`
       *,
       comanda_items (*),
-      orders:order_id (order_type, table_number)
+      orders:order_id (order_type, table_number, order_number)
     `)
     .eq('id', comandaId)
     .single()
 
   if (error || !data) notFound()
 
-  const order = data.orders as { order_type: string | null; table_number: number | null } | null
+  const order = data.orders as { order_type: string | null; table_number: number | null; order_number: number | null } | null
 
-  const comanda: Comanda & { order_type: string | null; table_number: number | null } = {
+  const comanda: Comanda & { order_type: string | null; table_number: number | null; order_number: number | null } = {
     id: data.id,
     order_id: data.order_id,
     station: data.station as Station,
@@ -43,13 +43,14 @@ export default async function ComandaPrintPage({ params }: PageProps) {
       notes: ci.notes as string | null,
     })),
     order_type: order?.order_type ?? null,
+    order_number: order?.order_number ?? null,
     table_number: order?.table_number ?? null,
   }
 
   return (
     <html>
       <head>
-        <title>Comanda - {comanda.station} #{comanda.id.slice(-6).toUpperCase()}</title>
+        <title>Comanda {comanda.station} · Pedido {comanda.order_number != null ? `#${comanda.order_number}` : ""}</title>
         <style>{`
           @media print {
             @page { margin: 0; size: 80mm auto; }

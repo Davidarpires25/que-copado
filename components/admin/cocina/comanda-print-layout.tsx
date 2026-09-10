@@ -2,9 +2,15 @@
 
 import { useEffect } from 'react'
 import type { Comanda } from '@/lib/types/comandas'
+import { orderLabel as numeroDePedido } from '@/lib/utils/order-number'
 
 interface ComandaPrintLayoutProps {
-  comanda: Comanda & { order_type: string | null; table_number: number | null }
+  comanda: Comanda & {
+    order_type: string | null
+    table_number: number | null
+    /** El numero del PEDIDO, no el de la comanda: es lo que cruza cocina con caja. */
+    order_number: number | null
+  }
 }
 
 export function ComandaPrintLayout({ comanda }: ComandaPrintLayoutProps) {
@@ -49,7 +55,7 @@ export function ComandaPrintLayout({ comanda }: ComandaPrintLayoutProps) {
       </div>
 
       <div className="border-t border-dashed border-black pt-2 text-center text-xs">
-        <p>Pedido #{comanda.id.slice(-6).toUpperCase()}</p>
+        <p>Pedido {numeroDePedido({ id: comanda.order_id, order_number: comanda.order_number })}</p>
       </div>
     </div>
   )
