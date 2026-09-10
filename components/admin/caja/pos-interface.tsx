@@ -34,7 +34,7 @@ import { cn, formatPrice } from '@/lib/utils'
 import type { Category, ProductWithHalfConfig, PaymentMethod, Order, DeliveryZone } from '@/lib/types/database'
 import { sendsToKitchen } from '@/lib/types/database'
 import type { CashRegisterSession, SessionSummary, PaymentSplit, OrderWithSplits } from '@/lib/types/cash-register'
-import type { TableWithOrder } from '@/lib/types/tables'
+import type { TableWithOrder, OrderItemRow } from '@/lib/types/tables'
 
 type PosMode = 'mostrador' | 'mesas' | 'historial'
 
@@ -495,10 +495,28 @@ export function PosInterface({
     setShowMobileTablePanel(true)
   }
 
-  const handleTableItemsAdded = async () => {
+  const handleTableItemsAdded = (resultado: { items: OrderItemRow[]; total: number }) => {
     setShowAddItems(false)
     setAddItemsSaleTag(null)
-    await refreshTables()
+
+    // Los items se muestran con lo que devolvio la base, que son las filas
+    // reales con sus ids. Antes esto esperaba un refreshTables() —todas las
+    // mesas, con todas sus ordenes y todos sus items— solo para ver aparecer lo
+    // que se acababa de agregar: se agregaba rapido y se veia lento.
+    const fusionar = (t: TableWithOrder): TableWithOrder =>
+      t.orders
+        ? { ...t, orders: {
+            ...t.orders,
+            total: resultado.total,
+            order_items: [...t.orders.order_items, ...resultado.items],
+          } }
+        : t
+
+    setSelectedTable((prev) => (prev ? fusionar(prev) : prev))
+    setTables((prev) => prev.map((t) => (t.id === selectedTable?.id ? fusionar(t) : t)))
+
+    // El resto del salon se reconcilia despues, sin bloquear.
+    debouncedRefreshTables()
   }
 
   const handleTableBillRequested = useCallback(async () => {

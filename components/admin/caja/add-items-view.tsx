@@ -10,7 +10,7 @@ import { addItemsToOrder } from '@/app/actions/tables'
 import { sendToKitchen } from '@/app/actions/comandas'
 import type { Product, Category, ProductWithHalfConfig } from '@/lib/types/database'
 import { sendsToKitchen } from '@/lib/types/database'
-import type { RestaurantTable } from '@/lib/types/tables'
+import type { RestaurantTable, OrderItemRow } from '@/lib/types/tables'
 
 interface CartItem {
   id: string            // composite key: product_id or product_id__notes
@@ -31,7 +31,9 @@ interface AddItemsViewProps {
   saleTag?: string | null
   getHalfOptions?: (product: ProductWithHalfConfig) => Product[]
   onClose: () => void
-  onItemsAdded: () => void
+  /** Recibe las filas que devolvio la base y el total ya recalculado, para
+   *  que el panel se actualice sin volver a pedir nada. */
+  onItemsAdded: (resultado: { items: OrderItemRow[]; total: number }) => void
 }
 
 export function AddItemsView({
@@ -124,14 +126,14 @@ export function AddItemsView({
       saleTag
     )
     setLoading(false)
-    if (result.error) { toast.error(result.error); return }
+    if (result.error || !result.data) { toast.error(result.error ?? 'Error al agregar los items'); return }
     const hasKitchenItems = cart.some((i) => sendsToKitchen(i.product_type ?? ''))
     if (hasKitchenItems) {
       // Send to kitchen display (creates comanda records for newly added items only)
       sendToKitchen(orderId).then((r) => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al enviar a cocina'))
     }
     toast.success(`${cartItemCount} ${cartItemCount === 1 ? 'producto agregado' : 'productos agregados'}`)
-    onItemsAdded()
+    onItemsAdded(result.data)
   }
 
   return (

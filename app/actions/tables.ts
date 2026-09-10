@@ -315,7 +315,7 @@ export async function addItemsToOrder(
   }[],
   saleTag?: string | null
 ): Promise<{
-  data: OrderItemRow[] | null
+  data: { items: OrderItemRow[]; total: number } | null
   error: string | null
 }> {
   try {
@@ -323,49 +323,29 @@ export async function addItemsToOrder(
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
 
-    // Verify order exists and is open
-    const { data: order } = await supabase
-      .from('orders')
-      .select('id, status')
-      .eq('id', orderId)
-      .single()
+    // Un viaje en vez de cuatro. Antes eran: verificar la orden, insertar, y
+    // recalcular el total —que por dentro son dos mas—. Ademas no era atomico:
+    // si el recalculo fallaba despues del insert, los items quedaban cargados
+    // con el total viejo, o sea una mesa que debe mas de lo que dice.
+    const { data, error } = await supabase.rpc('agregar_items_al_pedido', {
+      p_order_id: orderId,
+      p_items: items,
+      p_sale_tag: saleTag ?? null,
+      p_added_by: user.id,
+    })
 
-    if (!order || (order.status !== 'abierto' && order.status !== 'cuenta_pedida')) {
-      return { data: null, error: 'La orden no esta abierta' }
+    if (error) {
+      devError('Error adding items to order:', error)
+      return {
+        data: null,
+        error: error.code === 'P0001' ? error.message : 'Error al agregar los items',
+      }
     }
 
-    if (items.some((i) => i.quantity <= 0)) {
-      return { data: null, error: 'La cantidad de cada producto debe ser mayor a cero' }
-    }
-
-    // Insert items
-    const itemsToInsert = items.map((item) => ({
-      order_id: orderId,
-      product_id: item.product_id,
-      product_name: item.product_name,
-      product_price: item.product_price,
-      quantity: item.quantity,
-      notes: item.notes || null,
-      sale_tag: saleTag || null,
-      status: 'pendiente',
-      added_by: user.id,
-      metadata: item.metadata || null,
-    }))
-
-    const { data: insertedItems, error: insertError } = await supabase
-      .from('order_items')
-      .insert(itemsToInsert)
-      .select()
-
-    if (insertError) {
-      devError('Error inserting order items:', insertError)
-      return { data: null, error: 'Error al agregar los items' }
-    }
-
-    await recalculateOrderTotal(supabase, orderId)
     revalidateCaja()
 
-    return { data: insertedItems as OrderItemRow[], error: null }
+    const resultado = data as { items: OrderItemRow[]; total: number }
+    return { data: resultado, error: null }
   } catch (error) {
     devError('Error in addItemsToOrder:', error)
     return { data: null, error: 'Error inesperado' }
