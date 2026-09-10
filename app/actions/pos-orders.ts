@@ -8,8 +8,6 @@ import { deductStockForOrder, restoreStockForOrder } from '@/lib/server/stock-de
 import { getSalesField } from '@/lib/server/cash-register-utils'
 import type { Order, PaymentMethod } from '@/lib/types/database'
 import type { CreatePosOrderData, CreateMostadorOrderData, PaymentSplit } from '@/lib/types/cash-register'
-import { validateHybridPaymentSplits } from '@/lib/utils/payment-split'
-import { recalculateOrderTotal } from '@/app/actions/tables'
 import { sendToKitchen } from './comandas'
 
 /**
@@ -297,167 +295,49 @@ export async function completeMostadorPayment(
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
 
-    // Verify session is open before processing payment
-    const { data: session } = await supabase
-      .from('cash_register_sessions')
-      .select('id, status')
-      .eq('id', sessionId)
-      .eq('status', 'open')
-      .single()
+    // Todo el cobro en una sola transaccion, igual que el de mesa. Eran ocho
+    // viajes a la base —~1,1 segundos con los ~160ms fijos de cada uno— y las
+    // fallas a mitad de camino dejaban el pedido pagado con los totales del
+    // turno sin sumar.
+    //
+    // La funcion contempla los dos origenes: el de mostrador recalcula su total
+    // desde order_items mas el envio, y el de la web conserva el total que fijo
+    // el checkout —sus productos viven en la columna JSON, recalcular lo
+    // pondria en cero— y ademas entra al turno de quien lo cobra.
+    const { data, error } = await supabase.rpc('cobrar_pedido_de_mostrador', {
+      p_order_id: orderId,
+      p_session_id: sessionId,
+      p_payment_method: paymentMethod,
+      p_splits: splits ?? null,
+    })
 
-    if (!session) {
-      return { data: null, error: 'La caja no está abierta' }
+    if (error) {
+      devError('Error completing mostrador payment:', error)
+      // P0001 es un RAISE nuestro: el texto esta escrito para quien cobra.
+      return {
+        data: null,
+        error: error.code === 'P0001' ? error.message : 'Error al procesar pago',
+      }
     }
 
-    const { data: existingOrder } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('id', orderId)
-      .single()
-
-    const previo = existingOrder as Order | null
-    const esWeb = previo?.order_source === 'web'
-
-    // Dos origenes con estados distintos: el de mostrador nace 'abierto', el de
-    // la web nace 'recibido'.
-    const cobrable =
-      previo != null &&
-      ((previo.order_type === 'mostrador' && previo.status === 'abierto') ||
-        (esWeb && previo.status === 'recibido'))
-
-    if (!cobrable) {
-      return { data: null, error: 'Orden no encontrada o ya procesada' }
+    const resultado = data as {
+      order: Order
+      items: { product_id: string; quantity: number }[]
     }
 
-    // El pedido web guarda sus productos en la columna JSON `items` y no tiene
-    // filas en `order_items`, asi que recalcular desde ahi le pondria el total
-    // en cero. Su total ya lo valido el servidor en el checkout.
-    let orderData = previo as Order
-    if (!esWeb) {
-      // Recalculate total from order_items to ensure up-to-date amount
-      await recalculateOrderTotal(supabase, orderId)
-      const { data: refreshedOrder } = await supabase.from('orders').select('*').eq('id', orderId).single()
-      orderData = refreshedOrder as Order
-    }
-
-    if (splits && splits.length > 1) {
-      const splitErr = validateHybridPaymentSplits(splits, orderData.total)
-      if (splitErr) return { data: null, error: splitErr }
-    }
-    const isHybrid = splits && splits.length > 1
-
-    // Determine primary payment_method for the order record
-    // (for hybrid: use the method with the highest amount)
-    const primaryMethod = isHybrid
-      ? splits.reduce((a, b) => (a.amount >= b.amount ? a : b)).method
-      : paymentMethod
-
-    const { data: paidOrder, error: payError } = await supabase
-      .from('orders')
-      .update({
-        status: 'pagado',
-        payment_method: primaryMethod,
-        updated_at: new Date().toISOString(),
-        // El pedido web nace sin turno: entra al de quien lo cobra.
-        ...(esWeb ? { cash_register_session_id: sessionId } : {}),
+    // Fuera de la transaccion a proposito: el stock es best-effort y no tiene
+    // por que poder tumbar un cobro ya confirmado.
+    if (resultado.items?.length) {
+      deductStockForOrder(supabase, resultado.items, orderId, user.id).catch((stockError) => {
+        devError('Error deducting stock for payment (async):', stockError)
       })
-      .eq('id', orderId)
-      .select()
-      .single()
-
-    if (payError) {
-      devError('Error completing mostrador payment:', payError)
-      return { data: null, error: 'Error al procesar pago' }
     }
 
-    const paidOrderData = paidOrder as Order
+    revalidateCaja()
+    revalidateOrders()
+    revalidateStock()
 
-    try {
-      // Insert payment_splits when hybrid
-      if (isHybrid) {
-        const splitsToInsert = splits.map((s) => ({
-          order_id: orderId,
-          sale_tag: null,
-          amount: s.amount,
-          method: s.method,
-          session_id: sessionId,
-        }))
-        const { error: splitsError } = await supabase.from('payment_splits').insert(splitsToInsert)
-        if (splitsError) {
-          devError(`CRITICAL: payment_splits insert failed for order ${orderId}:`, splitsError)
-        }
-      }
-
-      // Update session totals
-      // Fetch session info and order_items in parallel to reduce latency
-      const sessionPromise = supabase
-        .from('cash_register_sessions')
-        .select('total_sales, total_orders, total_cash_sales, total_card_sales, total_transfer_sales')
-        .eq('id', sessionId)
-        .single()
-
-      const orderItemsPromise = supabase
-        .from('order_items')
-        .select('product_id, quantity')
-        .eq('order_id', orderId)
-        .eq('status', 'pendiente')
-
-      const [{ data: currentSession, error: sessionFetchError }, { data: orderItems, error: orderItemsError }] = await Promise.all([
-        sessionPromise,
-        orderItemsPromise,
-      ])
-
-      if (orderItemsError) {
-        devError(`Error fetching order_items for order ${orderId} — el descuento de stock puede quedar incompleto:`, orderItemsError)
-      }
-
-      if (sessionFetchError || !currentSession) {
-        devError(`CRITICAL: session ${sessionId} not found — totals NOT updated for mostrador order ${orderId} (${orderData.total}):`, sessionFetchError)
-      } else {
-        const s = currentSession as Record<string, number>
-        const sessionUpdate: Record<string, number> = {
-          total_sales: (s.total_sales || 0) + orderData.total,
-          total_orders: (s.total_orders || 0) + 1,
-        }
-
-        if (isHybrid) {
-          // Accumulate per-method from splits
-          for (const split of splits) {
-            const field = getSalesField(split.method)
-            sessionUpdate[field] = (sessionUpdate[field] ?? (s[field] || 0)) + split.amount
-          }
-        } else {
-          const salesField = getSalesField(paymentMethod)
-          sessionUpdate[salesField] = (s[salesField] || 0) + orderData.total
-        }
-
-        const { error: updateErr } = await supabase
-          .from('cash_register_sessions')
-          .update(sessionUpdate)
-          .eq('id', sessionId)
-        if (updateErr) devError(`CRITICAL: session totals update failed for mostrador order ${orderId}:`, updateErr)
-      }
-
-      // Best-effort stock deduction. El pedido web no tiene filas en
-      // `order_items`: sus productos estan en el JSON de la orden.
-      const itemsParaStock = esWeb
-        ? ((orderData.items as unknown as { quantity: number }[]) ?? [])
-        : (orderItems ?? [])
-
-      if (itemsParaStock.length > 0) {
-        deductStockForOrder(supabase, itemsParaStock, orderId, user.id).catch((stockError) => {
-          devError('Error deducting stock for payment (async):', stockError)
-        })
-      }
-
-      revalidateCaja()
-      revalidateOrders()
-      revalidateStock()
-    } catch (postPaymentError) {
-      devError('Non-critical error completing mostrador payment after order update:', postPaymentError)
-    }
-
-    return { data: paidOrderData, error: null }
+    return { data: resultado.order, error: null }
   } catch (error) {
     devError('Error in completeMostadorPayment:', error)
     return { data: null, error: 'Error inesperado' }
