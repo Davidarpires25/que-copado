@@ -83,7 +83,7 @@ export function ZoneList({
       {zones.length === 0 ? (
         <div className="p-10 text-center">
           <div className="w-16 h-16 bg-[var(--admin-surface-2)] rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <MapPin className="h-8 w-8 text-[#3a4150]" />
+            <MapPin className="h-8 w-8 text-[var(--admin-text-muted)]" />
           </div>
           <h3 className="text-lg font-semibold text-[var(--admin-text)] mb-2">No hay zonas configuradas</h3>
           <p className="text-sm text-[var(--admin-text-muted)] max-w-xs mx-auto">

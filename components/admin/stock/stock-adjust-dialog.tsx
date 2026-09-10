@@ -189,7 +189,7 @@ export function StockAdjustDialog({
               onChange={(e) => setReason(e.target.value)}
               placeholder="Ej: Corrección de inventario físico"
               rows={2}
-              className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] resize-none focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 placeholder:text-[#4a5568]"
+              className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] resize-none focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 placeholder:text-[var(--admin-text-muted)]"
             />
           </div>
         </div>

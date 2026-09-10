@@ -231,7 +231,7 @@ export function IngredientSubRecipeDialog({
             <div className="space-y-3">
               {lines.length === 0 && (
                 <div className="py-8 text-center rounded-lg border border-dashed border-[var(--admin-border)]">
-                  <ListTree className="h-8 w-8 text-[#3a4150] mx-auto mb-2" />
+                  <ListTree className="h-8 w-8 text-[var(--admin-text-muted)] mx-auto mb-2" />
                   <p className="text-sm text-[var(--admin-text-muted)]">
                     Este ingrediente no tiene sub-receta.
                   </p>

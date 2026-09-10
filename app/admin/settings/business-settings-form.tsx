@@ -252,7 +252,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
                 {theme === 'dark' ? (
                   <Moon className="h-3.5 w-3.5 text-[#1a1d24]" />
                 ) : (
-                  <Sun className="h-3.5 w-3.5 text-amber-700 dark:text-amber-500" />
+                  <Sun className="h-3.5 w-3.5 text-amber-700" />
                 )}
               </span>
             </button>

@@ -85,7 +85,7 @@ export function ShippingAnalysis({ data }: ShippingAnalysisProps) {
         <div className="flex flex-col justify-center space-y-3">
           <div className="bg-[var(--admin-surface-2)] rounded-lg p-3 hover:bg-[var(--admin-border)] transition-colors">
             <div className="flex items-center gap-2 mb-1">
-              <Truck className="h-4 w-4 text-[#3B82F6]" />
+              <Truck className="h-4 w-4 text-blue-700 dark:text-blue-400" />
               <span className="text-sm text-[var(--admin-text-muted)]">Ingresos de envío</span>
             </div>
             <p className="text-lg font-bold text-[var(--admin-text)]">
@@ -99,21 +99,21 @@ export function ShippingAnalysis({ data }: ShippingAnalysisProps) {
           {data.ticketLiftPercentage !== 0 && (
             <div className="bg-[var(--admin-surface-2)] rounded-lg p-3 hover:bg-[var(--admin-border)] transition-colors">
               <div className="flex items-center gap-2 mb-1">
-                <PackageCheck className="h-4 w-4 text-[#22C55E]" />
+                <PackageCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
                 <span className="text-sm text-[var(--admin-text-muted)]">Efecto envío gratis</span>
               </div>
               <p className="text-sm text-[var(--admin-text)]">
                 {data.ticketLiftPercentage > 0 ? (
                   <>
                     Clientes con envío gratis gastan{' '}
-                    <span className="text-[#22C55E] font-semibold">
+                    <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
                       {data.ticketLiftPercentage}% más
                     </span>
                   </>
                 ) : (
                   <>
                     Clientes con envío pago gastan{' '}
-                    <span className="text-[#3B82F6] font-semibold">
+                    <span className="text-blue-700 dark:text-blue-400 font-semibold">
                       {Math.abs(data.ticketLiftPercentage)}% más
                     </span>
                   </>

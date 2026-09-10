@@ -308,7 +308,7 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
         {tables.length === 0 && (
           <div className="text-center py-16">
             <div className="w-20 h-20 mx-auto rounded-full bg-[var(--admin-border)] flex items-center justify-center mb-4">
-              <Table2 className="h-10 w-10 text-[#3a4150]" />
+              <Table2 className="h-10 w-10 text-[var(--admin-text-muted)]" />
             </div>
             <h3 className="text-lg font-semibold text-[var(--admin-text)] mb-2">
               No hay mesas

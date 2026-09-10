@@ -211,7 +211,7 @@ export function DashboardOverview({
             Últimos Pedidos
           </h3>
           <Link href="/admin/orders">
-            <Button variant="ghost" size="sm" className="text-[var(--admin-accent-text)] hover:text-[#E5B001] hover:bg-[var(--admin-accent)]/10 h-8 text-xs">
+            <Button variant="ghost" size="sm" className="text-[var(--admin-accent-text)] dark:hover:text-[#E5B001] hover:bg-[var(--admin-accent)]/10 h-8 text-xs">
               Ver todos
               <ArrowRight className="h-3.5 w-3.5 ml-1" />
             </Button>
