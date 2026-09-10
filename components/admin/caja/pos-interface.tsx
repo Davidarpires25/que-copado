@@ -199,10 +199,40 @@ export function PosInterface({
       .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' },
         () => { debouncedRefreshTables() }
       )
-      .subscribe()
+      .subscribe((status, err) => {
+        // Sin este callback, una suscripcion que fallo se ve exactamente igual
+        // que una que anda y no tiene novedades: silencio en los dos casos. Asi
+        // estuvo desde siempre, y por eso nadie noto que la publicacion de
+        // realtime no incluia ninguna de las tablas que se escuchan.
+        if (status === 'SUBSCRIBED') return
+        console.warn('[caja] realtime:', status, err ?? '')
+      })
 
     return () => { void supabase.removeChannel(channel) }
   }, [debouncedRefreshTables, debouncedRefreshHistorial, refreshPendingOrders, session.id])
+
+  // Red de seguridad para los pendientes.
+  //
+  // Realtime se cae: se corta la red, el navegador duerme la pestaña, el
+  // WebSocket no reconecta. Un mostrador no puede depender de que alguien se
+  // acuerde de refrescar, y un pedido web que no aparece es un cliente
+  // esperando. La consulta es chica.
+  //
+  // No corre con la pestaña oculta, y se dispara al volver a ella: es cuando
+  // mas probable es haberse perdido algo.
+  useEffect(() => {
+    const refrescarSiVisible = () => {
+      if (document.visibilityState === 'visible') void refreshPendingOrders(true)
+    }
+
+    const id = setInterval(refrescarSiVisible, 20_000)
+    document.addEventListener('visibilitychange', refrescarSiVisible)
+
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', refrescarSiVisible)
+    }
+  }, [refreshPendingOrders])
 
   // ─── Mostrador handlers ─────────────────────────────────
   const handleAddItem = useCallback((
