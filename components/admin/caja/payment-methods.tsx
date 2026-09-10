@@ -43,7 +43,11 @@ export function PaymentMethods({
             className={cn(
               'flex h-10 items-center justify-between rounded-xl px-3 cursor-pointer transition-colors select-none',
               isOn
-                ? 'bg-[var(--admin-accent)]/10 border border-[var(--admin-accent)]/35'
+                // El borde va a opacidad plena. Con el relleno al 10% y el
+                // borde al 35%, la fila activa quedaba en #FFF9E6: mas clara
+                // que las inactivas (#F5F6FA) y casi igual al panel blanco.
+                // Seleccionar hacia retroceder la fila.
+                ? 'bg-[var(--admin-accent)]/15 border border-[var(--admin-accent)]'
                 : 'bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)]'
             )}
           >

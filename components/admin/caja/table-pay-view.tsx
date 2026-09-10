@@ -394,8 +394,11 @@ export function TablePayView({
             </p>
           </div>
 
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+          {/* Body — el bloque de pago se apoya abajo, contra el boton Cobrar,
+              igual que en mostrador. Arriba quedaba con el total flotando y un
+              hueco vacio de media pantalla debajo. */}
+          <div className="flex flex-1 flex-col overflow-y-auto px-5 py-4 space-y-4">
+            <div className="min-h-0 flex-1" />
             {payMode === 'per_guest' ? (
               <>
                 {/* Por comensal */}
