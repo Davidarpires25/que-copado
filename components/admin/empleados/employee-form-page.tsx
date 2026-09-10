@@ -142,85 +142,95 @@ export function EmployeeFormPage({ roles }: Props) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px] items-start">
-        {/* ── Rol ── */}
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-6 space-y-5">
-          <div>
-            <h2 className="font-semibold text-[var(--admin-text)]">Rol</h2>
-            <p className="text-sm text-[var(--admin-text-muted)]">
-              Define qué secciones ve y qué puede hacer.{' '}
-              <Link href="/admin/empleados/roles/nuevo" className="text-[var(--admin-accent-text)] hover:underline">
-                Crear un rol nuevo
-              </Link>
-            </p>
+        {/* ── Datos de la persona ── */}
+        <div className="space-y-6">
+          <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-6 space-y-5">
+            <div>
+              <h2 className="font-semibold text-[var(--admin-text)]">Datos del empleado</h2>
+              <p className="text-sm text-[var(--admin-text-muted)]">Con qué entra al panel</p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="fullName">
+                  Nombre y apellido <span className="text-[var(--admin-accent-text)]">*</span>
+                </Label>
+                <Input
+                  id="fullName" value={fullName} autoFocus
+                  placeholder="Ej: Ana Gutiérrez"
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="bg-[var(--admin-bg)] border-[var(--admin-border)]"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="email">
+                  Email <span className="text-[var(--admin-accent-text)]">*</span>
+                </Label>
+                <Input
+                  id="email" type="email" value={email}
+                  placeholder="ana@ejemplo.com"
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-[var(--admin-bg)] border-[var(--admin-border)]"
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="grid gap-2">
-            {roles.map((r) => (
-              <button
-                key={r.key} type="button"
-                onClick={() => setRole(r.key)}
-                className={cn(
-                  'text-left rounded-lg border px-4 py-3 transition-colors cursor-pointer',
-                  role === r.key
-                    ? 'border-[var(--admin-accent)] bg-[var(--admin-accent)]/10'
-                    : 'border-[var(--admin-border)] hover:border-[var(--admin-text-faint)]'
-                )}
-              >
-                <span className="flex items-center justify-between gap-3">
-                  <span className="font-semibold text-sm text-[var(--admin-text)]">{r.name}</span>
-                  <span className="text-xs font-mono text-[var(--admin-text-faint)] shrink-0">
+          {/* ── Rol ── */}
+          <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-6 space-y-5">
+            <div>
+              <h2 className="font-semibold text-[var(--admin-text)]">Rol</h2>
+              <p className="text-sm text-[var(--admin-text-muted)]">
+                Define qué secciones ve y qué puede hacer.{' '}
+                <Link href="/admin/empleados/roles/nuevo" className="text-[var(--admin-accent-text)] hover:underline">
+                  Crear un rol nuevo
+                </Link>
+              </p>
+            </div>
+
+            {/* En grilla: tres tarjetas angostas leen mejor que tres franjas
+                de ancho completo con el contador perdido a la derecha. */}
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {roles.map((r) => (
+                <button
+                  key={r.key} type="button"
+                  onClick={() => setRole(r.key)}
+                  className={cn(
+                    'text-left rounded-lg border p-4 transition-colors cursor-pointer h-full',
+                    role === r.key
+                      ? 'border-[var(--admin-accent)] bg-[var(--admin-accent)]/10'
+                      : 'border-[var(--admin-border)] hover:border-[var(--admin-text-faint)]'
+                  )}
+                >
+                  <span className="block font-semibold text-sm text-[var(--admin-text)]">{r.name}</span>
+                  <span className="block text-xs font-mono text-[var(--admin-text-faint)] mt-0.5">
                     {r.permissions.length} permisos
                   </span>
-                </span>
-                {r.description && (
-                  <span className="block text-xs text-[var(--admin-text-muted)] mt-0.5">
-                    {r.description}
-                  </span>
-                )}
-              </button>
-            ))}
+                  {r.description && (
+                    <span className="block text-xs text-[var(--admin-text-muted)] mt-2 leading-snug">
+                      {r.description}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* ── Datos ── */}
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-6 space-y-5 lg:sticky lg:top-6">
-          <div>
-            <h2 className="font-semibold text-[var(--admin-text)]">Datos</h2>
-            <p className="text-sm text-[var(--admin-text-muted)]">Con qué entra al panel</p>
+        {/* ── Cómo entra ── */}
+        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-6 space-y-4 lg:sticky lg:top-6">
+          <div className="flex items-center gap-2 text-[var(--admin-text)]">
+            <KeyRound className="h-4 w-4 shrink-0 text-[var(--admin-text-muted)]" />
+            <h2 className="font-semibold">Contraseña</h2>
           </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="fullName">
-              Nombre y apellido <span className="text-[var(--admin-accent-text)]">*</span>
-            </Label>
-            <Input
-              id="fullName" value={fullName} autoFocus
-              onChange={(e) => setFullName(e.target.value)}
-              className="bg-[var(--admin-bg)] border-[var(--admin-border)]"
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="email">
-              Email <span className="text-[var(--admin-accent-text)]">*</span>
-            </Label>
-            <Input
-              id="email" type="email" value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="bg-[var(--admin-bg)] border-[var(--admin-border)]"
-            />
-          </div>
-
-          <div className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] p-4">
-            <div className="flex items-center gap-2 text-[var(--admin-text-muted)]">
-              <KeyRound className="h-4 w-4 shrink-0" />
-              <span className="text-sm font-medium">Contraseña automática</span>
-            </div>
-            <p className="text-xs text-[var(--admin-text-muted)] mt-2">
-              Se genera una al crear la cuenta y se muestra una sola vez, para que se la dictes.
-              No hace falta que el empleado reciba ningún mail.
-            </p>
-          </div>
+          <p className="text-sm text-[var(--admin-text-muted)]">
+            Se genera sola al crear la cuenta y se muestra una única vez, para que se la dictes.
+            El empleado no recibe ningún mail.
+          </p>
+          <p className="text-xs text-[var(--admin-text-faint)]">
+            Si se pierde, generás una nueva desde el listado.
+          </p>
         </div>
       </div>
     </form>
