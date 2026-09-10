@@ -170,8 +170,10 @@ CREATE POLICY "operacion borra items" ON order_items
 
 CREATE POLICY "staff lee historial estado" ON order_status_history
   FOR SELECT TO authenticated USING (ve_operacion());
-CREATE POLICY "staff escribe historial estado" ON order_status_history
-  FOR INSERT TO authenticated WITH CHECK (ve_operacion());
+-- anon tambien: el checkout publico registra el estado inicial del pedido.
+-- Con la policy anterior, que era solo `authenticated`, esa insercion fallaba.
+CREATE POLICY "web escribe historial estado" ON order_status_history
+  FOR INSERT TO anon, authenticated WITH CHECK (true);
 
 CREATE POLICY "staff ve mesas" ON restaurant_tables
   FOR SELECT TO authenticated USING (ve_operacion());

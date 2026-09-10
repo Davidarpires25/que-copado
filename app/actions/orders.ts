@@ -287,29 +287,41 @@ export async function createOrder(
 
     const serverTotal = serverSubtotal + serverShipping
 
-    const { data: order, error } = await supabase
-      .from('orders')
-      .insert({
-        customer_name: data.customer_name,
-        customer_phone: data.customer_phone,
-        customer_address: data.customer_address,
-        customer_coordinates: data.customer_coordinates || null,
-        items: data.items,
-        total: serverTotal,
-        shipping_cost: serverShipping,
-        delivery_zone_id: data.delivery_zone_id || null,
-        notes: data.notes || null,
-        payment_method: data.payment_method,
-        status: 'recibido',
-        order_source: 'web',
-      })
-      .select()
-      .single()
+    // El id se genera aca en vez de dejar que lo devuelva la base.
+    //
+    // El checkout publico corre como `anon`, que tiene permiso para INSERT en
+    // `orders` pero no para SELECT —y con razon: si lo tuviera, cualquiera
+    // podria leer los pedidos y los datos de todos los clientes—. Un
+    // `.insert().select()` se traduce en `INSERT ... RETURNING`, y Postgres
+    // exige politica de SELECT para devolver la fila, asi que fallaba con
+    // "new row violates row-level security policy" y el pedido nunca se
+    // guardaba. Generando el id no hace falta leer nada de vuelta.
+    const orderId = crypto.randomUUID()
+
+    const newOrder = {
+      id: orderId,
+      customer_name: data.customer_name,
+      customer_phone: data.customer_phone,
+      customer_address: data.customer_address,
+      customer_coordinates: data.customer_coordinates || null,
+      items: data.items,
+      total: serverTotal,
+      shipping_cost: serverShipping,
+      delivery_zone_id: data.delivery_zone_id || null,
+      notes: data.notes || null,
+      payment_method: data.payment_method,
+      status: 'recibido' as const,
+      order_source: 'web' as const,
+    }
+
+    const { error } = await supabase.from('orders').insert(newOrder)
 
     if (error) {
       devError('Error creating order:', error)
       return { data: null, error: 'Error al crear el pedido' }
     }
+
+    const order = { ...newOrder, created_at: new Date().toISOString() } as unknown as Order
 
     // Log initial status in history (non-blocking)
     supabase
