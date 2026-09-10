@@ -6,11 +6,9 @@ import { devError } from '@/lib/server/logger'
 import { friendlyError } from '@/lib/server/error-messages'
 import { revalidateCaja, revalidateOrders, revalidateTables, revalidateStock } from '@/lib/server/revalidate'
 import { deductStockForOrder } from '@/lib/server/stock-deduction'
-import { getSalesField } from '@/lib/server/cash-register-utils'
 import type { Order, PaymentMethod } from '@/lib/types/database'
 import type { TableWithOrder, RestaurantTable, OrderItemRow } from '@/lib/types/tables'
 import type { PaymentSplit } from '@/lib/types/cash-register'
-import { validateHybridPaymentSplits } from '@/lib/utils/payment-split'
 
 /**
  * Recalcula el total de la orden desde order_items y sincroniza el JSON items
@@ -532,259 +530,69 @@ export async function payTableOrder(
   paymentMethod: PaymentMethod,
   sessionId: string,
   splits?: PaymentSplit[]
-): Promise<{
-  data: Order | null
-  error: string | null
-}> {
+): Promise<{ data: Order | null; error: string | null }> {
   try {
     const supabase = await createAdminClient()
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
 
-    // Verify session is open and belongs to this user
-    const { data: session } = await supabase
-      .from('cash_register_sessions')
-      .select('id, status')
-      .eq('id', sessionId)
-      .single()
+    // Todo el cobro pasa en una sola transaccion de Postgres.
+    //
+    // Antes eran catorce viajes a la base —unos 2,1 segundos, con los ~160ms
+    // fijos que cuesta cada uno— y como eran catorce operaciones sueltas, el
+    // codigo tenia que deshacerlas a mano cuando alguna fallaba:
+    //
+    //     let paymentSplitsInserted = false
+    //     let sessionTotalsUpdated = false
+    //     let tableFreed = false
+    //
+    // Eso no era una transaccion sino una imitacion: si el proceso se cortaba
+    // —la funcion se muere, se cae la red— nadie ejecutaba la compensacion y la
+    // caja quedaba a medio cobrar. Ahora o pasa todo o no pasa nada, y en un
+    // viaje.
+    const { data, error } = await supabase.rpc('pagar_pedido_de_mesa', {
+      p_order_id: orderId,
+      p_table_id: tableId,
+      p_session_id: sessionId,
+      p_payment_method: paymentMethod,
+      p_splits: splits ?? null,
+    })
 
-    if (!session || session.status !== 'open') {
-      return { data: null, error: 'Sesión de caja no válida' }
+    if (error) {
+      devError('Error paying table order:', error)
+      // P0001 es un RAISE nuestro: el texto esta escrito para quien cobra.
+      // Cualquier otro codigo es un problema de la base y no se muestra crudo.
+      return {
+        data: null,
+        error: error.code === 'P0001' ? error.message : 'Error al procesar pago',
+      }
     }
 
-    // Verify the table actually holds this order (prevents cross-table manipulation)
-    const { data: table } = await supabase
-      .from('restaurant_tables')
-      .select('id, current_order_id, status')
-      .eq('id', tableId)
-      .single()
-
-    if (!table || table.current_order_id !== orderId) {
-      return { data: null, error: 'La orden no corresponde a esta mesa' }
+    const resultado = data as {
+      order: Order
+      items: { product_id: string; quantity: number }[]
     }
 
-    // Get order
-    const { data: order } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('id', orderId)
-      .single()
-
-    if (!order || (order.status !== 'abierto' && order.status !== 'cuenta_pedida')) {
-      return { data: null, error: 'Orden no encontrada o ya pagada' }
-    }
-
-    const orderData = order as Order
-    // Recalculate total from order_items to ensure we have an up-to-date amount
-    const tStart = Date.now()
-    console.info(`[Timing][payTableOrder] start for order ${orderId}`)
-    const t1 = Date.now()
-    await recalculateOrderTotal(supabase, orderId)
-    console.info(`[Timing][payTableOrder] recalculateOrderTotal ${orderId} took ${Date.now() - t1}ms`)
-    // Refetch order after recalculation
-    const { data: refreshedOrder } = await supabase.from('orders').select('*').eq('id', orderId).single()
-    const orderDataRef = refreshedOrder as Order
-
-    if (splits && splits.length > 1) {
-      const splitErr = validateHybridPaymentSplits(splits, orderDataRef.total)
-      if (splitErr) return { data: null, error: splitErr }
-    }
-    const isHybrid = splits && splits.length > 1
-
-    // Determine primary method (highest amount for hybrid, or explicit for single)
-    const primaryMethod = isHybrid
-      ? splits.reduce((a, b) => (a.amount >= b.amount ? a : b)).method
-      : paymentMethod
-
-    // Update order to pagado
-    const t2 = Date.now()
-    const { data: paidOrder, error: orderError } = await supabase
-      .from('orders')
-      .update({
-        status: 'pagado',
-        payment_method: primaryMethod,
-        updated_at: new Date().toISOString(),
+    // El stock queda fuera de la transaccion a proposito: es best-effort y no
+    // tiene por que poder tumbar un cobro ya confirmado. La funcion devuelve
+    // los items para no gastar otro viaje en buscarlos.
+    if (resultado.items?.length) {
+      deductStockForOrder(supabase, resultado.items, orderId, user.id).catch((stockError) => {
+        devError('Error deducting stock for table order (async):', stockError)
       })
-      .eq('id', orderId)
-      .select()
-      .single()
-
-    console.info(`[Timing][payTableOrder] orders.update ${orderId} took ${Date.now() - t2}ms`)
-
-    if (orderError) {
-      devError('Error paying table order:', orderError)
-      return { data: null, error: 'Error al procesar pago' }
     }
 
-    const paidOrderData = paidOrder as Order
-    const originalStatus = orderData.status
-    const originalPaymentMethod = orderData.payment_method
-    let paymentSplitsInserted = false
-    let sessionTotalsUpdated = false
-    let tableFreed = false
-    let sessionState: Record<string, number> | null = null
+    revalidateCaja()
+    revalidateOrders()
+    revalidateStock()
 
-    try {
-      if (isHybrid) {
-        const { error: splitsError } = await supabase.from('payment_splits').insert(
-          splits.map((sp) => ({
-            order_id: orderId,
-            amount: sp.amount,
-            method: sp.method,
-            session_id: sessionId,
-          }))
-        )
-        if (splitsError) {
-          throw new Error('Error inserting payment_splits for table order')
-        }
-        paymentSplitsInserted = true
-      }
-
-      const t3 = Date.now()
-      const sessionPromise = supabase
-        .from('cash_register_sessions')
-        .select('total_sales, total_orders, total_cash_sales, total_card_sales, total_transfer_sales')
-        .eq('id', sessionId)
-        .single()
-
-      const orderItemsPromise = supabase
-        .from('order_items')
-        .select('product_id, quantity')
-        .eq('order_id', orderId)
-        .eq('status', 'pendiente')
-
-      const [{ data: currentSession, error: sessionFetchError }, { data: orderItems, error: orderItemsError }] =
-        await Promise.all([sessionPromise, orderItemsPromise])
-
-      console.info(`[Timing][payTableOrder] session.fetch ${sessionId} took ${Date.now() - t3}ms`)
-
-      if (orderItemsError) {
-        devError(`Error fetching order_items for order ${orderId} — el descuento de stock puede quedar incompleto:`, orderItemsError)
-      }
-
-      if (sessionFetchError || !currentSession) {
-        throw new Error('Session not found during table payment')
-      }
-
-      sessionState = currentSession as Record<string, number>
-      const totalsUpdate: Record<string, number> = {
-        total_sales: (sessionState.total_sales || 0) + orderDataRef.total,
-        total_orders: (sessionState.total_orders || 0) + 1,
-      }
-
-      if (isHybrid) {
-        for (const sp of splits) {
-          const field = getSalesField(sp.method)
-          totalsUpdate[field] = (totalsUpdate[field] || (sessionState[field] || 0)) + sp.amount
-        }
-      } else {
-        const salesField = getSalesField(paymentMethod)
-        totalsUpdate[salesField] = (sessionState[salesField] || 0) + orderDataRef.total
-      }
-
-      const { error: updateErr } = await supabase.from('cash_register_sessions').update(totalsUpdate).eq('id', sessionId)
-      console.info(`[Timing][payTableOrder] session.update ${sessionId} took ${Date.now() - t3}ms`)
-      if (updateErr) {
-        throw updateErr
-      }
-      sessionTotalsUpdated = true
-
-      const { error: freeTableError } = await supabase
-        .from('restaurant_tables')
-        .update({
-          status: 'libre',
-          current_order_id: null,
-        })
-        .eq('id', tableId)
-      if (freeTableError) {
-        throw freeTableError
-      }
-      tableFreed = true
-
-      if (orderItems && orderItems.length > 0) {
-        deductStockForOrder(supabase, orderItems, orderId, user.id).catch((stockError) => {
-          devError('Error deducting stock for table order (async):', stockError)
-        })
-      }
-
-      console.info(`[Timing][payTableOrder] total elapsed for order ${orderId}: ${Date.now() - tStart}ms`)
-
-      revalidateCaja()
-      revalidateOrders()
-      revalidateStock()
-
-      return { data: paidOrderData, error: null }
-    } catch (postPaymentError) {
-      devError('Error completing table payment after order update:', postPaymentError)
-
-      const { error: rollbackOrderError } = await supabase
-        .from('orders')
-        .update({
-          status: originalStatus,
-          payment_method: originalPaymentMethod,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', orderId)
-      if (rollbackOrderError) {
-        devError('Error rolling back table order status:', rollbackOrderError)
-      }
-
-      if (paymentSplitsInserted) {
-        const { error: deleteSplitsError } = await supabase
-          .from('payment_splits')
-          .delete()
-          .eq('order_id', orderId)
-        if (deleteSplitsError) {
-          devError('Error deleting payment_splits during rollback:', deleteSplitsError)
-        }
-      }
-
-      if (sessionTotalsUpdated && sessionState) {
-        const revertUpdate: Record<string, number> = {
-          total_sales: Math.max(0, (sessionState.total_sales || 0) - orderDataRef.total),
-          total_orders: Math.max(0, (sessionState.total_orders || 0) - 1),
-        }
-
-        if (isHybrid) {
-          for (const sp of splits) {
-            const field = getSalesField(sp.method)
-            revertUpdate[field] = Math.max(0, (sessionState[field] || 0) - sp.amount)
-          }
-        } else {
-          const salesField = getSalesField(paymentMethod)
-          revertUpdate[salesField] = Math.max(0, (sessionState[salesField] || 0) - orderDataRef.total)
-        }
-
-        const { error: revertSessionError } = await supabase.from('cash_register_sessions').update(revertUpdate).eq('id', sessionId)
-        if (revertSessionError) {
-          devError('Error reverting session totals during rollback:', revertSessionError)
-        }
-      }
-
-      if (tableFreed) {
-        const { error: revertTableError } = await supabase
-          .from('restaurant_tables')
-          .update({
-            status: table.status,
-            current_order_id: orderId,
-          })
-          .eq('id', tableId)
-        if (revertTableError) {
-          devError('Error reverting table status during rollback:', revertTableError)
-        }
-      }
-
-      return { data: null, error: 'Error al procesar pago de mesa' }
-    }
+    return { data: resultado.order, error: null }
   } catch (error) {
     devError('Error in payTableOrder:', error)
     return { data: null, error: 'Error inesperado' }
   }
 }
 
-/**
- * Cancelar orden de mesa y liberar mesa
- */
 export async function cancelTableOrder(
   orderId: string,
   tableId: string
