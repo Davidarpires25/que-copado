@@ -8,6 +8,7 @@ import { checkBusinessStatus } from '@/lib/services/business-hours'
 import { getAuthUser } from '@/lib/server/auth'
 import { devError } from '@/lib/server/logger'
 import { revalidateOrders } from '@/lib/server/revalidate'
+import { esTelefonoValido } from '@/lib/utils/phone'
 import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
 import { checkRateLimit } from '@/lib/server/rate-limit'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -181,6 +182,14 @@ export async function createOrder(
     const { allowed } = checkRateLimit(`order:${ip}`, 10, 60 * 60 * 1000)
     if (!allowed) {
       return { data: null, error: 'Demasiados pedidos desde tu conexión. Intentá en unos minutos.' }
+    }
+
+    // El telefono se valida aca y no solo en el formulario: la validacion del
+    // cliente es una cortesia, no una garantia. Cualquiera puede llamar a esta
+    // accion sin pasar por el checkout, y un pedido sin telefono no se puede
+    // confirmar ni entregar.
+    if (!esTelefonoValido(data.customer_phone)) {
+      return { data: null, error: 'El teléfono no es válido' }
     }
 
     const supabase = await createAdminClient()

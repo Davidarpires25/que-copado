@@ -14,6 +14,7 @@ import type { DeliveryZone, ShippingResult } from '@/lib/types/database'
 import type { DeliveryFormData, DeliveryType, PaymentMethod } from '@/components/checkout/delivery-form'
 import type { OrderItem } from '@/lib/types/orders'
 import type { PendingOrder } from '@/app/order-confirmation/page'
+import { esTelefonoValido } from '@/lib/utils/phone'
 
 const SHIPPING_CALC_DEBOUNCE_MS = 300
 
@@ -162,6 +163,8 @@ export function useCheckout() {
     const errors: Partial<Record<'name' | 'phone' | 'address', string>> = {}
     if (!deliveryData.name.trim()) errors.name = 'Ingresá tu nombre'
     if (!deliveryData.phone.trim()) errors.phone = 'Ingresá tu teléfono'
+    else if (!esTelefonoValido(deliveryData.phone))
+      errors.phone = 'Ese teléfono no parece válido. Ej: 3834 12-3456'
     if (deliveryType === 'delivery' && !deliveryData.address.trim()) errors.address = 'Ingresá tu dirección'
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors)
