@@ -15,12 +15,15 @@ export default async function CajaPage() {
     redirect('/admin/login')
   }
 
-  // Session first — needed to fetch pending orders
-  const sessionResult = await getActiveSession()
-  const session = sessionResult.data
-
-  // Fetch remaining data in parallel, including pending orders if session exists
-  const [productsResult, categoriesResult, tablesResult, pendingOrdersResult, activeZonesResult, sessionOrdersResult, stockAlertsResult, meResult] = await Promise.all([
+  // La sesion abierta se pide junto con todo lo que NO depende de ella. Antes
+  // era una espera aparte y bloqueante: seis de las ocho consultas de abajo no
+  // la necesitan, y estaban esperandola igual.
+  //
+  // Cada viaje a Supabase cuesta ~160ms fijos —medido sobre los logs, el p50 es
+  // el mismo para una consulta trivial que para una pesada— asi que una ola de
+  // menos es una ola de menos, sin importar que se pida.
+  const [sessionResult, productsResult, categoriesResult, tablesResult, activeZonesResult, stockAlertsResult, meResult] = await Promise.all([
+    getActiveSession(),
     supabase
       .from('products')
       .select('*, product_half_configs(*)')
@@ -41,16 +44,21 @@ export default async function CajaPage() {
       `)
       .eq('is_active', true)
       .order('sort_order'),
-    session ? getPendingOrders(session.id) : Promise.resolve({ data: [], error: null }),
     supabase
       .from('delivery_zones')
       .select('*')
       .eq('is_active', true)
       .order('sort_order', { ascending: true }),
-    session ? getSessionOrders(session.id) : Promise.resolve({ data: [], error: null }),
     getStockAlerts(),
     getCurrentUserInfo(),
   ])
+
+  const session = sessionResult.data
+
+  // Estas dos si necesitan el id de la sesion, asi que van despues. Juntas.
+  const [pendingOrdersResult, sessionOrdersResult] = session
+    ? await Promise.all([getPendingOrders(session.id), getSessionOrders(session.id)])
+    : [{ data: [], error: null }, { data: [], error: null }]
 
   return (
     <CajaDashboard
