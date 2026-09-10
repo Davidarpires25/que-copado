@@ -18,7 +18,7 @@ import {
   createEmployee, updateEmployeeRole, setEmployeeActive, resetEmployeePassword,
   type Employee,
 } from '@/app/actions/employees'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { RolesTab } from './roles-tab'
 import type { RoleWithPermissions } from '@/lib/types/database'
 
@@ -56,7 +56,16 @@ export function EmployeesDashboard({
   initialEmployees, initialRoles, loadError, currentUserId, canManageRoles,
 }: Props) {
   const router = useRouter()
-  const [tab, setTab] = useState<Tab>('personas')
+  // La pestaña vive en la URL: asi volver desde el formulario de un rol
+  // aterriza donde estabas, y el link se puede compartir.
+  const searchParams = useSearchParams()
+  const tab: Tab = searchParams.get('tab') === 'roles' ? 'roles' : 'personas'
+
+  const setTab = (next: Tab) => {
+    router.replace(next === 'roles' ? '/admin/empleados?tab=roles' : '/admin/empleados', {
+      scroll: false,
+    })
+  }
   const [employees, setEmployees] = useState(initialEmployees)
   const roles = initialRoles
   const [pending, startTransition] = useTransition()
