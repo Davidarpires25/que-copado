@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion, useReducedMotion } from 'framer-motion'
@@ -43,7 +43,17 @@ export default function OrderConfirmationPage() {
   // La orden vive en sessionStorage, que no existe en el server. Leerla en un
   // inicializador de useState romperia la hidratacion (el server renderiza
   // null), asi que este efecto post-hidratacion es el patron correcto.
+  //
+  // El ref es necesario, no defensivo: con StrictMode —que Next activa por
+  // defecto— React monta, desmonta y vuelve a montar. La version anterior
+  // borraba el sessionStorage en la primera pasada, asi que la segunda no
+  // encontraba nada y mandaba al inicio. La pantalla se cerraba sola antes de
+  // que el cliente llegara a tocar el boton de WhatsApp.
+  const yaLeido = useRef(false)
+
   useEffect(() => {
+    if (yaLeido.current) return
+
     const raw = sessionStorage.getItem(SESSION_KEY)
     if (!raw) {
       router.replace('/')
@@ -51,14 +61,25 @@ export default function OrderConfirmationPage() {
     }
     try {
       const data: PendingOrder = JSON.parse(raw)
+      yaLeido.current = true
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setOrder(data)
-      sessionStorage.removeItem(SESSION_KEY)
       clearCart()
     } catch {
       router.replace('/')
     }
   }, [router, clearCart])
+
+  // El pedido se borra recien cuando el cliente abre WhatsApp, no al entrar:
+  // asi un F5 no lo deja afuera y puede volver a mandar el mensaje si se le
+  // cerro la app.
+  const consumirPedido = () => {
+    try {
+      sessionStorage.removeItem(SESSION_KEY)
+    } catch {
+      // storage bloqueado: no pasa nada, el mensaje ya se abrio
+    }
+  }
 
   if (!order) return null
 
@@ -164,6 +185,7 @@ export default function OrderConfirmationPage() {
         href={order.whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={consumirPedido}
         className="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg hover:shadow-xl transition-all text-base"
       >
         <WhatsAppIcon className="h-6 w-6" />
