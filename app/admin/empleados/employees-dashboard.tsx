@@ -18,35 +18,52 @@ import {
   createEmployee, updateEmployeeRole, setEmployeeActive, resetEmployeePassword,
   type Employee,
 } from '@/app/actions/employees'
-import { APP_ROLE_LABELS, type AppRole } from '@/lib/types/database'
+import { useRouter } from 'next/navigation'
+import { RolesTab } from './roles-tab'
+import type { RoleWithPermissions } from '@/lib/types/database'
 
-const ROLES: AppRole[] = ['admin', 'cajero', 'cocina']
+/**
+ * Los roles son datos, asi que el color sale de la clave en vez de una tabla
+ * fija: un rol nuevo tiene que verse consistente sin tocar codigo.
+ */
+const PALETA = [
+  'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/25',
+  'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/25',
+  'text-violet-700 dark:text-violet-400 bg-violet-500/10 border-violet-500/25',
+  'text-amber-700 dark:text-amber-400 bg-amber-500/10 border-amber-500/25',
+  'text-cyan-700 dark:text-cyan-400 bg-cyan-500/10 border-cyan-500/25',
+]
+const ADMIN_STYLE = 'text-rose-700 dark:text-rose-400 bg-rose-500/10 border-rose-500/25'
 
-const ROLE_STYLE: Record<AppRole, string> = {
-  admin:  'text-rose-700 dark:text-rose-400 bg-rose-500/10 border-rose-500/25',
-  cajero: 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/25',
-  cocina: 'text-amber-700 dark:text-amber-400 bg-amber-500/10 border-amber-500/25',
-}
-
-const ROLE_HINT: Record<AppRole, string> = {
-  admin:  'Todo, incluidos reportes y ajustes',
-  cajero: 'Opera la caja, cobra y cierra el turno',
-  cocina: 'Solo la pantalla de comandas',
+function estiloDeRol(key: string): string {
+  if (key === 'admin') return ADMIN_STYLE
+  let h = 0
+  for (const c of key) h = (h * 31 + c.charCodeAt(0)) % 997
+  return PALETA[h % PALETA.length]
 }
 
 interface Props {
   initialEmployees: Employee[]
+  initialRoles: RoleWithPermissions[]
   loadError: string | null
   currentUserId: string | null
+  canManageRoles: boolean
 }
 
-export function EmployeesDashboard({ initialEmployees, loadError, currentUserId }: Props) {
+type Tab = 'personas' | 'roles'
+
+export function EmployeesDashboard({
+  initialEmployees, initialRoles, loadError, currentUserId, canManageRoles,
+}: Props) {
+  const router = useRouter()
+  const [tab, setTab] = useState<Tab>('personas')
   const [employees, setEmployees] = useState(initialEmployees)
+  const roles = initialRoles
   const [pending, startTransition] = useTransition()
   const [addOpen, setAddOpen] = useState(false)
   const [credential, setCredential] = useState<{ name: string; password: string } | null>(null)
 
-  const [form, setForm] = useState({ fullName: '', email: '', role: 'cajero' as AppRole })
+  const [form, setForm] = useState({ fullName: '', email: '', role: initialRoles[0]?.key ?? 'cajero' })
 
   const refresh = (updater: (prev: Employee[]) => Employee[]) => setEmployees(updater)
 
@@ -56,14 +73,14 @@ export function EmployeesDashboard({ initialEmployees, loadError, currentUserId 
       if (error || !data) { toast.error(error ?? 'No se pudo crear'); return }
       setAddOpen(false)
       setCredential({ name: form.fullName, password: data.tempPassword })
-      setForm({ fullName: '', email: '', role: 'cajero' })
+      setForm({ fullName: '', email: '', role: roles[0]?.key ?? 'cajero' })
       toast.success('Empleado creado')
       // La lista se recarga en el próximo render del server; mientras tanto,
       // se muestra la credencial, que es lo único que no se puede recuperar.
     })
   }
 
-  const handleRole = (id: string, role: AppRole) => {
+  const handleRole = (id: string, role: string) => {
     const previous = employees
     refresh((prev) => prev.map((e) => (e.id === id ? { ...e, role } : e)))
     startTransition(async () => {
@@ -106,8 +123,39 @@ export function EmployeesDashboard({ initialEmployees, loadError, currentUserId 
     )
   }
 
+  const TABS: { key: Tab; label: string; count: number }[] = [
+    { key: 'personas', label: 'Personas', count: employees.length },
+    { key: 'roles',    label: 'Roles',    count: roles.length },
+  ]
+
   return (
     <AdminLayout title="Equipo" description="Quién puede entrar y qué puede hacer">
+      <div className="flex items-center gap-0 border-b border-[var(--admin-border)] mb-5 overflow-x-auto no-scrollbar">
+        {TABS.map((t) => (
+          <button
+            key={t.key} type="button"
+            onClick={() => setTab(t.key)}
+            className={cn(
+              'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors cursor-pointer',
+              tab === t.key
+                ? 'border-[var(--admin-accent)] text-[var(--admin-text)] font-semibold'
+                : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
+            )}
+          >
+            {t.label}
+            <span className="ml-1.5 text-xs font-mono text-[var(--admin-text-faint)]">{t.count}</span>
+          </button>
+        ))}
+      </div>
+
+      {tab === 'roles' ? (
+        <RolesTab
+          roles={roles}
+          canManage={canManageRoles}
+          onChanged={() => router.refresh()}
+        />
+      ) : (
+      <>
       <div className="flex items-center justify-between gap-3 mb-5">
         <p className="text-sm text-[var(--admin-text-muted)]">
           {employees.length} {employees.length === 1 ? 'persona' : 'personas'}
@@ -143,14 +191,14 @@ export function EmployeesDashboard({ initialEmployees, loadError, currentUserId 
                     <select
                       value={emp.role}
                       disabled={pending}
-                      onChange={(e) => handleRole(emp.id, e.target.value as AppRole)}
+                      onChange={(e) => handleRole(emp.id, e.target.value)}
                       className={cn(
                         'text-xs font-semibold rounded-md border px-2 py-1 outline-none cursor-pointer',
-                        ROLE_STYLE[emp.role]
+                        estiloDeRol(emp.role)
                       )}
                     >
-                      {ROLES.map((r) => (
-                        <option key={r} value={r}>{APP_ROLE_LABELS[r]}</option>
+                      {roles.map((r) => (
+                        <option key={r.key} value={r.key}>{r.name}</option>
                       ))}
                     </select>
                   </TableCell>
@@ -194,8 +242,10 @@ export function EmployeesDashboard({ initialEmployees, loadError, currentUserId 
 
       <p className="mt-4 text-xs text-[var(--admin-text-muted)] max-w-2xl">
         Dar de baja no borra la cuenta: conserva los turnos y arqueos que esa persona cerró. Siempre
-        tiene que quedar al menos un administrador activo.
+        tiene que quedar alguien que pueda gestionar el equipo.
       </p>
+      </>
+      )}
 
       {/* ── Alta ── */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
@@ -216,20 +266,22 @@ export function EmployeesDashboard({ initialEmployees, loadError, currentUserId 
             </div>
             <div className="grid gap-2">
               <Label>Rol</Label>
-              <div className="grid gap-2">
-                {ROLES.map((r) => (
+              <div className="grid gap-2 max-h-64 overflow-y-auto">
+                {roles.map((r) => (
                   <button
-                    key={r} type="button"
-                    onClick={() => setForm({ ...form, role: r })}
+                    key={r.key} type="button"
+                    onClick={() => setForm({ ...form, role: r.key })}
                     className={cn(
                       'text-left rounded-lg border px-3 py-2 transition-colors cursor-pointer',
-                      form.role === r
+                      form.role === r.key
                         ? 'border-[var(--admin-accent)] bg-[var(--admin-accent)]/10'
                         : 'border-[var(--admin-border)] hover:border-[var(--admin-text-faint)]'
                     )}
                   >
-                    <span className="block text-sm font-semibold">{APP_ROLE_LABELS[r]}</span>
-                    <span className="block text-xs text-[var(--admin-text-muted)]">{ROLE_HINT[r]}</span>
+                    <span className="block text-sm font-semibold">{r.name}</span>
+                    <span className="block text-xs text-[var(--admin-text-muted)]">
+                      {r.description || `${r.permissions.length} permisos`}
+                    </span>
                   </button>
                 ))}
               </div>

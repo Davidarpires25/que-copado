@@ -25,18 +25,27 @@ export type DrawnZoneGeometry =
   | { type: 'circle'; center: ZoneCenter; radius_meters: number }
 
 /**
- * Roles de empleado. Espeja el enum `app_role` de Postgres
- * (supabase/migrations/016_profiles_and_roles.sql).
- *
- * `cajero` cubre tambien al vendedor: en este local es la misma persona, la que
- * toma el pedido es la que cierra el turno.
+ * Clave de un rol. Ya no es un enum cerrado: los roles son filas de la tabla
+ * `roles` y el admin puede crear los que necesite. Lo que sigue siendo fijo es
+ * el catalogo de permisos (lib/constants/permissions.ts), porque cada clave
+ * solo significa algo si las policies y la interfaz la consultan.
  */
-export type AppRole = 'admin' | 'cajero' | 'cocina'
+export type AppRole = string
 
-export const APP_ROLE_LABELS: Record<AppRole, string> = {
-  admin: 'Administrador',
-  cajero: 'Cajero',
-  cocina: 'Cocina',
+export interface Role {
+  key: string
+  name: string
+  description: string | null
+  /** Los de sistema no se pueden eliminar; `admin` ademas no se puede editar. */
+  is_system: boolean
+  sort_order: number
+  created_at: string
+}
+
+export interface RoleWithPermissions extends Role {
+  permissions: string[]
+  /** Cuantos empleados lo tienen asignado. Bloquea el borrado si es > 0. */
+  member_count: number
 }
 
 export interface Database {
@@ -788,7 +797,7 @@ export interface Database {
       [_ in never]: never
     }
     Enums: {
-      app_role: AppRole
+      app_role: string
     }
   }
 }

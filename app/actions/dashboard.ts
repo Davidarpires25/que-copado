@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/server/auth'
 import { devError } from '@/lib/server/logger'
 import type { DashboardStats, TopProduct, SalesChartData } from '@/lib/types/orders'
-import { requireRole } from '@/lib/server/profile'
+import { requirePermission } from '@/lib/server/profile'
 
 interface OrderChartRow {
   total: number
@@ -27,7 +27,7 @@ export async function getDashboardStats(): Promise<{
       return { data: null, error: 'No autenticado' }
     }
 
-    const denied = await requireRole('admin')
+    const denied = await requirePermission('dashboard.view')
     if (denied) return { data: null, ...denied }
 
     const now = new Date()
@@ -109,7 +109,7 @@ export async function getTopProducts(
       return { data: null, error: 'No autenticado' }
     }
 
-    const denied = await requireRole('admin')
+    const denied = await requirePermission('dashboard.view')
     if (denied) return { data: null, ...denied }
 
     const monthStart = new Date()
@@ -195,7 +195,7 @@ export async function getSalesChartData(
       return { data: null, error: 'No autenticado' }
     }
 
-    const denied = await requireRole('admin')
+    const denied = await requirePermission('dashboard.view')
     if (denied) return { data: null, ...denied }
 
     const startDate = new Date()

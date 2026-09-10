@@ -27,7 +27,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { signOut } from '@/app/actions/auth'
-import type { AppRole } from '@/lib/types/database'
+import type { PermissionKey } from '@/lib/constants/permissions'
 
 interface NavItem {
   href: string
@@ -35,14 +35,14 @@ interface NavItem {
   icon: React.ElementType
   badgeCount?: number
   /**
-   * Roles que ven este item. Sin declarar = lo ven todos.
+   * Permiso que habilita este item. Sin declarar = lo ven todos.
    *
    * Esconder un link NO es seguridad: quien conozca la URL entra igual. Lo que
    * protege son las policies de RLS y las guardas de las server actions. Esto
    * es para que cada uno vea una herramienta acorde a su trabajo, no un menu
-   * de 15 opciones de las que usa tres.
+   * de 16 opciones de las que usa tres.
    */
-  roles?: AppRole[]
+  permission?: PermissionKey
 }
 
 interface NavGroup {
@@ -53,41 +53,41 @@ interface NavGroup {
 const navGroups: NavGroup[] = [
   {
     items: [
-      { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin'] },
+      { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: 'dashboard.view' },
     ],
   },
   {
     title: 'Operación',
     items: [
-      { href: '/admin/caja', label: 'Caja', icon: ScanLine, roles: ['admin', 'cajero'] },
-      { href: '/admin/caja/arqueos', label: 'Arqueos', icon: Scale, roles: ['admin', 'cajero'] },
-      { href: '/admin/tables', label: 'Mesas', icon: Table2, roles: ['admin', 'cajero'] },
-      { href: '/admin/orders', label: 'Pedidos', icon: ClipboardList, roles: ['admin', 'cajero'] },
-      { href: '/admin/cocina', label: 'Cocina', icon: ChefHat, roles: ['admin', 'cajero', 'cocina'] },
-      { href: '/admin/stock', label: 'Stock', icon: Boxes, roles: ['admin'] },
+      { href: '/admin/caja', label: 'Caja', icon: ScanLine, permission: 'caja.view' },
+      { href: '/admin/caja/arqueos', label: 'Arqueos', icon: Scale, permission: 'caja.view' },
+      { href: '/admin/tables', label: 'Mesas', icon: Table2, permission: 'mesas.view' },
+      { href: '/admin/orders', label: 'Pedidos', icon: ClipboardList, permission: 'pedidos.view' },
+      { href: '/admin/cocina', label: 'Cocina', icon: ChefHat, permission: 'cocina.view' },
+      { href: '/admin/stock', label: 'Stock', icon: Boxes, permission: 'stock.view' },
     ],
   },
   {
     title: 'Catálogo',
     items: [
-      { href: '/admin/products', label: 'Productos', icon: Package, roles: ['admin'] },
-      { href: '/admin/categories', label: 'Categorías', icon: Tag, roles: ['admin'] },
-      { href: '/admin/recipes', label: 'Recetas', icon: BookOpen, roles: ['admin'] },
-      { href: '/admin/ingredients', label: 'Ingredientes', icon: Wheat, roles: ['admin'] },
+      { href: '/admin/products', label: 'Productos', icon: Package, permission: 'productos.view' },
+      { href: '/admin/categories', label: 'Categorías', icon: Tag, permission: 'categorias.view' },
+      { href: '/admin/recipes', label: 'Recetas', icon: BookOpen, permission: 'recetas.view' },
+      { href: '/admin/ingredients', label: 'Ingredientes', icon: Wheat, permission: 'ingredientes.view' },
     ],
   },
   {
     title: 'Reportes',
     items: [
-      { href: '/admin/analytics', label: 'Analytics', icon: BarChart3, roles: ['admin'] },
+      { href: '/admin/analytics', label: 'Analytics', icon: BarChart3, permission: 'analytics.view' },
     ],
   },
   {
     title: 'Configuración',
     items: [
-      { href: '/admin/empleados', label: 'Equipo', icon: Users, roles: ['admin'] },
-      { href: '/admin/delivery-zones', label: 'Zonas de Envío', icon: MapPin, roles: ['admin'] },
-      { href: '/admin/settings', label: 'Ajustes', icon: Settings, roles: ['admin'] },
+      { href: '/admin/empleados', label: 'Equipo', icon: Users, permission: 'users.view' },
+      { href: '/admin/delivery-zones', label: 'Zonas de Envío', icon: MapPin, permission: 'delivery_zones.view' },
+      { href: '/admin/settings', label: 'Ajustes', icon: Settings, permission: 'settings.view' },
     ],
   },
 ]
@@ -109,12 +109,16 @@ const navGroups: NavGroup[] = [
  * muestra todo: es el comportamiento de siempre y evita dejar a alguien sin
  * menu por un problema de configuracion.
  */
-export function visibleNavGroups(role: AppRole | null | undefined): NavGroup[] {
-  if (!role) return navGroups
+export function visibleNavGroups(permissions: string[] | null | undefined): NavGroup[] {
+  // Sin permisos cargados —sesion sin perfil, o migraciones sin aplicar— se
+  // muestra todo: es el comportamiento de siempre y evita dejar a alguien sin
+  // menu por un problema de configuracion.
+  if (!permissions) return navGroups
+  const tiene = new Set(permissions)
   return navGroups
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => !item.roles || item.roles.includes(role)),
+      items: group.items.filter((item) => !item.permission || tiene.has(item.permission)),
     }))
     .filter((group) => group.items.length > 0)
 }
@@ -220,12 +224,12 @@ interface AdminSidebarProps {
   stockAlertCount?: number
   userName?: string
   userRole?: string
-  /** Rol del empleado logueado; filtra el menu. Null = se muestra todo. */
-  role?: AppRole | null
+  /** Permisos del empleado; filtran el menu. Null = se muestra todo. */
+  permissions?: string[] | null
 }
 
-export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCount = 0, userName = 'Admin', userRole = 'Administrador', role = null }: AdminSidebarProps) {
-  const groups = visibleNavGroups(role)
+export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCount = 0, userName = 'Admin', userRole = 'Administrador', permissions = null }: AdminSidebarProps) {
+  const groups = visibleNavGroups(permissions)
   const pathname = usePathname()
     // No mostrar en checkout, cart o páginas de admin
   const hiddenRoutes = ['/admin/stock/ficha/']
@@ -364,11 +368,11 @@ interface MobileSidebarProps {
   open: boolean
   onClose: () => void
   stockAlertCount?: number
-  role?: AppRole | null
+  permissions?: string[] | null
 }
 
-export function MobileSidebar({ open, onClose, stockAlertCount = 0, role = null }: MobileSidebarProps) {
-  const groups = visibleNavGroups(role)
+export function MobileSidebar({ open, onClose, stockAlertCount = 0, permissions = null }: MobileSidebarProps) {
+  const groups = visibleNavGroups(permissions)
   const pathname = usePathname()
 
   return (

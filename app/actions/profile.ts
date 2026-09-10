@@ -1,19 +1,23 @@
 'use server'
 
-import { getCurrentProfile } from '@/lib/server/profile'
-import { APP_ROLE_LABELS, type AppRole } from '@/lib/types/database'
+import {
+  getCurrentProfile, getCurrentRoleName, getCurrentPermissions,
+} from '@/lib/server/profile'
 
 export interface CurrentUserInfo {
   name: string
+  /** Nombre legible del rol, ya resuelto desde la tabla `roles`. */
   roleLabel: string
-  role: AppRole | null
+  role: string | null
+  /** Permisos del rol. El sidebar filtra con esto. */
+  permissions: string[]
 }
 
 /**
- * Datos del empleado logueado para mostrar en el sidebar.
+ * Datos del empleado logueado para el sidebar.
  *
- * Devuelve null cuando todavia no hay perfil —por ejemplo antes de aplicar la
- * migracion 016— para que quien llama use sus valores por defecto en vez de
+ * Devuelve null cuando todavia no hay perfil —por ejemplo antes de aplicar las
+ * migraciones— para que quien llama use sus valores por defecto en vez de
  * romperse.
  */
 export async function getCurrentUserInfo(): Promise<CurrentUserInfo | null> {
@@ -21,13 +25,19 @@ export async function getCurrentUserInfo(): Promise<CurrentUserInfo | null> {
     const profile = await getCurrentProfile()
     if (!profile) return null
 
+    const [roleLabel, permissions] = await Promise.all([
+      getCurrentRoleName(),
+      getCurrentPermissions(),
+    ])
+
     return {
       name: profile.full_name || 'Sin nombre',
-      roleLabel: APP_ROLE_LABELS[profile.role] ?? profile.role,
+      roleLabel: roleLabel ?? profile.role,
       role: profile.role,
+      permissions,
     }
   } catch {
-    // La tabla profiles todavia no existe: el sidebar sigue con su placeholder.
+    // Las tablas de roles todavia no existen: el sidebar usa su placeholder.
     return null
   }
 }

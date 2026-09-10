@@ -2,19 +2,26 @@
 
 import { revalidatePath } from 'next/cache'
 import { createAdminClient, createServiceRoleClient } from '@/lib/supabase/admin'
-import { getCurrentProfile, requireRole } from '@/lib/server/profile'
+import { getCurrentProfile, requirePermission } from '@/lib/server/profile'
 import { devError } from '@/lib/server/logger'
 import type { AppRole, Profile } from '@/lib/types/database'
 
 export interface Employee extends Profile {
   email: string
   last_sign_in_at: string | null
+  /** Nombre legible del rol, resuelto desde `roles`. */
+  role_name: string
 }
 
-const VALID_ROLES: AppRole[] = ['admin', 'cajero', 'cocina']
-
-function isValidRole(value: string): value is AppRole {
-  return (VALID_ROLES as string[]).includes(value)
+/**
+ * Los roles ya no son un enum fijo: se validan contra la tabla, porque el admin
+ * puede crear los que necesite.
+ */
+async function isValidRole(value: string): Promise<boolean> {
+  if (!value) return false
+  const supabase = await createAdminClient()
+  const { data } = await supabase.from('roles').select('key').eq('key', value).maybeSingle()
+  return !!data
 }
 
 /**
@@ -68,14 +75,14 @@ export async function listEmployees(): Promise<{
   data: Employee[] | null
   error: string | null
 }> {
-  const denied = await requireRole('admin')
+  const denied = await requirePermission('users.view')
   if (denied) return { data: null, ...denied }
 
   try {
     const supabase = await createAdminClient()
     const { data: profiles, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('*, roles ( name )')
       .order('created_at', { ascending: true })
 
     if (error) {
@@ -90,10 +97,12 @@ export async function listEmployees(): Promise<{
 
     const employees: Employee[] = (profiles ?? []).map((p) => {
       const u = byId.get(p.id)
+      const conRol = p as unknown as Profile & { roles: { name: string } | null }
       return {
-        ...(p as Profile),
+        ...conRol,
         email: u?.email ?? '—',
         last_sign_in_at: u?.last_sign_in_at ?? null,
+        role_name: conRol.roles?.name ?? conRol.role,
       }
     })
 
@@ -111,7 +120,7 @@ export async function createEmployee(input: {
   email: string
   role: string
 }): Promise<{ data: { tempPassword: string } | null; error: string | null }> {
-  const denied = await requireRole('admin')
+  const denied = await requirePermission('users.manage')
   if (denied) return { data: null, ...denied }
 
   const fullName = input.fullName.trim()
@@ -121,7 +130,7 @@ export async function createEmployee(input: {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { data: null, error: 'El email no es válido' }
   }
-  if (!isValidRole(input.role)) return { data: null, error: 'Rol inválido' }
+  if (!(await isValidRole(input.role))) return { data: null, error: 'Rol inválido' }
 
   try {
     const service = createServiceRoleClient()
@@ -150,7 +159,7 @@ export async function createEmployee(input: {
     await service.from('profiles').upsert({
       id: data.user.id,
       full_name: fullName,
-      role: input.role as AppRole,
+      role: input.role,
       is_active: true,
     })
 
@@ -164,35 +173,54 @@ export async function createEmployee(input: {
 
 // ─── Cambios ─────────────────────────────────────────────────────────────────
 
-/** Impide quedarse sin ningun admin activo. */
-async function wouldRemoveLastAdmin(targetId: string): Promise<boolean> {
+/**
+ * Impide quedarse sin nadie que pueda gestionar el equipo.
+ *
+ * Ya no alcanza con contar los que tienen rol 'admin': con roles editables, lo
+ * que importa es quien conserva el permiso `users.manage`. Sin eso no habria
+ * forma de volver a entrar a la pantalla de Equipo.
+ */
+async function wouldRemoveLastManager(
+  targetId: string,
+  nuevoRol?: string
+): Promise<boolean> {
   const service = createServiceRoleClient()
-  const { data } = await service
+
+  const { data: rolesConGestion } = await service
+    .from('role_permissions')
+    .select('role_key')
+    .eq('permission', 'users.manage')
+
+  const claves = (rolesConGestion ?? []).map((r) => r.role_key)
+  if (claves.length === 0) return false
+
+  const { data: gestores } = await service
     .from('profiles')
-    .select('id')
-    .eq('role', 'admin')
+    .select('id, role')
+    .in('role', claves)
     .eq('is_active', true)
 
-  const admins = data ?? []
-  return admins.length <= 1 && admins.some((a) => a.id === targetId)
+  const activos = gestores ?? []
+  const seguiriaSiendo = nuevoRol ? claves.includes(nuevoRol) : false
+
+  return (
+    activos.length <= 1 &&
+    activos.some((a) => a.id === targetId) &&
+    !seguiriaSiendo
+  )
 }
 
 export async function updateEmployeeRole(
   employeeId: string,
   role: string
 ): Promise<{ error: string | null }> {
-  const denied = await requireRole('admin')
+  const denied = await requirePermission('users.manage')
   if (denied) return denied
 
-  if (!isValidRole(role)) return { error: 'Rol inválido' }
+  if (!(await isValidRole(role))) return { error: 'Rol inválido' }
 
-  const me = await getCurrentProfile()
-  if (me?.id === employeeId && role !== 'admin') {
-    return { error: 'No podés quitarte a vos mismo el rol de administrador' }
-  }
-
-  if (role !== 'admin' && (await wouldRemoveLastAdmin(employeeId))) {
-    return { error: 'Tiene que quedar al menos un administrador activo' }
+  if (await wouldRemoveLastManager(employeeId, role)) {
+    return { error: 'Tiene que quedar alguien que pueda gestionar el equipo' }
   }
 
   const supabase = await createAdminClient()
@@ -214,7 +242,7 @@ export async function setEmployeeActive(
   employeeId: string,
   isActive: boolean
 ): Promise<{ error: string | null }> {
-  const denied = await requireRole('admin')
+  const denied = await requirePermission('users.manage')
   if (denied) return denied
 
   const me = await getCurrentProfile()
@@ -222,8 +250,8 @@ export async function setEmployeeActive(
     return { error: 'No podés darte de baja a vos mismo' }
   }
 
-  if (!isActive && (await wouldRemoveLastAdmin(employeeId))) {
-    return { error: 'Tiene que quedar al menos un administrador activo' }
+  if (!isActive && (await wouldRemoveLastManager(employeeId))) {
+    return { error: 'Tiene que quedar alguien que pueda gestionar el equipo' }
   }
 
   const supabase = await createAdminClient()
@@ -248,7 +276,7 @@ export async function setEmployeeActive(
 export async function resetEmployeePassword(
   employeeId: string
 ): Promise<{ data: { tempPassword: string } | null; error: string | null }> {
-  const denied = await requireRole('admin')
+  const denied = await requirePermission('users.manage')
   if (denied) return { data: null, ...denied }
 
   try {

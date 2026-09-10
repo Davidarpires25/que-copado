@@ -2,7 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
-import { requireRole } from '@/lib/server/profile'
+import { requirePermission } from '@/lib/server/profile'
 
 export interface EntityCounts {
   orders: number
@@ -17,7 +17,7 @@ export async function getEntityCounts(): Promise<{ data: EntityCounts | null; er
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { data: null, error: 'No autorizado' }
-  const denied = await requireRole('admin')
+  const denied = await requirePermission('settings.manage')
   if (denied) return { data: null, ...denied }
 
   const [orders, products, categories, ingredients, recipes, stockMovements] = await Promise.all([
@@ -48,7 +48,7 @@ export async function deleteAllOrders(): Promise<{ error: string | null }> {
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { error: 'No autorizado' }
-  const denied = await requireRole('admin')
+  const denied = await requirePermission('settings.manage')
   if (denied) return { ...denied }
 
   // Skip orders with status 'abierto' (active open tables/counters)
@@ -75,7 +75,7 @@ export async function deleteAllProducts(): Promise<{ error: string | null }> {
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { error: 'No autorizado' }
-  const denied = await requireRole('admin')
+  const denied = await requirePermission('settings.manage')
   if (denied) return { ...denied }
 
   // Remove FK references in order_items (keep history, just unlink product)
@@ -95,7 +95,7 @@ export async function deleteAllCategories(): Promise<{ error: string | null }> {
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { error: 'No autorizado' }
-  const denied = await requireRole('admin')
+  const denied = await requirePermission('settings.manage')
   if (denied) return { ...denied }
 
   // Must delete products first (FK products.category_id → categories.id)
@@ -112,7 +112,7 @@ export async function deleteAllIngredients(): Promise<{ error: string | null }> 
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { error: 'No autorizado' }
-  const denied = await requireRole('admin')
+  const denied = await requirePermission('settings.manage')
   if (denied) return { ...denied }
 
   // Delete dependents first
@@ -130,7 +130,7 @@ export async function deleteAllRecipes(): Promise<{ error: string | null }> {
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { error: 'No autorizado' }
-  const denied = await requireRole('admin')
+  const denied = await requirePermission('settings.manage')
   if (denied) return { ...denied }
 
   await supabase.from('recipe_ingredients').delete().not('id', 'is', null)
@@ -146,7 +146,7 @@ export async function deleteAllStockMovements(): Promise<{ error: string | null 
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { error: 'No autorizado' }
-  const denied = await requireRole('admin')
+  const denied = await requirePermission('settings.manage')
   if (denied) return { ...denied }
 
   const { error } = await supabase.from('stock_movements').delete().not('id', 'is', null)

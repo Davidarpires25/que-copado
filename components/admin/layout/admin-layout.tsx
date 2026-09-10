@@ -80,7 +80,7 @@ function AdminLayoutStandalone({ children, title, description, hidePageHeader }:
 
 
   // Sin perfil (p. ej. antes de la migracion 016) el sidebar usa sus defaults.
-  const meProps = me ? { userName: me.name, userRole: me.roleLabel, role: me.role } : {}
+  const meProps = me ? { userName: me.name, userRole: me.roleLabel, permissions: me.permissions } : {}
 
   return (
     <div className={cn('min-h-screen bg-[var(--admin-bg)] admin-layout', theme === 'dark' && 'dark')}>
@@ -98,7 +98,7 @@ function AdminLayoutStandalone({ children, title, description, hidePageHeader }:
       </div>
 
       {/* Mobile Sidebar */}
-      <MobileSidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} stockAlertCount={stockAlertCount} role={me?.role ?? null} />
+      <MobileSidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} stockAlertCount={stockAlertCount} permissions={me?.permissions ?? null} />
 
       {/* Main Content */}
       <div
