@@ -14,6 +14,9 @@ export interface CashRegisterSession {
   closed_at: string | null
   opened_by: string | null
   closed_by: string | null
+  /** Nombres resueltos desde `profiles`. Los completa getRecentSessions. */
+  opened_by_name?: string | null
+  closed_by_name?: string | null
   opening_balance: number
   expected_cash: number | null
   actual_cash: number | null

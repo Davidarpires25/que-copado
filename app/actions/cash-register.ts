@@ -321,7 +321,29 @@ export async function getRecentSessions(
       return { data: null, error: 'Error al cargar historial' }
     }
 
-    return { data: data as CashRegisterSession[], error: null }
+    const sessions = (data ?? []) as CashRegisterSession[]
+
+    // Resolver los nombres de quien abrio y cerro. No se hace con un join de
+    // PostgREST porque opened_by/closed_by apuntan a auth.users, no a
+    // profiles, asi que no hay relacion declarada entre las dos tablas.
+    const ids = [...new Set(
+      sessions.flatMap((s) => [s.opened_by, s.closed_by]).filter(Boolean) as string[]
+    )]
+
+    if (ids.length > 0) {
+      const { data: perfiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', ids)
+
+      const porId = new Map((perfiles ?? []).map((p) => [p.id, p.full_name]))
+      for (const s of sessions) {
+        s.opened_by_name = s.opened_by ? porId.get(s.opened_by) ?? null : null
+        s.closed_by_name = s.closed_by ? porId.get(s.closed_by) ?? null : null
+      }
+    }
+
+    return { data: sessions, error: null }
   } catch (error) {
     devError('Error in getRecentSessions:', error)
     return { data: null, error: 'Error inesperado' }

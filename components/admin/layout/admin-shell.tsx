@@ -46,7 +46,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
 
   // Sin perfil (p. ej. antes de la migracion 016) el sidebar usa sus defaults.
-  const meProps = me ? { userName: me.name, userRole: me.roleLabel } : {}
+  const meProps = me ? { userName: me.name, userRole: me.roleLabel, role: me.role } : {}
 
   return (
     <AdminShellContext.Provider value={true}>
@@ -65,7 +65,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Mobile Sidebar */}
-        <MobileSidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} stockAlertCount={stockAlertCount} />
+        <MobileSidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} stockAlertCount={stockAlertCount} role={me?.role ?? null} />
 
         {/* Main Content */}
         <div

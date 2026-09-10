@@ -160,23 +160,30 @@ export function EmployeesDashboard({ initialEmployees, loadError, currentUserId 
                       : <span className="text-[var(--admin-text-faint)]">De baja</span>}
                   </TableCell>
                   <TableCell className="text-right whitespace-nowrap">
-                    <Button
-                      variant="ghost" size="sm" disabled={pending}
+                    <button
+                      type="button" disabled={pending}
                       onClick={() => handleReset(emp)}
-                      className="text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] gap-1.5"
+                      className={cn(
+                        'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ',
+                        'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)]'
+                      )}
                     >
                       <KeyRound className="h-3.5 w-3.5" />
                       Nueva clave
-                    </Button>
-                    <Button
-                      variant="ghost" size="sm" disabled={pending || isMe}
+                    </button>
+                    <button
+                      type="button" disabled={pending || isMe}
                       onClick={() => handleActive(emp.id, !emp.is_active)}
-                      className={cn('text-xs', emp.is_active
-                        ? 'text-rose-700 dark:text-rose-400 hover:bg-rose-500/10'
-                        : 'text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10')}
+                      title={isMe ? 'No podés darte de baja a vos mismo' : undefined}
+                      className={cn(
+                        'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ',
+                        emp.is_active
+                          ? 'text-rose-700 dark:text-rose-400 hover:bg-rose-500/10'
+                          : 'text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10'
+                      )}
                     >
                       {emp.is_active ? 'Dar de baja' : 'Reactivar'}
-                    </Button>
+                    </button>
                   </TableCell>
                 </TableRow>
               )
@@ -229,7 +236,15 @@ export function EmployeesDashboard({ initialEmployees, loadError, currentUserId 
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setAddOpen(false)}>Cancelar</Button>
+            <button
+              type="button" onClick={() => setAddOpen(false)}
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ',
+                'px-4 py-2 text-sm text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)]'
+              )}
+            >
+              Cancelar
+            </button>
             <Button onClick={handleCreate} disabled={pending}
               className="bg-[var(--admin-accent)] text-black hover:opacity-90">
               {pending ? 'Creando…' : 'Crear cuenta'}
@@ -272,10 +287,13 @@ function CredentialBox({ password }: { password: string }) {
   return (
     <div className="flex items-center gap-2 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] px-4 py-3">
       <code className="flex-1 font-mono text-lg tracking-wider select-all">{password}</code>
-      <Button variant="ghost" size="sm" onClick={copy} className="gap-1.5 text-[var(--admin-text-muted)]">
+      <button
+        type="button" onClick={copy}
+        className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)]"
+      >
         {copied ? <Check className="h-4 w-4 text-emerald-700 dark:text-emerald-400" /> : <Copy className="h-4 w-4" />}
         {copied ? 'Copiado' : 'Copiar'}
-      </Button>
+      </button>
     </div>
   )
 }

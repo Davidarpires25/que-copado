@@ -86,7 +86,7 @@ export function CajaDashboard({
 
 
   // Sin perfil (p. ej. antes de la migracion 016) el sidebar usa sus defaults.
-  const meProps = currentUser ? { userName: currentUser.name, userRole: currentUser.roleLabel } : {}
+  const meProps = currentUser ? { userName: currentUser.name, userRole: currentUser.roleLabel, role: currentUser.role } : {}
 
   return (
     <motion.div

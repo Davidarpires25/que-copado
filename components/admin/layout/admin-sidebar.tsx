@@ -27,12 +27,22 @@ import {
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { signOut } from '@/app/actions/auth'
+import type { AppRole } from '@/lib/types/database'
 
 interface NavItem {
   href: string
   label: string
   icon: React.ElementType
   badgeCount?: number
+  /**
+   * Roles que ven este item. Sin declarar = lo ven todos.
+   *
+   * Esconder un link NO es seguridad: quien conozca la URL entra igual. Lo que
+   * protege son las policies de RLS y las guardas de las server actions. Esto
+   * es para que cada uno vea una herramienta acorde a su trabajo, no un menu
+   * de 15 opciones de las que usa tres.
+   */
+  roles?: AppRole[]
 }
 
 interface NavGroup {
@@ -43,41 +53,41 @@ interface NavGroup {
 const navGroups: NavGroup[] = [
   {
     items: [
-      { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin'] },
     ],
   },
   {
     title: 'Operación',
     items: [
-      { href: '/admin/caja', label: 'Caja', icon: ScanLine },
-      { href: '/admin/caja/arqueos', label: 'Arqueos', icon: Scale },
-      { href: '/admin/tables', label: 'Mesas', icon: Table2 },
-      { href: '/admin/orders', label: 'Pedidos', icon: ClipboardList },
-      { href: '/admin/cocina', label: 'Cocina', icon: ChefHat },
-      { href: '/admin/stock', label: 'Stock', icon: Boxes },
+      { href: '/admin/caja', label: 'Caja', icon: ScanLine, roles: ['admin', 'cajero'] },
+      { href: '/admin/caja/arqueos', label: 'Arqueos', icon: Scale, roles: ['admin', 'cajero'] },
+      { href: '/admin/tables', label: 'Mesas', icon: Table2, roles: ['admin', 'cajero'] },
+      { href: '/admin/orders', label: 'Pedidos', icon: ClipboardList, roles: ['admin', 'cajero'] },
+      { href: '/admin/cocina', label: 'Cocina', icon: ChefHat, roles: ['admin', 'cajero', 'cocina'] },
+      { href: '/admin/stock', label: 'Stock', icon: Boxes, roles: ['admin'] },
     ],
   },
   {
     title: 'Catálogo',
     items: [
-      { href: '/admin/products', label: 'Productos', icon: Package },
-      { href: '/admin/categories', label: 'Categorías', icon: Tag },
-      { href: '/admin/recipes', label: 'Recetas', icon: BookOpen },
-      { href: '/admin/ingredients', label: 'Ingredientes', icon: Wheat },
+      { href: '/admin/products', label: 'Productos', icon: Package, roles: ['admin'] },
+      { href: '/admin/categories', label: 'Categorías', icon: Tag, roles: ['admin'] },
+      { href: '/admin/recipes', label: 'Recetas', icon: BookOpen, roles: ['admin'] },
+      { href: '/admin/ingredients', label: 'Ingredientes', icon: Wheat, roles: ['admin'] },
     ],
   },
   {
     title: 'Reportes',
     items: [
-      { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+      { href: '/admin/analytics', label: 'Analytics', icon: BarChart3, roles: ['admin'] },
     ],
   },
   {
     title: 'Configuración',
     items: [
-      { href: '/admin/empleados', label: 'Equipo', icon: Users },
-      { href: '/admin/delivery-zones', label: 'Zonas de Envío', icon: MapPin },
-      { href: '/admin/settings', label: 'Ajustes', icon: Settings },
+      { href: '/admin/empleados', label: 'Equipo', icon: Users, roles: ['admin'] },
+      { href: '/admin/delivery-zones', label: 'Zonas de Envío', icon: MapPin, roles: ['admin'] },
+      { href: '/admin/settings', label: 'Ajustes', icon: Settings, roles: ['admin'] },
     ],
   },
 ]
@@ -92,6 +102,23 @@ const navGroups: NavGroup[] = [
  * Coincide por prefijo, pero gana el href mas largo: estando en
  * /admin/caja/arqueos se enciende "Arqueos" y no "Caja".
  */
+/**
+ * Deja los grupos que el rol puede ver, y descarta los que quedan vacios.
+ *
+ * Con `role` null —sesion sin perfil, o antes de aplicar la migracion 016— se
+ * muestra todo: es el comportamiento de siempre y evita dejar a alguien sin
+ * menu por un problema de configuracion.
+ */
+export function visibleNavGroups(role: AppRole | null | undefined): NavGroup[] {
+  if (!role) return navGroups
+  return navGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !item.roles || item.roles.includes(role)),
+    }))
+    .filter((group) => group.items.length > 0)
+}
+
 export function isActiveRoute(pathname: string | null | undefined, href: string): boolean {
   if (!pathname) return false
 
@@ -193,9 +220,12 @@ interface AdminSidebarProps {
   stockAlertCount?: number
   userName?: string
   userRole?: string
+  /** Rol del empleado logueado; filtra el menu. Null = se muestra todo. */
+  role?: AppRole | null
 }
 
-export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCount = 0, userName = 'Admin', userRole = 'Administrador' }: AdminSidebarProps) {
+export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCount = 0, userName = 'Admin', userRole = 'Administrador', role = null }: AdminSidebarProps) {
+  const groups = visibleNavGroups(role)
   const pathname = usePathname()
     // No mostrar en checkout, cart o páginas de admin
   const hiddenRoutes = ['/admin/stock/ficha/']
@@ -248,7 +278,7 @@ export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCo
 
       {/* Navigation */}
       <nav className="flex-1 py-3 px-3 ">
-        {navGroups.map((group, groupIndex) => (
+        {groups.map((group, groupIndex) => (
           <div key={group.title ?? groupIndex} className={cn(groupIndex > 0 && 'mt-2')}>
             {groupIndex > 0 && <div className="h-px bg-[var(--admin-sidebar-border)] mx-2 mb-2" />}
 
@@ -334,9 +364,11 @@ interface MobileSidebarProps {
   open: boolean
   onClose: () => void
   stockAlertCount?: number
+  role?: AppRole | null
 }
 
-export function MobileSidebar({ open, onClose, stockAlertCount = 0 }: MobileSidebarProps) {
+export function MobileSidebar({ open, onClose, stockAlertCount = 0, role = null }: MobileSidebarProps) {
+  const groups = visibleNavGroups(role)
   const pathname = usePathname()
 
   return (
@@ -385,7 +417,7 @@ export function MobileSidebar({ open, onClose, stockAlertCount = 0 }: MobileSide
             </div>
 
             <nav className="flex-1 py-3 px-3 overflow-y-auto">
-              {navGroups.map((group, groupIndex) => (
+              {groups.map((group, groupIndex) => (
                 <div key={group.title ?? groupIndex} className={cn(groupIndex > 0 && 'mt-2')}>
                   {groupIndex > 0 && <div className="h-px bg-[var(--admin-sidebar-border)] mx-2 mb-2" />}
                   {group.title && (

@@ -125,6 +125,13 @@ function ArqueoDrawer({
                     ({formatDuration(session.opened_at, closedAt)})
                   </span>
                 </p>
+                {(session.opened_by_name || session.closed_by_name) && (
+                  <p className="text-xs text-[var(--admin-text-faint)] mt-1">
+                    {session.opened_by_name && <>Abrió <span className="text-[var(--admin-text-muted)]">{session.opened_by_name}</span></>}
+                    {session.opened_by_name && session.closed_by_name && ' · '}
+                    {session.closed_by_name && <>Cerró <span className="text-[var(--admin-text-muted)]">{session.closed_by_name}</span></>}
+                  </p>
+                )}
               </div>
               <Button
                 variant="ghost"
@@ -342,6 +349,7 @@ function ArqueosTab({
                           </span>
                           <span className="block text-xs text-[var(--admin-text-faint)]">
                             {formatTimeShort(session.opened_at)} – {formatTimeShort(closedAt)}
+                            {session.closed_by_name && <> · {session.closed_by_name}</>}
                           </span>
                         </div>
                       </TableCell>
