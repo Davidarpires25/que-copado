@@ -127,11 +127,23 @@ export async function printKitchenTicketAction(
 
     if (error || !order) return { error: 'Orden no encontrada' }
 
+    const esWeb = order.order_source === 'web'
+
     // Determine which items to print and whether this is a new batch or a reprint
-    let targetIds: string[]
+    let targetIds: string[] = []
     let newBatchId: string | null = null
 
-    if (options.itemIds && options.itemIds.length > 0) {
+    if (esWeb) {
+      // El pedido web no tiene filas en `order_items`: sus productos viven en la
+      // columna JSON de la orden. Toda la maquinaria de lotes de impresion
+      // —imprimir solo lo que todavia no salio, reimprimir el ultimo lote— se
+      // apoya en esas filas, asi que no aplica. El pedido web llega entero y de
+      // una sola vez, y volver a apretar el boton reimprime el mismo ticket.
+      //
+      // Sin esta rama, la funcion caia a la reimpresion, no encontraba lotes
+      // previos y devolvia "No hay comandas previas para reimprimir".
+      targetIds = []
+    } else if (options.itemIds && options.itemIds.length > 0) {
       // Called from add-items-view with explicit new item IDs
       targetIds = options.itemIds
       newBatchId = crypto.randomUUID()
@@ -189,26 +201,52 @@ export async function printKitchenTicketAction(
       }
     }
 
-    if (targetIds.length === 0) {
-      return { error: 'No hay ítems para enviar a cocina.' }
+    let items: { name: string; quantity: number; notes: string | null }[]
+
+    if (esWeb) {
+      const jsonItems =
+        (order.items as unknown as
+          { id?: string; name?: string; quantity?: number; notes?: string | null }[] | null) ?? []
+
+      // El JSON no guarda el tipo de producto, asi que hay que preguntarle a
+      // `products` cual de estos va a cocina y cual no: una bebida no lleva
+      // comanda.
+      const ids = jsonItems.map((i) => i.id).filter((id): id is string => !!id)
+      const { data: prods } = ids.length
+        ? await supabase.from('products').select('id, product_type').in('id', ids)
+        : { data: [] as { id: string; product_type: string | null }[] }
+
+      const tipoPorId = new Map((prods ?? []).map((pr) => [pr.id, pr.product_type]))
+
+      items = jsonItems
+        .filter((i) => sendsToKitchen(tipoPorId.get(i.id ?? '') ?? ''))
+        .map((i) => ({
+          name: i.name ?? 'Producto',
+          quantity: i.quantity ?? 1,
+          notes: i.notes ?? null,
+        }))
+    } else {
+      if (targetIds.length === 0) {
+        return { error: 'No hay ítems para enviar a cocina.' }
+      }
+
+      const { data: rows } = await supabase
+        .from('order_items')
+        .select('product_name, quantity, notes, products(product_type)')
+        .in('id', targetIds)
+        .neq('status', 'cancelado')
+
+      items = (rows ?? [])
+        .filter((i) => {
+          const p = i.products as unknown as { product_type: string | null } | null
+          return sendsToKitchen(p?.product_type ?? '')
+        })
+        .map((i) => ({
+          name: i.product_name,
+          quantity: i.quantity,
+          notes: i.notes ?? null,
+        }))
     }
-
-    const { data: rows } = await supabase
-      .from('order_items')
-      .select('product_name, quantity, notes, products(product_type)')
-      .in('id', targetIds)
-      .neq('status', 'cancelado')
-
-    const items = (rows ?? [])
-      .filter((i) => {
-        const p = i.products as unknown as { product_type: string | null } | null
-        return sendsToKitchen(p?.product_type ?? '')
-      })
-      .map((i) => ({
-        name: i.product_name,
-        quantity: i.quantity,
-        notes: i.notes ?? null,
-      }))
 
     if (items.length === 0) {
       return { error: 'No hay ítems de cocina para imprimir.' }
@@ -223,7 +261,10 @@ export async function printKitchenTicketAction(
         orderLabel:
           order.order_type === 'mesa' && order.table_number
             ? `Mesa ${order.table_number}`
-            : 'Mostrador',
+            : esWeb
+              // Que la cocina sepa que sale a la calle, y para quien.
+              ? `Web${order.customer_name ? ` · ${order.customer_name}` : ''}`
+              : 'Mostrador',
         dateStr,
         timeStr,
         items,
