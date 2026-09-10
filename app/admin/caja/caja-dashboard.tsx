@@ -9,7 +9,7 @@ import { PosInterface } from '@/components/admin/caja/pos-interface'
 import { SessionCloseScreen } from '@/components/admin/caja/session-close-screen'
 import { AdminSidebar, MobileSidebar } from '@/components/admin/layout/admin-sidebar'
 import { useThemeStore } from '@/lib/store/theme-store'
-import { cn, formatPrice } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import type { Category, ProductWithHalfConfig, Order, DeliveryZone } from '@/lib/types/database'
 import type { CashRegisterSession, SessionSummary } from '@/lib/types/cash-register'
 import type { TableWithOrder } from '@/lib/types/tables'
@@ -110,38 +110,21 @@ export function CajaDashboard({
           sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-64'
         )}
       >
-        {/* Top bar — Pencil style */}
+        {/* La info del turno se mudo a ShiftBar, dentro del POS. Lo unico
+            que queda aca es el acceso al menu en mobile, asi que en desktop la
+            banda desaparece entera. */}
         {screen !== 'close' && (
-          <div className="bg-[var(--admin-sidebar-bg)] border-b border-[var(--admin-border)] px-4 lg:px-6 flex items-center justify-between gap-3 shrink-0 h-12">
-            {/* Left: mobile hamburger + session info */}
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setMobileMenuOpen(true)}
-                className="lg:hidden h-8 w-8 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)]"
-              >
-                <Menu className="h-4 w-4" />
-              </Button>
-              <div className="flex items-center gap-2">
-                {session && <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" />}
-                <span className="text-[13px] font-medium text-[var(--admin-text)] truncate">
-                  {session
-                    ? `Caja Abierta — Turno ${new Date(session.opened_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`
-                    : 'Caja'}
-                </span>
-              </div>
-            </div>
-
-            {/* Right: sales total */}
-            {session && (
-              <div className="flex items-center gap-4 shrink-0">
-                <span className="text-[13px] text-[var(--admin-text-muted)] hidden sm:block tabular-nums">
-                  <span className="font-semibold text-[var(--admin-text)]">{formatPrice(session.total_sales)}</span>
-                  {' '}vendido
-                </span>
-              </div>
-            )}
+          <div className="lg:hidden shrink-0 flex items-center gap-3 px-4 h-12 bg-[var(--admin-sidebar-bg)] border-b border-[var(--admin-border)]">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Abrir menú"
+              className="h-8 w-8 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)]"
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+            <span className="text-[13px] font-semibold text-[var(--admin-text)]">Caja</span>
           </div>
         )}
 
@@ -180,6 +163,7 @@ export function CajaDashboard({
                   initialSessionOrders={initialSessionOrders}
                   onCloseSession={handleCloseSession}
                   onSessionUpdate={handleSessionUpdate}
+                  onOpenMenu={() => setMobileMenuOpen(true)}
                 />
               </motion.div>
             )}

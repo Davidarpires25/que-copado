@@ -7,7 +7,7 @@ import { Store, Table2, History } from 'lucide-react'
 import { PosProductGrid } from './product-grid'
 import { OrderBuilder, type PosCartItem } from './order-builder'
 import { PendingOrderPayView } from './pending-order-pay-view'
-import { SessionStatusBar } from './session-status-bar'
+import { ShiftBar } from './shift-bar'
 import { CashMovementDialog } from './cash-movement-dialog'
 import { PosHistorialTab } from './pos-historial-tab'
 import { TableGrid } from './table-grid'
@@ -47,6 +47,8 @@ interface PosInterfaceProps {
   initialSessionOrders: OrderWithSplits[]
   onCloseSession: (summary: SessionSummary) => void
   onSessionUpdate: (session: CashRegisterSession) => void
+  /** Abre el menu lateral en mobile. */
+  onOpenMenu?: () => void
 }
 
 export function PosInterface({
@@ -59,6 +61,7 @@ export function PosInterface({
   initialSessionOrders,
   onCloseSession,
   onSessionUpdate,
+  onOpenMenu,
 }: PosInterfaceProps) {
   const router = useRouter()
 
@@ -489,6 +492,17 @@ export function PosInterface({
 
   return (
     <div className="h-full flex flex-col bg-[var(--admin-bg)]">
+      {/* Estado del turno: una sola banda, arriba. Antes estaba partido entre
+          la barra superior del dashboard y una barra al pie. */}
+      <ShiftBar
+        session={session}
+        currentCash={currentCash}
+        openTablesCount={openTablesCount}
+        onMovement={() => setShowMovement(true)}
+        onCloseSession={handleCloseSessionClick}
+        onOpenMenu={onOpenMenu}
+      />
+
       {/* Mode tabs */}
       <div className="flex border-b border-[var(--admin-border)] bg-[var(--admin-surface)] shrink-0">
         <button
@@ -561,7 +575,9 @@ export function PosInterface({
                 />
               </div>
 
-              {/* Pending orders strip — bottom */}
+              {/* Solo cuando hay algo pendiente: antes ocupaba una banda fija
+                  para mostrar un guion. */}
+              {(pendingLoading || pendingOrders.length > 0) && (
               <div className="shrink-0 border-t border-[var(--admin-border)] flex items-center gap-2.5 px-4 overflow-x-auto scrollbar-hide" style={{ height: 52, paddingTop: 10, paddingBottom: 10 }}>
                 <span className="text-[12px] font-medium text-[var(--admin-text-muted)] shrink-0">
                   Pendientes:
@@ -604,6 +620,7 @@ export function PosInterface({
                   </button>
                 )}
               </div>
+              )}
             </div>
 
             {/* Right panel — order builder or payment view */}
@@ -774,15 +791,6 @@ export function PosInterface({
           />
         )}
       </BottomSheet>
-
-      {/* Status bar */}
-      <SessionStatusBar
-        session={session}
-        currentCash={currentCash}
-        openTablesCount={openTablesCount}
-        onMovement={() => setShowMovement(true)}
-        onCloseSession={handleCloseSessionClick}
-      />
 
       <CashMovementDialog
         open={showMovement}
