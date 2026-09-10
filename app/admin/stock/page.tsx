@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/server/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import {
   getFullStockData,
@@ -12,8 +12,7 @@ import {
 import { StockDashboard } from '@/components/admin/stock/stock-dashboard'
 
 export default async function StockPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/admin/login')
 
   const adminSupabase = await createAdminClient()

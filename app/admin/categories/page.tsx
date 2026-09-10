@@ -1,13 +1,11 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/server/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { CategoriesDashboard } from './categories-dashboard'
 import type { Category } from '@/lib/types/database'
 
 export default async function CategoriesPage() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) {
     redirect('/admin/login')
   }

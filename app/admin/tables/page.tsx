@@ -1,13 +1,11 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/server/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { TablesDashboard } from './tables-dashboard'
 import type { RestaurantTable } from '@/lib/types/tables'
 
 export default async function TablesPage() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) {
     redirect('/admin/login')
   }

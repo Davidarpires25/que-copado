@@ -1,4 +1,5 @@
 import { cache } from 'react'
+import { getAuthUser } from '@/lib/server/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { devError } from '@/lib/server/logger'
 import type { AppRole, Profile } from '@/lib/types/database'
@@ -23,7 +24,7 @@ const UNDEFINED_TABLE = '42P01'
 const getPermissionState = cache(async (): Promise<PermissionState> => {
   const supabase = await createAdminClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) return { kind: 'anonymous' }
 
   const { data, error } = await supabase

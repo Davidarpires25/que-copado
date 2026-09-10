@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
+import { getAuthUser } from '@/lib/server/auth'
 import dynamic from 'next/dynamic'
-import { createClient } from '@/lib/supabase/server'
 import {
   getHourlySales,
   getWeekdaySales,
@@ -25,8 +25,7 @@ const AnalyticsDashboard = dynamic(
 )
 
 export default async function AnalyticsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
 
   if (!user) {
     redirect('/admin/login')

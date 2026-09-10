@@ -1,4 +1,5 @@
 import { redirect, notFound } from 'next/navigation'
+import { getAuthUser } from '@/lib/server/auth'
 import { createClient } from '@/lib/supabase/server'
 import { AdminLayout } from '@/components/admin/layout'
 import { ProductFormPage } from '@/components/admin/products/product-form-page'
@@ -11,7 +12,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   const { id } = await params
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/admin/login')
 
   const [{ data: productData }, { data: categories }, { data: recipes }, recipesResult] =

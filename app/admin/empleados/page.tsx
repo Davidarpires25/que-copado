@@ -1,13 +1,12 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/server/auth'
 import { getCurrentProfile, can } from '@/lib/server/profile'
 import { listEmployees } from '@/app/actions/employees'
 import { listRoles } from '@/app/actions/roles'
 import { EmployeesDashboard } from './employees-dashboard'
 
 export default async function EmpleadosPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/admin/login')
 
   const [me, employees, roles, puedeGestionarRoles] = await Promise.all([

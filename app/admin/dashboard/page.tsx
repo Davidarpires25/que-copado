@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/server/auth'
 import { getDashboardStats, getTopProducts, getSalesChartData } from '@/app/actions/dashboard'
 import { getRecentOrders, getOrderCountsByStatus } from '@/app/actions/orders'
 import { getComparativeStats } from '@/app/actions/analytics'
@@ -10,8 +10,7 @@ import { DashboardOverview } from './dashboard-overview'
 export const revalidate = 60
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
 
   if (!user) {
     redirect('/admin/login')

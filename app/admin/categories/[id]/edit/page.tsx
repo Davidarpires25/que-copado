@@ -1,4 +1,5 @@
 import { redirect, notFound } from 'next/navigation'
+import { getAuthUser } from '@/lib/server/auth'
 import { createClient } from '@/lib/supabase/server'
 import { AdminLayout } from '@/components/admin/layout'
 import { CategoryFormPage } from '@/components/admin/categories/category-form-page'
@@ -8,7 +9,7 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
   const { id } = await params
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/admin/login')
 
   const { data: categoryData } = await supabase

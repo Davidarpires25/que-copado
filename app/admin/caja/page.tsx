@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getAuthUser } from '@/lib/server/auth'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveSession, getSessionOrders } from '@/app/actions/cash-register'
 import { getPendingOrders } from '@/app/actions/pos-orders'
@@ -8,7 +9,7 @@ import { CajaDashboard } from './caja-dashboard'
 
 export default async function CajaPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
 
   if (!user) {
     redirect('/admin/login')

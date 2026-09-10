@@ -1,5 +1,5 @@
 import { redirect, notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/server/auth'
 import { AdminLayout } from '@/components/admin/layout'
 import { can } from '@/lib/server/profile'
 import { listRoles } from '@/app/actions/roles'
@@ -12,8 +12,7 @@ export default async function EditarRolPage({
 }) {
   const { key } = await params
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/admin/login')
 
   if (!(await can('roles.manage'))) redirect('/admin/empleados')
