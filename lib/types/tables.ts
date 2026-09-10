@@ -94,13 +94,19 @@ export const TABLE_STATUS_CONFIG: Record<TableStatus, {
   },
 }
 
-// Color palette for sale tags (comensales) — index-based assignment
+/**
+ * Colores de los comensales, asignados por indice.
+ *
+ * `text` va en par claro/oscuro: los `-400` eran de tema oscuro y sobre blanco
+ * el nombre del comensal quedaba lavado. `print` va siempre en `-700` porque el
+ * papel es blanco en los dos temas. `dot` y `bg` son fondos y no cambian.
+ */
 export const TAG_COLORS = [
-  { dot: 'bg-green-400',  text: 'text-green-400',  bg: 'bg-green-400/12',  print: 'bg-green-400/10 border-green-400/20 text-green-400'  },
-  { dot: 'bg-blue-400',   text: 'text-blue-400',   bg: 'bg-blue-400/12',   print: 'bg-blue-400/10 border-blue-400/20 text-blue-400'   },
-  { dot: 'bg-amber-400',  text: 'text-amber-400',  bg: 'bg-amber-400/12',  print: 'bg-amber-400/10 border-amber-400/20 text-amber-400'  },
-  { dot: 'bg-purple-400', text: 'text-purple-400', bg: 'bg-purple-400/12', print: 'bg-purple-400/10 border-purple-400/20 text-purple-400' },
-  { dot: 'bg-pink-400',   text: 'text-pink-400',   bg: 'bg-pink-400/12',   print: 'bg-pink-400/10 border-pink-400/20 text-pink-400'   },
+  { dot: 'bg-emerald-500', text: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-500/12', print: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-700' },
+  { dot: 'bg-blue-500',    text: 'text-blue-700 dark:text-blue-400',       bg: 'bg-blue-500/12',    print: 'bg-blue-500/10 border-blue-500/20 text-blue-700'          },
+  { dot: 'bg-amber-500',   text: 'text-amber-700 dark:text-amber-400',     bg: 'bg-amber-500/12',   print: 'bg-amber-500/10 border-amber-500/20 text-amber-700'       },
+  { dot: 'bg-purple-500',  text: 'text-purple-700 dark:text-purple-400',   bg: 'bg-purple-500/12',  print: 'bg-purple-500/10 border-purple-500/20 text-purple-700'    },
+  { dot: 'bg-pink-500',    text: 'text-pink-700 dark:text-pink-400',       bg: 'bg-pink-500/12',    print: 'bg-pink-500/10 border-pink-500/20 text-pink-700'          },
 ] as const
 
 // Section labels for UI grouping

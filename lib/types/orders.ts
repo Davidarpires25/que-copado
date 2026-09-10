@@ -62,47 +62,60 @@ export interface SalesChartData {
 }
 
 // Configuración de estados con colores y labels
+/**
+ * Estados de pedido.
+ *
+ * `textColor` va en pares claro/oscuro: los tonos `-400` y `-500` estaban
+ * calibrados para fondo oscuro y sobre el blanco del admin no llegaban al 4.5:1
+ * de AA. Es la misma regla que `lib/constants/payments.ts` y
+ * `TABLE_STATUS_CONFIG`.
+ *
+ * `color` es un hex y se queda: se usa como `backgroundColor` de un punto, no
+ * como color de texto.
+ */
 export const ORDER_STATUS_CONFIG: Record<OrderStatus, {
   label: string
+  /** Hex solido para el punto de estado. Fondo, no texto. */
   color: string
   bgColor: string
+  /** Par claro/oscuro. Nunca un tono suelto. */
   textColor: string
 }> = {
   abierto: {
     label: 'Abierto',
     color: '#FEC501',
     bgColor: 'bg-amber-500/20',
-    textColor: 'text-amber-400',
+    textColor: 'text-amber-700 dark:text-amber-400',
   },
   recibido: {
     label: 'Recibido',
     color: '#FEC501',
     bgColor: 'bg-yellow-500/20',
-    textColor: 'text-yellow-500',
+    textColor: 'text-yellow-700 dark:text-yellow-400',
   },
   cuenta_pedida: {
     label: 'Cuenta Pedida',
     color: '#F97316',
     bgColor: 'bg-orange-500/20',
-    textColor: 'text-orange-400',
+    textColor: 'text-orange-700 dark:text-orange-400',
   },
   pagado: {
     label: 'Pagado',
     color: '#3B82F6',
     bgColor: 'bg-blue-500/20',
-    textColor: 'text-blue-500',
+    textColor: 'text-blue-700 dark:text-blue-400',
   },
   entregado: {
     label: 'Entregado',
     color: '#22C55E',
     bgColor: 'bg-green-500/20',
-    textColor: 'text-green-500',
+    textColor: 'text-emerald-700 dark:text-emerald-400',
   },
   cancelado: {
     label: 'Cancelado',
     color: '#EF4444',
     bgColor: 'bg-red-500/20',
-    textColor: 'text-red-500',
+    textColor: 'text-rose-700 dark:text-rose-400',
   },
 }
 
