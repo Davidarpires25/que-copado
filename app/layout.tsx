@@ -54,6 +54,25 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
+      <head>
+        {/*
+          Aplica el tema del admin antes del primer pintado.
+
+          Sin esto la clase `admin-dark` la ponia un useEffect al montar el
+          dashboard, o sea despues de que Next mostrara el loading.tsx de la
+          ruta. Ese skeleton quedaba con los valores del tema claro aunque el
+          usuario tuviera el oscuro, y ademas se veia un flash blanco en cada
+          navegacion del admin.
+
+          Va como script bloqueante en el head a proposito: cualquier otra cosa
+          corre despues del primer frame, que es justo lo que hay que evitar.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var s=localStorage.getItem('admin-theme');if(s&&JSON.parse(s).state.theme==='dark'){document.documentElement.classList.add('admin-dark')}}catch(e){}`,
+          }}
+        />
+      </head>
       <body
         className={`${rubik.variable} ${geistMono.variable} ${inter.variable} antialiased`}
       >

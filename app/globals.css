@@ -385,6 +385,9 @@
   --admin-bg:               #F3F4F8;
   --admin-surface:          #FFFFFF;
   --admin-surface-2:        #F5F6FA;
+  /* Los skeletons no pueden usar surface-2: sobre --admin-bg quedan a dos
+     unidades de diferencia, o sea invisibles en tema claro. */
+  --admin-skeleton:         #DFE2EB;
   --admin-hover:            #ECEDF2;
   --admin-border:           #E0E2EA;
   --admin-sidebar-bg:       #FFFFFF;
@@ -412,6 +415,7 @@ html.admin-dark {
   --admin-bg:               #0F1117;
   --admin-surface:          #1C2333;
   --admin-surface-2:        #252B3B;
+  --admin-skeleton:         #272E40;
   --admin-hover:            #252B3B;
   --admin-border:           #2D3448;
   --admin-sidebar-bg:       #161B2C;
@@ -435,6 +439,9 @@ html.admin-dark {
   --admin-bg:               #F3F4F8;
   --admin-surface:          #FFFFFF;
   --admin-surface-2:        #F5F6FA;
+  /* Los skeletons no pueden usar surface-2: sobre --admin-bg quedan a dos
+     unidades de diferencia, o sea invisibles en tema claro. */
+  --admin-skeleton:         #DFE2EB;
   --admin-hover:            #ECEDF2;
   --admin-border:           #E0E2EA;
   --admin-sidebar-bg:       #FFFFFF;
@@ -461,6 +468,7 @@ html.admin-dark {
   --admin-bg:               #0F1117;
   --admin-surface:          #1C2333;
   --admin-surface-2:        #252B3B;
+  --admin-skeleton:         #272E40;
   --admin-hover:            #252B3B;
   --admin-border:           #2D3448;
   --admin-sidebar-bg:       #161B2C;

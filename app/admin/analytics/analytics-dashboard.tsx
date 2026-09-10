@@ -12,7 +12,7 @@ import {
 function ChartSkeleton({ height = 280 }: { height?: number | string }) {
   return (
     <div
-      className="w-full animate-pulse rounded-lg bg-[var(--admin-surface-2)]"
+      className="w-full animate-pulse rounded-lg bg-[var(--admin-skeleton)]"
       style={{ height }}
     />
   )

@@ -1,7 +1,7 @@
 import { AdminLayout } from '@/components/admin/layout'
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded-lg bg-[var(--admin-surface-2)] ${className ?? ''}`} />
+  return <div className={`animate-pulse rounded-lg bg-[var(--admin-skeleton)] ${className ?? ''}`} />
 }
 
 export default function DeliveryZonesLoading() {

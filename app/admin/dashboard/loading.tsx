@@ -2,7 +2,7 @@ import { AdminLayout } from '@/components/admin/layout'
 
 function Skeleton({ className }: { className?: string }) {
   return (
-    <div className={`animate-pulse rounded-lg bg-[var(--admin-surface-2)] ${className ?? ''}`} />
+    <div className={`animate-pulse rounded-lg bg-[var(--admin-skeleton)] ${className ?? ''}`} />
   )
 }
 

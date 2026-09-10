@@ -1,5 +1,5 @@
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded-lg bg-[var(--admin-surface-2)] ${className ?? ''}`} />
+  return <div className={`animate-pulse rounded-lg bg-[var(--admin-skeleton)] ${className ?? ''}`} />
 }
 
 // Caja bypasses AdminLayout — skeleton mirrors its full-screen layout.
