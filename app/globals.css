@@ -95,7 +95,20 @@
   --sidebar-ring: hsl(18 100% 60%);
 }
 
-.dark {
+/* Los tokens de shadcn en oscuro. Van tambien en html.admin-dark porque el
+   panel los necesita: components/ui —input, button, badge, select, tabs— se
+   pintan con --input, --border, --background y compañia, y sus variantes
+   `dark:` se activan con `admin-dark` en el <html>. Si la variante se activa
+   pero el token no cambia, el control pide fondo oscuro y recibe el claro: la
+   barra de busqueda de la caja quedaba gris claro sobre el panel oscuro.
+
+   Antes esto llegaba por la clase `dark` que el componente se ponia a si mismo,
+   que era ademas la que rompia la hidratacion. El <html> lo resuelve sin render.
+
+   El bloque html.admin-dark de mas abajo pisa --accent y los --admin-*: misma
+   especificidad, gana el que viene despues. */
+.dark,
+html.admin-dark {
   --background: hsl(25 20% 12%);
   --foreground: hsl(30 40% 96%);
   --card: hsl(25 18% 16%);
