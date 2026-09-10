@@ -383,6 +383,8 @@ export function PosInterface({
     }
     toast.success('Pedido cancelado')
     if (isMostrador) {
+      // Si estabamos mirando ese pedido, la pantalla ya no tiene que que mostrar.
+      setPayingOrder((prev) => (prev?.id === orderId ? null : prev))
       await refreshPendingOrders()
     } else {
       router.refresh()
@@ -714,6 +716,7 @@ export function PosInterface({
                   deliveryZones={initialDeliveryZones}
                   onBack={() => setPayingOrder(null)}
                   onPrint={() => printClientTicketAction(payingOrder.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
+                  onCancel={() => setCancelOrderId(`mostrador:${payingOrder.id}`)}
                   onConfirm={handlePayPendingOrder}
                 />
               ) : (
@@ -841,6 +844,8 @@ export function PosInterface({
             loading={payingOrderLoading}
             onBack={() => { setPayingOrder(null); setShowMobileCart(false) }}
             onPrint={() => printClientTicketAction(payingOrder.id).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
+            onCancel={() => setCancelOrderId(`mostrador:${payingOrder.id}`)}
+            deliveryZones={initialDeliveryZones}
             onConfirm={async (method, splits) => {
               await handlePayPendingOrder(method, splits)
               setShowMobileCart(false)
@@ -886,9 +891,14 @@ export function PosInterface({
       <ConfirmDialog
         open={!!cancelOrderId}
         onOpenChange={(open) => !open && setCancelOrderId(null)}
-        title="Anular venta"
-        description="¿Estás seguro de anular esta venta? Esta acción no se puede deshacer."
-        confirmLabel="Anular"
+        // Un pendiente todavia no es una venta: no se anula, se cancela.
+        title={cancelOrderId?.startsWith('mostrador:') ? 'Cancelar pedido' : 'Anular venta'}
+        description={
+          cancelOrderId?.startsWith('mostrador:')
+            ? 'El pedido se cancela y sale de Pendientes. No se cobro nada, asi que no hay plata que devolver.'
+            : '¿Estás seguro de anular esta venta? Esta acción no se puede deshacer.'
+        }
+        confirmLabel={cancelOrderId?.startsWith('mostrador:') ? 'Cancelar pedido' : 'Anular'}
         onConfirm={() => {
           if (!cancelOrderId) return
           const isMostrador = cancelOrderId.startsWith('mostrador:')

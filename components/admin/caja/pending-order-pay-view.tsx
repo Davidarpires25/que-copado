@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { CreditCard, Printer, Loader2, ChefHat, Globe } from 'lucide-react'
+import { CreditCard, Printer, Loader2, ChefHat, Globe, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import { usePaymentSplit } from '@/lib/hooks/use-payment-split'
@@ -23,11 +23,12 @@ interface PendingOrderPayViewProps {
   deliveryZones?: DeliveryZone[]
   onBack: () => void
   onPrint: () => void
+  onCancel: () => void
   onConfirm: (method: PaymentMethod, splits?: PaymentSplit[]) => void
 }
 
 export function PendingOrderPayView({
-  order, loading, deliveryZones, onBack: _onBack, onPrint, onConfirm,
+  order, loading, deliveryZones, onBack: _onBack, onPrint, onCancel, onConfirm,
 }: PendingOrderPayViewProps) {
   const total = order.total
   const esWeb = order.order_source === 'web'
@@ -197,6 +198,19 @@ export function PendingOrderPayView({
             {`Cobrar ${formatPrice(total)}`}
           </>
         )}
+      </button>
+
+      {/* Un pendiente se puede cancelar: el cliente se fue, se cargo por error,
+          o el pedido web es basura. Va debajo del boton de cobrar y en tono
+          discreto — es una salida, no una accion que se busque. */}
+      <button
+        type="button"
+        onClick={onCancel}
+        disabled={loading}
+        className="flex h-10 shrink-0 cursor-pointer items-center justify-center gap-1.5 border-t border-[var(--admin-border)] text-[12px] font-medium text-rose-700 transition-colors hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40 dark:text-rose-400"
+      >
+        <AlertTriangle className="h-3.5 w-3.5" />
+        Cancelar pedido
       </button>
     </div>
   )

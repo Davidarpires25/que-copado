@@ -414,11 +414,18 @@ export async function cancelMostadorOrder(
       .from('orders')
       .select('*')
       .eq('id', orderId)
-      .eq('order_type', 'mostrador')
-      .eq('status', 'abierto')
       .single()
 
-    if (!order) return { error: 'Orden no encontrada o ya procesada' }
+    // Los dos origenes que pueden estar esperando cobro, con estados distintos:
+    // el de mostrador nace 'abierto', el de la web nace 'recibido'. La consulta
+    // filtraba por order_type='mostrador', asi que un pedido web no matcheaba y
+    // no habia forma de sacarlo de Pendientes: quedaba ahi para siempre.
+    const cancelable =
+      order != null &&
+      ((order.order_type === 'mostrador' && order.status === 'abierto') ||
+        (order.order_source === 'web' && order.status === 'recibido'))
+
+    if (!cancelable) return { error: 'Orden no encontrada o ya procesada' }
 
     const { error } = await supabase
       .from('orders')
@@ -430,7 +437,10 @@ export async function cancelMostadorOrder(
       return { error: 'Error al cancelar el pedido' }
     }
 
-    // Restore stock
+    // Devolver stock si es que se descontó. Un pendiente todavia no descontó
+    // —eso pasa al cobrar— asi que aca no hay movimientos de venta y la funcion
+    // sale sin hacer nada. Se llama igual porque este mismo camino sirve para
+    // cancelar algo que si llego a descontar.
     await restoreStockForOrder(supabase, orderId, user.id)
 
     revalidateCaja()
