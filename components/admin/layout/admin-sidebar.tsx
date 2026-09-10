@@ -180,7 +180,9 @@ function NavItemLink({
 
         <div className="relative shrink-0">
           <Icon className={cn('h-5 w-5', isActive && 'text-[var(--admin-accent-text)]')} />
-          {hasBadge && (
+          {/* Solo colapsado: expandido el badge va al final de la fila, y
+              mostrar los dos deja el numero repetido sobre el mismo item. */}
+          {hasBadge && collapsed && (
             <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
               {(item.badgeCount ?? 0) > 99 ? '99+' : item.badgeCount}
             </span>

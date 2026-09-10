@@ -32,7 +32,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   })) ?? []
 
   return (
-    <AdminLayout title="Editar Producto" description={`Editando: ${product.name}`}>
+    <AdminLayout title="Editar Producto" description={`Editando: ${product.name}`} hidePageHeader>
       <ProductFormPage
         mode="edit"
         product={product}

@@ -29,7 +29,7 @@ export default async function EditIngredientPage({ params }: { params: Promise<{
     <AdminLayout
       title="Editar Ingrediente"
       description={`Editando: ${(ingredientData as unknown as IngredientWithCategory).name}`}
-    >
+     hidePageHeader>
       <IngredientFormPage
         mode="edit"
         ingredient={ingredientData as unknown as IngredientWithCategory}

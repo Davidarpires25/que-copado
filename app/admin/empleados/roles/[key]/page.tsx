@@ -27,7 +27,7 @@ export default async function EditarRolPage({
   if (!role) notFound()
 
   return (
-    <AdminLayout title={`Editar ${role.name}`} description="Cambiá el nombre o los permisos">
+    <AdminLayout title={`Editar ${role.name}`} description="Cambiá el nombre o los permisos" hidePageHeader>
       <RoleFormPage mode="edit" role={role} />
     </AdminLayout>
   )

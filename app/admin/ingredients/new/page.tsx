@@ -15,7 +15,7 @@ export default async function NewIngredientPage() {
     .order('name')
 
   return (
-    <AdminLayout title="Nuevo Ingrediente" description="Agrega un nuevo ingrediente para tus recetas">
+    <AdminLayout title="Nuevo Ingrediente" description="Agrega un nuevo ingrediente para tus recetas" hidePageHeader>
       <IngredientFormPage mode="create" categories={categories ?? []} />
     </AdminLayout>
   )

@@ -15,7 +15,7 @@ export default async function NewRecipePage() {
     .order('name')
 
   return (
-    <AdminLayout title="Nueva Receta" description="Crea una receta reutilizable para tus productos">
+    <AdminLayout title="Nueva Receta" description="Crea una receta reutilizable para tus productos" hidePageHeader>
       <RecipeFormPage mode="create" ingredients={ingredients ?? []} />
     </AdminLayout>
   )

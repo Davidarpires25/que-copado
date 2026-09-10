@@ -22,7 +22,7 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
   const category = categoryData as unknown as Category
 
   return (
-    <AdminLayout title="Editar Categoría" description={`Editando: ${category.name}`}>
+    <AdminLayout title="Editar Categoría" description={`Editando: ${category.name}`} hidePageHeader>
       <CategoryFormPage mode="edit" category={category} />
     </AdminLayout>
   )

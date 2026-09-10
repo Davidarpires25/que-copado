@@ -13,7 +13,7 @@ export default async function NuevoRolPage() {
   if (!(await can('roles.manage'))) redirect('/admin/empleados')
 
   return (
-    <AdminLayout title="Nuevo Rol" description="Definí qué puede hacer este rol">
+    <AdminLayout title="Nuevo Rol" description="Definí qué puede hacer este rol" hidePageHeader>
       <RoleFormPage mode="create" />
     </AdminLayout>
   )

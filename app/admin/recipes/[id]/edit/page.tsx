@@ -26,7 +26,7 @@ export default async function EditRecipePage({ params }: { params: Promise<{ id:
   if (!recipeData) notFound()
 
   return (
-    <AdminLayout title="Editar Receta" description={`Editando: ${(recipeData as unknown as RecipeWithIngredients).name}`}>
+    <AdminLayout title="Editar Receta" description={`Editando: ${(recipeData as unknown as RecipeWithIngredients).name}`} hidePageHeader>
       <RecipeFormPage
         mode="edit"
         recipe={recipeData as unknown as RecipeWithIngredients}
