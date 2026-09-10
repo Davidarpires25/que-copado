@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { orderLabel } from '@/lib/utils/order-number'
 import { useRouter } from 'next/navigation'
 import { Search, ClipboardList, SearchX, Filter } from 'lucide-react'
@@ -16,7 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { AdminLayout } from '@/components/admin/layout'
-import { createClient } from '@/lib/supabase/client'
+import { useRealtimeChannel } from '@/lib/hooks/use-realtime-channel'
 import { OrderStatusBadge, OrderDetailsDrawer } from '@/components/admin/orders'
 import { formatPrice, cn } from '@/lib/utils'
 import {
@@ -33,10 +33,12 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
   const [orders, setOrders] = useState(initialOrders)
   const [searchQuery, setSearchQuery] = useState('')
 
-  useEffect(() => {
-    const supabase = createClient()
-    const channel = supabase
-      .channel('orders-realtime')
+  // Esta pantalla aplica los eventos sobre su propia copia, asi que si el canal
+  // se cae los pedidos que entren mientras tanto no aparecen nunca. Al
+  // reconectar se pide al servidor de nuevo.
+  useRealtimeChannel(
+    'orders-realtime',
+    (canal) => canal
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' },
         (payload) => setOrders((prev) => [payload.new as OrderWithZone, ...prev])
       )
@@ -47,11 +49,18 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
       )
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'orders' },
         (payload) => setOrders((prev) => prev.filter((o) => o.id !== payload.old.id))
-      )
-      .subscribe()
+      ),
+    { etiqueta: 'pedidos', onReconexion: () => router.refresh() }
+  )
 
-    return () => { supabase.removeChannel(channel) }
-  }, [])
+  // El componente guarda su propia copia de los pedidos, asi que un
+  // router.refresh() llegaba a las props y moria ahi. Ajustar el estado durante
+  // el render es el patron de React para "resetear cuando cambia una prop".
+  const [pedidosDelServidor, setPedidosDelServidor] = useState(initialOrders)
+  if (pedidosDelServidor !== initialOrders) {
+    setPedidosDelServidor(initialOrders)
+    setOrders(initialOrders)
+  }
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
   const [selectedOrder, setSelectedOrder] = useState<OrderWithZone | null>(null)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)

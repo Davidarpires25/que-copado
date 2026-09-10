@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { RefreshCw } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { useRealtimeChannel } from '@/lib/hooks/use-realtime-channel'
 import { getActiveComandas } from '@/app/actions/comandas'
 import { ComandaCard } from './comanda-card'
 import { cn } from '@/lib/utils'
@@ -29,30 +29,19 @@ export function KitchenDisplay({ initialComandas }: KitchenDisplayProps) {
     setRefreshing(false)
   }, [])
 
-  // Supabase Realtime subscription
-  useEffect(() => {
-    const supabase = createClient()
-
-    const channel = supabase
-      .channel('comandas-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'comandas',
-        },
-        () => {
-          // On any change, refetch active comandas
-          void refresh()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      void supabase.removeChannel(channel)
-    }
-  }, [refresh])
+  // Supabase Realtime. Es la pantalla donde un canal caido duele mas: se queda
+  // mostrando las comandas viejas sin ningun indicio, y ahi un pedido perdido
+  // es comida que no sale.
+  useRealtimeChannel(
+    'comandas-realtime',
+    (canal) => canal.on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'comandas' },
+      () => { void refresh() }
+    ),
+    { etiqueta: 'cocina', onReconexion: () => { void refresh() } },
+    [refresh]
+  )
 
   const pendingCount = comandas.filter((c) => c.status === 'pendiente').length
   const inPrepCount = comandas.filter((c) => c.status === 'en_preparacion').length

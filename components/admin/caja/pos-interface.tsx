@@ -28,7 +28,7 @@ import {
 } from '@/app/actions/pos-orders'
 import { getSessionOrders, getSessionSummary } from '@/app/actions/cash-register'
 import { openTable, getTables } from '@/app/actions/tables'
-import { createClient } from '@/lib/supabase/client'
+import { useRealtimeChannel } from '@/lib/hooks/use-realtime-channel'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import type { Category, ProductWithHalfConfig, PaymentMethod, Order, DeliveryZone } from '@/lib/types/database'
@@ -171,94 +171,43 @@ export function PosInterface({
     refreshHistorialTimerRef.current = setTimeout(() => void handleLoadHistorial(true), 300)
   }, [handleLoadHistorial])
 
-  // ─── Realtime subscriptions ───────────────────────────────
-  //
-  // El canal se reconecta solo. En el log de David aparecio un
-  // `[caja] realtime: CLOSED`: el socket se cae —el token de auth no se puede
-  // refrescar cuando hay varias pestañas peleando por el lock, se corta la red,
-  // el navegador duerme la pestaña— y sin reintento el canal queda muerto para
-  // siempre. Los pendientes sobreviven porque tienen su propio polling, pero
-  // mesas e historial dejaban de actualizarse sin avisar.
-  useEffect(() => {
-    const supabase = createClient()
-    let canal: ReturnType<typeof supabase.channel> | null = null
-    let reintento: ReturnType<typeof setTimeout> | null = null
-    let intentos = 0
-    let cancelado = false
-
-    const conectar = () => {
-      if (cancelado) return
-
-      canal = supabase
-        .channel('pos-realtime')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'restaurant_tables' },
-          () => { debouncedRefreshTables() }
-        )
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `cash_register_session_id=eq.${session.id}` },
-          () => {
-            void refreshPendingOrders(true)
-            debouncedRefreshHistorial()
-            debouncedRefreshTables()
-          }
-        )
-        // Los pedidos web nacen sin sesion de caja —se la asigna recien quien los
-        // cobra— asi que no matchean el filtro de arriba y su llegada no
-        // disparaba nada. Hacen falta las dos suscripciones: esta los ve entrar,
-        // la de arriba los ve cobrarse.
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: 'order_source=eq.web' },
-          () => {
-            void refreshPendingOrders(true)
-            debouncedRefreshHistorial()
-          }
-        )
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' },
-          () => { debouncedRefreshTables() }
-        )
-        .subscribe((status, err) => {
-          if (cancelado) return
-
-          if (status === 'SUBSCRIBED') {
-            // Si venimos de una caida, mientras el canal estuvo cerrado pasaron
-            // cosas que nadie escucho. Reconectar no las trae: hay que releer.
-            if (intentos > 0) {
-              void refreshPendingOrders(true)
-              debouncedRefreshHistorial()
-              debouncedRefreshTables()
-              intentos = 0
-            }
-            return
-          }
-
-          if (status !== 'CLOSED' && status !== 'CHANNEL_ERROR' && status !== 'TIMED_OUT') return
-
-          // Sin este callback, una suscripcion que fallo se ve exactamente igual
-          // que una que anda y no tiene novedades: silencio en los dos casos. Asi
-          // estuvo desde siempre, y por eso nadie noto que la publicacion de
-          // realtime no incluia ninguna de las tablas que se escuchan.
-          console.warn('[caja] realtime:', status, err ?? '')
-
-          // 1s, 2s, 4s... con techo de 30s. Sin techo, un corte largo termina
-          // reintentando cada varios minutos; sin backoff, un servidor caido se
-          // come un reintento por segundo.
-          const espera = Math.min(1000 * 2 ** intentos, 30_000)
-          intentos += 1
-
-          reintento = setTimeout(() => {
-            if (cancelado) return
-            if (canal) void supabase.removeChannel(canal)
-            conectar()
-          }, espera)
-        })
-    }
-
-    conectar()
-
-    return () => {
-      cancelado = true
-      if (reintento) clearTimeout(reintento)
-      if (canal) void supabase.removeChannel(canal)
-    }
-  }, [debouncedRefreshTables, debouncedRefreshHistorial, refreshPendingOrders, session.id])
+  // ─── Realtime ─────────────────────────────────────────────
+  useRealtimeChannel(
+    'pos-realtime',
+    (canal) => canal
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'restaurant_tables' },
+        () => { debouncedRefreshTables() }
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `cash_register_session_id=eq.${session.id}` },
+        () => {
+          void refreshPendingOrders(true)
+          debouncedRefreshHistorial()
+          debouncedRefreshTables()
+        }
+      )
+      // Los pedidos web nacen sin sesion de caja —se la asigna recien quien los
+      // cobra— asi que no matchean el filtro de arriba y su llegada no
+      // disparaba nada. Hacen falta las dos suscripciones: esta los ve entrar,
+      // la de arriba los ve cobrarse.
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: 'order_source=eq.web' },
+        () => {
+          void refreshPendingOrders(true)
+          debouncedRefreshHistorial()
+        }
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' },
+        () => { debouncedRefreshTables() }
+      ),
+    {
+      etiqueta: 'caja',
+      onReconexion: () => {
+        void refreshPendingOrders(true)
+        debouncedRefreshHistorial()
+        debouncedRefreshTables()
+      },
+    },
+    [debouncedRefreshTables, debouncedRefreshHistorial, refreshPendingOrders, session.id]
+  )
 
   // Red de seguridad para los pendientes.
   //
