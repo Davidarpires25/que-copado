@@ -810,21 +810,25 @@ export async function cancelTableOrder(
       return { error: 'Error al cancelar orden' }
     }
 
-    // Cancel all items (non-critical if fails — order is already cancelled)
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .update({ status: 'cancelado' })
-      .eq('order_id', orderId)
-    if (itemsError) devError(`Error cancelling order_items for order ${orderId}:`, itemsError)
+    // Estas dos no dependen una de otra y van juntas. En serie eran dos viajes
+    // mas mientras alguien espera con el mouse encima del boton.
+    //
+    // La orden si tiene que cancelarse primero: si fallara y ya hubieramos
+    // liberado la mesa, quedaria una orden viva sin mesa y una mesa libre que
+    // en realidad tiene gente.
+    const [{ error: itemsError }, { error: tableError }] = await Promise.all([
+      supabase
+        .from('order_items')
+        .update({ status: 'cancelado' })
+        .eq('order_id', orderId),
+      supabase
+        .from('restaurant_tables')
+        .update({ status: 'libre', current_order_id: null })
+        .eq('id', tableId),
+    ])
 
-    // Free the table — critical: if this fails the table gets stuck as 'ocupada'
-    const { error: tableError } = await supabase
-      .from('restaurant_tables')
-      .update({
-        status: 'libre',
-        current_order_id: null,
-      })
-      .eq('id', tableId)
+    // No critico: la orden ya quedo cancelada.
+    if (itemsError) devError(`Error cancelling order_items for order ${orderId}:`, itemsError)
 
     if (tableError) {
       devError(`CRITICAL: failed to free table ${tableId} after cancelling order ${orderId}:`, tableError)

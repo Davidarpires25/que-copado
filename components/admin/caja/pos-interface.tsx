@@ -517,10 +517,15 @@ export function PosInterface({
     }
   }
 
-  const handleTableOrderCancelled = useCallback(async () => {
+  const handleTableOrderCancelled = useCallback(() => {
+    // El panel se cierra al instante. Esperar la recarga completa de mesas solo
+    // agregaba tiempo a una accion que ya estaba decidida.
     setSelectedTable(null)
-    await refreshTables()
-  }, [refreshTables])
+    setTables((prev) =>
+      prev.map((t) => (t.id === selectedTable?.id ? { ...t, status: 'libre', current_order_id: null, orders: null } : t))
+    )
+    debouncedRefreshTables()
+  }, [selectedTable?.id, debouncedRefreshTables])
 
   const handleTableAddItems = useCallback((tag: string | null | undefined) => {
     setAddItemsSaleTag(tag ?? null)
