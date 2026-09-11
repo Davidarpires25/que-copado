@@ -201,17 +201,23 @@ export function PendingOrderPayView({
       </button>
 
       {/* Un pendiente se puede cancelar: el cliente se fue, se cargo por error,
-          o el pedido web es basura. Va debajo del boton de cobrar y en tono
-          discreto — es una salida, no una accion que se busque. */}
-      <button
-        type="button"
-        onClick={onCancel}
-        disabled={loading}
-        className="flex h-10 shrink-0 cursor-pointer items-center justify-center gap-1.5 border-t border-[var(--admin-border)] text-[12px] font-medium text-rose-700 transition-colors hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40 dark:text-rose-400"
-      >
-        <AlertTriangle className="h-3.5 w-3.5" />
-        Cancelar pedido
-      </button>
+          o el pedido web es basura.
+          
+          Mismo tratamiento que el de la pantalla de mesa: 11px, sin borde y sin
+          fondo en hover, apagado en reposo. Es una salida, no una accion que se
+          busque — y mas todavia aca, donde mientras no elegis medio de pago el
+          boton de cobrar esta deshabilitado y este seria lo unico tocable. */}
+      <div className="shrink-0 px-5 pb-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={loading}
+          className="flex h-7 w-full cursor-pointer items-center justify-center gap-1.5 text-[11px] text-red-700/60 transition-colors hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400/50 dark:hover:text-red-400"
+        >
+          <AlertTriangle className="h-3 w-3" />
+          Cancelar pedido
+        </button>
+      </div>
     </div>
   )
 }
