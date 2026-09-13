@@ -23,6 +23,7 @@ import {
   ChefHat,
   Scale,
   Users,
+  UserCog,
   } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -310,21 +311,29 @@ export function AdminSidebar({ collapsed = false, onToggleCollapse, stockAlertCo
 
       {/* Bottom section */}
       <div className="border-t border-[var(--admin-sidebar-border)]">
-        {/* User profile */}
-        <div className={cn(
-          'flex items-center gap-3 px-4 py-3',
-          collapsed && 'justify-center px-3'
-        )}>
+        {/* User profile — entrada a la cuenta propia */}
+        <Link
+          href="/admin/mi-cuenta"
+          title="Mi cuenta"
+          className={cn(
+            'flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[var(--admin-surface-2)] group',
+            collapsed && 'justify-center px-3',
+            pathname === '/admin/mi-cuenta' && 'bg-[var(--admin-surface-2)]'
+          )}
+        >
           <div className="w-8 h-8 rounded-full bg-[var(--admin-accent)] flex items-center justify-center shrink-0 text-sm font-bold text-black">
             {userName.charAt(0).toUpperCase()}
           </div>
           {!collapsed && (
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-[var(--admin-text)] truncate">{userName}</p>
-              <p className="text-xs text-[var(--admin-text-muted)] truncate">{userRole}</p>
-            </div>
+            <>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-[var(--admin-text)] truncate">{userName}</p>
+                <p className="text-xs text-[var(--admin-text-muted)] truncate">{userRole}</p>
+              </div>
+              <UserCog className="h-4 w-4 shrink-0 text-[var(--admin-text-faint)] group-hover:text-[var(--admin-accent-text)] transition-colors" />
+            </>
           )}
-        </div>
+        </Link>
 
         <div className="px-3 pb-3">
           <form action={signOut}>

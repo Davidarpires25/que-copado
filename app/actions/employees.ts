@@ -270,6 +270,49 @@ export async function setEmployeeActive(
 }
 
 /**
+ * Cambia el email de un empleado.
+ *
+ * Es la red de rescate de /admin/mi-cuenta: ahi cada uno puede cambiar su
+ * propio email y el cambio se aplica al instante, sin verificar que la casilla
+ * exista. Si alguien se equivoca al tipearlo queda sin poder entrar, y sin esto
+ * la unica salida seria el dashboard de Supabase.
+ */
+export async function updateEmployeeEmail(
+  employeeId: string,
+  newEmail: string
+): Promise<{ error: string | null }> {
+  const denied = await requirePermission('users.manage')
+  if (denied) return denied
+
+  const email = newEmail.trim().toLowerCase()
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { error: 'El email no es válido' }
+  }
+
+  try {
+    const service = createServiceRoleClient()
+    const { error } = await service.auth.admin.updateUserById(employeeId, {
+      email,
+      email_confirm: true,
+    })
+
+    if (error) {
+      devError('Error cambiando el email del empleado:', error)
+      const yaExiste = error.message?.toLowerCase().includes('already')
+      return {
+        error: yaExiste ? 'Ya existe una cuenta con ese email' : 'No se pudo cambiar el email',
+      }
+    }
+
+    revalidatePath('/admin/empleados')
+    return { error: null }
+  } catch (error) {
+    devError('Error inesperado cambiando el email del empleado:', error)
+    return { error: 'Error inesperado' }
+  }
+}
+
+/**
  * Genera una contraseña nueva. Para cuando alguien se la olvida: el dueño se la
  * dicta y listo, no hace falta mail de recuperacion.
  */

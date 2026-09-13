@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { UserPlus, KeyRound, Copy, Check, ShieldAlert } from 'lucide-react'
+import { UserPlus, KeyRound, Copy, Check, ShieldAlert, Mail } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/admin-layout'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import {
-  updateEmployeeRole, setEmployeeActive, resetEmployeePassword,
+  updateEmployeeRole, setEmployeeActive, resetEmployeePassword, updateEmployeeEmail,
   type Employee,
 } from '@/app/actions/employees'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -90,6 +90,27 @@ export function EmployeesDashboard({
       const { error } = await setEmployeeActive(id, isActive)
       if (error) { setEmployees(previous); toast.error(error); return }
       toast.success(isActive ? 'Empleado reactivado' : 'Empleado dado de baja')
+    })
+  }
+
+  /**
+   * Red de rescate: en /admin/mi-cuenta cada uno cambia su propio email y el
+   * cambio se aplica al instante, sin verificar la casilla. Si alguien se
+   * equivoca al tipearlo queda sin poder entrar y necesita que se lo corrijan.
+   */
+  const handleEmail = (emp: Employee) => {
+    const ingresado = window.prompt(`Nuevo email para ${emp.full_name || 'este empleado'}`, emp.email)
+    if (ingresado === null) return
+
+    const email = ingresado.trim().toLowerCase()
+    if (!email || email === emp.email.toLowerCase()) return
+
+    const previous = employees
+    refresh((prev) => prev.map((e) => (e.id === emp.id ? { ...e, email } : e)))
+    startTransition(async () => {
+      const { error } = await updateEmployeeEmail(emp.id, email)
+      if (error) { setEmployees(previous); toast.error(error); return }
+      toast.success(`Ahora entra con ${email}`)
     })
   }
 
@@ -204,6 +225,18 @@ export function EmployeesDashboard({
                       : <span className="text-[var(--admin-text-faint)]">De baja</span>}
                   </TableCell>
                   <TableCell className="text-right whitespace-nowrap">
+                    <button
+                      type="button" disabled={pending}
+                      onClick={() => handleEmail(emp)}
+                      title="Cambiar el email con el que inicia sesión"
+                      className={cn(
+                        'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ',
+                        'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)]'
+                      )}
+                    >
+                      <Mail className="h-3.5 w-3.5" />
+                      Email
+                    </button>
                     <button
                       type="button" disabled={pending}
                       onClick={() => handleReset(emp)}
