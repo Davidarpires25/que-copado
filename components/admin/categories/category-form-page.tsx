@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Check, ChevronRight, Loader2, Info } from 'lucide-react'
+import { Check, ChevronRight, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -170,14 +170,14 @@ export function CategoryFormPage({ mode, category }: CategoryFormPageProps) {
               placeholder="se-genera-automaticamente"
               className={`bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 ${mode === 'create' ? 'opacity-60 cursor-not-allowed' : ''}`}
             />
-            <div className="flex items-start gap-2 rounded-lg bg-[var(--admin-surface-2)] border border-[var(--admin-border)] px-3 py-2">
-              <Info className="h-3.5 w-3.5 text-[var(--admin-text-muted)] shrink-0 mt-0.5" />
+            {/* En "crear" el chip Auto y el placeholder ya dicen que se genera
+                solo; la caja repetia el mismo mensaje por tercera vez. En
+                "editar" el campo si se toca y la regla hace falta. */}
+            {mode === 'edit' && (
               <p className="text-xs text-[var(--admin-text-muted)]">
-                {mode === 'create'
-                  ? 'El slug se genera automáticamente desde el nombre.'
-                  : 'Solo letras, números y guiones. Se usa en las URLs.'}
+                Solo letras, números y guiones. Se usa en las URLs.
               </p>
-            </div>
+            )}
           </div>
 
           {/* Orden (edit only) */}
@@ -213,7 +213,7 @@ export function CategoryFormPage({ mode, category }: CategoryFormPageProps) {
                 <span className="text-xs font-mono text-[var(--admin-text-muted)]">{color}</span>
               </div>
             </div>
-            <div className="grid grid-cols-6 gap-2">
+            <div className="flex flex-wrap gap-2">
               {CATEGORY_COLORS.map((c) => (
                 <button
                   key={c}

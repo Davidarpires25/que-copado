@@ -54,9 +54,6 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
     setTables(initialTables)
   }
 
-  const activeCount = tables.filter((t) => t.is_active).length
-  const inactiveCount = tables.filter((t) => !t.is_active).length
-
   // Group tables by section
   const sections = Object.keys(TABLE_SECTION_LABELS)
   const groupedTables: Record<string, RestaurantTable[]> = {}
@@ -145,24 +142,11 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
   }
 
   return (
-    <AdminLayout title="Mesas" description="Gestiona las mesas del restaurante">
-      <div className="max-w-3xl mx-auto">
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-[var(--admin-text)]">{tables.length}</p>
-            <p className="text-xs text-[var(--admin-text-muted)] mt-1">Total</p>
-          </div>
-          <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-green-700 dark:text-green-400">{activeCount}</p>
-            <p className="text-xs text-[var(--admin-text-muted)] mt-1">Activas</p>
-          </div>
-          <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-[var(--admin-text-muted)]">{inactiveCount}</p>
-            <p className="text-xs text-[var(--admin-text-muted)] mt-1">Inactivas</p>
-          </div>
-        </div>
-
+    <AdminLayout
+      title="Mesas"
+      description="Gestiona las mesas del restaurante"
+      contentWidth="max-w-4xl"
+    >
         {/* Actions Bar */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-[var(--admin-text-muted)]">
@@ -330,7 +314,6 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
             </Button>
           </div>
         )}
-      </div>
 
       {/* Form Dialog */}
       <TableFormDialog

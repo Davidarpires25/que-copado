@@ -285,7 +285,7 @@ function ArqueosTab({
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-b-xl border border-t-0 border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] p-16 flex flex-col items-center justify-center text-center gap-3">
+        <div className="border border-t-0 border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] p-16 flex flex-col items-center justify-center text-center gap-3">
           {sessions.length === 0 ? (
             <>
               <History className="h-10 w-10 text-[var(--admin-text-placeholder)]" />
@@ -312,7 +312,7 @@ function ArqueosTab({
           )}
         </div>
       ) : (
-        <div className="rounded-b-xl border border-t-0 border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+        <div className="border border-t-0 border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
@@ -490,7 +490,7 @@ function MovimientosTab({
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-b-xl border border-t-0 border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] p-16 flex flex-col items-center justify-center text-center gap-3">
+        <div className="border border-t-0 border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] p-16 flex flex-col items-center justify-center text-center gap-3">
           {movements.length === 0 ? (
             <>
               <ArrowLeftRight className="h-10 w-10 text-[var(--admin-text-placeholder)]" />
@@ -517,7 +517,7 @@ function MovimientosTab({
           )}
         </div>
       ) : (
-        <div className="rounded-b-xl border border-t-0 border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+        <div className="border border-t-0 border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">

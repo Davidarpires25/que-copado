@@ -51,68 +51,6 @@ interface AdminDashboardProps {
 // Stats Cards
 // ---------------------------------------------------------------------------
 
-interface StatsCardsProps {
-  total: number
-  active: number
-  outOfStock: number
-}
-
-function StatsCards({ total, active, outOfStock }: StatsCardsProps) {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-[var(--admin-accent)]/30 transition-all duration-200"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[var(--admin-text-muted)] text-sm font-medium">Total</p>
-            <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{total}</p>
-          </div>
-          <div className="w-10 h-10 lg:w-12 lg:h-12 bg-[var(--admin-accent)]/10 rounded-xl flex items-center justify-center">
-            <Package className="h-5 w-5 lg:h-6 lg:w-6 text-[var(--admin-accent-text)]" />
-          </div>
-        </div>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-green-500/30 transition-all duration-200"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[var(--admin-text-muted)] text-sm font-medium">Activos</p>
-            <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{active}</p>
-          </div>
-          <div className="w-10 h-10 lg:w-12 lg:h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
-            <Check className="h-5 w-5 lg:h-6 lg:w-6 text-green-700 dark:text-green-500" />
-          </div>
-        </div>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-red-500/30 transition-all duration-200"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[var(--admin-text-muted)] text-sm font-medium">Sin Stock</p>
-            <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{outOfStock}</p>
-          </div>
-          <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-500/10 rounded-xl flex items-center justify-center">
-            <X className="h-5 w-5 lg:h-6 lg:w-6 text-red-700 dark:text-red-500" />
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // Main Dashboard Component
@@ -318,8 +256,6 @@ export function ProductsDashboard({
   // Computed values
   // -------------------------------------------------------------------------
 
-  const activeProducts = useMemo(() => products.filter((p) => p.is_active), [products])
-  const outOfStock = useMemo(() => products.filter((p) => p.is_out_of_stock), [products])
 
   // -------------------------------------------------------------------------
   // Render
@@ -327,18 +263,11 @@ export function ProductsDashboard({
 
   return (
     <AdminLayout title="Productos" description="Administra el catalogo de tu negocio">
-      {/* Stats Cards */}
-      <StatsCards
-        total={products.length}
-        active={activeProducts.length}
-        outOfStock={outOfStock.length}
-      />
-
       {products.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden"
+          className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden"
         >
           <div className="p-16 text-center">
             <div className="w-20 h-20 bg-[var(--admin-surface-2)] rounded-2xl flex items-center justify-center mx-auto mb-6">
@@ -449,8 +378,8 @@ export function ProductsDashboard({
                 transition={{ delay: 0.4 }}
                 className={cn(
                   categories.length > 0
-                    ? "rounded-b-xl border border-t-0 border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden transition-[padding]"
-                    : "rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden transition-[padding]",
+                    ? "border border-t-0 border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden transition-[padding]"
+                    : "border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden transition-[padding]",
                   selectedIds.size > 0 && "pb-20"
                 )}
               >
@@ -482,7 +411,7 @@ export function ProductsDashboard({
                       <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center hidden sm:table-cell">
                         Visible
                       </TableHead>
-                      <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-right">
+                      <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center w-32">
                         Acciones
                       </TableHead>
                     </TableRow>
@@ -631,8 +560,8 @@ export function ProductsDashboard({
                               </TooltipContent>
                             </Tooltip>
                           </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-2">
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-2">
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Button

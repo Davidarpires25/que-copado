@@ -36,24 +36,30 @@ export function CategoriesDashboard({ initialCategories, productCountMap = {} }:
 
   return (
     <AdminLayout title="Categorías" description="Gestiona las categorías de tus productos">
-      {/* Search + Actions Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
-        <div className="relative flex-1">
+      {/* Header toolbar */}
+      <div className="flex items-center gap-2 mb-4">
+        <div className="relative flex-1 max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar categoría..."
-            className="pl-10 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-10 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
+            className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-9 pl-9 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
           />
         </div>
-        <Button
-          onClick={() => router.push('/admin/categories/new')}
-          className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold h-10 shrink-0"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nueva Categoría
-        </Button>
+        <p className="text-[var(--admin-text-muted)] text-sm hidden sm:block">
+          {filteredCategories.length} {filteredCategories.length === 1 ? 'categoría' : 'categorías'}
+        </p>
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            onClick={() => router.push('/admin/categories/new')}
+            className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all hover:scale-105 active:scale-95 h-9"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">Nueva Categoría</span>
+            <span className="sm:hidden">Nueva</span>
+          </Button>
+        </div>
       </div>
 
       {/* Categories List */}

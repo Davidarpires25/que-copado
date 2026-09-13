@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Pencil, Trash2, Loader2 } from 'lucide-react'
+import { Pencil, Trash2, Loader2, ChevronUp, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -101,15 +101,15 @@ export function CategoryList({ categories, onEdit, onDeleted,onReorder, isSearch
   }
 
   return (
-    <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+    <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
       <table className="w-full">
-        <thead>
+        <thead className="sticky top-0 z-10 bg-[var(--admin-bg)]">
           <tr className="border-b border-[var(--admin-border)]">
-            <th className="text-left text-xs font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider px-4 py-3 w-24">Orden</th>
-            <th className="text-left text-xs font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider px-4 py-3">Nombre</th>
-            <th className="text-left text-xs font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider px-4 py-3 hidden md:table-cell">Slug</th>
-            <th className="text-left text-xs font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider px-4 py-3 hidden sm:table-cell">Productos</th>
-            <th className="text-right text-xs font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider px-4 py-3">Acciones</th>
+            <th className="text-left text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold px-4 py-3 w-24">Orden</th>
+            <th className="text-left text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold px-4 py-3">Nombre</th>
+            <th className="text-left text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold px-4 py-3 hidden md:table-cell">Slug</th>
+            <th className="text-left text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold px-4 py-3 hidden sm:table-cell">Productos</th>
+            <th className="text-center text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold px-4 py-3 w-28">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -126,21 +126,19 @@ export function CategoryList({ categories, onEdit, onDeleted,onReorder, isSearch
                     <div className="flex flex-col gap-0">
                       <button
                         onClick={() => handleMoveUp(index)}
+                        aria-label="Subir en el orden"
                         disabled={index === 0 || movingId === category.id || isSearching}
                         className="p-0.5 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
                       >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                        </svg>
+                        <ChevronUp className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleMoveDown(index)}
+                        aria-label="Bajar en el orden"
                         disabled={index === categories.length - 1 || movingId === category.id || isSearching}
                         className="p-0.5 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
                       >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <ChevronDown className="w-3.5 h-3.5" />
                       </button>
                     </div>
                     <span className="text-sm font-medium text-[var(--admin-text-muted)]">{index + 1}</span>
@@ -169,7 +167,7 @@ export function CategoryList({ categories, onEdit, onDeleted,onReorder, isSearch
 
                 {/* Acciones */}
                 <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-1">
+                  <div className="flex items-center justify-center gap-2">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>

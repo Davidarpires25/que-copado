@@ -1,10 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, ToggleLeft, ToggleRight, Loader2, Save, Sun, Moon } from 'lucide-react'
+import { Loader2, Sun, Moon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { AdminLayout } from '@/components/admin/layout'
 import { updateBusinessSettings, toggleBusinessPause } from '@/app/actions/business-settings'
@@ -12,6 +11,7 @@ import { useThemeStore } from '@/lib/store/theme-store'
 import { checkBusinessStatus, formatOperatingDays, formatBusinessHours } from '@/lib/services/business-hours'
 import { toast } from 'sonner'
 import { DangerZone } from '@/components/admin/settings/danger-zone'
+import { cn } from '@/lib/utils'
 import type { BusinessSettings } from '@/lib/types/database'
 
 interface BusinessSettingsFormProps {
@@ -28,31 +28,63 @@ const DAYS_OF_WEEK = [
   { value: 0, label: 'Dom' },
 ]
 
+const TABS = [
+  { key: 'horarios', label: 'Horarios' },
+  { key: 'pausa', label: 'Pausa' },
+  { key: 'apariencia', label: 'Apariencia' },
+  { key: 'datos', label: 'Datos' },
+] as const
+
+type TabKey = (typeof TABS)[number]['key']
+
+// El campo comparte fondo con el panel y se define por el borde, no por un
+// relleno gris: da mas contraste al texto tipeado y menos ruido de cajas.
+const FIELD =
+  'bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] h-12 rounded-lg ' +
+  'placeholder:text-[var(--admin-text-placeholder)] ' +
+  'focus:border-[var(--admin-accent)]/60 focus:ring-2 focus:ring-[var(--admin-accent)]/20'
+
+// El titulo de seccion no usa --admin-accent-text: sobre blanco queda en 1.59:1.
+// Una hora ocupa cinco caracteres; el campo no tiene por que medir media
+// columna. El textarea de abajo si va a lo ancho: eso es prosa.
+const TIME_W = 'w-[180px]'
+
+const LABEL = 'block text-[15px] font-semibold text-[var(--admin-text)] mb-2.5'
+
 export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormProps) {
   const [settings, setSettings] = useState(initialSettings)
   const [isSaving, setIsSaving] = useState(false)
-  const [isTogglingToggleLeft, setIsTogglingToggleLeft] = useState(false)
+  const [isTogglingPause, setIsTogglingPause] = useState(false)
+  const [tab, setTab] = useState<TabKey>('horarios')
   const { theme, setTheme } = useThemeStore()
 
-  // Form state
   const [operatingDays, setOperatingDays] = useState<number[]>(settings.operating_days)
   const [openingTime, setOpeningTime] = useState(settings.opening_time)
   const [closingTime, setClosingTime] = useState(settings.closing_time)
-  const [pauseMessage, setToggleLeftMessage] = useState(settings.pause_message || '')
+  const [pauseMessage, setPauseMessage] = useState(settings.pause_message || '')
 
   const businessStatus = checkBusinessStatus(settings)
 
+  // Que hay pendiente de guardar. Es global a los tabs: handleSave manda los
+  // campos de Horarios y de Pausa juntos, asi que el aviso no puede ser por tab.
+  const sameDays = (a: number[], b: number[]) =>
+    [...a].sort((x, y) => x - y).join(',') === [...b].sort((x, y) => x - y).join(',')
+
+  const hasChanges =
+    !sameDays(operatingDays, settings.operating_days) ||
+    openingTime !== settings.opening_time ||
+    closingTime !== settings.closing_time ||
+    pauseMessage !== (settings.pause_message || '')
+
   const handleToggleDay = (day: number) => {
     setOperatingDays((prev) =>
-      prev.includes(day)
-        ? prev.filter((d) => d !== day)
-        : [...prev, day].sort()
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort()
     )
   }
 
   const handleSave = async () => {
     if (operatingDays.length === 0) {
-      toast.error('Selecciona al menos un día de operación')
+      toast.error('Seleccioná al menos un día de operación')
       return
     }
 
@@ -73,10 +105,10 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
     }
   }
 
-  const handleToggleToggleLeft = async () => {
-    setIsTogglingToggleLeft(true)
+  const handleTogglePause = async () => {
+    setIsTogglingPause(true)
     const result = await toggleBusinessPause(!settings.is_paused, pauseMessage || undefined)
-    setIsTogglingToggleLeft(false)
+    setIsTogglingPause(false)
 
     if (result.error) {
       toast.error(result.error)
@@ -86,201 +118,215 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
     }
   }
 
+  const showSave = tab === 'horarios' || tab === 'pausa'
+
   return (
-    <AdminLayout title="Configuración" description="Horarios y preferencias del negocio">
-      <div className="max-w-2xl space-y-6">
-        {/* Status Card */}
-        <div
-          className={`rounded-xl p-6 border ${
-            businessStatus.isOpen
-              ? 'bg-green-500/10 border-green-500/30'
-              : 'bg-red-500/10 border-red-500/30'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div
-                className={`w-3 h-3 rounded-full ${
-                  businessStatus.isOpen ? 'bg-green-500' : 'bg-red-500'
-                } animate-pulse`}
-              />
+    <AdminLayout
+      title="Configuración"
+      description="Horarios y preferencias del negocio"
+      contentWidth="max-w-4xl"
+    >
+      {/* Tabs + estado. El chip va acá y no adentro del panel para que el
+          abierto/cerrado se vea desde cualquier tab sin ocupar una seccion. */}
+      <div className="flex items-center gap-6 mb-6 overflow-x-auto no-scrollbar">
+        {TABS.map(({ key, label }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setTab(key)}
+            aria-current={tab === key ? 'page' : undefined}
+            className={cn(
+              'pb-2 -mb-px text-sm whitespace-nowrap border-b-2 transition-colors',
+              tab === key
+                ? 'border-[var(--admin-accent)] text-[var(--admin-text)] font-semibold'
+                : 'border-transparent text-[var(--admin-text-muted)] font-medium hover:text-[var(--admin-text)]'
+            )}
+          >
+            {label}
+          </button>
+        ))}
+
+        <span className="ml-auto flex items-center gap-2 shrink-0 text-sm text-[var(--admin-text-muted)]">
+          <span
+            className={cn(
+              'w-2 h-2 rounded-full',
+              businessStatus.isOpen ? 'bg-green-500' : 'bg-red-500'
+            )}
+          />
+          {businessStatus.message}
+        </span>
+      </div>
+
+      <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-2xl shadow-[var(--shadow-card)]">
+        <div className="p-8 md:p-10">
+          {tab === 'horarios' && (
+            <div className="space-y-8">
+              <h2 className="text-2xl font-semibold text-[var(--admin-text)]">Horarios de atención</h2>
+
               <div>
-                <p className={`font-semibold ${businessStatus.isOpen ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
-                  {businessStatus.isOpen ? 'Abierto' : 'Cerrado'}
+                <span className={LABEL}>Días de operación</span>
+                <div className="flex flex-wrap gap-2">
+                  {DAYS_OF_WEEK.map(({ value, label }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => handleToggleDay(value)}
+                      aria-pressed={operatingDays.includes(value)}
+                      className={cn(
+                        'px-5 h-11 rounded-lg text-[15px] font-medium border transition-colors',
+                        operatingDays.includes(value)
+                          ? 'bg-[var(--admin-accent)] border-[var(--admin-accent)] text-black'
+                          : 'bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-sm text-[var(--admin-text-muted)] mt-2">
+                  {formatOperatingDays(operatingDays)}
                 </p>
-                <p className="text-sm text-[var(--admin-text-muted)]">{businessStatus.message}</p>
+              </div>
+
+              <div className="flex flex-wrap gap-5">
+                <div>
+                  <label htmlFor="apertura" className={LABEL}>Hora de apertura</label>
+                  <Input
+                    id="apertura"
+                    type="time"
+                    value={openingTime}
+                    onChange={(e) => setOpeningTime(e.target.value)}
+                    className={cn(FIELD, TIME_W)}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="cierre" className={LABEL}>Hora de cierre</label>
+                  <Input
+                    id="cierre"
+                    type="time"
+                    value={closingTime}
+                    onChange={(e) => setClosingTime(e.target.value)}
+                    className={cn(FIELD, TIME_W)}
+                  />
+                </div>
+              </div>
+
+              <p className="text-sm text-[var(--admin-text-muted)]">
+                Abre {formatBusinessHours(openingTime, closingTime)}.
+              </p>
+            </div>
+          )}
+
+          {tab === 'pausa' && (
+            <div className="space-y-8">
+              <h2 className="text-2xl font-semibold text-[var(--admin-text)]">Pausa de pedidos</h2>
+
+              <div className="flex items-center gap-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-[var(--admin-text)]">
+                    {settings.is_paused ? 'Pedidos pausados' : 'Recibiendo pedidos'}
+                  </p>
+                  <p className="text-sm text-[var(--admin-text-muted)] mt-0.5">
+                    {settings.is_paused
+                      ? 'Los clientes ven el mensaje de abajo en vez del carrito.'
+                      : 'Pausá para dejar de recibir pedidos sin cambiar el horario.'}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleTogglePause}
+                  disabled={isTogglingPause}
+                  className={cn(
+                    'ml-auto shrink-0 h-11 text-[15px]',
+                    settings.is_paused
+                      ? 'border-green-600/50 text-green-700 dark:text-green-400 hover:bg-green-500/10'
+                      : 'border-red-500/50 text-red-700 dark:text-red-400 hover:bg-red-500/10'
+                  )}
+                >
+                  {isTogglingPause && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {settings.is_paused ? 'Reanudar pedidos' : 'Pausar pedidos'}
+                </Button>
+              </div>
+
+              <div>
+                <label htmlFor="mensaje-pausa" className={LABEL}>
+                  Mensaje mientras están pausados
+                </label>
+                <Textarea
+                  id="mensaje-pausa"
+                  value={pauseMessage}
+                  onChange={(e) => setPauseMessage(e.target.value)}
+                  placeholder="Estamos cerrados temporalmente. Volvemos pronto!"
+                  className={cn(FIELD, 'h-auto min-h-[128px] py-3.5')}
+                />
               </div>
             </div>
+          )}
 
-            <Button
-              variant={settings.is_paused ? 'default' : 'outline'}
-              onClick={handleToggleToggleLeft}
-              disabled={isTogglingToggleLeft}
-              className={
-                settings.is_paused
-                  ? 'bg-green-600 hover:bg-green-700 text-white'
-                  : 'border-red-500/50 text-red-700 dark:text-red-400 hover:bg-red-500/10'
-              }
-            >
-              {isTogglingToggleLeft ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : settings.is_paused ? (
-                <ToggleRight className="h-4 w-4 mr-2" />
-              ) : (
-                <ToggleLeft className="h-4 w-4 mr-2" />
-              )}
-              {settings.is_paused ? 'Reanudar Pedidos' : 'Pausar Pedidos'}
-            </Button>
-          </div>
-        </div>
+          {tab === 'apariencia' && (
+            <div className="space-y-8">
+              <h2 className="text-2xl font-semibold text-[var(--admin-text)]">Apariencia</h2>
 
-        {/* Operación — Horarios + Pausa unificados */}
-        <div
-          className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 space-y-6 shadow-[var(--shadow-card)]"
-        >
-          <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-[var(--admin-accent-text)]" />
-            <h2 className="text-lg font-semibold text-[var(--admin-text)]">Horarios de Atención</h2>
-          </div>
-
-          {/* Days */}
-          <div className="space-y-3">
-            <Label className="text-[var(--admin-text-muted)]">Días de operación</Label>
-            <div className="flex flex-wrap gap-2">
-              {DAYS_OF_WEEK.map(({ value, label }) => (
+              <div className="flex items-center gap-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-[var(--admin-text)]">
+                    {theme === 'dark' ? 'Modo oscuro' : 'Modo claro'}
+                  </p>
+                  <p className="text-sm text-[var(--admin-text-muted)] mt-0.5">
+                    Se aplica al instante, no hace falta guardar.
+                  </p>
+                </div>
                 <button
-                  key={value}
                   type="button"
-                  onClick={() => handleToggleDay(value)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                    operatingDays.includes(value)
-                      ? 'bg-[var(--admin-accent)] text-black'
-                      : 'bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-border)]'
-                  }`}
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  className={cn(
+                    'ml-auto shrink-0 relative inline-flex h-8 w-[3.75rem] items-center rounded-full transition-colors',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)]',
+                    theme === 'dark' ? 'bg-[var(--admin-accent)]' : 'bg-[var(--admin-border)]'
+                  )}
+                  aria-label="Cambiar tema"
                 >
-                  {label}
+                  <span
+                    className={cn(
+                      'flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-sm transition-transform',
+                      theme === 'dark' ? 'translate-x-7' : 'translate-x-1'
+                    )}
+                  >
+                    {theme === 'dark' ? (
+                      <Moon className="h-3.5 w-3.5 text-[#1a1d24]" />
+                    ) : (
+                      <Sun className="h-3.5 w-3.5 text-amber-700" />
+                    )}
+                  </span>
                 </button>
-              ))}
+              </div>
             </div>
-            <p className="text-sm text-[var(--admin-text-muted)]">
-              {formatOperatingDays(operatingDays)}
-            </p>
-          </div>
+          )}
 
-          {/* Time */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-[var(--admin-text-muted)]">Hora de apertura</Label>
-              <Input
-                type="time"
-                value={openingTime}
-                onChange={(e) => setOpeningTime(e.target.value)}
-                className="bg-[var(--admin-surface-2)] border-[var(--admin-border)] text-[var(--admin-text)] h-10"
-              />
+          {tab === 'datos' && (
+            <div className="space-y-8">
+              <h2 className="text-2xl font-semibold text-[var(--admin-text)]">Datos</h2>
+              <DangerZone />
             </div>
-            <div className="space-y-2">
-              <Label className="text-[var(--admin-text-muted)]">Hora de cierre</Label>
-              <Input
-                type="time"
-                value={closingTime}
-                onChange={(e) => setClosingTime(e.target.value)}
-                className="bg-[var(--admin-surface-2)] border-[var(--admin-border)] text-[var(--admin-text)] h-10"
-              />
-            </div>
-          </div>
-          <p className="text-sm text-[var(--admin-text-muted)]">
-            Horario: {formatBusinessHours(openingTime, closingTime)}
-          </p>
-
-          <div className="h-px bg-[var(--admin-border)]" />
-
-          <div className="flex items-center gap-2">
-            <ToggleLeft className="h-5 w-5 text-[var(--admin-accent-text)]" />
-            <h2 className="text-lg font-semibold text-[var(--admin-text)]">Mensaje de Pausa</h2>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-[var(--admin-text-muted)]">
-              Mensaje cuando los pedidos están pausados
-            </Label>
-            <Textarea
-              value={pauseMessage}
-              onChange={(e) => setToggleLeftMessage(e.target.value)}
-              placeholder="Estamos cerrados temporalmente. Volvemos pronto!"
-              className="bg-[var(--admin-surface-2)] border-[var(--admin-border)] text-[var(--admin-text)] min-h-[100px] placeholder:text-[var(--admin-text-muted)]"
-            />
-          </div>
+          )}
         </div>
 
-        {/* Apariencia */}
-        <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 space-y-4 shadow-[var(--shadow-card)]">
-          <div className="flex items-center gap-2">
-            {theme === 'dark' ? (
-              <Moon className="h-5 w-5 text-[var(--admin-accent-text)]" />
-            ) : (
-              <Sun className="h-5 w-5 text-[var(--admin-accent-text)]" />
-            )}
-            <h2 className="text-lg font-semibold text-[var(--admin-text)]">Apariencia</h2>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-[var(--admin-text)]">
-                {theme === 'dark' ? 'Modo Oscuro' : 'Modo Claro'}
-              </p>
-              <p className="text-xs text-[var(--admin-text-muted)] mt-0.5">
-                {theme === 'dark'
-                  ? 'Interfaz oscura, ideal para ambientes con poca luz'
-                  : 'Interfaz clara, ideal para ambientes bien iluminados'}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className={`relative inline-flex h-8 w-[3.75rem] items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)] ${
-                theme === 'dark'
-                  ? 'bg-[var(--admin-accent)]'
-                  : 'bg-[var(--admin-border)]'
-              }`}
-              aria-label="Cambiar tema"
+        {showSave && (
+          <div className="flex items-center gap-4 border-t border-[var(--admin-border)] px-8 md:px-10 py-6">
+            <Button
+              onClick={handleSave}
+              disabled={isSaving || !hasChanges}
+              className="h-12 px-7 rounded-lg bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold disabled:opacity-100 disabled:bg-[var(--admin-surface-2)] disabled:text-[var(--admin-text-muted)]"
             >
-              <span
-                className={`flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-sm transition-transform ${
-                  theme === 'dark' ? 'translate-x-7' : 'translate-x-1'
-                }`}
-              >
-                {theme === 'dark' ? (
-                  <Moon className="h-3.5 w-3.5 text-[#1a1d24]" />
-                ) : (
-                  <Sun className="h-3.5 w-3.5 text-amber-700" />
-                )}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* Save Button */}
-        <div>
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="w-full h-12 bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Guardando...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Guardar Configuración
-              </>
+              {isSaving ? 'Guardando...' : 'Guardar cambios'}
+            </Button>
+            {hasChanges && (
+              <p className="text-sm text-[var(--admin-text-muted)]" aria-live="polite">
+                Tenés cambios sin guardar.
+              </p>
             )}
-          </Button>
-        </div>
-
-        <DangerZone />
+          </div>
+        )}
       </div>
     </AdminLayout>
   )

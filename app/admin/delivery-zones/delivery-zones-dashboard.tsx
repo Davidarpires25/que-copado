@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, MapPin, Check } from 'lucide-react'
+import { AlertTriangle, MapPin, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ZoneMapEditor } from '@/components/admin/delivery-zones/zone-map-editor'
 import { ZoneList } from '@/components/admin/delivery-zones/zone-list'
@@ -74,37 +74,25 @@ export function DeliveryZonesDashboard({ initialZones }: DeliveryZonesDashboardP
 
   return (
     <AdminLayout title="Zonas de Envío" description="Define las áreas de cobertura y costos de envío">
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-[var(--admin-accent)]/30 transition-all duration-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[var(--admin-text-muted)] text-sm font-medium">Total de Zonas</p>
-              <p className="text-3xl font-bold text-[var(--admin-text)] mt-1">{zones.length}</p>
-            </div>
-            <div className="w-12 h-12 bg-[var(--admin-accent)]/10 rounded-xl flex items-center justify-center">
-              <MapPin className="h-6 w-6 text-[var(--admin-accent-text)]" />
-            </div>
-          </div>
+      {activeZones.length === 0 && (
+        <div
+          className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 mb-6"
+          role="alert"
+        >
+          <AlertTriangle className="h-5 w-5 shrink-0 text-red-700 dark:text-red-400 mt-0.5" />
+          <p className="text-sm text-red-800 dark:text-red-300">
+            <span className="font-semibold">Los pedidos con envío están bloqueados.</span>{' '}
+            {zones.length === 0
+              ? 'No hay ninguna zona dibujada, así que toda dirección queda fuera de cobertura.'
+              : 'Todas las zonas están desactivadas, así que toda dirección queda fuera de cobertura.'}
+          </p>
         </div>
-
-        <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-green-500/30 transition-all duration-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[var(--admin-text-muted)] text-sm font-medium">Zonas Activas</p>
-              <p className="text-3xl font-bold text-[var(--admin-text)] mt-1">{activeZones.length}</p>
-            </div>
-            <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
-              <Check className="h-6 w-6 text-green-700 dark:text-green-500" />
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Actions Bar */}
       <div className="flex items-center justify-between mb-6">
         <p className="text-[var(--admin-text-muted)]">
-          {zones.length} {zones.length === 1 ? 'zona' : 'zonas'} configuradas
+          {zones.length} {zones.length === 1 ? 'zona configurada' : 'zonas configuradas'}
         </p>
         <Button
           onClick={() => {
@@ -120,9 +108,9 @@ export function DeliveryZonesDashboard({ initialZones }: DeliveryZonesDashboardP
       </div>
 
       {/* Map and List Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         <div className="lg:col-span-2">
-          <div className="rounded-xl border border-[var(--admin-border)] overflow-hidden bg-[var(--admin-surface)] shadow-[var(--shadow-card)]">
+          <div className="border border-[var(--admin-border)] overflow-hidden bg-[var(--admin-surface)] shadow-[var(--shadow-card)]">
             <div className="p-5 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]">
               <h2 className="text-[var(--admin-text)] font-semibold text-lg flex items-center gap-2">
                 <div className="w-8 h-8 bg-[var(--admin-accent)]/10 rounded-lg flex items-center justify-center">
@@ -147,7 +135,7 @@ export function DeliveryZonesDashboard({ initialZones }: DeliveryZonesDashboardP
           </div>
         </div>
 
-        <div>
+        <div className="flex">
           <ZoneList
             zones={zones}
             selectedZoneId={selectedZoneId}

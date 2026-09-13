@@ -232,7 +232,7 @@ export function ArqueosTable({ sessions }: ArqueosTableProps) {
 
       {/* Table */}
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] p-16 flex flex-col items-center justify-center text-center gap-3">
+        <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] p-16 flex flex-col items-center justify-center text-center gap-3">
           {sessions.length === 0 ? (
             <>
               <History className="h-10 w-10 text-[var(--admin-text-placeholder)]" />
@@ -260,7 +260,7 @@ export function ArqueosTable({ sessions }: ArqueosTableProps) {
           )}
         </div>
       ) : (
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+        <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">

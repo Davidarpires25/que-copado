@@ -296,37 +296,6 @@ export function ProductFormPage({
                   />
                 </div>
 
-                {/* Categoría */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
-                    Categoría <span className="text-red-700 dark:text-red-400">*</span>
-                  </Label>
-                  <Select
-                    name="category_id"
-                    required
-                    defaultValue={product?.category_id ?? undefined}
-                    onValueChange={(val) => {
-                      const cat = categories.find((c) => c.id === val)
-                      setPreviewCategory(cat?.name ?? '')
-                    }}
-                  >
-                    <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 data-[placeholder]:text-[var(--admin-text-muted)] [&_svg]:text-[var(--admin-text-muted)]">
-                      <SelectValue placeholder="Seleccionar categoría..." />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">
-                      {categories.map((cat) => (
-                        <SelectItem
-                          key={cat.id}
-                          value={cat.id}
-                          className="text-[var(--admin-text)] focus:bg-[var(--admin-border)] cursor-pointer"
-                        >
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 {/* Section: Tipo y Preparación */}
                 <div className="space-y-0.5 pt-2">
                   <h2 className="text-sm font-semibold text-[var(--admin-text)]">
@@ -454,35 +423,10 @@ export function ProductFormPage({
                   </div>
                 )}
 
-                {/* Estación */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
-                    Estación de cocina
-                  </Label>
-                  <Select
-                    name="station"
-                    defaultValue={product?.station ?? 'none'}
-                  >
-                    <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 [&_svg]:text-[var(--admin-text-muted)]">
-                      <SelectValue placeholder="Sin estación..." />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">
-                      <SelectItem value="none" className="text-[var(--admin-text)] focus:bg-[var(--admin-border)] cursor-pointer">
-                        Sin estación (bebidas / reventa)
-                      </SelectItem>
-                      <SelectItem value="cocina" className="text-[var(--admin-text)] focus:bg-[var(--admin-border)] cursor-pointer">
-                        Cocina
-                      </SelectItem>
-                      <SelectItem value="barra" className="text-[var(--admin-text)] focus:bg-[var(--admin-border)] cursor-pointer">
-                        Barra
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
             </div>
 
             {/* ── Right column ── */}
-            <div className="w-[320px] shrink-0 space-y-5">
+            <div className="w-[420px] shrink-0 space-y-5">
 
                 {/* Section: Configuración */}
                 <div className="space-y-0.5">
@@ -594,12 +538,74 @@ export function ProductFormPage({
 
                 <div className="h-px bg-[var(--admin-border)]" />
 
+                {/* Clasificación — vive en esta columna: son ajustes del
+                    producto, no datos que el cliente ve en el menú. Además
+                    empareja el alto de las dos columnas. */}
+                {/* Categoría */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
+                    Categoría <span className="text-red-700 dark:text-red-400">*</span>
+                  </Label>
+                  <Select
+                    name="category_id"
+                    required
+                    defaultValue={product?.category_id ?? undefined}
+                    onValueChange={(val) => {
+                      const cat = categories.find((c) => c.id === val)
+                      setPreviewCategory(cat?.name ?? '')
+                    }}
+                  >
+                    <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 data-[placeholder]:text-[var(--admin-text-muted)] [&_svg]:text-[var(--admin-text-muted)]">
+                      <SelectValue placeholder="Seleccionar categoría..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">
+                      {categories.map((cat) => (
+                        <SelectItem
+                          key={cat.id}
+                          value={cat.id}
+                          className="text-[var(--admin-text)] focus:bg-[var(--admin-border)] cursor-pointer"
+                        >
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Estación */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
+                    Estación de cocina
+                  </Label>
+                  <Select
+                    name="station"
+                    defaultValue={product?.station ?? 'none'}
+                  >
+                    <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 [&_svg]:text-[var(--admin-text-muted)]">
+                      <SelectValue placeholder="Sin estación..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">
+                      <SelectItem value="none" className="text-[var(--admin-text)] focus:bg-[var(--admin-border)] cursor-pointer">
+                        Sin estación (bebidas / reventa)
+                      </SelectItem>
+                      <SelectItem value="cocina" className="text-[var(--admin-text)] focus:bg-[var(--admin-border)] cursor-pointer">
+                        Cocina
+                      </SelectItem>
+                      <SelectItem value="barra" className="text-[var(--admin-text)] focus:bg-[var(--admin-border)] cursor-pointer">
+                        Barra
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="h-px bg-[var(--admin-border)]" />
+
                 {/* Vista Previa */}
                 <div className="space-y-3">
                   <p className="text-sm font-semibold text-[var(--admin-text)]">Vista Previa</p>
                   <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg)] overflow-hidden">
                     {/* Image area */}
-                    <div className="h-32 bg-[var(--admin-border)]/40 flex items-center justify-center">
+                    <div className="h-24 bg-[var(--admin-border)]/40 flex items-center justify-center">
                       {imageUrl ? (
                         <img
                           src={imageUrl}

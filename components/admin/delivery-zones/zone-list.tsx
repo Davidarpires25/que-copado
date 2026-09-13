@@ -70,7 +70,7 @@ export function ZoneList({
   }
 
   return (
-    <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg)] backdrop-blur shadow-xl">
+    <div className="flex-1 flex flex-col border border-[var(--admin-border)] overflow-hidden bg-[var(--admin-surface)] shadow-[var(--shadow-card)]">
       <div className="p-5 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]">
         <h2 className="text-[var(--admin-text)] font-semibold text-lg flex items-center gap-2">
           <div className="w-8 h-8 bg-[var(--admin-accent)]/10 rounded-lg flex items-center justify-center">
@@ -91,7 +91,7 @@ export function ZoneList({
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-[var(--admin-surface-2)]">
+        <div className="flex-1 overflow-y-auto divide-y divide-[var(--admin-surface-2)]">
           {zones.map((zone, _index) => (
             <div
               key={zone.id}

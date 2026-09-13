@@ -312,8 +312,8 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
         {/* Two-column layout — single unified card */}
         <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-8 flex gap-8 items-start">
 
-          {/* ── Left column ── */}
-          <div className="flex-1 min-w-0 space-y-5">
+          {/* ── Columna angosta: son tres campos de texto ── */}
+          <div className="w-[380px] shrink-0 space-y-5">
               <div className="space-y-0.5">
                 <h2 className="text-sm font-semibold text-[var(--admin-text)]">Información de la Receta</h2>
                 <p className="text-xs text-[var(--admin-text-muted)]">Nombre y descripción de la receta</p>
@@ -368,45 +368,10 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                   </p>
                 </div>
               )}
-            {recipeItems.length > 0 && (
-              <div className="space-y-4 border-t border-[var(--admin-border)] pt-5">
-                <div className="space-y-0.5">
-                  <h2 className="text-sm font-semibold text-[var(--admin-text)]">Resumen de Costos</h2>
-                  <p className="text-xs text-[var(--admin-text-muted)]">Calculado en base a los ingredientes</p>
-                </div>
-                <div className="h-px bg-[var(--admin-border)]" />
-                <div className="space-y-2">
-                  {recipeItems.map((item) => {
-                    const ing = getIngredient(item.ingredient_id)
-                    if (!ing) return null
-                    const subtotal = item.quantity * (UNIT_TO_BASE[item.unit] ?? 1) * ing.cost_per_unit
-                    const unitAbbr = INGREDIENT_UNIT_ABBR[item.unit as IngredientUnit] ?? item.unit
-                    return (
-                      <div key={item.ingredient_id} className="flex items-center justify-between text-sm">
-                        <span className="text-[var(--admin-text-muted)] truncate">{ing.name}</span>
-                        <div className="flex items-center gap-2 shrink-0 ml-2">
-                          <span className="text-xs text-[var(--admin-text-faint)]">{item.quantity} {unitAbbr}</span>
-                          <span className="text-[var(--admin-text)] font-medium w-20 text-right">{formatCost(subtotal)}</span>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-                <div className="h-px bg-[var(--admin-border)]" />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-[var(--admin-text)]">
-                    Total ({recipeItems.length} {recipeItems.length === 1 ? 'ingrediente' : 'ingredientes'})
-                  </span>
-                  <span className="text-base font-bold text-[var(--admin-price)]">
-                    {formatCost(totalCost)}
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* ── Right column ── */}
-          <div className="w-[420px] shrink-0 space-y-5">
+          {/* ── Columna ancha: acá pasa el trabajo real ── */}
+          <div className="flex-1 min-w-0 space-y-5">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <h2 className="text-sm font-semibold text-[var(--admin-text)]">Ingredientes de la Receta</h2>
@@ -416,11 +381,6 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                       : 'Agrega al menos uno'}
                   </p>
                 </div>
-                {totalCost > 0 && (
-                  <span className="text-xs font-semibold text-[var(--admin-price)] bg-[var(--admin-accent)]/10 border border-[var(--admin-accent)]/20 px-2 py-1 rounded-md">
-                    {formatCost(totalCost)}
-                  </span>
-                )}
               </div>
               <div className="h-px bg-[var(--admin-border)]" />
 
@@ -433,11 +393,12 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                   {recipeItems.length > 0 ? (
                     <div className="space-y-2">
                       {/* Table header */}
-                      <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-1 pb-1 border-b border-[var(--admin-border)]">
+                      <div className="grid grid-cols-[minmax(0,1fr)_110px_96px_110px_36px] gap-3 items-center px-2.5 pb-1.5 border-b border-[var(--admin-border)]">
                         <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]/70">Ingrediente</span>
-                        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]/70 w-16 text-center">Cant.</span>
-                        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]/70 w-16 text-center">Unidad</span>
-                        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]/70 w-16 text-right">Costo</span>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]/70 text-center">Cantidad</span>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]/70 text-center">Unidad</span>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]/70 text-right">Subtotal</span>
+                        <span className="sr-only">Quitar</span>
                       </div>
 
                       {recipeItems.map((item) => {
@@ -458,7 +419,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                               isNew && 'border-[var(--admin-accent)]/60 ring-2 ring-[var(--admin-accent)]/25'
                             )}
                           >
-                            <div className="flex items-center gap-2">
+                            <div className="grid grid-cols-[minmax(0,1fr)_110px_96px_110px_36px] gap-3 items-center">
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm text-[var(--admin-text)] font-medium truncate">{ing.name}</p>
                                 <p className="text-xs text-[var(--admin-text-muted)]">
@@ -472,10 +433,10 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                                   const val = parseFloat(e.target.value)
                                   if (!isNaN(val) && val > 0) handleQuantityChange(item.ingredient_id, val)
                                 }}
-                                className="w-16 h-8 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm text-center focus:border-[var(--admin-accent)]/50 focus:ring-1 focus:ring-[var(--admin-accent)]/20"
+                                className="w-full h-9 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm text-center focus:border-[var(--admin-accent)]/50 focus:ring-1 focus:ring-[var(--admin-accent)]/20"
                               />
                               <Select value={item.unit} onValueChange={(v) => handleUnitChange(item.ingredient_id, v)}>
-                                <SelectTrigger className="w-16 h-8 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-xs focus:ring-1 focus:ring-[var(--admin-accent)]/20 px-2">
+                                <SelectTrigger className="w-full h-9 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-xs focus:ring-1 focus:ring-[var(--admin-accent)]/20 px-2">
                                   <SelectValue>{selectedUnitAbbr}</SelectValue>
                                 </SelectTrigger>
                                 <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">
@@ -486,12 +447,12 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                                   ))}
                                 </SelectContent>
                               </Select>
-                              <p className="text-xs text-[var(--admin-price)] font-semibold w-14 text-right shrink-0">
+                              <p className="text-sm text-[var(--admin-price)] font-semibold text-right">
                                 {formatCost(subtotal)}
                               </p>
                               <Button
                                 type="button" size="icon" variant="ghost"
-                                className="h-7 w-7 text-red-700 dark:text-red-500 hover:text-red-600 hover:bg-red-500/10 shrink-0"
+                                className="h-8 w-8 justify-self-end text-red-700 dark:text-red-500 hover:text-red-600 hover:bg-red-500/10"
                                 onClick={() => handleRemoveIngredient(item.ingredient_id)}
                               >
                                 <X className="h-3.5 w-3.5" />
@@ -541,6 +502,20 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                     onSelect={handleAddIngredient}
                     onCreateRequest={(name) => { setCreateIngredientName(name); setShowCreateIngredient(true) }}
                   />
+
+                  {/* Total al pie de la lista que lo produce. Antes vivia en un
+                      chip arriba y ademas en un "Resumen de Costos" que repetia
+                      los mismos 8 ingredientes en la otra columna. */}
+                  {recipeItems.length > 0 && (
+                    <div className="flex items-center justify-between border-t border-[var(--admin-border)] pt-3.5">
+                      <span className="text-sm font-semibold text-[var(--admin-text)]">
+                        Total ({recipeItems.length} {recipeItems.length === 1 ? 'ingrediente' : 'ingredientes'})
+                      </span>
+                      <span className="text-base font-bold text-[var(--admin-price)]">
+                        {formatCost(totalCost)}
+                      </span>
+                    </div>
+                  )}
 
                   {allIngredients.length === 0 && (
                     <p className="text-xs text-[var(--admin-text-muted)] text-center py-1">

@@ -97,7 +97,7 @@ export function ImageUploader({ initialUrl, onChange }: ImageUploaderProps) {
       {url ? (
         <div
           className="relative group rounded-xl overflow-hidden border border-[var(--admin-border)] bg-[var(--admin-bg)]"
-          style={{ height: 180 }}
+          style={{ height: 120 }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- URL cargada a mano por el admin: puede ser de cualquier host y next/image falla si no esta en remotePatterns. */}
           <img
@@ -134,8 +134,10 @@ export function ImageUploader({ initialUrl, onChange }: ImageUploaderProps) {
           onDrop={handleDrop}
           disabled={uploading}
           className={cn(
-            'w-full rounded-xl border-2 border-dashed transition-all cursor-pointer',
-            'flex flex-col items-center justify-center gap-2.5 py-10',
+            'w-full h-24 rounded-xl border-2 border-dashed transition-all cursor-pointer',
+            // Fila en vez de columna: la zona vacia no necesita 160px de alto
+            // para decir lo mismo, y el formulario entero entra en pantalla.
+            'flex items-center justify-center gap-3 px-4',
             dragging
               ? 'border-[var(--admin-accent)] bg-[var(--admin-accent)]/5'
               : 'border-[var(--admin-border)] bg-[var(--admin-bg)] hover:border-[var(--admin-accent)]/50 hover:bg-[var(--admin-accent)]/5',
@@ -143,10 +145,10 @@ export function ImageUploader({ initialUrl, onChange }: ImageUploaderProps) {
           )}
         >
           {uploading
-            ? <Loader2 className="h-7 w-7 text-[var(--admin-accent)] animate-spin" />
-            : <ImageIcon className="h-7 w-7 text-[var(--admin-text-muted)]/40" />
+            ? <Loader2 className="h-6 w-6 shrink-0 text-[var(--admin-accent)] animate-spin" />
+            : <ImageIcon className="h-6 w-6 shrink-0 text-[var(--admin-text-muted)]/40" />
           }
-          <div className="text-center">
+          <div className="text-left">
             <p className="text-sm font-medium text-[var(--admin-text-muted)]">
               {uploading ? 'Subiendo...' : 'Arrastrá o hacé click para subir'}
             </p>

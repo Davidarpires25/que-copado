@@ -15,15 +15,28 @@ interface AdminLayoutProps {
   title: string
   description?: string
   hidePageHeader?: boolean
+  /**
+   * Ancho maximo de la columna (clase Tailwind, p. ej. "max-w-3xl"). Encierra al
+   * titulo junto con el contenido para que compartan el borde izquierdo: una
+   * pantalla angosta centrada con el titulo suelto a la izquierda se lee como
+   * desalineada. Sin la prop, la pagina ocupa todo el ancho como siempre.
+   */
+  contentWidth?: string
 }
 
-export function AdminLayout({ children, title, description, hidePageHeader }: AdminLayoutProps) {
+export function AdminLayout({
+  children,
+  title,
+  description,
+  hidePageHeader,
+  contentWidth,
+}: AdminLayoutProps) {
   const shellMounted = useContext(AdminShellContext)
 
   if (shellMounted) {
     // Persistent shell already rendered by app/admin/layout.tsx — just render the page header
     return (
-      <>
+      <div className={contentWidth ? cn('mx-auto', contentWidth) : undefined}>
         {!hidePageHeader && (
           <div className="mb-6 md:mb-8">
             <h1 className="text-2xl md:text-3xl font-bold text-[var(--admin-text)]">{title}</h1>
@@ -33,19 +46,24 @@ export function AdminLayout({ children, title, description, hidePageHeader }: Ad
           </div>
         )}
         {children}
-      </>
+      </div>
     )
   }
 
   // Fallback: render full standalone layout (e.g. login, caja POS, or outside admin routes)
   return (
-    <AdminLayoutStandalone title={title} description={description} hidePageHeader={hidePageHeader}>
+    <AdminLayoutStandalone
+      title={title}
+      description={description}
+      hidePageHeader={hidePageHeader}
+      contentWidth={contentWidth}
+    >
       {children}
     </AdminLayoutStandalone>
   )
 }
 
-function AdminLayoutStandalone({ children, title, description, hidePageHeader }: AdminLayoutProps) {
+function AdminLayoutStandalone({ children, title, description, hidePageHeader, contentWidth }: AdminLayoutProps) {
   const [sidebarCollapsed, handleToggleCollapse] = useSidebarCollapsed()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [stockAlertCount, setStockAlertCount] = useState(0)
@@ -118,18 +136,20 @@ function AdminLayoutStandalone({ children, title, description, hidePageHeader }:
 
         {/* Page Content */}
         <main id="main-content" className="p-4 md:p-6 lg:p-8">
-          {/* Page Header */}
-          {!hidePageHeader && (
-            <div className="mb-6 md:mb-8">
-              <h1 className="text-2xl md:text-3xl font-bold text-[var(--admin-text)]">{title}</h1>
-              {description && (
-                <p className="text-[var(--admin-text-muted)] text-sm mt-1">{description}</p>
-              )}
-            </div>
-          )}
+          <div className={contentWidth ? cn('mx-auto', contentWidth) : undefined}>
+            {/* Page Header */}
+            {!hidePageHeader && (
+              <div className="mb-6 md:mb-8">
+                <h1 className="text-2xl md:text-3xl font-bold text-[var(--admin-text)]">{title}</h1>
+                {description && (
+                  <p className="text-[var(--admin-text-muted)] text-sm mt-1">{description}</p>
+                )}
+              </div>
+            )}
 
-          {/* Page Content */}
-          {children}
+            {/* Page Content */}
+            {children}
+          </div>
         </main>
       </div>
     </div>
