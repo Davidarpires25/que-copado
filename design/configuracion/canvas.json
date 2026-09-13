@@ -1,0 +1,94 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "Configuración · Horarios",
+      "x": 0,
+      "y": 0,
+      "w": 640,
+      "h": 600
+    },
+    {
+      "file": "Pausa.dc.html",
+      "title": "Configuración · Pausa",
+      "x": 720,
+      "y": 0,
+      "w": 640,
+      "h": 560
+    },
+    {
+      "file": "Apariencia.dc.html",
+      "title": "Configuración · Apariencia",
+      "x": 1440,
+      "y": 0,
+      "w": 640,
+      "h": 350
+    },
+    {
+      "file": "Datos.dc.html",
+      "title": "Configuración · Datos",
+      "x": 2160,
+      "y": 0,
+      "w": 640,
+      "h": 440
+    },
+    {
+      "file": "HorariosDark.dc.html",
+      "title": "Horarios · modo oscuro",
+      "x": 0,
+      "y": 720,
+      "w": 640,
+      "h": 600
+    },
+    {
+      "file": "MiCuenta.dc.html",
+      "title": "Mi cuenta · en reposo",
+      "x": 720,
+      "y": 720,
+      "w": 640,
+      "h": 500
+    },
+    {
+      "file": "MiCuentaEditando.dc.html",
+      "title": "Mi cuenta · editando",
+      "x": 1440,
+      "y": 720,
+      "w": 640,
+      "h": 800
+    },
+    {
+      "file": "MiCuentaGuardado.dc.html",
+      "title": "Mi cuenta · guardado",
+      "x": 2160,
+      "y": 720,
+      "w": 640,
+      "h": 570
+    }
+  ],
+  "annotations": [
+    {
+      "id": "nota-ancho",
+      "x": 0,
+      "y": -170,
+      "w": 640,
+      "text": "Columna de 480px, centrada junto con el título. El criterio no fue la proporción de la tarjeta sino el espacio muerto: a 600px quedaban 146px de vacío al lado de cada fila; a 480 quedan 26. Los campos siguen en 360px y las horas en 132px."
+    },
+    {
+      "id": "nota-densidad",
+      "x": 720,
+      "y": -170,
+      "w": 640,
+      "text": "Ritmo compacto: controles de 38px, chips de día de 34px con padding 12 para que los siete entren en una fila, padding de tarjeta 24px, separación 20px. El cuerpo se queda en 14px."
+    },
+    {
+      "id": "nota-cuenta",
+      "x": 1440,
+      "y": -170,
+      "w": 1360,
+      "text": "Mi cuenta: un solo Guardar, sin franjas. Email y contraseña son campos de sólo lectura con un botón de editar al lado; al tocarlo aparecen sus campos y el botón pasa a cerrar. La contraseña actual se pide UNA vez al pie. Sin alertas informativas: sólo la confirmación en verde al guardar."
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}

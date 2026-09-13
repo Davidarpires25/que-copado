@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; }
+    a { color: #0F172A; } a:hover { color: #475569; }
+  </style>
+</helmet>
+<div style="background: #F3F4F8; min-height: 100%; padding: 24px 0 32px; color: #0F172A;">
+  <div style="width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+
+    <div>
+      <h1 style="margin: 0; font-size: 26px; line-height: 32px; font-weight: 700; letter-spacing: -0.02em;">Configuración</h1>
+      <p style="margin: 4px 0 0; font-size: 14px; line-height: 20px; color: #475569;">Horarios y preferencias del negocio</p>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <div style="padding-bottom: 8px; font-size: 14px; font-weight: 600; border-bottom: 2px solid {{accent}};">Horarios</div>
+      <div style="padding-bottom: 8px; font-size: 14px; font-weight: 500; color: #475569; border-bottom: 2px solid transparent;">Pausa</div>
+      <div style="padding-bottom: 8px; font-size: 14px; font-weight: 500; color: #475569; border-bottom: 2px solid transparent;">Apariencia</div>
+      <div style="padding-bottom: 8px; font-size: 14px; font-weight: 500; color: #475569; border-bottom: 2px solid transparent;">Datos</div>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 14px; color: #475569;">
+        <span style="width: 8px; height: 8px; border-radius: 999px; background: #22C55E;"></span>
+        Abierto hasta las 02:00
+      </div>
+    </div>
+
+    <div style="background: #FFFFFF; border: 1px solid #E0E2EA; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);">
+      <div style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+        <h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600;">Horarios de atención</h2>
+
+        <div>
+          <div style="font-size: 14px; font-weight: 600; margin-bottom: 6px;">Días de operación</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <div style="height: 34px; padding: 0 12px; display: flex; align-items: center; border-radius: 8px; font-size: 14px; font-weight: 500; color: #0F172A; background: {{accent}}; border: 1px solid {{accent}};">Lun</div>
+            <div style="height: 34px; padding: 0 12px; display: flex; align-items: center; border-radius: 8px; font-size: 14px; font-weight: 500; color: #0F172A; background: {{accent}}; border: 1px solid {{accent}};">Mar</div>
+            <div style="height: 34px; padding: 0 12px; display: flex; align-items: center; border-radius: 8px; font-size: 14px; font-weight: 500; color: #0F172A; background: {{accent}}; border: 1px solid {{accent}};">Mié</div>
+            <div style="height: 34px; padding: 0 12px; display: flex; align-items: center; border-radius: 8px; font-size: 14px; font-weight: 500; color: #0F172A; background: {{accent}}; border: 1px solid {{accent}};">Jue</div>
+            <div style="height: 34px; padding: 0 12px; display: flex; align-items: center; border-radius: 8px; font-size: 14px; font-weight: 500; color: #0F172A; background: {{accent}}; border: 1px solid {{accent}};">Vie</div>
+            <div style="height: 34px; padding: 0 12px; display: flex; align-items: center; border-radius: 8px; font-size: 14px; font-weight: 500; color: #0F172A; background: {{accent}}; border: 1px solid {{accent}};">Sáb</div>
+            <div style="height: 34px; padding: 0 12px; display: flex; align-items: center; border-radius: 8px; font-size: 14px; font-weight: 500; color: #0F172A; background: {{accent}}; border: 1px solid {{accent}};">Dom</div>
+          </div>
+          <p style="margin: 8px 0 0; font-size: 14px; color: #475569;">Todos los días</p>
+        </div>
+
+        <div style="display: flex; gap: 16px;">
+          <div>
+            <div style="font-size: 14px; font-weight: 600; margin-bottom: 6px;">Hora de apertura</div>
+            <div style="width: 132px; height: 38px; border: 1px solid #E0E2EA; border-radius: 8px; background: #FFFFFF; display: flex; align-items: center; padding: 0 12px; gap: 8px;">
+              <span style="flex-grow: 1; font-size: 14px;">09:00</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 14px; font-weight: 600; margin-bottom: 6px;">Hora de cierre</div>
+            <div style="width: 132px; height: 38px; border: 1px solid #E0E2EA; border-radius: 8px; background: #FFFFFF; display: flex; align-items: center; padding: 0 12px; gap: 8px;">
+              <span style="flex-grow: 1; font-size: 14px;">02:00</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+            </div>
+          </div>
+        </div>
+
+        <p style="margin: 0; font-size: 14px; color: #475569;">Abre 09:00 - 02:00.</p>
+      </div>
+
+      <div style="border-top: 1px solid #E0E2EA; padding: 16px 24px; display: flex; align-items: center; gap: 16px;">
+        <div style="height: 38px; padding: 0 18px; display: flex; align-items: center; border-radius: 8px; font-size: 14px; font-weight: 600; color: #0F172A; background: {{accent}};">Guardar cambios</div>
+        <p style="margin: 0; font-size: 14px; color: #475569;">Tenés cambios sin guardar.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#FEC501","options":["#FEC501","#0F172A","#2563EB","#059669"],"section":"Marca"},"$preview":{"width":1120,"height":660}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#FEC501' };
+  }
+}
+</script>
+</body>
+</html>

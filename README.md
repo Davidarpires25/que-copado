@@ -47,6 +47,23 @@ cp .env.local.example .env.local
 
 3. Completar las variables con tus credenciales de Supabase
 
+Variables que usa el proyecto:
+
+| Variable | Para qué |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto de Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave pública de Supabase |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | Número al que apunta el checkout |
+| `NEXT_PUBLIC_SENTRY_DSN` | Reporte de errores |
+| `SUPABASE_SERVICE_ROLE_KEY` | Clave de servicio, solo servidor |
+| `AGENT_API_SECRET` | Secreto compartido del contrato con el agente de WhatsApp |
+
+Sobre `AGENT_API_SECRET`: protege los endpoints `/api/agent/*` que consume el
+agente de WhatsApp. Si no está definida, esos endpoints responden `503` y no
+autentican a nadie — un despliegue mal configurado se cierra en vez de quedar
+abierto. Es deliberadamente distinta de la `service_role` de Supabase, para
+poder rotarla sin tocar credenciales de base de datos.
+
 ### 3. Crear tablas en Supabase
 
 Ejecutar el siguiente SQL en el SQL Editor de Supabase:

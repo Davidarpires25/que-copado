@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; }
+    a { color: #0F172A; } a:hover { color: #475569; }
+  </style>
+</helmet>
+<div style="background: #F3F4F8; min-height: 100%; padding: 24px 0 32px; color: #0F172A;">
+  <div style="width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+
+    <div>
+      <h1 style="margin: 0; font-size: 26px; line-height: 32px; font-weight: 700; letter-spacing: -0.02em;">Configuración</h1>
+      <p style="margin: 4px 0 0; font-size: 14px; line-height: 20px; color: #475569;">Horarios y preferencias del negocio</p>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <div style="padding-bottom: 8px; font-size: 14px; font-weight: 500; color: #475569; border-bottom: 2px solid transparent;">Horarios</div>
+      <div style="padding-bottom: 8px; font-size: 14px; font-weight: 500; color: #475569; border-bottom: 2px solid transparent;">Pausa</div>
+      <div style="padding-bottom: 8px; font-size: 14px; font-weight: 500; color: #475569; border-bottom: 2px solid transparent;">Apariencia</div>
+      <div style="padding-bottom: 8px; font-size: 14px; font-weight: 600; border-bottom: 2px solid #FEC501;">Datos</div>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 14px; color: #475569;">
+        <span style="width: 8px; height: 8px; border-radius: 999px; background: #22C55E;"></span>
+        Abierto hasta las 02:00
+      </div>
+    </div>
+
+    <div style="background: #FFFFFF; border: 1px solid #E0E2EA; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);">
+      <div style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+        <h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600;">Datos</h2>
+
+        <div style="display: flex; align-items: flex-start; gap: 14px; padding: 16px; border-radius: 10px; border: 1px solid rgba(239,68,68,0.3); background: rgba(239,68,68,0.05);">
+          <div style="width: 34px; height: 34px; flex-shrink: 0; border-radius: 12px; background: rgba(239,68,68,0.15); display: flex; align-items: center; justify-content: center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B91C1C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+          </div>
+          <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; align-items: flex-start;">
+            <div>
+              <h3 style="margin: 0 0 4px; font-size: 15px; font-weight: 600; color: #B91C1C;">Zona de Peligro</h3>
+              <p style="margin: 0; font-size: 14px; line-height: 20px; color: #475569;">Eliminación permanente de datos. Estas acciones no se pueden deshacer. Se requiere verificación de contraseña.</p>
+            </div>
+            <div style="height: 34px; padding: 0 12px; display: flex; align-items: center; gap: 8px; border-radius: 8px; border: 1px solid rgba(239,68,68,0.4); background: rgba(220,38,38,0.2); color: #B91C1C; font-size: 14px; font-weight: 500;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B91C1C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"></path></svg>
+              Gestionar eliminación de datos
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
