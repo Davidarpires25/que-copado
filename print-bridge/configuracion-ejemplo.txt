@@ -1,0 +1,22 @@
+# Configuracion del Print Bridge de Que Copado
+#
+# Renombrar este archivo a `configuracion.txt` (o `.env`, si preferis)
+# y dejarlo EN LA MISMA CARPETA que print-bridge-windows.exe
+
+# --- Supabase -------------------------------------------------------------
+# La URL del proyecto, sin arroba ni barra final.
+SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+
+# La clave publica (anon). Es la que corresponde: el bridge solo necesita leer
+# los tickets pendientes y marcarlos como impresos.
+# NO poner aca la service_role: esa da acceso total a la base y esta maquina
+# esta en el local.
+SUPABASE_ANON_KEY=eyJhbGciOi...
+
+# --- Impresora ------------------------------------------------------------
+# IP y puerto de la impresora termica en la red del local.
+PRINTER_IP=192.168.1.100
+PRINTER_PORT=9100
+
+# Ancho del ticket en caracteres: 44 para papel de 80mm, 32 para 58mm.
+PRINTER_LINE_WIDTH=44

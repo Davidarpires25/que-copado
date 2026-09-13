@@ -13,11 +13,37 @@ const PAYMENT_LABELS: Record<string, string> = {
   mercadopago: 'Mercado Pago',
 }
 
-function now() {
-  const d = new Date()
+/**
+ * Fecha y hora del pedido, en hora Argentina.
+ *
+ * Antes esto era `new Date()` sin zona: como el server action corre en Netlify
+ * —que va en UTC— un ticket emitido a las 21:07 de Argentina salia impreso como
+ * "11/09, 12:07 a. m.", con la fecha del dia siguiente. En el horario pico de
+ * una hamburgueseria eso era casi todos los tickets.
+ *
+ * Importa mas de lo que parece porque el numero de pedido se reinicia cada dia
+ * (ver 021_numero_de_pedido_por_dia): un ticket que dice "#15" con la fecha
+ * corrida apunta a un pedido que al dia siguiente existe de verdad y es otro.
+ *
+ * Y se toma del pedido, no del reloj: reimprimir el ticket de ayer le estampaba
+ * la fecha de hoy, con lo que la copia no se distinguia de un pedido nuevo.
+ */
+const AR_TZ = 'America/Argentina/Buenos_Aires'
+
+function fechaDelPedido(createdAt: string | null | undefined) {
+  const d = createdAt ? new Date(createdAt) : new Date()
   return {
-    dateStr: d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-    timeStr: d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+    dateStr: d.toLocaleDateString('es-AR', {
+      timeZone: AR_TZ,
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }),
+    timeStr: d.toLocaleTimeString('es-AR', {
+      timeZone: AR_TZ,
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
   }
 }
 
@@ -70,7 +96,7 @@ export async function printClientTicketAction(
     const isRoundSnapshot = Boolean(options.itemIds && options.itemIds.length > 0)
     const isGuestScope = Boolean(options.guestTag)
     const total = isRoundSnapshot || isGuestScope ? subtotal : order.total
-    const { dateStr, timeStr } = now()
+    const { dateStr, timeStr } = fechaDelPedido(order.created_at)
 
     const paymentLabel = isRoundSnapshot
       ? 'Parcial'
@@ -258,7 +284,7 @@ export async function printKitchenTicketAction(
       return { error: 'No hay ítems de cocina para imprimir.' }
     }
 
-    const { dateStr, timeStr } = now()
+    const { dateStr, timeStr } = fechaDelPedido(order.created_at)
 
     const { error: insertError } = await supabase.from('print_jobs').insert({
       type: 'kitchen_ticket',

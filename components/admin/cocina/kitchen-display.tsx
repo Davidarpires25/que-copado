@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, ChefHat } from 'lucide-react'
 import { useRealtimeChannel } from '@/lib/hooks/use-realtime-channel'
 import { getActiveComandas } from '@/app/actions/comandas'
 import { ComandaCard } from './comanda-card'
@@ -51,8 +51,9 @@ export function KitchenDisplay({ initialComandas }: KitchenDisplayProps) {
       {/* Header */}
       <div className="bg-[var(--admin-surface)] border-b border-[var(--admin-border)] px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold text-[var(--admin-text)]">
-            🍳 Cocina
+          <h1 className="text-xl font-bold text-[var(--admin-text)] flex items-center gap-2">
+            <ChefHat className="h-5 w-5 text-[var(--admin-accent-text)]" />
+            Cocina
           </h1>
           <div className="flex items-center gap-2">
             {pendingCount > 0 && (

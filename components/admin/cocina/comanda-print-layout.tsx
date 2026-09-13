@@ -27,7 +27,9 @@ export function ComandaPrintLayout({ comanda }: ComandaPrintLayoutProps) {
   const date = new Date(comanda.created_at)
   const dateStr = date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
   const timeStr = date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
-  const stationLabel = comanda.station === 'cocina' ? '🍳 COCINA' : '🍹 BARRA'
+  // Sin emoji: esto es el encabezado de una comanda monoespaciada, no UI. El
+  // emoji se dibuja distinto en cada sistema y no aporta nada al que la lee.
+  const stationLabel = comanda.station === 'cocina' ? 'COCINA' : 'BARRA'
 
   return (
     <div className="w-[300px] font-mono text-sm leading-snug p-2">

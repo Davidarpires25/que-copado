@@ -5,20 +5,24 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "build:win": "pkg index.js --target node22-win-x64   --output dist/print-bridge-windows.exe",
-    "build:linux": "pkg index.js --target node22-linux-x64 --output dist/print-bridge-linux",
-    "build:mac": "pkg index.js --target node22-macos-x64 --output dist/print-bridge-mac",
+    "build:win": "pkg index.js --target node18-win-x64   --output dist/print-bridge-windows.exe",
+    "build:linux": "pkg index.js --target node18-linux-x64 --output dist/print-bridge-linux",
+    "build:mac": "pkg index.js --target node18-macos-x64 --output dist/print-bridge-mac",
     "build:all": "npm run build:win && npm run build:linux && npm run build:mac"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2",
     "dotenv": "^16",
-    "node-thermal-printer": "^4"
+    "node-thermal-printer": "^4",
+    "systray2": "^2.1.4"
   },
   "pkg": {
-    "assets": [],
+    "assets": [
+      "iconos/*.ico",
+      "node_modules/systray2/traybin/**"
+    ],
     "targets": [
-      "node22-win-x64"
+      "node18-win-x64"
     ]
   },
   "devDependencies": {

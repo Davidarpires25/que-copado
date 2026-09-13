@@ -1,0 +1,4 @@
+.env
+node_modules/
+dist/
+print-bridge.log
