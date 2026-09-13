@@ -1,5 +1,6 @@
 'use server'
 
+import { after } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { devError } from '@/lib/server/logger'
@@ -8,7 +9,6 @@ import { deductStockForOrder, restoreStockForOrder } from '@/lib/server/stock-de
 import { getSalesField } from '@/lib/server/cash-register-utils'
 import type { Order, PaymentMethod } from '@/lib/types/database'
 import type { CreatePosOrderData, CreateMostadorOrderData, PaymentSplit } from '@/lib/types/cash-register'
-import { sendToKitchen } from './comandas'
 
 /**
  * Crear una orden POS (venta en local)
@@ -169,12 +169,15 @@ export async function cancelPosOrder(
       }
     }
 
-    // Best-effort stock restoration — errors do NOT block the cancellation
-    try {
-      await restoreStockForOrder(supabase, orderId, user.id)
-    } catch (stockError) {
-      devError('Error restoring stock for cancelled POS order:', stockError)
-    }
+    // Best-effort y fuera del camino critico: la cancelacion ya esta escrita, y
+    // devolver el stock no tiene por que hacer esperar a quien cancela.
+    after(async () => {
+      try {
+        await restoreStockForOrder(supabase, orderId, user.id)
+      } catch (stockError) {
+        devError('Error restoring stock for cancelled POS order (after):', stockError)
+      }
+    })
 
     revalidateCaja()
     revalidateOrders()
@@ -190,6 +193,15 @@ export async function cancelPosOrder(
 /**
  * Crea orden mostrador con status 'abierto' y envía a cocina.
  * NO actualiza session totals (se hace al cobrar).
+ *
+ * Todo en una sola transaccion, igual que los tres caminos de cobro. Eran entre
+ * siete y nueve viajes —orden, items, y adentro de sendToKitchen dos consultas
+ * mas y dos inserts por estacion— con los ~160ms fijos de cada uno encima del
+ * tap del cajero.
+ *
+ * Ademas el rollback era a mano: si fallaban los order_items se borraba la
+ * orden recien creada, y si fallaba una comanda el codigo seguia de largo y
+ * dejaba un pedido cobrable que cocina nunca veia.
  */
 export async function createMostadorOrder(
   data: CreateMostadorOrderData
@@ -199,76 +211,28 @@ export async function createMostadorOrder(
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
 
-    const { data: session } = await supabase
-      .from('cash_register_sessions')
-      .select('id, status')
-      .eq('id', data.session_id)
-      .eq('status', 'open')
-      .single()
+    const { data: order, error } = await supabase.rpc('crear_pedido_de_mostrador', {
+      p_session_id: data.session_id,
+      p_items: data.items,
+      p_total: data.total,
+      p_notes: data.notes || null,
+      p_shipping_cost: data.shipping_cost ?? 0,
+      p_delivery_zone_id: data.delivery_zone_id ?? null,
+      p_added_by: user.id,
+    })
 
-    if (!session) {
-      return { data: null, error: 'La caja no esta abierta' }
-    }
-
-    const now = new Date().toISOString()
-
-    const { data: order, error } = await supabase
-      .from('orders')
-      .insert({
-        items: data.items as unknown as Record<string, unknown>[],
-        total: data.total,
-        payment_method: 'cash', // default, se establece al cobrar
-        order_source: 'pos',
-        order_type: 'mostrador',
-        table_number: null,
-        notes: data.notes || null,
-        cash_register_session_id: data.session_id,
-        status: 'abierto',
-        shipping_cost: data.shipping_cost ?? 0,
-        delivery_zone_id: data.delivery_zone_id ?? null,
-        customer_phone: null,
-        customer_name: null,
-        customer_address: null,
-        opened_at: now,
-        updated_at: now,
-      })
-      .select()
-      .single()
-
-    if (error || !order) {
+    if (error) {
       devError('Error creating mostrador order:', error)
-      return { data: null, error: 'Error al crear el pedido' }
+      // P0001 es un RAISE nuestro: el texto esta escrito para quien atiende.
+      return {
+        data: null,
+        error: error.code === 'P0001' ? error.message : 'Error al crear el pedido',
+      }
     }
 
-    // Insert order_items for kitchen tracking
-    const orderItemsToInsert = data.items.map((item) => ({
-      order_id: order.id,
-      product_id: item.id,
-      product_name: item.name,
-      product_price: item.price,
-      quantity: item.quantity,
-      notes: item.notes || null,
-      status: 'pendiente',
-      added_by: user.id,
-      metadata: item.metadata ?? null,
-    }))
-
-    const { error: itemsError } = await supabase.from('order_items').insert(orderItemsToInsert)
-    if (itemsError) {
-      devError('Error inserting order_items for mostrador order:', itemsError)
-      // Rollback: delete the orphaned order
-      await supabase.from('orders').delete().eq('id', order.id)
-      return { data: null, error: 'Error al registrar los productos del pedido' }
-    }
-
-    // Send to kitchen (fire and forget - errors don't block the order)
-    try {
-      await sendToKitchen(order.id)
-    } catch (kitchenError) {
-      devError('Error sending order to kitchen:', kitchenError)
-    }
-
-    revalidateCaja()
+    // La caja no lee de la pagina: vive de estado cliente y realtime. Revalidar
+    // /admin/caja obligaba a re-renderizarla entera —nueve consultas— dentro de
+    // la respuesta de esta accion, para un arbol que nadie mira.
     revalidateOrders()
 
     return { data: order as Order, error: null }
@@ -328,8 +292,13 @@ export async function completeMostadorPayment(
     // Fuera de la transaccion a proposito: el stock es best-effort y no tiene
     // por que poder tumbar un cobro ya confirmado.
     if (resultado.items?.length) {
-      deductStockForOrder(supabase, resultado.items, orderId, user.id).catch((stockError) => {
-        devError('Error deducting stock for payment (async):', stockError)
+      // after() en vez de una promesa suelta: ver nota en tables.ts.
+      after(async () => {
+        try {
+          await deductStockForOrder(supabase, resultado.items, orderId, user.id)
+        } catch (stockError) {
+          devError('Error deducting stock for payment (after):', stockError)
+        }
       })
     }
 
@@ -400,7 +369,14 @@ export async function getPendingOrders(
 
 /**
  * Cancela una orden mostrador pendiente (abierto -> cancelado).
- * Restaura el stock descontado.
+ *
+ * Un UPDATE guardado en vez de leer y despues escribir: la condicion de que sea
+ * cancelable viaja en el WHERE, asi que si no matchea no se toco nada y el
+ * RETURNING vuelve vacio. Un viaje en lugar de dos, y sin la ventana entre la
+ * lectura y la escritura donde dos cajeros podian cancelar el mismo pedido.
+ *
+ * Los dos origenes que pueden estar esperando cobro tienen estados distintos:
+ * el de mostrador nace 'abierto', el de la web nace 'recibido'.
  */
 export async function cancelMostadorOrder(
   orderId: string
@@ -410,40 +386,37 @@ export async function cancelMostadorOrder(
     const user = await getAuthUser(supabase)
     if (!user) return { error: 'No autenticado' }
 
-    const { data: order } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('id', orderId)
-      .single()
-
-    // Los dos origenes que pueden estar esperando cobro, con estados distintos:
-    // el de mostrador nace 'abierto', el de la web nace 'recibido'. La consulta
-    // filtraba por order_type='mostrador', asi que un pedido web no matcheaba y
-    // no habia forma de sacarlo de Pendientes: quedaba ahi para siempre.
-    const cancelable =
-      order != null &&
-      ((order.order_type === 'mostrador' && order.status === 'abierto') ||
-        (order.order_source === 'web' && order.status === 'recibido'))
-
-    if (!cancelable) return { error: 'Orden no encontrada o ya procesada' }
-
-    const { error } = await supabase
+    const { data: cancelada, error } = await supabase
       .from('orders')
       .update({ status: 'cancelado', updated_at: new Date().toISOString() })
       .eq('id', orderId)
+      .or('and(order_type.eq.mostrador,status.eq.abierto),and(order_source.eq.web,status.eq.recibido)')
+      .select('id')
+      .maybeSingle()
 
     if (error) {
       devError('Error cancelling mostrador order:', error)
       return { error: 'Error al cancelar el pedido' }
     }
 
-    // Devolver stock si es que se descontó. Un pendiente todavia no descontó
-    // —eso pasa al cobrar— asi que aca no hay movimientos de venta y la funcion
-    // sale sin hacer nada. Se llama igual porque este mismo camino sirve para
-    // cancelar algo que si llego a descontar.
-    await restoreStockForOrder(supabase, orderId, user.id)
+    if (!cancelada) return { error: 'Orden no encontrada o ya procesada' }
 
-    revalidateCaja()
+    // Devolver stock si es que se descontó. Un pendiente todavia no descontó
+    // —eso pasa al cobrar— asi que casi siempre no hay nada que revertir; se
+    // llama igual porque este mismo camino sirve para cancelar algo que si
+    // llego a descontar.
+    //
+    // Fuera del camino critico: la cancelacion ya esta escrita y confirmada, y
+    // el cajero no tiene por que esperar al stock. after() y no una promesa
+    // suelta porque Netlify es serverless: ver la nota en tables.ts.
+    after(async () => {
+      try {
+        await restoreStockForOrder(supabase, orderId, user.id)
+      } catch (stockError) {
+        devError('Error restoring stock for cancelled mostrador order (after):', stockError)
+      }
+    })
+
     revalidateOrders()
     revalidateStock()
 

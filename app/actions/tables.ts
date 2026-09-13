@@ -1,5 +1,6 @@
 'use server'
 
+import { after } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { devError } from '@/lib/server/logger'
@@ -557,8 +558,15 @@ export async function payTableOrder(
     // tiene por que poder tumbar un cobro ya confirmado. La funcion devuelve
     // los items para no gastar otro viaje en buscarlos.
     if (resultado.items?.length) {
-      deductStockForOrder(supabase, resultado.items, orderId, user.id).catch((stockError) => {
-        devError('Error deducting stock for table order (async):', stockError)
+      // after() en vez de una promesa suelta: Netlify es serverless y la
+      // invocacion puede terminar antes de que corra, dejando la venta cobrada
+      // sin descontar. Sigue sin bloquear la respuesta del cobro.
+      after(async () => {
+        try {
+          await deductStockForOrder(supabase, resultado.items, orderId, user.id)
+        } catch (stockError) {
+          devError('Error deducting stock for table order (after):', stockError)
+        }
       })
     }
 

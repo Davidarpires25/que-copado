@@ -158,6 +158,39 @@ export function PosInterface({
     if (!silent) setPendingLoading(false)
   }, [session.id])
 
+  /**
+   * Aplica a la lista de pendientes lo que ya trae el evento de realtime.
+   *
+   * El evento del INSERT viene con la fila entera, asi que volver a pedirle la
+   * lista al servidor para enterarse de algo que el propio mensaje ya dice era
+   * un viaje de mas entre el pedido del cliente y la pantalla del mostrador. La
+   * relectura sigue corriendo detras como reconciliacion: esto adelanta lo que
+   * se ve, no reemplaza la fuente de verdad.
+   *
+   * Las condiciones son las mismas que las de getPendingOrders: el de mostrador
+   * se acota a la sesion actual porque nace dentro de ella; el de la web no
+   * tiene sesion hasta que alguien lo cobra.
+   */
+  const aplicarCambioDePedido = useCallback((nuevo: Order | null, id: string | null) => {
+    const pedidoId = nuevo?.id ?? id
+    if (!pedidoId) return
+
+    const sigueEsperandoCobro =
+      nuevo != null &&
+      ((nuevo.order_type === 'mostrador' &&
+        nuevo.status === 'abierto' &&
+        nuevo.cash_register_session_id === session.id) ||
+        (nuevo.order_source === 'web' && nuevo.status === 'recibido'))
+
+    setPendingOrders((prev) => {
+      const resto = prev.filter((o) => o.id !== pedidoId)
+      if (!sigueEsperandoCobro) return resto.length === prev.length ? prev : resto
+      return [...resto, nuevo].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      )
+    })
+  }, [session.id])
+
   const handleLoadHistorial = useCallback(async (silent = false) => {
     if (!silent) setHistorialLoading(true)
     const { data } = await getSessionOrders(session.id)
@@ -179,7 +212,11 @@ export function PosInterface({
         () => { debouncedRefreshTables() }
       )
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `cash_register_session_id=eq.${session.id}` },
-        () => {
+        (payload) => {
+          aplicarCambioDePedido(
+            (payload.new as Order | null) ?? null,
+            ((payload.old ?? payload.new) as { id?: string } | null)?.id ?? null
+          )
           void refreshPendingOrders(true)
           debouncedRefreshHistorial()
           debouncedRefreshTables()
@@ -190,7 +227,11 @@ export function PosInterface({
       // disparaba nada. Hacen falta las dos suscripciones: esta los ve entrar,
       // la de arriba los ve cobrarse.
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: 'order_source=eq.web' },
-        () => {
+        (payload) => {
+          aplicarCambioDePedido(
+            (payload.new as Order | null) ?? null,
+            ((payload.old ?? payload.new) as { id?: string } | null)?.id ?? null
+          )
           void refreshPendingOrders(true)
           debouncedRefreshHistorial()
         }
@@ -206,7 +247,7 @@ export function PosInterface({
         debouncedRefreshTables()
       },
     },
-    [debouncedRefreshTables, debouncedRefreshHistorial, refreshPendingOrders, session.id]
+    [debouncedRefreshTables, debouncedRefreshHistorial, refreshPendingOrders, aplicarCambioDePedido, session.id]
   )
 
   // Red de seguridad para los pendientes.
@@ -338,6 +379,14 @@ export function PosInterface({
 
     if (data) {
       if (hasKitchenItems) {
+        // El pendiente se pinta con lo que ya devolvio el servidor. Antes esto
+        // esperaba a getPendingOrders, que es otra server action entera —y Next
+        // las serializa, asi que ademas hacia cola detras del ticket— para
+        // traer una lista que ya teniamos. Realtime reconcilia igual: la
+        // suscripcion a orders filtrada por sesion trae este mismo INSERT.
+        setPendingOrders((prev) =>
+          prev.some((o) => o.id === data.id) ? prev : [...prev, data]
+        )
         printKitchenTicketAction(data.id).then(r => {
           if (r.error) toast.error(r.error)
         })
@@ -346,7 +395,6 @@ export function PosInterface({
         setNotes('')
         setShippingEnabled(false)
         setSelectedDeliveryZoneId(null)
-        await refreshPendingOrders()
         setPayingOrder(data)
       } else {
         // Solo reventa: cobro inmediato sin pasar por la tarjeta
@@ -385,7 +433,9 @@ export function PosInterface({
     if (isMostrador) {
       // Si estabamos mirando ese pedido, la pantalla ya no tiene que que mostrar.
       setPayingOrder((prev) => (prev?.id === orderId ? null : prev))
-      await refreshPendingOrders()
+      // Sale de la lista en el acto: el servidor ya confirmo la cancelacion, y
+      // esperar a releer los pendientes solo agregaba otro viaje al boton.
+      setPendingOrders((prev) => prev.filter((o) => o.id !== orderId))
     } else {
       router.refresh()
       await handleLoadHistorial(true)
@@ -430,8 +480,11 @@ export function PosInterface({
     if (data) {
       toast.success('Pago registrado')
       setPayingOrder(null)
+      // Cobrado deja de estar pendiente: se saca en el acto y la relectura va
+      // silenciosa, sin bloquear la vuelta a la pantalla de venta.
+      setPendingOrders((prev) => prev.filter((o) => o.id !== data.id))
       router.refresh()
-      await refreshPendingOrders()
+      void refreshPendingOrders(true)
       void handleLoadHistorial(true)
 
       const orderTotal = payingOrder.total
