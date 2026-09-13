@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, BookOpen, Check, X, Pencil, Trash2, Search, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, BookOpen, Pencil, Trash2, Search, ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
@@ -40,8 +40,6 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
     (r) => !searchQuery || r.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const activeCount = recipes.filter((r) => r.is_active).length
-  const inactiveCount = recipes.length - activeCount
 
   const handleToggleActive = async (recipe: RecipeWithIngredients) => {
     const newValue = !recipe.is_active
@@ -70,29 +68,8 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
 
   return (
     <AdminLayout title="Recetas" description="Crea recetas reutilizables para calcular costos de productos">
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        {[
-          { label: 'Total', value: recipes.length, icon: BookOpen, color: 'text-[var(--admin-accent-text)]', bg: 'bg-[var(--admin-accent)]/10', border: 'hover:border-[var(--admin-accent)]/30' },
-          { label: 'Activas', value: activeCount, icon: Check, color: 'text-green-600 dark:text-green-500', bg: 'bg-green-500/10', border: 'hover:border-green-500/30' },
-          { label: 'Inactivas', value: inactiveCount, icon: X, color: 'text-red-700 dark:text-red-500', bg: 'bg-red-500/10', border: 'hover:border-red-500/30' },
-        ].map(({ label, value, icon: Icon, color, bg, border }) => (
-          <div key={label} className={`bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] ${border} transition-all`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[var(--admin-text-muted)] text-sm font-medium">{label}</p>
-                <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{value}</p>
-              </div>
-              <div className={`w-10 h-10 lg:w-12 lg:h-12 ${bg} rounded-xl flex items-center justify-center`}>
-                <Icon className={`h-5 w-5 lg:h-6 lg:w-6 ${color}`} />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
       {recipes.length === 0 ? (
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+        <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           <div className="p-16 text-center">
             <div className="w-20 h-20 bg-[var(--admin-surface-2)] rounded-2xl flex items-center justify-center mx-auto mb-6">
               <BookOpen className="h-10 w-10 text-[var(--admin-text-faint)]" />
@@ -140,7 +117,7 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
           </div>
 
           {/* Table */}
-          <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+          <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
                 <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
@@ -148,7 +125,7 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
                   <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold hidden sm:table-cell">Ingredientes</TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Costo</TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center hidden sm:table-cell">Activa</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-right">Acciones</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -231,7 +208,7 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
                       </TableCell>
 
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-center gap-2">
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>

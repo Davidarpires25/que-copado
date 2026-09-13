@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
+import { escalarComponente } from '@/lib/server/sub-recipes'
 import { revalidateProducts } from '@/lib/server/revalidate'
 
 /**
@@ -20,6 +21,30 @@ interface StockDeductionItem {
  */
 function resolveProductId(item: StockDeductionItem): string | null {
   return item.product_id ?? item.id ?? null
+}
+
+/**
+ * Movimiento pendiente de aplicar.
+ *
+ * El recorrido del arbol de recetas ya no escribe a medida que baja: acumula
+ * estos movimientos y al final los aplica de una, en una transaccion
+ * (`aplicar_movimientos_de_stock`, migracion 033). Eso es lo que elimina la
+ * carrera entre ventas simultaneas y hace que el stock y su movimiento no
+ * puedan quedar desfasados.
+ */
+export interface MovimientoPendiente {
+  tipo: 'ingredient' | 'product'
+  id: string
+  /** Positiva: es cuanto se RESTA del stock. */
+  cantidad: number
+}
+
+/** Acumula sumando, para que el mismo ingrediente en dos recetas sea un solo movimiento. */
+function acumular(destino: Map<string, MovimientoPendiente>, mov: MovimientoPendiente): void {
+  const clave = `${mov.tipo}:${mov.id}`
+  const previo = destino.get(clave)
+  if (previo) previo.cantidad += mov.cantidad
+  else destino.set(clave, { ...mov })
 }
 
 // ---------------------------------------------------------------------------
@@ -43,8 +68,10 @@ export async function deductStockForOrder(
   supabase: SupabaseClient,
   items: StockDeductionItem[],
   orderId: string,
-  userId: string | null
+  _userId: string | null
 ): Promise<void> {
+  const pendientes = new Map<string, MovimientoPendiente>()
+
   for (const item of items) {
     if (item.quantity <= 0) continue
 
@@ -52,7 +79,6 @@ export async function deductStockForOrder(
     if (!productId) continue
 
     try {
-      // Fetch product info
       const { data: product, error: productError } = await supabase
         .from('products')
         .select('id, product_type, current_stock, stock_tracking_enabled')
@@ -62,20 +88,60 @@ export async function deductStockForOrder(
       if (productError || !product) continue
 
       if (product.product_type === 'reventa') {
-        await deductReventaStock(supabase, product, item.quantity, orderId, userId)
+        if (product.stock_tracking_enabled) {
+          acumular(pendientes, { tipo: 'product', id: product.id, cantidad: item.quantity })
+        }
       } else if (product.product_type === 'elaborado') {
-        await deductElaboradoStock(supabase, productId, item.quantity, orderId, userId)
+        await collectElaboradoStock(supabase, productId, item.quantity, pendientes)
       }
     } catch (err) {
       if (process.env.NODE_ENV === 'development') {
-        console.error(`[Stock] Error deducting stock for product ${productId}:`, err)
+        console.error(`[Stock] Error calculando stock del producto ${productId}:`, err)
       }
     }
   }
 
-  // After all deductions, sync elaborado availability (best-effort).
-  // This can be expensive, so do not block the sale/payment flow.
-  syncElaboradoAvailability(supabase).catch((err) => {
+  if (pendientes.size > 0) {
+    const { data, error } = await supabase.rpc('aplicar_movimientos_de_stock', {
+      p_order_id: orderId,
+      p_movimientos: Array.from(pendientes.values()),
+    })
+
+    if (error) {
+      // Ya no hay estado a medias que compensar: la transaccion no se aplico.
+      console.error(`[Stock] No se pudo aplicar el descuento del pedido ${orderId}:`, error.message)
+    } else {
+      const resultado = data as { duplicado?: boolean; negativos?: unknown[] } | null
+      if (resultado?.duplicado) {
+        console.error(`[Stock] El pedido ${orderId} ya habia descontado stock; no se duplico`)
+      }
+      // Vender en rojo no se bloquea, pero queda constancia: antes una venta que
+      // dejaba el stock en negativo no se distinguia de una normal.
+      if (resultado?.negativos?.length) {
+        console.error(
+          `[Stock] El pedido ${orderId} dejo items en negativo:`,
+          JSON.stringify(resultado.negativos)
+        )
+      }
+    }
+  }
+
+  // El auto-agotado de los productos de reventa lo hacia deductReventaStock
+  // justo despues de escribir. Ahora que la escritura vive en la RPC, se
+  // re-sincroniza aca con el stock ya aplicado.
+  for (const mov of pendientes.values()) {
+    if (mov.tipo !== 'product') continue
+    try {
+      const { data: prod } = await supabase
+        .from('products')
+        .select('current_stock')
+        .eq('id', mov.id)
+        .single()
+      if (prod) await _syncReventaProduct(supabase, mov.id, Number(prod.current_stock))
+    } catch { /* nunca bloquea la venta */ }
+  }
+
+  await syncElaboradoAvailability(supabase).catch((err) => {
     if (process.env.NODE_ENV === 'development') {
       console.error('[Stock] Error syncing elaborado availability:', err)
     }
@@ -97,99 +163,30 @@ export async function deductStockForOrder(
 export async function restoreStockForOrder(
   supabase: SupabaseClient,
   orderId: string,
-  userId: string | null
+  _userId: string | null
 ): Promise<void> {
-  try {
-    // Get all sale movements for this order
-    const { data: movements, error } = await supabase
-      .from('stock_movements')
-      .select('*')
-      .eq('order_id', orderId)
-      .eq('movement_type', 'sale')
+  const { data, error } = await supabase.rpc('revertir_movimientos_de_stock', {
+    p_order_id: orderId,
+  })
 
-    if (error || !movements || movements.length === 0) return
-
-    for (const mov of movements) {
-      try {
-        // The original sale movement has a negative quantity.
-        // To restore, we add back the absolute value.
-        const restoreQty = Math.abs(mov.quantity)
-
-        if (mov.ingredient_id) {
-          // Restore ingredient stock
-          const { data: ingredient } = await supabase
-            .from('ingredients')
-            .select('id, current_stock')
-            .eq('id', mov.ingredient_id)
-            .single()
-
-          if (!ingredient) continue
-
-          const previousStock = Number(ingredient.current_stock)
-          const newStock = previousStock + restoreQty
-
-          await supabase
-            .from('ingredients')
-            .update({ current_stock: newStock })
-            .eq('id', mov.ingredient_id)
-
-          await supabase.from('stock_movements').insert({
-            ingredient_id: mov.ingredient_id,
-            movement_type: 'sale_reversal',
-            quantity: restoreQty,
-            previous_stock: previousStock,
-            new_stock: newStock,
-            reason: 'Reversion por cancelacion de venta',
-            reference_type: 'order',
-            order_id: orderId,
-            created_by: userId,
-          })
-        } else if (mov.product_id) {
-          // Restore product stock
-          const { data: product } = await supabase
-            .from('products')
-            .select('id, current_stock')
-            .eq('id', mov.product_id)
-            .single()
-
-          if (!product) continue
-
-          const previousStock = Number(product.current_stock)
-          const newStock = previousStock + restoreQty
-
-          await supabase
-            .from('products')
-            .update({ current_stock: newStock })
-            .eq('id', mov.product_id)
-
-          await supabase.from('stock_movements').insert({
-            product_id: mov.product_id,
-            movement_type: 'sale_reversal',
-            quantity: restoreQty,
-            previous_stock: previousStock,
-            new_stock: newStock,
-            reason: 'Reversion por cancelacion de venta',
-            reference_type: 'order',
-            order_id: orderId,
-            created_by: userId,
-          })
-
-          // Re-enable if was auto-disabled and stock recovered (best-effort)
-          try {
-            await _syncReventaProduct(supabase, mov.product_id, newStock)
-          } catch { /* best effort */ }
-        }
-      } catch (err) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error(`[Stock] Error restoring movement ${mov.id}:`, err)
-        }
-      }
-    }
-  } catch (err) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`[Stock] Error restoring stock for order ${orderId}:`, err)
-    }
+  if (error) {
+    console.error(`[Stock] No se pudo revertir el stock del pedido ${orderId}:`, error.message)
+    return
   }
+
+  const resultado = data as { duplicado?: boolean; revertidos?: number } | null
+  if (resultado?.duplicado && process.env.NODE_ENV === 'development') {
+    console.error(`[Stock] El pedido ${orderId} ya estaba revertido; no se duplico`)
+  }
+
+  // Sin movimientos revertidos no cambio ningun stock, y sin stock que cambie no
+  // hay nada que resincronizar. El barrido recorre todos los elaborados activos
+  // con una consulta anidada por producto, en serie: quince productos son ~2,4
+  // segundos. Cancelar un pendiente —que todavia no descontó nada, porque eso
+  // pasa al cobrar— los pagaba enteros para no tocar una sola fila.
+  if (!resultado?.revertidos) return
+
+  await syncElaboradoAvailability(supabase).catch(() => { /* nunca bloquea la cancelacion */ })
 }
 
 // ---------------------------------------------------------------------------
@@ -199,71 +196,14 @@ export async function restoreStockForOrder(
 /**
  * Deducts stock for a 'reventa' product (direct stock on products table).
  */
-async function deductReventaStock(
-  supabase: SupabaseClient,
-  product: { id: string; current_stock: number; stock_tracking_enabled: boolean },
-  quantity: number,
-  orderId: string,
-  userId: string | null
-): Promise<void> {
-  if (!product.stock_tracking_enabled) return
-
-  const previousStock = Number(product.current_stock)
-  const newStock = previousStock - quantity
-
-  const { error: updateError } = await supabase
-    .from('products')
-    .update({ current_stock: newStock })
-    .eq('id', product.id)
-
-  if (updateError) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`[Stock] Failed to update product ${product.id} stock:`, updateError.message)
-    }
-    return
-  }
-
-  // Record movement (best-effort)
-  await supabase.from('stock_movements').insert({
-    product_id: product.id,
-    movement_type: 'sale',
-    quantity: -quantity,
-    previous_stock: previousStock,
-    new_stock: newStock,
-    reason: 'Venta automatica',
-    reference_type: 'order',
-    order_id: orderId,
-    created_by: userId,
-  })
-
-  // Auto-disable when stock hits 0 (best-effort)
-  try {
-    await _syncReventaProduct(supabase, product.id, newStock)
-  } catch { /* never block the sale */ }
-}
-
-/**
- * Recursively deducts stock for a single ingredient, then cascades into
- * its sub-recipe children (ingredient_sub_recipes table).
- *
- * @param supabase           - Authenticated Supabase client
- * @param ingredientId       - The ingredient to deduct from
- * @param quantityInRecipeUnit - Quantity expressed in `recipeUnit`
- * @param recipeUnit         - The unit specified in the recipe or sub-recipe
- * @param orderId            - Order UUID for traceability
- * @param userId             - User who made the sale
- * @param visited            - Set of ingredient IDs already processed (cycle detection)
- */
-async function deductIngredientCascade(
+async function collectIngredientCascade(
   supabase: SupabaseClient,
   ingredientId: string,
   quantityInRecipeUnit: number,
   recipeUnit: string,
-  orderId: string,
-  userId: string | null,
+  pendientes: Map<string, MovimientoPendiente>,
   visited: Set<string>
 ): Promise<void> {
-  // Cycle detection
   if (visited.has(ingredientId)) {
     if (process.env.NODE_ENV === 'development') {
       console.error(`[Stock] Cycle detected for ingredient ${ingredientId}, skipping`)
@@ -272,10 +212,9 @@ async function deductIngredientCascade(
   }
   visited.add(ingredientId)
 
-  // Fetch ingredient
   const { data: ingredient, error: ingError } = await supabase
     .from('ingredients')
-    .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled')
+    .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled, yield_quantity')
     .eq('id', ingredientId)
     .single()
 
@@ -286,10 +225,8 @@ async function deductIngredientCascade(
     return
   }
 
-  // Convert recipe quantity to base unit
   const baseQty = convertToBaseUnit(quantityInRecipeUnit, recipeUnit)
 
-  // Verify unit compatibility
   if (getBaseUnit(recipeUnit) !== getBaseUnit(ingredient.unit)) {
     if (process.env.NODE_ENV === 'development') {
       console.error(
@@ -299,42 +236,13 @@ async function deductIngredientCascade(
     return
   }
 
-  // Apply waste percentage
   const wastePct = Number(ingredient.waste_percentage) || 0
   const wasteFactor = 1 - wastePct / 100
   const actualQty = wasteFactor > 0 ? baseQty / wasteFactor : baseQty
 
-  // Deduct stock if tracking is enabled
-  if (ingredient.stock_tracking_enabled) {
-    const previousStock = Number(ingredient.current_stock)
-    const newStock = previousStock - actualQty
-
-    const { error: updateError } = await supabase
-      .from('ingredients')
-      .update({ current_stock: newStock })
-      .eq('id', ingredient.id)
-
-    if (updateError) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error(`[Stock] Failed to update ingredient ${ingredient.id} stock:`, updateError.message)
-      }
-    } else {
-      // Record movement (best-effort)
-      await supabase.from('stock_movements').insert({
-        ingredient_id: ingredient.id,
-        movement_type: 'sale',
-        quantity: -actualQty,
-        previous_stock: previousStock,
-        new_stock: newStock,
-        reason: 'Venta automatica',
-        reference_type: 'order',
-        order_id: orderId,
-        created_by: userId,
-      })
-    }
-  }
-
-  // Fetch sub-recipe children
+  // Un ingrediente con sub-receta se resuelve a sus componentes y no descuenta
+  // de si mismo: las preparaciones se hacen en el momento, no se guardan. Es el
+  // mismo criterio que usa _collectReqs para decidir si alcanza el stock.
   const { data: subItems } = await supabase
     .from('ingredient_sub_recipes')
     .select('child_ingredient_id, quantity, unit')
@@ -342,29 +250,23 @@ async function deductIngredientCascade(
 
   if (subItems && subItems.length > 0) {
     for (const sub of subItems) {
-      // Scale child quantity by how much of the parent we actually used
-      const childQty = sub.quantity * actualQty
-      await deductIngredientCascade(
+      await collectIngredientCascade(
         supabase,
         sub.child_ingredient_id,
-        childQty,
+        escalarComponente(sub.quantity, actualQty, ingredient.yield_quantity),
         sub.unit,
-        orderId,
-        userId,
+        pendientes,
         new Set(visited)
       )
     }
+    return
+  }
+
+  if (ingredient.stock_tracking_enabled) {
+    acumular(pendientes, { tipo: 'ingredient', id: ingredient.id, cantidad: actualQty })
   }
 }
 
-// ---------------------------------------------------------------------------
-// syncElaboradoAvailability
-// ---------------------------------------------------------------------------
-
-/**
- * Auto-disables a reventa product when its stock reaches 0.
- * Restores it when stock recovers (ONLY if auto_disabled=true).
- */
 async function _syncReventaProduct(
   supabase: SupabaseClient,
   productId: string,
@@ -550,7 +452,7 @@ async function _collectReqs(
 
   const { data: ingredient } = await supabase
     .from('ingredients')
-    .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled')
+    .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled, yield_quantity')
     .eq('id', ingredientId)
     .single()
 
@@ -569,7 +471,7 @@ async function _collectReqs(
 
   if (subItems && subItems.length > 0) {
     for (const sub of subItems) {
-      await _collectReqs(supabase, sub.child_ingredient_id, sub.quantity * actualQty, sub.unit, requirements, new Set(visited))
+      await _collectReqs(supabase, sub.child_ingredient_id, escalarComponente(sub.quantity, actualQty, ingredient.yield_quantity), sub.unit, requirements, new Set(visited))
     }
   } else {
     const existing = requirements.get(ingredientId)
@@ -591,12 +493,11 @@ async function _collectReqs(
  *
  * Chain: product -> product_recipes -> recipes -> recipe_ingredients -> ingredients -> sub-recipes
  */
-async function deductElaboradoStock(
+async function collectElaboradoStock(
   supabase: SupabaseClient,
   productId: string,
   orderQuantity: number,
-  orderId: string,
-  userId: string | null
+  pendientes: Map<string, MovimientoPendiente>
 ): Promise<void> {
   // Fetch all recipe ingredients for this product in one query
   const { data: productRecipes, error: prError } = await supabase
@@ -644,13 +545,12 @@ async function deductElaboradoStock(
       // Effective unit: use recipe_ingredient.unit if specified, else ingredient's own unit
       const effectiveUnit = ri.unit ?? ingredient.unit
 
-      await deductIngredientCascade(
+      await collectIngredientCascade(
         supabase,
         ingredient.id,
         totalQty,
         effectiveUnit,
-        orderId,
-        userId,
+        pendientes,
         new Set<string>()
       )
     }

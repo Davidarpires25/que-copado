@@ -5,7 +5,6 @@ import {
   getFullStockData,
   getStockAlerts,
   getAllTheoreticalStocks,
-  getStockForecast,
   getReservedStock,
   getConsumptionReport,
 } from '@/app/actions/stock'
@@ -17,7 +16,7 @@ export default async function StockPage() {
 
   const adminSupabase = await createAdminClient()
 
-  const [stockResult, alertsResult, theoreticalResult, elaboradoResult, forecastResult, reservedResult, consumptionResult] =
+  const [stockResult, alertsResult, theoreticalResult, elaboradoResult, reservedResult, consumptionResult] =
     await Promise.all([
       getFullStockData(),
       getStockAlerts(),
@@ -28,7 +27,6 @@ export default async function StockPage() {
         .eq('product_type', 'elaborado')
         .eq('is_active', true)
         .order('name'),
-      getStockForecast('30d'),
       getReservedStock(),
       getConsumptionReport('30d'),
     ])
@@ -41,7 +39,6 @@ export default async function StockPage() {
       initialMovements={[]}
       initialElaboradoProducts={elaboradoResult.data ?? []}
       initialTheoreticalStocks={theoreticalResult.data ?? {}}
-      initialForecast={forecastResult.data ?? []}
       initialReserved={reservedResult.data ?? []}
       initialConsumption={consumptionResult.data ?? []}
     />

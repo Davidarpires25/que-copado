@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { revalidateStock, revalidateProducts, revalidateStorefront } from '@/lib/server/revalidate'
 import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
+import { escalarComponente } from '@/lib/server/sub-recipes'
 import { devError } from '@/lib/server/error-messages'
 import { recalculateProductsForIngredient } from './recipes'
 import type {
@@ -15,7 +16,6 @@ import type {
   StockMovementWithDetails,
   IngredientWithStock,
   ProductWithStock,
-  StockForecastItem,
   ReservedStockItem,
   ConsumptionReportItem,
   ProductionSheetIngredient,
@@ -213,65 +213,6 @@ export async function getStockMovements(
 }
 
 /**
- * Returns ingredient consumption forecast based on historical sales data.
- * Calculates daily average and estimated days until depletion.
- */
-export async function getStockForecast(
-  period: '7d' | '30d' = '30d'
-): Promise<{ data: StockForecastItem[] | null; error: string | null }> {
-  const supabase = await createAdminClient()
-  const user = await getAuthUser(supabase)
-  if (!user) return { data: null, error: 'No autorizado' }
-
-  const periodDays = period === '7d' ? 7 : 30
-  const startDate = new Date()
-  startDate.setDate(startDate.getDate() - periodDays)
-
-  const { data: movements, error: movError } = await supabase
-    .from('stock_movements')
-    .select('ingredient_id, quantity')
-    .eq('movement_type', 'sale')
-    .not('ingredient_id', 'is', null)
-    .gte('created_at', startDate.toISOString())
-
-  if (movError) return devError(movError)
-  if (!movements || movements.length === 0) return { data: [], error: null }
-
-  // Aggregate total consumed per ingredient
-  const consumptionMap = new Map<string, number>()
-  for (const mov of movements) {
-    if (!mov.ingredient_id) continue
-    consumptionMap.set(mov.ingredient_id, (consumptionMap.get(mov.ingredient_id) ?? 0) + Math.abs(mov.quantity))
-  }
-
-  if (consumptionMap.size === 0) return { data: [], error: null }
-
-  const ingredientIds = Array.from(consumptionMap.keys())
-  const { data: ingredients, error: ingError } = await supabase
-    .from('ingredients')
-    .select('id, name, unit, current_stock')
-    .in('id', ingredientIds)
-
-  if (ingError) return devError(ingError)
-
-  const result: StockForecastItem[] = (ingredients ?? []).map((ing) => {
-    const total_consumed = consumptionMap.get(ing.id) ?? 0
-    const daily_avg = total_consumed / periodDays
-    return {
-      ingredient_id: ing.id,
-      name: ing.name,
-      unit: ing.unit,
-      current_stock: Number(ing.current_stock),
-      total_consumed,
-      daily_avg,
-      days_remaining: daily_avg > 0 ? Number(ing.current_stock) / daily_avg : null,
-    }
-  })
-
-  return { data: result, error: null }
-}
-
-/**
  * Returns products currently reserved in open table orders (mesas).
  * Only meaningful for reventa products with direct stock tracking.
  */
@@ -369,7 +310,6 @@ export async function getConsumptionReport(
         unit: ing.unit,
         total_consumed,
         total_cost: total_consumed * cost_per_unit,
-        daily_avg: total_consumed / periodDays,
         movements_count: agg.count,
       }
     })
@@ -397,6 +337,22 @@ export async function toggleStockTracking(
   if (!id) return { data: null, error: 'ID es requerido' }
 
   const table = type === 'ingredient' ? 'ingredients' : 'products'
+
+  // Un compuesto se resuelve a sus componentes al vender, asi que su propio
+  // stock nunca bajaria: quedaria congelado mostrando un numero que miente.
+  if (type === 'ingredient' && enabled) {
+    const { count } = await supabase
+      .from('ingredient_sub_recipes')
+      .select('id', { count: 'exact', head: true })
+      .eq('parent_ingredient_id', id)
+
+    if ((count ?? 0) > 0) {
+      return {
+        data: null,
+        error: 'Este ingrediente se arma con otros, asi que el stock se controla sobre sus componentes',
+      }
+    }
+  }
 
   const { error } = await supabase
     .from(table)
@@ -444,10 +400,16 @@ export async function updateMinStock(
 // ---------------------------------------------------------------------------
 
 /**
- * Manual stock adjustment (adjustment, waste, return).
+ * Manual stock adjustment.
  * Reads current stock, updates it, and records the movement.
- * Reason is required for adjustments.
+ *
+ * Dos movimientos posibles, que corresponden a las dos intenciones reales:
+ *  - 'adjustment': correccion de inventario. El delta puede ser + o -, y el
+ *    motivo es opcional (cae en DEFAULT_ADJUSTMENT_REASON).
+ *  - 'waste': merma. Siempre resta, y el motivo es obligatorio.
  */
+const DEFAULT_ADJUSTMENT_REASON = 'Recuento de inventario'
+
 export async function adjustStock(
   data: StockAdjustmentData
 ): Promise<{ data: boolean | null; error: string | null }> {
@@ -458,12 +420,22 @@ export async function adjustStock(
   // Validations
   if (!data.id) return { data: null, error: 'ID es requerido' }
   if (data.quantity === 0) return { data: null, error: 'La cantidad no puede ser 0' }
-  if (!data.reason?.trim()) return { data: null, error: 'El motivo es obligatorio para ajustes' }
 
-  const validTypes = ['adjustment', 'waste', 'return']
+  const validTypes = ['adjustment', 'waste']
   if (!validTypes.includes(data.movement_type)) {
     return { data: null, error: 'Tipo de movimiento no valido para ajuste' }
   }
+
+  if (data.movement_type === 'waste') {
+    if (data.quantity > 0) {
+      return { data: null, error: 'La merma siempre resta stock' }
+    }
+    if (!data.reason?.trim()) {
+      return { data: null, error: 'El motivo es obligatorio para registrar merma' }
+    }
+  }
+
+  const reason = data.reason?.trim() || DEFAULT_ADJUSTMENT_REASON
 
   const table = data.type === 'ingredient' ? 'ingredients' : 'products'
 
@@ -497,7 +469,7 @@ export async function adjustStock(
     quantity: data.quantity,
     previous_stock: previousStock,
     new_stock: newStock,
-    reason: data.reason.trim(),
+    reason,
     reference_type: 'manual',
     created_by: user.id,
   }
@@ -779,7 +751,7 @@ export async function getAllTheoreticalStocks(): Promise<{
       .select('parent_ingredient_id, child_ingredient_id, quantity, unit'),
     supabase
       .from('ingredients')
-      .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled'),
+      .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled, yield_quantity'),
   ])
 
   if (prResult.error) return devError(prResult.error)
@@ -790,6 +762,7 @@ export async function getAllTheoreticalStocks(): Promise<{
   type IngData = {
     id: string; unit: string; waste_percentage: number
     current_stock: number; stock_tracking_enabled: boolean
+    yield_quantity: number | null
   }
   const ingMap = new Map<string, IngData>(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -917,6 +890,7 @@ export async function toggleElaboradoAvailability(
 type IngData = {
   id: string; unit: string; waste_percentage: number
   current_stock: number; stock_tracking_enabled: boolean
+  yield_quantity: number | null
 }
 type SubData = { child_ingredient_id: string; quantity: number; unit: string }
 type PREntry = {
@@ -999,7 +973,7 @@ function _collectReqsInMemory(
     for (const sub of subItems) {
       _collectReqsInMemory(
         sub.child_ingredient_id,
-        sub.quantity * actualQty,
+        escalarComponente(sub.quantity, actualQty, ingredient.yield_quantity),
         sub.unit,
         requirements,
         ingMap,
@@ -1152,7 +1126,7 @@ async function _collectIngredientRequirements(
 
   const { data: ingredient } = await supabase
     .from('ingredients')
-    .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled')
+    .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled, yield_quantity')
     .eq('id', ingredientId)
     .single()
 
@@ -1174,7 +1148,7 @@ async function _collectIngredientRequirements(
       await _collectIngredientRequirements(
         supabase,
         sub.child_ingredient_id,
-        sub.quantity * actualQty,
+        escalarComponente(sub.quantity, actualQty, ingredient.yield_quantity),
         sub.unit,
         requirements,
         new Set(visited)
@@ -1207,6 +1181,7 @@ type PSIngData = {
   cost_per_unit: number
   current_stock: number
   stock_tracking_enabled: boolean
+  yield_quantity: number | null
 }
 
 type PSSubItem = { child_ingredient_id: string; quantity: number; unit: string }
@@ -1240,8 +1215,12 @@ function _buildPSIngredientNode(
     for (const sub of subs) {
       const childIng = ingMap.get(sub.child_ingredient_id)
       if (!childIng) continue
-      // sub.quantity per 1 parent base unit × grossQtyBase parent units → child qty in sub.unit
-      const childNetBase = convertToBaseUnit(sub.quantity * grossQtyBase, sub.unit)
+      // La linea se carga como se cocina ("1 kg de mayonesa") junto al
+      // rendimiento del compuesto ("rinde 1,5 kg"); escalarComponente divide.
+      const childNetBase = convertToBaseUnit(
+        escalarComponente(sub.quantity, grossQtyBase, ing.yield_quantity),
+        sub.unit
+      )
       const childWastePct = Number(childIng.waste_percentage) || 0
       const childWasteFactor = 1 - childWastePct / 100
       const childGrossBase = childWasteFactor > 0 ? childNetBase / childWasteFactor : childNetBase
@@ -1299,7 +1278,7 @@ export async function getProductionSheet(productId: string): Promise<{
             quantity,
             unit,
             ingredients (
-              id, name, unit, waste_percentage, cost_per_unit, current_stock, stock_tracking_enabled
+              id, name, unit, waste_percentage, cost_per_unit, current_stock, stock_tracking_enabled, yield_quantity
             )
           )
         )
@@ -1345,7 +1324,7 @@ export async function getProductionSheet(productId: string): Promise<{
   if (missingIds.length > 0) {
     const { data: extraIngs } = await supabase
       .from('ingredients')
-      .select('id, name, unit, waste_percentage, cost_per_unit, current_stock, stock_tracking_enabled')
+      .select('id, name, unit, waste_percentage, cost_per_unit, current_stock, stock_tracking_enabled, yield_quantity')
       .in('id', missingIds)
     for (const ing of extraIngs ?? []) ingMap.set(ing.id, ing)
   }
@@ -1506,7 +1485,7 @@ export async function checkStockForItems(
         supabase.from('ingredient_sub_recipes').select('parent_ingredient_id, child_ingredient_id, quantity, unit'),
         supabase
           .from('ingredients')
-          .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled'),
+          .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled, yield_quantity'),
       ])
 
       if (prResult.error) devError(`Error fetching product_recipes for batch stock check: ${String(prResult.error)}`)

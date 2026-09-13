@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { adjustStock, updateMinStock } from '@/app/actions/stock'
 import { toast } from 'sonner'
-import type { StockMovementType } from '@/lib/types/stock'
 
 interface AdjustItem {
   id: string
@@ -28,11 +27,24 @@ interface StockAdjustDialogProps {
   onAdjusted: (newStock: number, newMinStock?: number | null) => void
 }
 
-const MOVEMENT_OPTIONS: { value: StockMovementType; label: string; sign: '+' | '-' }[] = [
-  { value: 'adjustment', label: 'Ajuste manual', sign: '+' },
-  { value: 'waste', label: 'Merma / Desperdicio', sign: '-' },
-  { value: 'return', label: 'Devolución', sign: '+' },
+/**
+ * Dos intenciones, no tres tipos de movimiento:
+ *  - correct: el usuario contó y escribe el stock REAL; el delta lo calcula el sistema.
+ *  - waste:   se perdió producto; el usuario escribe cuánto y siempre resta.
+ */
+type Mode = 'correct' | 'waste'
+
+const MODE_OPTIONS: { value: Mode; label: string }[] = [
+  { value: 'correct', label: 'Ajuste manual' },
+  { value: 'waste', label: 'Merma / Desperdicio' },
 ]
+
+const DEFAULT_ADJUSTMENT_REASON = 'Recuento de inventario'
+
+/** Evita que 14.12 - 13.82 quede en 0.30000000000000004 al viajar al server. */
+const round3 = (value: number) => Math.round(value * 1000) / 1000
+
+const formatQty = (value: number) => (Number.isInteger(value) ? String(value) : value.toFixed(2))
 
 export function StockAdjustDialog({
   open,
@@ -41,43 +53,69 @@ export function StockAdjustDialog({
   item,
   onAdjusted,
 }: StockAdjustDialogProps) {
-  const [movementType, setMovementType] = useState<StockMovementType>('adjustment')
-  const [quantityStr, setQuantityStr] = useState('')
+  const [mode, setMode] = useState<Mode>('correct')
+  const [realStockStr, setRealStockStr] = useState(String(item.current_stock))
+  const [wasteQtyStr, setWasteQtyStr] = useState('')
   const [reason, setReason] = useState('')
   const [minStockStr, setMinStockStr] = useState(
     item.min_stock !== null ? String(item.min_stock) : ''
   )
   const [loading, setLoading] = useState(false)
 
-  const selectedOption = MOVEMENT_OPTIONS.find((o) => o.value === movementType)!
-  const quantity = parseFloat(quantityStr)
-  const isNegative = movementType === 'waste'
-  const signedQuantity = isNegative ? -Math.abs(quantity) : Math.abs(quantity)
-  const previewStock = isNaN(quantity) ? item.current_stock : item.current_stock + signedQuantity
+  // --- Modo corregir ---------------------------------------------------------
+  const realStock = parseFloat(realStockStr)
+  const hasRealStock = realStockStr !== '' && !isNaN(realStock)
+  const delta = hasRealStock ? round3(realStock - item.current_stock) : 0
+
+  // --- Modo merma ------------------------------------------------------------
+  const wasteQty = parseFloat(wasteQtyStr)
+  const hasWasteQty = wasteQtyStr !== '' && !isNaN(wasteQty) && wasteQty > 0
+  const wastePreview = hasWasteQty
+    ? round3(item.current_stock - Math.abs(wasteQty))
+    : item.current_stock
+
+  const canSubmit =
+    mode === 'correct'
+      ? hasRealStock && realStock >= 0 && delta !== 0
+      : hasWasteQty && reason.trim() !== ''
 
   const handleSubmit = async () => {
-    if (!quantityStr || isNaN(quantity) || quantity <= 0) {
-      toast.error('Ingresá una cantidad válida mayor a 0')
-      return
-    }
-    if (!reason.trim()) {
-      toast.error('El motivo es obligatorio')
-      return
+    if (mode === 'correct') {
+      if (!hasRealStock || realStock < 0) {
+        toast.error('Ingresá el stock real (0 o más)')
+        return
+      }
+      if (delta === 0) {
+        toast.error('El stock ya es ese valor')
+        return
+      }
+    } else {
+      if (!hasWasteQty) {
+        toast.error('Ingresá una cantidad válida mayor a 0')
+        return
+      }
+      if (!reason.trim()) {
+        toast.error('El motivo es obligatorio')
+        return
+      }
     }
 
     setLoading(true)
 
     const parsedMinStock = minStockStr === '' ? null : parseFloat(minStockStr)
     const newMinStock = parsedMinStock !== null && isNaN(parsedMinStock) ? item.min_stock : parsedMinStock
-    const minStockChanged = newMinStock !== item.min_stock
+    // El stock mínimo sólo se edita desde el modo corregir.
+    const minStockChanged = mode === 'correct' && newMinStock !== item.min_stock
+
+    const newStock = mode === 'correct' ? realStock : wastePreview
 
     const [adjustResult, minStockResult] = await Promise.all([
       adjustStock({
         type: targetType,
         id: item.id,
-        quantity: signedQuantity,
-        movement_type: movementType,
-        reason: reason.trim(),
+        quantity: mode === 'correct' ? delta : -Math.abs(wasteQty),
+        movement_type: mode === 'correct' ? 'adjustment' : 'waste',
+        reason: reason.trim() || DEFAULT_ADJUSTMENT_REASON,
       }),
       minStockChanged ? updateMinStock(targetType, item.id, newMinStock) : Promise.resolve({ data: true, error: null }),
     ])
@@ -93,10 +131,10 @@ export function StockAdjustDialog({
       return
     }
 
-    toast.success('Stock actualizado')
-    onAdjusted(previewStock, newMinStock)
+    toast.success(mode === 'correct' ? 'Stock corregido' : 'Merma registrada')
+    onAdjusted(newStock, minStockChanged ? newMinStock : item.min_stock)
     onOpenChange(false)
-    setQuantityStr('')
+    setWasteQtyStr('')
     setReason('')
   }
 
@@ -114,19 +152,19 @@ export function StockAdjustDialog({
           <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-[var(--admin-bg)] border border-[var(--admin-border)]">
             <span className="text-sm text-[var(--admin-text-muted)]">Stock actual</span>
             <span className="font-semibold text-[var(--admin-text)]">
-              {item.current_stock} {item.unit}
+              {formatQty(item.current_stock)} {item.unit}
             </span>
           </div>
 
           {/* Movement type */}
           <div className="space-y-1.5">
             <Label className="text-[var(--admin-text-muted)] text-sm">Tipo de movimiento</Label>
-            <Select value={movementType} onValueChange={(v) => setMovementType(v as StockMovementType)}>
+            <Select value={mode} onValueChange={(v) => setMode(v as Mode)}>
               <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)]/50">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)]">
-                {MOVEMENT_OPTIONS.map((opt) => (
+                {MODE_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value} className="text-[var(--admin-text)] focus:bg-[var(--admin-border)]">
                     {opt.label}
                   </SelectItem>
@@ -135,63 +173,128 @@ export function StockAdjustDialog({
             </Select>
           </div>
 
-          {/* Quantity */}
-          <div className="space-y-1.5">
-            <Label className="text-[var(--admin-text-muted)] text-sm">
-              Cantidad ({item.unit})
-            </Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-[var(--admin-text-muted)]">
-                {selectedOption.sign}
-              </span>
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={quantityStr}
-                onChange={(e) => setQuantityStr(e.target.value)}
-                placeholder="0"
-                className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] pl-7 focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
-              />
-            </div>
-            {!isNaN(quantity) && quantity > 0 && (
-              <p className="text-sm font-bold text-[var(--admin-text-muted)]">
-                Nuevo stock:{' '}
-                <span className={`font-bold  ${previewStock < 0 ? 'text-red-700 dark:text-red-400' : 'text-[var(--admin-price)]'}`}>
-                  {previewStock.toFixed(previewStock % 1 === 0 ? 0 : 2)} {item.unit}
-                </span>
-              </p>
-            )}
-          </div>
+          {mode === 'correct' ? (
+            <>
+              {/* Stock real contado */}
+              <div className="space-y-1.5">
+                <Label className="text-[var(--admin-text-muted)] text-sm">
+                  Stock real ({item.unit})
+                </Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  autoFocus
+                  onFocus={(e) => e.currentTarget.select()}
+                  value={realStockStr}
+                  onChange={(e) => setRealStockStr(e.target.value)}
+                  placeholder="0"
+                  className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
+                />
+                <p className="text-xs text-[var(--admin-text-muted)]">
+                  Escribí la cantidad que contaste. El sistema calcula la diferencia.
+                </p>
+                {hasRealStock && realStock >= 0 && (
+                  <p className="text-sm text-[var(--admin-text-muted)]">
+                    {delta === 0 ? (
+                      'El stock ya es ese valor.'
+                    ) : (
+                      <>
+                        Diferencia:{' '}
+                        <span
+                          className={`font-bold ${
+                            delta < 0
+                              ? 'text-red-700 dark:text-red-400'
+                              : 'text-green-700 dark:text-green-400'
+                          }`}
+                        >
+                          {delta > 0 ? '+' : '−'}
+                          {formatQty(Math.abs(delta))} {item.unit}
+                        </span>
+                      </>
+                    )}
+                  </p>
+                )}
+              </div>
 
-          {/* Min stock */}
-          <div className="space-y-1.5">
-            <Label className="text-[var(--admin-text-muted)] text-sm">Stock mínimo (opcional)</Label>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              value={minStockStr}
-              onChange={(e) => setMinStockStr(e.target.value)}
-              placeholder="Sin mínimo"
-              className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
-            />
-            <p className="text-xs text-[var(--admin-text-muted)]">
-              Se mostrará una alerta cuando el stock caiga por debajo de este valor.
-            </p>
-          </div>
+              {/* Min stock */}
+              <div className="space-y-1.5">
+                <Label className="text-[var(--admin-text-muted)] text-sm">Stock mínimo (opcional)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={minStockStr}
+                  onChange={(e) => setMinStockStr(e.target.value)}
+                  placeholder="Sin mínimo"
+                  className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
+                />
+                <p className="text-xs text-[var(--admin-text-muted)]">
+                  Se mostrará una alerta cuando el stock caiga por debajo de este valor.
+                </p>
+              </div>
 
-          {/* Reason */}
-          <div className="space-y-1.5">
-            <Label className="text-[var(--admin-text-muted)] text-sm">Motivo *</Label>
-            <Textarea
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Ej: Corrección de inventario físico"
-              rows={2}
-              className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] resize-none focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 placeholder:text-[var(--admin-text-muted)]"
-            />
-          </div>
+              {/* Reason — opcional */}
+              <div className="space-y-1.5">
+                <Label className="text-[var(--admin-text-muted)] text-sm">Motivo (opcional)</Label>
+                <Textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder={DEFAULT_ADJUSTMENT_REASON}
+                  rows={2}
+                  className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] resize-none focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 placeholder:text-[var(--admin-text-muted)]"
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Cantidad perdida */}
+              <div className="space-y-1.5">
+                <Label className="text-[var(--admin-text-muted)] text-sm">
+                  Cantidad perdida ({item.unit})
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-[var(--admin-text-muted)]">
+                    −
+                  </span>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    autoFocus
+                    value={wasteQtyStr}
+                    onChange={(e) => setWasteQtyStr(e.target.value)}
+                    placeholder="0"
+                    className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] pl-7 focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
+                  />
+                </div>
+                {hasWasteQty && (
+                  <p className="text-sm font-bold text-[var(--admin-text-muted)]">
+                    Nuevo stock:{' '}
+                    <span
+                      className={`font-bold ${
+                        wastePreview < 0 ? 'text-red-700 dark:text-red-400' : 'text-[var(--admin-price)]'
+                      }`}
+                    >
+                      {formatQty(wastePreview)} {item.unit}
+                    </span>
+                  </p>
+                )}
+              </div>
+
+              {/* Reason — obligatorio */}
+              <div className="space-y-1.5">
+                <Label className="text-[var(--admin-text-muted)] text-sm">Motivo *</Label>
+                <Textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="Ej: Se quemó en la plancha"
+                  rows={2}
+                  className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] resize-none focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 placeholder:text-[var(--admin-text-muted)]"
+                />
+              </div>
+            </>
+          )}
         </div>
 
         <DialogFooter className="gap-2">
@@ -205,7 +308,7 @@ export function StockAdjustDialog({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={loading || !quantityStr || !reason.trim()}
+            disabled={loading || !canSubmit}
             className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold disabled:opacity-50"
           >
             {loading ? 'Guardando...' : 'Confirmar ajuste'}

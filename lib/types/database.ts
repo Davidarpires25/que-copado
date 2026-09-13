@@ -563,6 +563,7 @@ export interface Database {
           unit: string
           cost_per_unit: number
           waste_percentage: number
+          yield_quantity: number
           category_id: string | null
           is_active: boolean
           current_stock: number
@@ -577,6 +578,7 @@ export interface Database {
           unit: string
           cost_per_unit: number
           waste_percentage?: number
+          yield_quantity?: number
           category_id?: string | null
           is_active?: boolean
           current_stock?: number
@@ -591,6 +593,7 @@ export interface Database {
           unit?: string
           cost_per_unit?: number
           waste_percentage?: number
+          yield_quantity?: number
           category_id?: string | null
           is_active?: boolean
           current_stock?: number
@@ -849,7 +852,7 @@ export interface BusinessSettings {
 
 export type OrderStatus = 'abierto' | 'recibido' | 'cuenta_pedida' | 'pagado' | 'entregado' | 'cancelado'
 export type PaymentMethod = 'cash' | 'transfer' | 'mercadopago' | 'card'
-export type OrderSource = 'web' | 'pos'
+export type OrderSource = 'web' | 'pos' | 'whatsapp'
 export type PosOrderType = 'mostrador' | 'mesa'
 export type CashRegisterSessionStatus = 'open' | 'closed'
 export type CashMovementType = 'withdrawal' | 'deposit'

@@ -18,7 +18,6 @@ interface MovementsTabProps {
 const MOVEMENT_ICON: Record<StockMovementType, React.ReactNode> = {
   purchase: <ArrowUp className="h-3.5 w-3.5 text-green-700 dark:text-green-400" />,
   initial: <ArrowUp className="h-3.5 w-3.5 text-blue-700 dark:text-blue-400" />,
-  return: <ArrowUp className="h-3.5 w-3.5 text-green-700 dark:text-green-400" />,
   adjustment: <RefreshCw className="h-3.5 w-3.5 text-yellow-700 dark:text-yellow-400" />,
   waste: <ArrowDown className="h-3.5 w-3.5 text-red-700 dark:text-red-400" />,
   sale: <ArrowDown className="h-3.5 w-3.5 text-orange-700 dark:text-orange-400" />,
@@ -28,7 +27,6 @@ const MOVEMENT_ICON: Record<StockMovementType, React.ReactNode> = {
 const MOVEMENT_BADGE_CLASS: Record<StockMovementType, string> = {
   purchase: 'bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/30',
   initial: 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30',
-  return: 'bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/30',
   adjustment: 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-500/30',
   waste: 'bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/30',
   sale: 'bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30',
@@ -183,15 +181,15 @@ export function MovementsTab({ initialMovements }: MovementsTabProps) {
       ) : !loading && (
         <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full table-fixed text-sm">
               <thead className="border-b border-[var(--admin-border)] bg-[var(--admin-bg)]">
                 <tr>
-                  <th className="text-left text-[var(--admin-text-muted)] font-semibold px-4 py-3 whitespace-nowrap">Fecha</th>
-                  <th className="text-left text-[var(--admin-text-muted)] font-semibold px-4 py-3">Item</th>
-                  <th className="text-left text-[var(--admin-text-muted)] font-semibold px-4 py-3">Tipo</th>
-                  <th className="text-right text-[var(--admin-text-muted)] font-semibold px-4 py-3">Cantidad</th>
-                  <th className="text-right text-[var(--admin-text-muted)] font-semibold px-4 py-3 hidden md:table-cell">Anterior → Nuevo</th>
-                  <th className="text-left text-[var(--admin-text-muted)] font-semibold px-4 py-3 hidden lg:table-cell">Motivo</th>
+                  <th className="text-left text-[var(--admin-text-muted)] font-semibold px-4 py-3 whitespace-nowrap w-[13%]">Fecha</th>
+                  <th className="text-left text-[var(--admin-text-muted)] font-semibold px-4 py-3 w-[26%]">Item</th>
+                  <th className="text-left text-[var(--admin-text-muted)] font-semibold px-4 py-3 w-[13%]">Tipo</th>
+                  <th className="text-left text-[var(--admin-text-muted)] font-semibold px-4 py-3 hidden lg:table-cell w-[21%]">Motivo</th>
+                  <th className="text-center text-[var(--admin-text-muted)] font-semibold px-4 py-3 w-[11%]">Cantidad</th>
+                  <th className="text-center text-[var(--admin-text-muted)] font-semibold px-4 py-3 hidden md:table-cell w-[16%]">Anterior → Nuevo</th>
                 </tr>
               </thead>
               <tbody>
@@ -201,8 +199,8 @@ export function MovementsTab({ initialMovements }: MovementsTabProps) {
                       {formatDate(mov.created_at)}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-[var(--admin-text)]">{getItemName(mov)}</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-semibold text-[var(--admin-text)] truncate">{getItemName(mov)}</span>
                         <span className="text-[var(--admin-text-muted)] text-xs">
                           {mov.ingredients ? 'Ingrediente' : 'Producto'}
                         </span>
@@ -216,16 +214,16 @@ export function MovementsTab({ initialMovements }: MovementsTabProps) {
                         {STOCK_MOVEMENT_TYPE_LABELS[mov.movement_type]}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 hidden lg:table-cell text-[var(--admin-text-muted)] truncate">
+                      {mov.reason ?? '—'}
+                    </td>
+                    <td className="px-4 py-3 text-center">
                       <span className={`font-semibold ${mov.quantity >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
                         {formatQuantity(mov)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right hidden md:table-cell text-[var(--admin-text-muted)]">
+                    <td className="px-4 py-3 text-center hidden md:table-cell text-[var(--admin-text-muted)]">
                       {mov.previous_stock.toFixed(mov.previous_stock % 1 === 0 ? 0 : 2)} → {mov.new_stock.toFixed(mov.new_stock % 1 === 0 ? 0 : 2)}
-                    </td>
-                    <td className="px-4 py-3 hidden lg:table-cell text-[var(--admin-text-muted)] max-w-xs truncate">
-                      {mov.reason ?? '—'}
                     </td>
                   </tr>
                 ))}

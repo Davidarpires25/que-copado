@@ -106,7 +106,6 @@ export function ConsumptionTab({ initialData, initialPeriod = '30d' }: Consumpti
                 <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold">Ingrediente</TableHead>
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold text-right">Total consumido</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold text-right hidden sm:table-cell">Promedio/día</TableHead>
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold text-right hidden md:table-cell">Movimientos</TableHead>
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold text-right">Costo total</TableHead>
                 </TableRow>
@@ -125,11 +124,6 @@ export function ConsumptionTab({ initialData, initialPeriod = '30d' }: Consumpti
                     <TableCell className="text-right">
                       <span className="text-[var(--admin-text)] text-sm font-medium">
                         {formatQty(item.total_consumed, item.unit)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right hidden sm:table-cell">
-                      <span className="text-[var(--admin-text-muted)] text-sm">
-                        {formatQty(item.daily_avg, item.unit)}
                       </span>
                     </TableCell>
                     <TableCell className="text-right hidden md:table-cell">

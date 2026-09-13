@@ -18,14 +18,13 @@ import { StockAdjustDialog } from './stock-adjust-dialog'
 import { toggleStockTracking } from '@/app/actions/stock'
 import { toast } from 'sonner'
 import { INGREDIENT_UNIT_ABBR, type IngredientUnit } from '@/lib/types/database'
-import type { IngredientWithStock, StockAlert, StockForecastItem } from '@/lib/types/stock'
+import type { IngredientWithStock, StockAlert } from '@/lib/types/stock'
 
 interface IngredientsStockTabProps {
   ingredients: IngredientWithStock[]
   onIngredientsChange: (ingredients: IngredientWithStock[]) => void
   alerts: StockAlert[]
   onAlertsChange: (alerts: StockAlert[]) => void
-  forecastMap?: Map<string, StockForecastItem>
   searchQuery: string
 }
 
@@ -34,7 +33,6 @@ export function IngredientsStockTab({
   onIngredientsChange,
   alerts,
   onAlertsChange,
-  forecastMap,
   searchQuery,
 }: IngredientsStockTabProps) {
   const [adjustTarget, setAdjustTarget] = useState<IngredientWithStock | null>(null)
@@ -109,22 +107,6 @@ export function IngredientsStockTab({
     return `${Number.isInteger(value) ? value : value.toFixed(2)} ${abbr}`
   }
 
-  const renderForecast = (ingredient: IngredientWithStock) => {
-    if (!forecastMap) return <span className="text-[var(--admin-text-muted)] text-sm">—</span>
-    const forecast = forecastMap.get(ingredient.id)
-    if (!forecast || forecast.days_remaining === null) {
-      return <span className="text-[var(--admin-text-muted)] text-sm">—</span>
-    }
-    const days = forecast.days_remaining
-    if (days < 3) {
-      return <span className="text-red-700 dark:text-red-400 text-sm font-semibold">{days < 1 ? '<1d' : `~${Math.floor(days)}d`}</span>
-    }
-    if (days < 7) {
-      return <span className="text-yellow-700 dark:text-yellow-400 text-sm font-medium">~{Math.floor(days)}d</span>
-    }
-    return <span className="text-green-700 dark:text-green-400 text-sm">~{Math.floor(days)}d</span>
-  }
-
   return (
     <>
       {/* Table */}
@@ -140,17 +122,16 @@ export function IngredientsStockTab({
         </div>
       ) : (
         <div className="overflow-x-auto">
-            <Table>
+            <Table className="table-fixed">
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
                 <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold">Nombre</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold hidden sm:table-cell">Unidad</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold">Stock Actual</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold hidden md:table-cell">Stock Minimo</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold hidden lg:table-cell">Agota en</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center">Estado</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center hidden sm:table-cell">Tracking</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold text-right">Acciones</TableHead>
+                  <TableHead className="text-[var(--admin-text-muted)] font-semibold w-[36%]">Nombre</TableHead>
+                  <TableHead className="text-[var(--admin-text-muted)] font-semibold hidden sm:table-cell w-[8%]">Unidad</TableHead>
+                  <TableHead className="text-[var(--admin-text-muted)] font-semibold w-[14%] text-center">Stock Actual</TableHead>
+                  <TableHead className="text-[var(--admin-text-muted)] font-semibold hidden md:table-cell w-[12%] text-center">Stock Minimo</TableHead>
+                  <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center w-[12%]">Estado</TableHead>
+                  <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center hidden sm:table-cell w-[10%]">Tracking</TableHead>
+                  <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center w-[8%]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -166,11 +147,11 @@ export function IngredientsStockTab({
                       }`}
                     >
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
                           {lowStock && (
                             <AlertTriangle className="h-4 w-4 text-red-700 dark:text-red-400 shrink-0" />
                           )}
-                          <p className="font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors text-sm lg:text-base">
+                          <p className="font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors text-sm lg:text-base truncate">
                             {ingredient.name}
                           </p>
                         </div>
@@ -180,7 +161,7 @@ export function IngredientsStockTab({
                           {INGREDIENT_UNIT_ABBR[ingredient.unit as IngredientUnit] ?? ingredient.unit}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
                         {ingredient.stock_tracking_enabled ? (
                           <span className={`font-semibold text-sm lg:text-base ${lowStock ? 'text-red-700 dark:text-red-400' : 'text-[var(--admin-text)]'}`}>
                             {formatStock(ingredient.current_stock, ingredient.unit)}
@@ -189,18 +170,13 @@ export function IngredientsStockTab({
                           <span className="text-[var(--admin-text-muted)] text-sm">--</span>
                         )}
                       </TableCell>
-                      <TableCell className="hidden md:table-cell">
+                      <TableCell className="hidden md:table-cell text-center">
                         {ingredient.stock_tracking_enabled && ingredient.min_stock !== null ? (
                           <span className="text-[var(--admin-text-muted)] text-sm">
                             {formatStock(ingredient.min_stock, ingredient.unit)}
                           </span>
                         ) : (
                           <span className="text-[var(--admin-text-muted)] text-sm">--</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        {ingredient.stock_tracking_enabled ? renderForecast(ingredient) : (
-                          <span className="text-[var(--admin-text-muted)] text-sm">—</span>
                         )}
                       </TableCell>
                       <TableCell className="text-center">
@@ -239,7 +215,7 @@ export function IngredientsStockTab({
                           </Tooltip>
                         </TooltipProvider>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-center">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>

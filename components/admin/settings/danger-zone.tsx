@@ -15,7 +15,7 @@ import {
   deleteAllCategories,
   deleteAllIngredients,
   deleteAllRecipes,
-  deleteAllStockMovements,
+  resetStockControl,
   type EntityCounts,
 } from '@/app/actions/data-management'
 
@@ -32,10 +32,14 @@ interface EntityConfig {
 const ENTITIES: EntityConfig[] = [
   {
     key: 'stock_movements',
-    label: 'Movimientos de Stock',
-    description: 'Historial de entradas y salidas de stock',
-    warning: 'Se eliminará todo el historial de movimientos.',
-    action: deleteAllStockMovements,
+    label: 'Control de Stock',
+    description: 'Historial de movimientos, cantidades actuales y control activado',
+    warning:
+      'Se borrará el historial de movimientos, todas las cantidades quedarán en 0 y el control de ' +
+      'stock quedará apagado. Se conservan los stocks mínimos y los costos. Los productos que el ' +
+      'sistema había marcado como agotados vuelven a estar disponibles. Sirve para empezar de cero ' +
+      'cuando lo cargado fueron pruebas.',
+    action: resetStockControl,
   },
   {
     key: 'orders',
@@ -328,9 +332,10 @@ export function DangerZone() {
 
   return (
     <>
-      {/* Danger Zone section */}
-      <div className="mt-8 pt-8 border-t border-red-500/20">
-        <div className="flex items-start gap-4 p-6 rounded-xl border border-red-500/30 bg-red-500/5">
+      {/* Danger Zone — vive dentro del tab "Datos", asi que no trae divisor ni
+          margenes propios: el espaciado lo pone el panel que la contiene. */}
+      <div>
+        <div className="flex items-start gap-4 p-5 rounded-xl border border-red-500/30 bg-red-500/5">
           <div className="w-10 h-10 bg-red-500/15 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
             <ShieldAlert className="h-5 w-5 text-red-700 dark:text-red-400" />
           </div>

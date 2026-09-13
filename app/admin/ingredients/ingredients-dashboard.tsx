@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Wheat, Check, X, Pencil, Trash2, Search, TrendingUp, Tag, ListTree } from 'lucide-react'
+import { Plus, Wheat, Pencil, Trash2, Search, TrendingUp, Tag, ListTree, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
@@ -45,6 +45,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
   const [isBulkPriceOpen, setIsBulkPriceOpen] = useState(false)
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false)
   const [subRecipeTarget, setSubRecipeTarget] = useState<IngredientWithCategory | null>(null)
+  const [page, setPage] = useState(0)
 
 
   const filteredIngredients = useMemo(() => ingredients.filter((i) => {
@@ -56,8 +57,13 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
     return matchesSearch && matchesCategory
   }), [ingredients, searchQuery, filterCategory])
 
-  const activeCount = useMemo(() => ingredients.filter((i) => i.is_active).length, [ingredients])
-  const inactiveCount = ingredients.length - activeCount
+  // Sin paginar, 78 ingredientes son 4800px de alto y no hay forma de saltar:
+  // la lista solo crece. El buscador y los filtros por categoria ya existian,
+  // pero el estado por defecto —"Todos"— era el peor de todos.
+  const PER_PAGE = 20
+  const totalPages = Math.max(1, Math.ceil(filteredIngredients.length / PER_PAGE))
+  const pageSafe = Math.min(page, totalPages - 1)
+  const visibleIngredients = filteredIngredients.slice(pageSafe * PER_PAGE, pageSafe * PER_PAGE + PER_PAGE)
 
   const countByCategory = useMemo(() => {
     const map: Record<string, number> = {}
@@ -101,43 +107,6 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
 
   return (
     <AdminLayout title="Ingredientes" description="Gestiona los ingredientes y sus costos">
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-[var(--admin-accent)]/30 transition-all">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[var(--admin-text-muted)] text-sm font-medium">Total</p>
-              <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{ingredients.length}</p>
-            </div>
-            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-[var(--admin-accent)]/10 rounded-xl flex items-center justify-center">
-              <Wheat className="h-5 w-5 lg:h-6 lg:w-6 text-[var(--admin-accent-text)]" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-green-500/30 transition-all">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[var(--admin-text-muted)] text-sm font-medium">Activos</p>
-              <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{activeCount}</p>
-            </div>
-            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
-              <Check className="h-5 w-5 lg:h-6 lg:w-6 text-green-700 dark:text-green-500" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-red-500/30 transition-all">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[var(--admin-text-muted)] text-sm font-medium">Inactivos</p>
-              <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{inactiveCount}</p>
-            </div>
-            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-500/10 rounded-xl flex items-center justify-center">
-              <X className="h-5 w-5 lg:h-6 lg:w-6 text-red-700 dark:text-red-500" />
-            </div>
-          </div>
-        </div>
-      </div>
-
       {ingredients.length === 0 ? (
         <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           <div className="p-16 text-center">
@@ -165,7 +134,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
               <Input
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => { setSearchQuery(e.target.value); setPage(0) }}
                 placeholder="Buscar ingrediente..."
                 className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-9 pl-9 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
               />
@@ -221,7 +190,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
           {categories.length > 0 && (
             <div className="flex items-center gap-0 border-b border-[var(--admin-border)] mb-0 overflow-x-auto no-scrollbar">
               <button
-                onClick={() => setFilterCategory('')}
+                onClick={() => { setFilterCategory(''); setPage(0) }}
                 className={cn(
                   'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
                   !filterCategory || filterCategory === ALL_CATEGORIES_VALUE
@@ -245,7 +214,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                 return (
                   <button
                     key={cat.id}
-                    onClick={() => setFilterCategory(cat.id)}
+                    onClick={() => { setFilterCategory(cat.id); setPage(0) }}
                     className={cn(
                       'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
                       isActive
@@ -272,8 +241,8 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
 
           {/* Table */}
           <div className={categories.length > 0
-            ? "rounded-b-xl border border-t-0 border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden"
-            : "rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden"
+            ? "border border-t-0 border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden"
+            : "border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden"
           }>
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
@@ -283,11 +252,11 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                   <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Unidad</TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Costo / Unidad</TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center hidden sm:table-cell">Activo</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-right">Acciones</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center w-32">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredIngredients.map((ingredient) => (
+                {visibleIngredients.map((ingredient) => (
                   <tr
                     key={ingredient.id}
                     className="border-[var(--admin-border)] hover:bg-[var(--admin-surface-2)] transition-colors group"
@@ -342,7 +311,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                       </TooltipProvider>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-center gap-2">
                         {ingredient.is_active && (
                           <TooltipProvider>
                             <Tooltip>
@@ -409,7 +378,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => { setSearchQuery(''); setFilterCategory('') }}
+                      onClick={() => { setSearchQuery(''); setFilterCategory(''); setPage(0) }}
                       className="text-[var(--admin-accent-text)] hover:text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 text-xs h-8"
                     >
                       Limpiar filtros
@@ -424,6 +393,42 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                     </div>
                   </>
                 )}
+              </div>
+            )}
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between gap-4 border-t border-[var(--admin-border)] px-4 py-3">
+                <p className="text-sm text-[var(--admin-text-muted)]" aria-live="polite">
+                  {pageSafe * PER_PAGE + 1}&ndash;{Math.min((pageSafe + 1) * PER_PAGE, filteredIngredients.length)}
+                  {' de '}{filteredIngredients.length}
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((n) => Math.max(0, n - 1))}
+                    disabled={pageSafe === 0}
+                    className="h-9 border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-40"
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Anterior
+                  </Button>
+                  <span className="text-sm text-[var(--admin-text-muted)] tabular-nums px-1">
+                    {pageSafe + 1} / {totalPages}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((n) => Math.min(totalPages - 1, n + 1))}
+                    disabled={pageSafe >= totalPages - 1}
+                    className="h-9 border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-40"
+                  >
+                    Siguiente
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
               </div>
             )}
           </div>

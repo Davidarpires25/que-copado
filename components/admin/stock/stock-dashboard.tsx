@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Package, AlertTriangle, RefreshCw, PackagePlus, Lock } from 'lucide-react'
+import { Package, AlertTriangle, PackagePlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { AdminLayout } from '@/components/admin/layout/admin-layout'
@@ -15,7 +15,6 @@ import type {
   ProductWithStock,
   StockAlert,
   StockMovementWithDetails,
-  StockForecastItem,
   ReservedStockItem,
   ConsumptionReportItem,
 } from '@/lib/types/stock'
@@ -28,23 +27,8 @@ interface StockDashboardProps {
   initialMovements: StockMovementWithDetails[]
   initialElaboradoProducts: Product[]
   initialTheoreticalStocks: Record<string, number | null>
-  initialForecast: StockForecastItem[]
   initialReserved: ReservedStockItem[]
   initialConsumption: ConsumptionReportItem[]
-}
-
-function formatRelativeDate(date: Date) {
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-
-  if (diffMins < 1) return 'Hace un momento'
-  if (diffMins < 60) return `Hace ${diffMins} min`
-  if (diffHours < 24) return `Hace ${diffHours}h`
-  if (diffDays === 1) return 'Ayer'
-  return `Hace ${diffDays} dias`
 }
 
 export function StockDashboard({
@@ -54,7 +38,6 @@ export function StockDashboard({
   initialMovements,
   initialElaboradoProducts,
   initialTheoreticalStocks,
-  initialForecast,
   initialReserved,
   initialConsumption,
 }: StockDashboardProps) {
@@ -69,16 +52,8 @@ export function StockDashboard({
   const [ingredientSearch, setIngredientSearch] = useState('')
 
   // Build maps for fast lookup
-  const forecastMap = useMemo(
-    () => new Map<string, StockForecastItem>((initialForecast ?? []).map((f) => [f.ingredient_id, f])),
-    [initialForecast]
-  )
   const reservedMap = useMemo(
     () => new Map<string, number>((initialReserved ?? []).map((r) => [r.product_id, r.reserved_qty])),
-    [initialReserved]
-  )
-  const reservedTotal = useMemo(
-    () => (initialReserved ?? []).reduce((sum, r) => sum + r.reserved_qty, 0),
     [initialReserved]
   )
 
@@ -95,12 +70,6 @@ export function StockDashboard({
     setMovements(initialMovements)
   }
 
-  const trackedCount = useMemo(() => {
-    const trackedIngredients = ingredients.filter((i) => i.stock_tracking_enabled).length
-    const trackedProducts = products.filter((p) => p.stock_tracking_enabled).length
-    return trackedIngredients + trackedProducts
-  }, [ingredients, products])
-
   const elaboradosAgotados = useMemo(
     () => elaboradoProducts.filter((p) => theoreticalStocks[p.id] === 0).length,
     [elaboradoProducts, theoreticalStocks]
@@ -109,110 +78,26 @@ export function StockDashboard({
   const ingredientAlerts = useMemo(() => alerts.filter((a) => a.type === 'ingredient'), [alerts])
   const productAlerts = useMemo(() => alerts.filter((a) => a.type === 'product'), [alerts])
 
-  const lastMovementDate = useMemo(() => {
-    if (movements.length === 0) return null
-    return new Date(movements[0].created_at)
-  }, [movements])
+  // La lista de movimientos se carga recien al abrir su pestana, asi que el
+  // valor inicial viene del server por separado.
+  const totalAlerts = alerts.length + elaboradosAgotados
+
+  const alertBreakdown = useMemo(() => {
+    const parts: string[] = []
+    if (ingredientAlerts.length > 0) {
+      parts.push(`${ingredientAlerts.length} ingrediente${ingredientAlerts.length !== 1 ? 's' : ''} bajo`)
+    }
+    if (productAlerts.length > 0) {
+      parts.push(`${productAlerts.length} reventa${productAlerts.length !== 1 ? 's' : ''} bajo`)
+    }
+    if (elaboradosAgotados > 0) {
+      parts.push(`${elaboradosAgotados} elaborado${elaboradosAgotados !== 1 ? 's' : ''} agotado${elaboradosAgotados !== 1 ? 's' : ''}`)
+    }
+    return parts.join(' · ')
+  }, [ingredientAlerts, productAlerts, elaboradosAgotados])
 
   return (
     <AdminLayout title="Stock e Inventario" description="Control de inventario de materias primas">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        {/* Tracked Items */}
-        <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-[var(--admin-accent)]/30 transition-all">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[var(--admin-text-muted)] text-sm font-medium">Items Trackeados</p>
-              <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{trackedCount}</p>
-              <p className="text-xs text-[var(--admin-text-muted)] mt-0.5">
-                de {ingredients.length + products.length} totales
-              </p>
-            </div>
-            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-[var(--admin-accent)]/10 rounded-xl flex items-center justify-center">
-              <Package className="h-5 w-5 lg:h-6 lg:w-6 text-[var(--admin-accent-text)]" />
-            </div>
-          </div>
-        </div>
-
-        {/* Stock Alerts */}
-        <div
-          className={`bg-[var(--admin-surface)] border rounded-xl p-4 lg:p-6 transition-colors ${
-            alerts.length > 0 || elaboradosAgotados > 0
-              ? 'border-red-500/30 hover:border-red-500/50'
-              : 'border-[var(--admin-border)] hover:border-green-500/30'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[var(--admin-text-muted)] text-sm font-medium">Alertas Stock</p>
-              <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">
-                {alerts.length + elaboradosAgotados}
-              </p>
-              {(alerts.length > 0 || elaboradosAgotados > 0) && (
-                <p className="text-sm text-red-700 dark:text-red-400 mt-0.5 font-medium leading-tight">
-                  {ingredientAlerts.length > 0 && `${ingredientAlerts.length} ingrediente${ingredientAlerts.length !== 1 ? 's' : ''} bajo`}
-                  {ingredientAlerts.length > 0 && (productAlerts.length > 0 || elaboradosAgotados > 0) && ' · '}
-                  {productAlerts.length > 0 && `${productAlerts.length} reventa${productAlerts.length !== 1 ? 's' : ''} bajo`}
-                  {productAlerts.length > 0 && elaboradosAgotados > 0 && ' · '}
-                  {elaboradosAgotados > 0 && `${elaboradosAgotados} elaborado${elaboradosAgotados !== 1 ? 's' : ''} agotado`}
-                </p>
-              )}
-            </div>
-            <div
-              className={`w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center ${
-                alerts.length > 0 || elaboradosAgotados > 0 ? 'bg-red-500/10' : 'bg-green-500/10'
-              }`}
-            >
-              <AlertTriangle
-                className={`h-5 w-5 lg:h-6 lg:w-6 ${
-                  alerts.length > 0 || elaboradosAgotados > 0 ? 'text-red-700 dark:text-red-500' : 'text-green-700 dark:text-green-500'
-                }`}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Reserved (En mesas) */}
-        <div
-          className={`bg-[var(--admin-surface)] border rounded-xl p-4 lg:p-6 transition-colors ${
-            reservedTotal > 0 ? 'border-yellow-500/30 hover:border-yellow-500/50' : 'border-[var(--admin-border)] hover:border-[var(--admin-border)]'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[var(--admin-text-muted)] text-sm font-medium">En mesas</p>
-              <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">{reservedTotal}</p>
-              <p className="text-xs text-[var(--admin-text-muted)] mt-0.5">
-                {reservedTotal > 0 ? `${(initialReserved ?? []).length} producto${(initialReserved ?? []).length !== 1 ? 's' : ''}` : 'Sin reservas'}
-              </p>
-            </div>
-            <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center ${reservedTotal > 0 ? 'bg-yellow-500/10' : 'bg-[var(--admin-surface-2)]'}`}>
-              <Lock className={`h-5 w-5 lg:h-6 lg:w-6 ${reservedTotal > 0 ? 'text-yellow-700 dark:text-yellow-500' : 'text-[var(--admin-text-muted)]'}`} />
-            </div>
-          </div>
-        </div>
-
-        {/* Last Movement */}
-        <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 lg:p-6 hover:border-blue-500/30 transition-colors">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[var(--admin-text-muted)] text-sm font-medium">Ultimo Movimiento</p>
-              <p className="text-2xl lg:text-3xl font-bold text-[var(--admin-text)] mt-1">
-                {lastMovementDate ? formatRelativeDate(lastMovementDate) : '--'}
-              </p>
-              {lastMovementDate && (
-                <p className="text-xs text-[var(--admin-text-muted)] mt-0.5">
-                  {lastMovementDate.toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
-                </p>
-              )}
-            </div>
-            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-blue-500/10 rounded-xl flex items-center justify-center">
-              <RefreshCw className="h-5 w-5 lg:h-6 lg:w-6 text-blue-700 dark:text-blue-500" />
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Search + action button (only for tabs that have search) */}
       {(activeTab === 'ingredientes') && (
         <div className="flex items-center gap-3 mb-4">
@@ -251,13 +136,14 @@ export function StockDashboard({
         </div>
       )}
 
-      {/* Alert banner (ingredient alerts, shown above tabs) */}
-      {activeTab === 'ingredientes' && ingredientAlerts.length > 0 && (
+      {/* Alert banner — cuenta ingredientes, reventas y elaborados agotados */}
+      {totalAlerts > 0 && (
         <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 text-red-700 dark:text-red-400 shrink-0" />
           <p className="text-sm text-red-600 dark:text-red-300">
-            <span className="font-semibold">{ingredientAlerts.length}</span>{' '}
-            ingrediente{ingredientAlerts.length !== 1 ? 's' : ''} con stock bajo. Revisá los items marcados en la tabla.
+            <span className="font-semibold">{totalAlerts}</span>{' '}
+            {totalAlerts === 1 ? 'item necesita atención' : 'items necesitan atención'}
+            {alertBreakdown && <>: {alertBreakdown}</>}. Revisá los items marcados en la tabla.
           </p>
         </div>
       )}
@@ -265,8 +151,8 @@ export function StockDashboard({
       {/* Tabs */}
       <div className="flex items-center gap-0 border-b border-[var(--admin-border)] mb-0 overflow-x-auto no-scrollbar">
         {([
-          { key: 'ingredientes', label: 'Stock Actual' },
-          { key: 'productos', label: 'Alertas', alert: (alerts.length + elaboradosAgotados) > 0 },
+          { key: 'ingredientes', label: 'Stock Actual', alert: ingredientAlerts.length > 0 },
+          { key: 'productos', label: 'Alertas', alert: (productAlerts.length + elaboradosAgotados) > 0 },
           { key: 'movimientos', label: 'Movimientos' },
           { key: 'consumo', label: 'Consumo Histórico' },
         ] as const).map(({ key, label, ...rest }) => {
@@ -293,13 +179,12 @@ export function StockDashboard({
 
       {/* Tab content — Stock Actual uses connected panel, others render with top spacing */}
       {activeTab === 'ingredientes' && (
-        <div className="rounded-b-xl border border-t-0 border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+        <div className="border border-t-0 border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           <IngredientsStockTab
             ingredients={ingredients}
             onIngredientsChange={setIngredients}
             alerts={alerts}
             onAlertsChange={setAlerts}
-            forecastMap={forecastMap}
             searchQuery={ingredientSearch}
           />
         </div>

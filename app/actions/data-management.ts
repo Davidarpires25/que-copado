@@ -142,15 +142,31 @@ export async function deleteAllRecipes(): Promise<{ error: string | null }> {
   return { error: null }
 }
 
-export async function deleteAllStockMovements(): Promise<{ error: string | null }> {
+/**
+ * Reinicia el control de stock por completo, para cuando lo cargado fueron
+ * pruebas o datos mal ingresados.
+ *
+ * Reemplaza al viejo `deleteAllStockMovements`, que borraba el historial sin
+ * tocar `current_stock` y dejaba ingredientes con miles de kilos que ningun
+ * movimiento explicaba. Todo pasa dentro de una transaccion
+ * (`reiniciar_control_de_stock`, migracion 034): borra los movimientos, pone el
+ * stock en 0 y apaga el control.
+ *
+ * Apagar el control es lo que evita que el catalogo publico quede vacio: con
+ * todo en 0 y el control encendido, la sincronizacion de disponibilidad marca
+ * como agotado cada producto que dependa de esos ingredientes.
+ *
+ * Conserva `min_stock` y los costos, que son configuracion.
+ */
+export async function resetStockControl(): Promise<{ error: string | null }> {
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { error: 'No autorizado' }
   const denied = await requirePermission('settings.manage')
   if (denied) return { ...denied }
 
-  const { error } = await supabase.from('stock_movements').delete().not('id', 'is', null)
-  if (error) return { error: 'Error al eliminar movimientos de stock' }
+  const { error } = await supabase.rpc('reiniciar_control_de_stock')
+  if (error) return { error: 'Error al reiniciar el control de stock' }
 
   return { error: null }
 }

@@ -147,17 +147,6 @@ export function ProductsStockTab({
         </p>
       </div>
 
-      {/* Alert Banner */}
-      {alerts.filter((a) => a.type === 'product').length > 0 && (
-        <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
-          <AlertTriangle className="h-5 w-5 text-red-700 dark:text-red-400 shrink-0" />
-          <p className="text-sm text-red-800 dark:text-red-300">
-            <span className="font-semibold">{alerts.filter((a) => a.type === 'product').length}</span>{' '}
-            producto{alerts.filter((a) => a.type === 'product').length !== 1 ? 's' : ''} con stock bajo.
-          </p>
-        </div>
-      )}
-
       {/* Table */}
       {products.length === 0 ? (
         <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
@@ -184,7 +173,7 @@ export function ProductsStockTab({
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold hidden lg:table-cell">En mesas</TableHead>
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center">Estado</TableHead>
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center hidden sm:table-cell">Tracking</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold text-right">Acciones</TableHead>
+                  <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -278,7 +267,7 @@ export function ProductsStockTab({
                           </Tooltip>
                         </TooltipProvider>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-center">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>

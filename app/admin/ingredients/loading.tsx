@@ -15,7 +15,7 @@ export default function IngredientsLoading() {
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+      <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
         <div className="border-b border-[var(--admin-border)] px-4 py-3 flex gap-6">
           {['w-32', 'w-16', 'w-20', 'w-20', 'w-16', 'w-16'].map((w, i) => (
             <Skeleton key={i} className={`h-3.5 ${w}`} />

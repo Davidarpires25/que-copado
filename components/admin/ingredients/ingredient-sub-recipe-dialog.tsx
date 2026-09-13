@@ -50,6 +50,8 @@ export function IngredientSubRecipeDialog({
   allIngredients,
 }: Props) {
   const [lines, setLines] = useState<SubRecipeLine[]>([])
+  // Cuanto rinde la tanda. Se carga como se cocina y el sistema divide.
+  const [yieldStr, setYieldStr] = useState('1')
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -57,6 +59,7 @@ export function IngredientSubRecipeDialog({
     setIsLoading(true)
     try {
       const result = await getIngredientSubRecipes(ingredient.id)
+      setYieldStr(String(result.yieldQuantity ?? 1))
       if (result.error) {
         toast.error(result.error)
         setLines([])
@@ -141,6 +144,12 @@ export function IngredientSubRecipeDialog({
       }
     }
 
+    const rinde = parseFloat(yieldStr)
+    if (lines.length > 0 && (isNaN(rinde) || rinde <= 0)) {
+      toast.error('Indicá cuánto rinde la preparación')
+      return
+    }
+
     setIsSaving(true)
     try {
       const result = await setIngredientSubRecipes(
@@ -149,7 +158,8 @@ export function IngredientSubRecipeDialog({
           child_ingredient_id: l.child_ingredient_id,
           quantity: parseFloat(l.quantity),
           unit: l.unit,
-        }))
+        })),
+        isNaN(rinde) ? undefined : rinde
       )
 
       if (result.error) {
@@ -199,6 +209,29 @@ export function IngredientSubRecipeDialog({
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
+          {/* Rendimiento */}
+          <div className="space-y-1.5">
+            <Label className="text-[var(--admin-text-muted)] text-sm">
+              ¿Cuánto rinde esta preparación?
+            </Label>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={yieldStr}
+                onChange={(e) => setYieldStr(e.target.value)}
+                placeholder="1"
+                className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] w-32 focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
+              />
+              <span className="text-sm text-[var(--admin-text-muted)]">{baseUnitAbbr}</span>
+            </div>
+            <p className="text-xs text-[var(--admin-text-muted)]">
+              Cargá las cantidades como las preparás. El sistema divide solo para saber cuánto
+              lleva cada porción.
+            </p>
+          </div>
+
           {/* Summary badge */}
           {summaryText && (
             <div className="flex items-start gap-2 p-2.5 rounded-lg bg-[var(--admin-surface-2)] border border-[var(--admin-border)]">
@@ -206,7 +239,7 @@ export function IngredientSubRecipeDialog({
                 variant="outline"
                 className="border-[var(--admin-accent)]/30 text-[var(--admin-accent-text)] bg-[var(--admin-accent)]/10 text-xs shrink-0"
               >
-                1 {baseUnitAbbr}
+                {yieldStr || '1'} {baseUnitAbbr}
               </Badge>
               <span className="text-sm text-[var(--admin-text-muted)] leading-relaxed">=&nbsp;{summaryText}</span>
             </div>

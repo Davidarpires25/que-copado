@@ -1,5 +1,7 @@
 'use client'
 
+import { Printer } from 'lucide-react'
+
 import { useEffect } from 'react'
 import { formatPrice } from '@/lib/utils'
 import type { ProductionSheetResult, ProductionSheetIngredient, ProductionSheetShoppingItem } from '@/lib/types/stock'
@@ -179,6 +181,7 @@ export function FichaPrintLayout({ sheet, quantity, showCosts }: FichaPrintLayou
         .screen-bar button {
           background: #FEC501; color: #000; border: none; border-radius: 4px;
           padding: 5px 14px; font-size: 12px; font-weight: 700; cursor: pointer;
+          display: inline-flex; align-items: center; gap: 6px;
         }
 
         .a4-page {
@@ -271,7 +274,10 @@ export function FichaPrintLayout({ sheet, quantity, showCosts }: FichaPrintLayou
       {/* Screen bar */}
       <div className="screen-bar">
         <span>Vista previa — Ficha Técnica: <strong>{sheet.product_name}</strong> ({quantity} {quantity === 1 ? 'unidad' : 'unidades'})</span>
-        <button onClick={() => window.print()}>🖨 Imprimir</button>
+        <button onClick={() => window.print()}>
+          <Printer className="h-4 w-4" />
+          Imprimir
+        </button>
       </div>
 
       <div className="a4-page">

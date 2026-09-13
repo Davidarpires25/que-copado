@@ -279,7 +279,7 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
         </h1>
 
         {/* ── Product card ─────────────────────────────────────── */}
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] p-5">
+        <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] p-5">
           <div className="flex items-center gap-4">
 
             {/* Left: icon + name */}
@@ -355,7 +355,7 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
         </div>
 
         {/* ── Table card ───────────────────────────────────────── */}
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
+        <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
 
           {/* Underline tabs */}
           <div className="flex items-center border-b border-[var(--admin-border)] px-4">

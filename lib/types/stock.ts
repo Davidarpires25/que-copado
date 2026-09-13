@@ -5,7 +5,7 @@ import type { Ingredient, Product } from './database'
 // ---------------------------------------------------------------------------
 
 /** Types of stock movements */
-export type StockMovementType = 'purchase' | 'adjustment' | 'waste' | 'return' | 'initial' | 'sale' | 'sale_reversal'
+export type StockMovementType = 'purchase' | 'adjustment' | 'waste' | 'initial' | 'sale' | 'sale_reversal'
 
 export type StockReferenceType = 'manual' | 'purchase' | 'order'
 
@@ -109,16 +109,6 @@ export interface StockOverview {
 // Forecast & Analytics
 // ---------------------------------------------------------------------------
 
-export interface StockForecastItem {
-  ingredient_id: string
-  name: string
-  unit: string
-  current_stock: number
-  total_consumed: number
-  daily_avg: number
-  days_remaining: number | null  // null if daily_avg = 0 (no consumption)
-}
-
 export interface ReservedStockItem {
   product_id: string
   product_name: string
@@ -131,7 +121,6 @@ export interface ConsumptionReportItem {
   unit: string
   total_consumed: number
   total_cost: number
-  daily_avg: number
   movements_count: number
 }
 
@@ -143,7 +132,6 @@ export const STOCK_MOVEMENT_TYPE_LABELS: Record<StockMovementType, string> = {
   purchase: 'Compra',
   adjustment: 'Ajuste',
   waste: 'Desperdicio',
-  return: 'Devolucion',
   initial: 'Carga inicial',
   sale: 'Venta',
   sale_reversal: 'Reversion de venta',

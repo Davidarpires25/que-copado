@@ -98,11 +98,6 @@ export function ElaboradoStockSection({
     return products.filter((p) => p.name.toLowerCase().includes(q))
   }, [products, searchQuery])
 
-  const agotadosCount = useMemo(
-    () => products.filter((p) => theoreticalStocks[p.id] === 0).length,
-    [products, theoreticalStocks]
-  )
-
   const handleToggleAvailability = async (product: Product) => {
     const newValue = !product.is_out_of_stock
     setLoadingId(product.id)
@@ -141,18 +136,6 @@ export function ElaboradoStockSection({
           {products.length} {products.length === 1 ? 'producto' : 'productos'}
         </span>
       </div>
-
-      {/* Banner de alertas */}
-      {agotadosCount > 0 && (
-        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-red-700 dark:text-red-400 shrink-0 mt-0.5" />
-          <p className="text-sm text-red-800 dark:text-red-300">
-            <span className="font-semibold">{agotadosCount}</span>{' '}
-            {agotadosCount === 1 ? 'producto elaborado agotado' : 'productos elaborados agotados'}.{' '}
-            No hay ingredientes suficientes para prepararlos.
-          </p>
-        </div>
-      )}
 
       {/* Buscador */}
       <div className="relative max-w-xs">

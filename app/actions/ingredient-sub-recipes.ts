@@ -5,6 +5,7 @@ import { getAuthUser } from '@/lib/server/auth'
 import { revalidateIngredients } from '@/lib/server/revalidate'
 import { friendlyError } from '@/lib/server/error-messages'
 import { convertToBaseUnit } from '@/lib/server/unit-conversion'
+import { rendimientoEfectivo } from '@/lib/server/sub-recipes'
 import type { IngredientSubRecipeWithChild } from '@/lib/types/database'
 
 /**
@@ -12,19 +13,26 @@ import type { IngredientSubRecipeWithChild } from '@/lib/types/database'
  */
 export async function getIngredientSubRecipes(
   ingredientId: string
-): Promise<{ data: IngredientSubRecipeWithChild[] | null; error: string | null }> {
+): Promise<{ data: IngredientSubRecipeWithChild[] | null; yieldQuantity: number; error: string | null }> {
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
-  if (!user) return { data: null, error: 'No autorizado' }
+  if (!user) return { data: null, yieldQuantity: 1, error: 'No autorizado' }
 
-  const { data, error } = await supabase
-    .from('ingredient_sub_recipes')
-    .select('*, ingredients:child_ingredient_id(id, name, unit, cost_per_unit)')
-    .eq('parent_ingredient_id', ingredientId)
-    .order('created_at', { ascending: true })
+  const [{ data, error }, { data: parent }] = await Promise.all([
+    supabase
+      .from('ingredient_sub_recipes')
+      .select('*, ingredients:child_ingredient_id(id, name, unit, cost_per_unit)')
+      .eq('parent_ingredient_id', ingredientId)
+      .order('created_at', { ascending: true }),
+    supabase.from('ingredients').select('yield_quantity').eq('id', ingredientId).maybeSingle(),
+  ])
 
-  if (error) return { data: null, error: friendlyError(error) }
-  return { data: data as IngredientSubRecipeWithChild[], error: null }
+  if (error) return { data: null, yieldQuantity: 1, error: friendlyError(error) }
+  return {
+    data: data as IngredientSubRecipeWithChild[],
+    yieldQuantity: Number(parent?.yield_quantity) || 1,
+    error: null,
+  }
 }
 
 /**
@@ -33,13 +41,18 @@ export async function getIngredientSubRecipes(
  */
 export async function setIngredientSubRecipes(
   parentId: string,
-  items: { child_ingredient_id: string; quantity: number; unit: string }[]
+  items: { child_ingredient_id: string; quantity: number; unit: string }[],
+  /** Cuanto rinde la preparacion, en la unidad del propio ingrediente. */
+  yieldQuantity?: number
 ): Promise<{ data: boolean | null; error: string | null }> {
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { data: null, error: 'No autorizado' }
 
   if (!parentId) return { data: null, error: 'ID del ingrediente padre es requerido' }
+  if (yieldQuantity !== undefined && (!Number.isFinite(yieldQuantity) || yieldQuantity <= 0)) {
+    return { data: null, error: 'El rendimiento debe ser mayor a 0' }
+  }
 
   // Validate: no self-reference (DB constraint exists, but validate early)
   for (const item of items) {
@@ -81,7 +94,22 @@ export async function setIngredientSubRecipes(
   }
 
   // Recalculate parent cost based on sub-ingredients
+  if (yieldQuantity !== undefined) {
+    await supabase
+      .from('ingredients')
+      .update({ yield_quantity: yieldQuantity })
+      .eq('id', parentId)
+  }
+
+  // Despues de guardar el rendimiento: el costo por unidad lo divide por el.
   await recalculateParentCost(parentId)
+
+  // El compuesto ya no controla stock propio: al vender se descuentan sus
+  // componentes, asi que su numero quedaria congelado.
+  await supabase
+    .from('ingredients')
+    .update({ stock_tracking_enabled: false })
+    .eq('id', parentId)
 
   revalidateIngredients()
   return { data: true, error: null }
@@ -119,10 +147,13 @@ export async function deleteIngredientSubRecipes(
 async function recalculateParentCost(parentId: string): Promise<void> {
   const supabase = await createAdminClient()
 
-  const { data: subItems } = await supabase
-    .from('ingredient_sub_recipes')
-    .select('quantity, unit, child_ingredient_id, ingredients:child_ingredient_id(cost_per_unit, waste_percentage)')
-    .eq('parent_ingredient_id', parentId)
+  const [{ data: subItems }, { data: parent }] = await Promise.all([
+    supabase
+      .from('ingredient_sub_recipes')
+      .select('quantity, unit, child_ingredient_id, ingredients:child_ingredient_id(cost_per_unit, waste_percentage)')
+      .eq('parent_ingredient_id', parentId),
+    supabase.from('ingredients').select('yield_quantity').eq('id', parentId).maybeSingle(),
+  ])
 
   if (!subItems || subItems.length === 0) return
 
@@ -137,10 +168,14 @@ async function recalculateParentCost(parentId: string): Promise<void> {
     totalCost += actualQty * child.cost_per_unit
   }
 
+  // totalCost es lo que cuesta la tanda entera; el costo por unidad sale de
+  // dividirla por lo que rinde.
+  const costoPorUnidad = totalCost / rendimientoEfectivo(parent?.yield_quantity)
+
   await supabase
     .from('ingredients')
     .update({
-      cost_per_unit: Math.round(totalCost * 100) / 100,
+      cost_per_unit: Math.round(costoPorUnidad * 100) / 100,
       updated_at: new Date().toISOString(),
     })
     .eq('id', parentId)
