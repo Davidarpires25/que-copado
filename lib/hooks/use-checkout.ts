@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useCartStore, getCartItemName, getCartItemPrice } from '@/lib/store/cart-store'
 import { getActiveDeliveryZones } from '@/app/actions/delivery-zones'
 import { calculateShippingCost } from '@/app/actions/shipping'
-import { createOrder, validateCartStock } from '@/app/actions/orders'
+import { createOrder } from '@/app/actions/orders'
 import { checkIfAcceptingOrders } from '@/app/actions/business-settings'
 import { calculateShippingByZone } from '@/lib/services/shipping'
 import { generateWhatsAppMessage } from '@/lib/services/order-formatter'
@@ -180,36 +180,15 @@ export function useCheckout() {
     setIsLoading(true)
 
     try {
-      // VALIDACIÓN DE STOCK: Verificar disponibilidad antes de procesar pago/envío
-      // For half-and-half, validate only the primary half (conservative)
-      const cartSnapshot = items.map((i) => ({
-        id: i.product.id,
-        name: i.product.name,
-        quantity: i.quantity,
-      }))
-      const { issues, error: stockValidationError } = await validateCartStock(cartSnapshot)
-
-      if (stockValidationError) {
-        toast.error('No pudimos verificar el stock. Intenta nuevamente.')
-        setIsLoading(false)
-        return
-      }
-
-      if (issues.length > 0) {
-        const first = issues[0]
-        if (first.issue === 'not_found') {
-          toast.error(`"${first.productName}" ya no está disponible. Actualizá tu carrito.`)
-        } else if (first.issue === 'out_of_stock') {
-          toast.error(`"${first.productName}" se agotó. Eliminalo del carrito para continuar.`)
-        } else {
-          toast.error(
-            `Solo quedan ${first.available} unidades de "${first.productName}" y pediste ${first.requested}.`
-          )
-        }
-        setIsLoading(false)
-        return
-      }
-
+      // El stock no se pre-valida aca.
+      //
+      // Era una server action entera —y Next las serializa, asi que sumaba su
+      // latencia a la del pedido— para repetir exactamente lo que `createOrder`
+      // vuelve a validar un segundo despues. Y tenia que volver a validarlo: la
+      // accion es publica, cualquiera puede llamarla sin pasar por el checkout,
+      // asi que el chequeo del cliente nunca fue la garantia. Sus errores son
+      // los mismos y se muestran igual, unos cientos de milisegundos antes de
+      // que el pedido caiga en el mostrador.
       const currentSubtotal = getTotal()
       let shipping = 0
       let finalShippingResult = shippingResult
@@ -252,12 +231,17 @@ export function useCheckout() {
 
       const total = currentSubtotal + shipping
 
+      // `notes` viaja hasta la comanda de cocina y el ticket impreso. Sin esta
+      // linea el cliente escribia "sin cebolla" en la web, el carrito lo
+      // guardaba, y se perdia justo al confirmar el pedido: nunca llegaba a la
+      // cocina. Todo el resto del camino ya estaba hecho.
       const orderItems: OrderItem[] = items.map((item) => ({
         id: item.product.id,
         name: getCartItemName(item),
         price: getCartItemPrice(item),
         quantity: item.quantity,
         image_url: item.product.image_url,
+        notes: item.observations?.trim() || null,
       }))
 
       const fullAddress = deliveryType === 'pickup'

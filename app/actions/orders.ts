@@ -9,75 +9,11 @@ import { getAuthUser } from '@/lib/server/auth'
 import { devError } from '@/lib/server/logger'
 import { revalidateOrders } from '@/lib/server/revalidate'
 import { esTelefonoValido } from '@/lib/utils/phone'
-import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
+import { getMaxElaboradoQuantity } from '@/lib/server/elaborado-stock'
 import { checkRateLimit } from '@/lib/server/rate-limit'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Order, OrderStatus, OrderWithZone } from '@/lib/types/database'
+import type { Order, OrderSource, OrderStatus, OrderWithZone } from '@/lib/types/database'
 import type { CreateOrderData, OrderFilters } from '@/lib/types/orders'
-
-// ─── Elaborado stock helper ──────────────────────────────────────────────────
-
-/**
- * Calcula cuántas unidades de un producto elaborado se pueden producir
- * con el stock actual de ingredientes. Replica la lógica de deductElaboradoStock
- * pero en modo lectura. Retorna null si no hay ingredientes trackeados (sin límite).
- */
-async function getMaxElaboradoQuantity(
-  supabase: SupabaseClient,
-  productId: string
-): Promise<number | null> {
-  const { data: productRecipes } = await supabase
-    .from('product_recipes')
-    .select(`
-      quantity,
-      recipes (
-        recipe_ingredients (
-          quantity,
-          unit,
-          ingredients (
-            id,
-            unit,
-            waste_percentage,
-            current_stock,
-            stock_tracking_enabled
-          )
-        )
-      )
-    `)
-    .eq('product_id', productId)
-
-  if (!productRecipes?.length) return null
-
-  let maxQty: number | null = null
-
-  for (const pr of productRecipes) {
-    const recipeMultiplier = (pr.quantity as number) ?? 1
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const recipe = pr.recipes as any
-    if (!recipe?.recipe_ingredients) continue
-
-    for (const ri of recipe.recipe_ingredients) {
-      const ingredient = ri.ingredients
-      if (!ingredient?.stock_tracking_enabled) continue
-      if (ingredient.current_stock === null) continue
-
-      const effectiveUnit = ri.unit ?? ingredient.unit
-      if (getBaseUnit(effectiveUnit) !== getBaseUnit(ingredient.unit)) continue
-
-      // Cantidad necesaria del ingrediente por 1 unidad de producto
-      const neededPerUnit = convertToBaseUnit(recipeMultiplier * ri.quantity, effectiveUnit)
-      const wastePct = Number(ingredient.waste_percentage) || 0
-      const wasteFactor = 1 - wastePct / 100
-      const actualNeededPerUnit = wasteFactor > 0 ? neededPerUnit / wasteFactor : neededPerUnit
-      if (actualNeededPerUnit <= 0) continue
-
-      const producible = Math.floor(Number(ingredient.current_stock) / actualNeededPerUnit)
-      if (maxQty === null || producible < maxQty) maxQty = producible
-    }
-  }
-
-  return maxQty
-}
 
 // ─── Stock validation types (exported for client use) ───────────────────────
 
@@ -170,16 +106,39 @@ export async function validateCartStock(
 }
 
 /**
- * Crear una nueva orden (desde checkout - público)
+ * Opciones de creacion. Sin ellas, `createOrder` se comporta exactamente como
+ * antes de que existiera el canal de WhatsApp: origen 'web' y limite por IP.
+ */
+export interface CreateOrderOptions {
+  /** Canal que origina el pedido. Por defecto 'web'. */
+  source?: OrderSource
+  /**
+   * Clave con la que se cuenta el limite de pedidos.
+   *
+   * El default es la IP del request, que sirve para el checkout publico. No
+   * sirve para el agente de WhatsApp: sus pedidos salen todos del mismo
+   * servidor, asi que una clave por IP dejaria de atender clientes al
+   * undecimo pedido de la hora. Ese canal pasa el telefono del cliente.
+   */
+  rateLimitKey?: string
+}
+
+/**
+ * Crear una nueva orden (desde checkout - público, o desde el agente)
  */
 export async function createOrder(
-  data: CreateOrderData
+  data: CreateOrderData,
+  options?: CreateOrderOptions
 ): Promise<{ data: Order | null; error: string | null }> {
   try {
-    // Rate limit: 10 órdenes por IP por hora
-    const headersList = await headers()
-    const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
-    const { allowed } = checkRateLimit(`order:${ip}`, 10, 60 * 60 * 1000)
+    // Rate limit: 10 órdenes por clave por hora
+    let rateLimitKey = options?.rateLimitKey
+    if (!rateLimitKey) {
+      const headersList = await headers()
+      const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+      rateLimitKey = `order:${ip}`
+    }
+    const { allowed } = checkRateLimit(rateLimitKey, 10, 60 * 60 * 1000)
     if (!allowed) {
       return { data: null, error: 'Demasiados pedidos desde tu conexión. Intentá en unos minutos.' }
     }
@@ -194,9 +153,33 @@ export async function createOrder(
 
     const supabase = await createAdminClient()
 
-    // VALIDACIÓN: Verificar si los pedidos están pausados
-    const { data: businessSettings, error: settingsError } = await getBusinessSettings()
+    // Las tres consultas que no dependen una de otra, juntas. Estaban en fila
+    // —settings, despues productos, despues la zona— y cada viaje a Supabase
+    // cuesta ~160ms fijos aunque la consulta se resuelva en 2ms. La zona se pide
+    // igual aunque despues falle una validacion: viaja en la misma ola, asi que
+    // no cuesta nada, y pedirla despues costaba un viaje entero.
+    const productIds = data.items.map((i) => i.id)
 
+    const [
+      { data: businessSettings, error: settingsError },
+      { data: products, error: stockError },
+      { data: zone },
+    ] = await Promise.all([
+      getBusinessSettings(),
+      supabase
+        .from('products')
+        .select('id, name, price, is_active, is_out_of_stock, current_stock, stock_tracking_enabled, product_type')
+        .in('id', productIds),
+      data.delivery_zone_id
+        ? supabase
+            .from('delivery_zones')
+            .select('shipping_cost, free_shipping_threshold')
+            .eq('id', data.delivery_zone_id)
+            .single()
+        : Promise.resolve({ data: null }),
+    ])
+
+    // VALIDACIÓN: Verificar si los pedidos están pausados
     if (settingsError) {
       devError('Error fetching business settings:', settingsError)
       return { data: null, error: 'Error al verificar el estado del negocio' }
@@ -221,16 +204,29 @@ export async function createOrder(
     }
 
     // VALIDACIÓN: Verificar stock de cada producto antes de crear la orden
-    const productIds = data.items.map((i) => i.id)
-    const { data: products, error: stockError } = await supabase
-      .from('products')
-      .select('id, name, price, is_active, is_out_of_stock, current_stock, stock_tracking_enabled, product_type')
-      .in('id', productIds)
-
     if (stockError) {
       devError('Error checking stock:', stockError)
       return { data: null, error: 'Error al verificar disponibilidad de productos' }
     }
+
+    // Cuanto se puede armar de cada elaborado, todo junto. Era una consulta por
+    // hamburguesa adentro del `for`, o sea en serie: tres hamburguesas eran tres
+    // viajes de ~160ms para 7ms de trabajo real (medido con EXPLAIN ANALYZE).
+    // `validateCartStock`, en este mismo archivo, ya lo hacia con Promise.all.
+    // Set y no array: el mismo producto puede venir dos veces en el carrito
+    // —dos veces la misma hamburguesa, con observaciones distintas— y no tiene
+    // sentido preguntar dos veces por el mismo.
+    const elaboradoIds = [...new Set(
+      data.items
+        .filter((item) => products?.find((p) => p.id === item.id)?.product_type === 'elaborado')
+        .map((item) => item.id)
+    )]
+
+    const maximos = new Map(
+      (await Promise.all(
+        elaboradoIds.map(async (id) => [id, await getMaxElaboradoQuantity(supabase, id)] as const)
+      ))
+    )
 
     for (const item of data.items) {
       const product = products?.find((p) => p.id === item.id)
@@ -244,7 +240,7 @@ export async function createOrder(
       }
 
       if (product.product_type === 'elaborado') {
-        const maxQty = await getMaxElaboradoQuantity(supabase, product.id)
+        const maxQty = maximos.get(product.id) ?? null
         if (maxQty !== null && maxQty < item.quantity) {
           return {
             data: null,
@@ -279,18 +275,11 @@ export async function createOrder(
 
     // Validate shipping cost against delivery zone — fallback to client value if no zone
     let serverShipping = data.shipping_cost
-    if (data.delivery_zone_id) {
-      const { data: zone } = await supabase
-        .from('delivery_zones')
-        .select('shipping_cost, free_shipping_threshold')
-        .eq('id', data.delivery_zone_id)
-        .single()
-      if (zone) {
-        serverShipping =
-          zone.free_shipping_threshold !== null && serverSubtotal >= zone.free_shipping_threshold
-            ? 0
-            : zone.shipping_cost
-      }
+    if (zone) {
+      serverShipping =
+        zone.free_shipping_threshold !== null && serverSubtotal >= zone.free_shipping_threshold
+          ? 0
+          : zone.shipping_cost
     }
 
     const serverTotal = serverSubtotal + serverShipping
@@ -319,7 +308,7 @@ export async function createOrder(
       notes: data.notes || null,
       payment_method: data.payment_method,
       status: 'recibido' as const,
-      order_source: 'web' as const,
+      order_source: options?.source ?? ('web' as const),
     }
 
     const { error } = await supabase.from('orders').insert(newOrder)
