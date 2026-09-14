@@ -284,19 +284,43 @@ export async function createOrder(
 
     const serverTotal = serverSubtotal + serverShipping
 
-    // El id se genera aca en vez de dejar que lo devuelva la base.
+    // El pedido se inserta con un RPC y no con `.insert()` por el numero
+    // correlativo.
     //
     // El checkout publico corre como `anon`, que tiene permiso para INSERT en
     // `orders` pero no para SELECT —y con razon: si lo tuviera, cualquiera
-    // podria leer los pedidos y los datos de todos los clientes—. Un
-    // `.insert().select()` se traduce en `INSERT ... RETURNING`, y Postgres
-    // exige politica de SELECT para devolver la fila, asi que fallaba con
-    // "new row violates row-level security policy" y el pedido nunca se
-    // guardaba. Generando el id no hace falta leer nada de vuelta.
-    const orderId = crypto.randomUUID()
+    // podria leer los pedidos y los datos de todos los clientes—. El numero lo
+    // pone un trigger al insertar, asi que habia que releerlo, y esa relectura
+    // volvia vacia: el pedido salia con `order_number: null` siempre. La web no
+    // lo notaba porque su pantalla de confirmacion no muestra el numero; el
+    // agente de WhatsApp si, porque no podia decirle al cliente cual es su
+    // pedido.
+    //
+    // `crear_pedido_remoto` (migracion 039) inserta y devuelve el numero en el
+    // mismo viaje, que ademas es un viaje menos que antes.
+    const { data: creado, error } = await supabase.rpc('crear_pedido_remoto', {
+      p_customer_name: data.customer_name,
+      p_customer_phone: data.customer_phone,
+      p_customer_address: data.customer_address,
+      p_customer_coordinates: data.customer_coordinates || null,
+      p_items: data.items,
+      p_total: serverTotal,
+      p_shipping_cost: serverShipping,
+      p_delivery_zone_id: data.delivery_zone_id || null,
+      p_notes: data.notes || null,
+      p_payment_method: data.payment_method,
+      p_order_source: options?.source ?? 'web',
+    })
 
-    const newOrder = {
-      id: orderId,
+    if (error || !creado) {
+      devError('Error creating order:', error)
+      return { data: null, error: 'Error al crear el pedido' }
+    }
+
+    const nuevo = creado as { id: string; order_number: number | null; created_at: string; status: string }
+
+    const order = {
+      id: nuevo.id,
       customer_name: data.customer_name,
       customer_phone: data.customer_phone,
       customer_address: data.customer_address,
@@ -307,32 +331,10 @@ export async function createOrder(
       delivery_zone_id: data.delivery_zone_id || null,
       notes: data.notes || null,
       payment_method: data.payment_method,
-      status: 'recibido' as const,
+      status: nuevo.status,
       order_source: options?.source ?? ('web' as const),
-    }
-
-    const { error } = await supabase.from('orders').insert(newOrder)
-
-    if (error) {
-      devError('Error creating order:', error)
-      return { data: null, error: 'Error al crear el pedido' }
-    }
-
-    // El correlativo lo asigna un trigger al insertar, asi que hay que leerlo
-    // de vuelta: es el numero que el cliente ve en su WhatsApp y el que despues
-    // te dice por telefono. Va en una consulta aparte y no en un
-    // `.insert().select()` a proposito — ese RETURNING es el que fallaba por RLS
-    // y hacia que el pedido no se guardara.
-    const { data: numerado } = await supabase
-      .from('orders')
-      .select('order_number')
-      .eq('id', orderId)
-      .single()
-
-    const order = {
-      ...newOrder,
-      order_number: numerado?.order_number ?? null,
-      created_at: new Date().toISOString(),
+      order_number: nuevo.order_number,
+      created_at: nuevo.created_at,
     } as unknown as Order
 
     // Log initial status in history (non-blocking)
