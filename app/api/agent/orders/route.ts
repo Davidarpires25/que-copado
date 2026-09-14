@@ -3,7 +3,7 @@ import { requireAgentSecret } from '@/lib/server/agent-auth'
 import { agentError, agentInternalError } from '@/lib/server/agent-errors'
 import { createOrder, validateCartStock } from '@/app/actions/orders'
 import { calculateShippingCost } from '@/app/actions/shipping'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClient, createServiceRoleClient } from '@/lib/supabase/admin'
 import { esTelefonoValido } from '@/lib/utils/phone'
 import { devError } from '@/lib/server/logger'
 import type { PaymentMethod } from '@/lib/types/database'
@@ -339,7 +339,10 @@ interface PedidoGuardado {
 }
 
 async function buscarPedidoPorClave(clave: string): Promise<PedidoGuardado | null> {
-  const supabase = await createAdminClient()
+  // Service role y no createAdminClient(): este handler no tiene sesion de
+  // usuario, asi que ese cliente vale por `anon`, y `anon` no tiene SELECT sobre
+  // `orders`. La busqueda volvia vacia siempre y la idempotencia no existia.
+  const supabase = createServiceRoleClient()
   const { data } = await supabase
     .from('orders')
     .select('id, order_number, status, total, shipping_cost, delivery_zone_id, idempotency_body_hash')
@@ -355,18 +358,24 @@ async function buscarPedidoPorClave(clave: string): Promise<PedidoGuardado | nul
  * `createOrder` no la conoce y no tiene por que: es una preocupacion de este
  * canal. La ventana entre ambas escrituras es de milisegundos; el precio de
  * cerrarla seria meter un concepto del agente dentro de la accion compartida.
+ *
+ * Va con service role por lo mismo que la busqueda: sin sesion de usuario, el
+ * UPDATE sobre `orders` lo bloquea la policy —que pide `puede_operar()`— y
+ * PostgREST no lo reporta como error, devuelve cero filas y listo. La clave no
+ * se guardaba nunca y un reintento del agente creaba un pedido duplicado. Por
+ * eso ahora tambien se cuenta lo que se escribio: un cero aca es la falla.
  */
 async function marcarIdempotencia(orderId: string, clave: string, hash: string): Promise<void> {
-  const supabase = await createAdminClient()
-  const { error } = await supabase
+  const supabase = createServiceRoleClient()
+  const { error, count } = await supabase
     .from('orders')
-    .update({ idempotency_key: clave, idempotency_body_hash: hash })
+    .update({ idempotency_key: clave, idempotency_body_hash: hash }, { count: 'exact' })
     .eq('id', orderId)
 
-  if (error) {
+  if (error || count === 0) {
     // El pedido ya existe y es valido; no se le puede fallar al cliente por
     // esto. Se registra para poder detectarlo si empieza a pasar seguido.
-    devError('[agent/orders] no se pudo guardar la clave de idempotencia:', error)
+    devError('[agent/orders] no se pudo guardar la clave de idempotencia:', error ?? `0 filas para ${orderId}`)
   }
 }
 
