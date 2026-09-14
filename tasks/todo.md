@@ -846,3 +846,66 @@ Los mensajes de error que ve el cliente son equivalentes.
   devolveria en el mismo viaje del insert; es un viaje contra los tres que se sacaron.
 - El camino web no se probo end-to-end: hacerlo crea un pedido real que suena en la caja del
   local. Verificado por tipos, lint, build y equivalencia de la logica de validacion.
+
+
+---
+
+# Los pedidos de WhatsApp existían en la base pero no en el POS
+
+**Fecha:** 2026-09-13
+**Disparador:** prueba de punta a punta del agente. El pedido #12 quedó guardado bien y aun así
+no aparecía en la caja.
+
+## Lo que estaba roto
+
+`order_source` sumó 'whatsapp' pero siete lugares seguían preguntando por `'web'`:
+
+| lugar | efecto |
+|---|---|
+| `pos-orders.ts` getPendingOrders | el pedido no aparecía en Pendientes |
+| `pos-orders.ts` guard de cancelación | tampoco se podía cancelar |
+| `pos-interface.tsx` filtro de realtime `eq.web` | entraba a la base **sin avisarle a nadie** |
+| `pos-interface.tsx` helper de realtime | no lo agregaba a la lista |
+| `pos-interface.tsx` badge e ícono | se veía como si fuera de mostrador |
+| `print.ts` rama `esWeb` | buscaba los items en order_items, que para él está vacío |
+| `pending-order-pay-view.tsx` | vista de cobro por la rama equivocada |
+
+Todos pasan a `esPedidoRemoto()` (`lib/types/database.ts`), que pregunta `!== 'pos'`: la misma
+condición que la base eligió en la migración 037, y que no hay que tocar cuando aparezca otro
+canal.
+
+## El número de pedido venía siempre en null
+
+`createOrder` releía el correlativo con `createAdminClient()`, que usa la clave anon, y anon no
+tiene SELECT sobre `orders`: PostgREST devuelve `[]` con 200, no un error. La web no lo notaba
+—su pantalla de confirmación no muestra el número—; el agente sí, porque su contrato lo promete.
+
+Migración **039 `crear_pedido_remoto`**: inserta y devuelve el número en el mismo viaje, con
+`security definer` porque lo que hace falta es justamente leer la fila recién escrita. Es más
+estricta que el camino que anon ya tenía (la policy de INSERT es `with_check (true)`): fija el
+status, no deja elegir 'pos' como origen, exige productos y rechaza totales negativos. Devuelve
+solo id, número, fecha y estado.
+
+## Un cuarto bug, de la misma familia
+
+`marcarIdempotencia` hacía el UPDATE como anon: cero filas, sin error, la clave nunca se
+guardaba. Y `buscarPedidoPorClave` leía como anon, así que tampoco habría encontrado nada. O sea
+que **la idempotencia del agente no existía**: un reintento creaba un pedido duplicado. Las dos
+pasan a `createServiceRoleClient()`, y la escritura cuenta las filas para que un cero se note.
+
+## Verificación
+
+- Bug 1 contra producción: con el filtro nuevo, el #12 ('whatsapp') aparece junto al #10 y #13
+  ('web') y el #11 (mostrador) en las dos consultas —la de pendientes y la del guard de cancelar.
+- Migración 039 probada en transacción revertida: devuelve número y estado, y rechaza origen
+  'pos', medio de pago inválido, carrito vacío y total negativo.
+- Y probada **como anon**, que es el rol que estaba roto: devolvió `order_number: 14`. El pedido
+  de prueba se borró.
+- Bug 4 probado: el PATCH como anon devuelve `[]` con HTTP 200 y `idempotency_key` queda en null.
+
+## Lo que queda afuera
+
+- La ventana entre el INSERT y la escritura de la clave de idempotencia sigue existiendo (son dos
+  operaciones). Cerrarla sería pasarle la clave a `crear_pedido_remoto`, a costa de meter un
+  concepto del agente en la acción compartida.
+- Sigue sin probarse un checkout web de punta a punta con navegador.

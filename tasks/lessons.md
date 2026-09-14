@@ -250,3 +250,52 @@ cuando el que prueba es otro —persona o agente—, pedirle **evidencia** (sali
 de comandos, logs, capturas) y no conclusiones: en esta sesión, dos de sus
 diagnósticos eran incorrectos y la evidencia en crudo fue lo que permitió
 corregirlos.
+
+---
+
+## 14. Agregar un valor a un enum deja atrás todos los literales viejos
+
+**Qué pasó (2026-09-13).** `order_source` pasó de `'web' | 'pos'` a incluir
+`'whatsapp'`. El pedido del agente se guardaba perfecto —origen, estado, número,
+total— y aun así era invisible en la caja: `getPendingOrders` traía mostrador
+'abierto' **o** `.eq('order_source', 'web')` en 'recibido', y un pedido de
+WhatsApp no caía en ninguna de las dos ramas. Lo mismo el guard de cancelación,
+la rama de `print.ts` que decide dónde viven los items, la vista de cobro, el
+badge de la lista y —el peor— el filtro de la suscripción de realtime
+(`order_source=eq.web`), que hacía que el pedido entrara a la base sin avisarle
+a nadie.
+
+Siete lugares para un solo valor nuevo. El compilador no ayuda: `=== 'web'` es
+válido para cualquier `OrderSource`.
+
+**Regla.** Al agregar un valor a un enum, `grep` del literal viejo en todo el
+repo —incluyendo strings de filtros PostgREST y de realtime, que ningún
+type-check mira— antes de dar por cerrado el cambio. Y preferir la condición
+negada: la base ya había elegido `order_source <> 'pos'` en la migración 037,
+que expresa "pedido remoto" y no hay que tocarla cuando aparezca el cuarto
+canal. En TypeScript eso es `esPedidoRemoto()`, un solo lugar donde equivocarse.
+
+---
+
+## 15. Con RLS, la falta de permiso no es un error: son cero filas
+
+**Qué pasó (2026-09-13).** `createOrder` devolvía `order_number: null` siempre.
+El correlativo lo pone un trigger, así que había que releerlo, y la relectura la
+hacía `createAdminClient()` que —pese al nombre— usa la clave **anon**, sin
+SELECT sobre `orders`. PostgREST no devuelve 403: devuelve `[]` con HTTP 200.
+El código hacía `const { data: numerado }` descartando el error que además nunca
+llegaba. La web no lo notó nunca porque su pantalla de confirmación no muestra
+el número; lo encontró el agente de WhatsApp, cuyo contrato sí lo promete.
+
+El mismo patrón, dos veces más en el mismo día: `marcarIdempotencia` hacía un
+UPDATE como anon que devolvía cero filas sin error, así que la clave nunca se
+guardaba y un reintento del agente creaba un pedido duplicado; y
+`buscarPedidoPorClave` leía con anon, o sea que tampoco habría encontrado nada.
+
+**Regla.** Una consulta que vuelve vacía bajo RLS es indistinguible de "no hay
+datos". Si una escritura o lectura tiene que funcionar sí o sí, verificar el
+rol con el que corre —`createAdminClient()` es anon; el service role es
+`createServiceRoleClient()`— y comprobar el efecto, no la ausencia de error:
+contar filas afectadas (`{ count: 'exact' }`) o releer. Y cuando lo que falta es
+leer la fila recién escrita, un RPC `security definer` que devuelva solo lo
+necesario resuelve el permiso y el viaje extra de una vez.
