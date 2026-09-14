@@ -32,7 +32,7 @@ import { useRealtimeChannel } from '@/lib/hooks/use-realtime-channel'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import type { Category, ProductWithHalfConfig, PaymentMethod, Order, DeliveryZone } from '@/lib/types/database'
-import { sendsToKitchen } from '@/lib/types/database'
+import { sendsToKitchen, esPedidoRemoto } from '@/lib/types/database'
 import type { CashRegisterSession, SessionSummary, PaymentSplit, OrderWithSplits } from '@/lib/types/cash-register'
 import type { TableWithOrder, OrderItemRow } from '@/lib/types/tables'
 
@@ -180,7 +180,7 @@ export function PosInterface({
       ((nuevo.order_type === 'mostrador' &&
         nuevo.status === 'abierto' &&
         nuevo.cash_register_session_id === session.id) ||
-        (nuevo.order_source === 'web' && nuevo.status === 'recibido'))
+        (esPedidoRemoto(nuevo.order_source) && nuevo.status === 'recibido'))
 
     setPendingOrders((prev) => {
       const resto = prev.filter((o) => o.id !== pedidoId)
@@ -222,11 +222,14 @@ export function PosInterface({
           debouncedRefreshTables()
         }
       )
-      // Los pedidos web nacen sin sesion de caja —se la asigna recien quien los
-      // cobra— asi que no matchean el filtro de arriba y su llegada no
+      // Los pedidos remotos nacen sin sesion de caja —se la asigna recien quien
+      // los cobra— asi que no matchean el filtro de arriba y su llegada no
       // disparaba nada. Hacen falta las dos suscripciones: esta los ve entrar,
       // la de arriba los ve cobrarse.
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: 'order_source=eq.web' },
+      //
+      // El filtro es `neq.pos` y no `eq.web`: con `eq.web`, un pedido del agente
+      // de WhatsApp entraba a la base sin avisarle a nadie.
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: 'order_source=neq.pos' },
         (payload) => {
           aplicarCambioDePedido(
             (payload.new as Order | null) ?? null,
@@ -732,14 +735,14 @@ export function PosInterface({
                         )}
                         style={{ height: 32, borderRadius: 8 }}
                         title={
-                          order.order_source === 'web'
-                            ? `Pedido web de ${order.customer_name ?? 'cliente'}`
+                          esPedidoRemoto(order.order_source)
+                            ? `Pedido ${order.order_source === 'whatsapp' ? 'de WhatsApp' : 'web'} de ${order.customer_name ?? 'cliente'}`
                             : undefined
                         }
                       >
-                        {/* El pedido web se distingue del de mostrador: llega
+                        {/* El pedido remoto se distingue del de mostrador: llega
                             solo, con cliente y direccion, y hay que atenderlo. */}
-                        {order.order_source === 'web' && (
+                        {esPedidoRemoto(order.order_source) && (
                           <Globe className="mr-1.5 h-3.5 w-3.5 shrink-0" />
                         )}
                         {orderLabel(order)} — {formatPrice(order.total)}

@@ -10,6 +10,7 @@ import { PaymentSummary } from './payment-summary'
 import { StockAlert } from './stock-alert'
 import { CustomerBlock } from '@/components/admin/orders/customer-block'
 import { orderLabel } from '@/lib/utils/order-number'
+import { esPedidoRemoto } from '@/lib/types/database'
 import type { PaymentMethod, Order, DeliveryZone } from '@/lib/types/database'
 import type { PaymentSplit } from '@/lib/types/cash-register'
 import type { OrderItem } from '@/lib/types/orders'
@@ -31,7 +32,7 @@ export function PendingOrderPayView({
   order, loading, deliveryZones, onBack: _onBack, onPrint, onCancel, onConfirm,
 }: PendingOrderPayViewProps) {
   const total = order.total
-  const esWeb = order.order_source === 'web'
+  const esRemoto = esPedidoRemoto(order.order_source)
   const shipping = Number(order.shipping_cost ?? 0)
   const zona = deliveryZones?.find((z) => z.id === order.delivery_zone_id)?.name ?? null
   const orderItems = (order.items as OrderItem[] | null) ?? []
@@ -78,7 +79,7 @@ export function PendingOrderPayView({
           <span className="text-[15px] font-bold text-[var(--admin-text)]">
             Pedido <span className="text-[var(--admin-accent-text)]">{etiqueta}</span>
           </span>
-          {esWeb && (
+          {esRemoto && (
             <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700 dark:text-sky-400">
               <Globe className="h-2.5 w-2.5" />
               Web
@@ -109,7 +110,7 @@ export function PendingOrderPayView({
 
       {/* El pedido de mostrador esta parado enfrente; el de la web hay que
           llevarselo a alguien. Mismo bloque que el drawer de pedidos. */}
-      {esWeb && (
+      {esRemoto && (
         <div className="shrink-0">
           <CustomerBlock
             variant="plain"

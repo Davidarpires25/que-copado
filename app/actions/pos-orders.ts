@@ -323,10 +323,14 @@ export async function completeMostadorPayment(
  * Quedaban en 'recibido' para siempre: nadie los atendia, nadie los cobraba, y
  * aun asi contaban como ingreso en analytics.
  *
- * El de mostrador se acota a la sesion actual porque nace dentro de ella. El de
- * la web no: entro cuando entro, y sigue esperando aunque hayan cerrado la caja
+ * El de mostrador se acota a la sesion actual porque nace dentro de ella. El
+ * remoto no: entro cuando entro, y sigue esperando aunque hayan cerrado la caja
  * en el medio. Por eso se listan todos los 'recibido', del mas viejo al mas
  * nuevo, que es el orden en que hay que atenderlos.
+ *
+ * Se pregunta por `neq('order_source', 'pos')` y no por 'web': el pedido del
+ * agente de WhatsApp es igual de remoto y estaba quedando afuera de las dos
+ * ramas, o sea invisible en la caja aunque estuviera bien cargado.
  */
 export async function getPendingOrders(
   sessionId: string
@@ -346,7 +350,7 @@ export async function getPendingOrders(
       supabase
         .from('orders')
         .select('*')
-        .eq('order_source', 'web')
+        .neq('order_source', 'pos')
         .eq('status', 'recibido'),
     ])
 
@@ -375,8 +379,10 @@ export async function getPendingOrders(
  * RETURNING vuelve vacio. Un viaje en lugar de dos, y sin la ventana entre la
  * lectura y la escritura donde dos cajeros podian cancelar el mismo pedido.
  *
- * Los dos origenes que pueden estar esperando cobro tienen estados distintos:
- * el de mostrador nace 'abierto', el de la web nace 'recibido'.
+ * Los dos tipos de pedido que pueden estar esperando cobro tienen estados
+ * distintos: el de mostrador nace 'abierto', el remoto —web o WhatsApp— nace
+ * 'recibido'. El guard preguntaba por 'web' y dejaba sin cancelar los de
+ * WhatsApp.
  */
 export async function cancelMostadorOrder(
   orderId: string
@@ -390,7 +396,7 @@ export async function cancelMostadorOrder(
       .from('orders')
       .update({ status: 'cancelado', updated_at: new Date().toISOString() })
       .eq('id', orderId)
-      .or('and(order_type.eq.mostrador,status.eq.abierto),and(order_source.eq.web,status.eq.recibido)')
+      .or('and(order_type.eq.mostrador,status.eq.abierto),and(order_source.neq.pos,status.eq.recibido)')
       .select('id')
       .maybeSingle()
 

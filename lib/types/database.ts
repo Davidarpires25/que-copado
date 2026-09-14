@@ -943,6 +943,23 @@ export const KITCHEN_PRODUCT_TYPES: ProductType[] = ['elaborado', 'mitad']
 export const sendsToKitchen = (pt: string): boolean =>
   KITCHEN_PRODUCT_TYPES.includes(pt as ProductType)
 
+/**
+ * Un pedido que llego entero desde afuera, en vez de armarse en la caja.
+ *
+ * La distincion que importa no es el canal sino como esta hecho el pedido: el
+ * remoto nace en 'recibido', guarda sus productos en la columna JSON `items` en
+ * vez de en filas de `order_items`, y no tiene sesion de caja hasta que alguien
+ * lo cobra. Eso vale para cualquier pedido que haya pasado por `createOrder()`,
+ * venga de la web o del agente de WhatsApp.
+ *
+ * Se pregunta por 'pos' y no se enumeran los canales remotos a proposito: asi
+ * un canal nuevo entra andando en vez de tener que acordarse de agregarlo en
+ * cada lugar que preguntaba por 'web'. Es la misma condicion que usa
+ * `cobrar_pedido_de_mostrador` en la base desde la migracion 037.
+ */
+export const esPedidoRemoto = (source: string | null | undefined): boolean =>
+  source != null && source !== 'pos'
+
 // Half-pizza config type
 export type HalfConfig = Database['public']['Tables']['product_half_configs']['Row']
 export type ProductWithHalfConfig = Product & { product_half_configs: HalfConfig[] }

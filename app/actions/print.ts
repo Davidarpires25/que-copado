@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { SIN_ASIGNAR, etiquetaComensal } from '@/lib/constants/sale-tags'
 import { devError } from '@/lib/server/logger'
-import { sendsToKitchen } from '@/lib/types/database'
+import { sendsToKitchen, esPedidoRemoto } from '@/lib/types/database'
 
 const PAYMENT_LABELS: Record<string, string> = {
   cash: 'Efectivo',
@@ -159,13 +159,13 @@ export async function printKitchenTicketAction(
 
     if (error || !order) return { error: 'Orden no encontrada' }
 
-    const esWeb = order.order_source === 'web'
+    const esRemoto = esPedidoRemoto(order.order_source)
 
     // Determine which items to print and whether this is a new batch or a reprint
     let targetIds: string[] = []
     let newBatchId: string | null = null
 
-    if (esWeb) {
+    if (esRemoto) {
       // El pedido web no tiene filas en `order_items`: sus productos viven en la
       // columna JSON de la orden. Toda la maquinaria de lotes de impresion
       // —imprimir solo lo que todavia no salio, reimprimir el ultimo lote— se
@@ -235,7 +235,7 @@ export async function printKitchenTicketAction(
 
     let items: { name: string; quantity: number; notes: string | null }[]
 
-    if (esWeb) {
+    if (esRemoto) {
       const jsonItems =
         (order.items as unknown as
           { id?: string; name?: string; quantity?: number; notes?: string | null }[] | null) ?? []
@@ -294,9 +294,11 @@ export async function printKitchenTicketAction(
         orderLabel:
           order.order_type === 'mesa' && order.table_number
             ? `Mesa ${order.table_number}`
-            : esWeb
-              // Que la cocina sepa que sale a la calle, y para quien.
-              ? `Web${order.customer_name ? ` · ${order.customer_name}` : ''}`
+            : esRemoto
+              // Que la cocina sepa que sale a la calle, por donde entro y para
+              // quien: un pedido de WhatsApp que dijera "Web" manda a buscarlo
+              // al lugar equivocado si despues hay que confirmar algo.
+              ? `${order.order_source === 'whatsapp' ? 'WhatsApp' : 'Web'}${order.customer_name ? ` · ${order.customer_name}` : ''}`
               : 'Mostrador',
         dateStr,
         timeStr,
