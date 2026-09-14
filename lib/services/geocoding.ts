@@ -46,6 +46,16 @@ const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org'
 const USER_AGENT = 'QueCopado Hamburguesas (delivery@quecopado.com)'
 
 /**
+ * Nominatim es un servicio publico y gratuito: puede tardar o no contestar
+ * nunca. Sin limite, ese "nunca" se propaga —la busqueda del checkout se queda
+ * cargando para siempre, y el agente de WhatsApp deja al cliente esperando una
+ * respuesta que no va a llegar—. Cinco segundos es holgado para una consulta
+ * que normalmente tarda menos de uno, y convierte el cuelgue en un error que se
+ * puede mostrar.
+ */
+const TIMEOUT_MS = 5000
+
+/**
  * Buscar direcciones con autocomplete
  * @param query - Texto de búsqueda
  * @param countryCode - Código ISO del país (ar para Argentina)
@@ -69,6 +79,7 @@ export async function searchAddress(
     headers: {
       'User-Agent': USER_AGENT,
     },
+    signal: AbortSignal.timeout(TIMEOUT_MS),
   })
 
   if (!response.ok) {
