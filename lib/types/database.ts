@@ -14,6 +14,14 @@ export interface GeoJSONPolygon {
 
 export type ZoneType = 'polygon' | 'circle'
 
+/** Caja geografica, para acotar o inclinar una busqueda de direcciones. */
+export interface Viewbox {
+  minLat: number
+  maxLat: number
+  minLng: number
+  maxLng: number
+}
+
 export interface ZoneCenter {
   lat: number
   lng: number

@@ -1,6 +1,7 @@
 import { requireAgentSecret } from '@/lib/server/agent-auth'
 import { agentError, agentInternalError } from '@/lib/server/agent-errors'
 import { searchAddress } from '@/lib/services/geocoding'
+import { viewboxDeReparto } from '@/lib/server/area-de-reparto'
 import { devError } from '@/lib/server/logger'
 
 export const dynamic = 'force-dynamic'
@@ -54,9 +55,18 @@ export async function POST(request: Request) {
       )
     }
 
+    // La caja de reparto inclina la busqueda hacia donde el local entrega. Sin
+    // ella, "Sarmiento 123" devolvia cinco resultados de Rio Negro, Santiago
+    // del Estero, Buenos Aires, Tierra del Fuego y Chubut, y ninguno de
+    // Catamarca: el agente le ofrecia al cliente cinco opciones todas
+    // equivocadas. Inclina, no filtra: una direccion lejos del local se sigue
+    // encontrando igual.
+    //
+    // Si no hay zonas cargadas devuelve null y la busqueda sale sin inclinar,
+    // que es como venia funcionando.
     let sugerencias
     try {
-      sugerencias = await searchAddress(texto)
+      sugerencias = await searchAddress(texto, 'ar', await viewboxDeReparto())
     } catch (e) {
       // Nominatim se cayo, tardo demasiado o contesto cualquier cosa. Se separa
       // del catch de abajo para no confundir "el buscador no esta" con un error

@@ -3,6 +3,8 @@
  * API pública gratuita con límite de 1 req/segundo
  */
 
+import type { Viewbox } from '@/lib/types/database'
+
 interface NominatimResult {
   place_id: number
   display_name: string
@@ -59,10 +61,13 @@ const TIMEOUT_MS = 5000
  * Buscar direcciones con autocomplete
  * @param query - Texto de búsqueda
  * @param countryCode - Código ISO del país (ar para Argentina)
+ * @param viewbox - Caja hacia la que inclinar los resultados. Sin ella,
+ *   "Sarmiento 123" devuelve cinco resultados de cinco provincias distintas.
  */
 export async function searchAddress(
   query: string,
-  countryCode: string = 'ar'
+  countryCode: string = 'ar',
+  viewbox?: Viewbox | null
 ): Promise<AddressSuggestion[]> {
   if (query.length < 3) return []
 
@@ -74,6 +79,16 @@ export async function searchAddress(
     limit: '5',
     'accept-language': 'es',
   })
+
+  // `bounded=0` a proposito: la caja inclina, no filtra. Comprobado contra
+  // Nominatim —"Avenida Corrientes 1000" con la caja de Catamarca devuelve los
+  // mismos dos resultados de Buenos Aires que sin caja—, asi que una direccion
+  // lejos del local sigue encontrandose y "no hay candidatos" sigue queriendo
+  // decir que no existe, no que queda lejos.
+  if (viewbox) {
+    params.set('viewbox', [viewbox.minLng, viewbox.maxLat, viewbox.maxLng, viewbox.minLat].join(','))
+    params.set('bounded', '0')
+  }
 
   const response = await fetch(`${NOMINATIM_BASE_URL}/search?${params}`, {
     headers: {
