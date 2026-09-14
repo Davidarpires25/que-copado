@@ -6,7 +6,7 @@ import { useCartStore, getCartItemName, getCartItemPrice } from '@/lib/store/car
 import { getActiveDeliveryZones } from '@/app/actions/delivery-zones'
 import { calculateShippingCost } from '@/app/actions/shipping'
 import { createOrder } from '@/app/actions/orders'
-import { checkIfAcceptingOrders } from '@/app/actions/business-settings'
+import { checkIfAcceptingOrders, type DatosTransferencia } from '@/app/actions/business-settings'
 import { calculateShippingByZone } from '@/lib/services/shipping'
 import { generateWhatsAppMessage } from '@/lib/services/order-formatter'
 import { toast } from 'sonner'
@@ -54,6 +54,7 @@ export function useCheckout() {
   // Business status
   const [isAcceptingOrders, setIsAcceptingOrders] = useState(true)
   const [businessMessage, setBusinessMessage] = useState<string | null>(null)
+  const [datosTransferencia, setDatosTransferencia] = useState<DatosTransferencia>({ alias: null, cbu: null })
   const [checkingBusiness, setCheckingBusiness] = useState(true)
 
   // Delivery zones
@@ -68,9 +69,10 @@ export function useCheckout() {
   useEffect(() => {
     async function checkBusiness() {
       try {
-        const { accepting, message } = await checkIfAcceptingOrders()
+        const { accepting, message, transferencia } = await checkIfAcceptingOrders()
         setIsAcceptingOrders(accepting)
         setBusinessMessage(message)
+        setDatosTransferencia(transferencia)
       } catch {
         setIsAcceptingOrders(true)
       } finally {
@@ -301,6 +303,9 @@ export function useCheckout() {
         address: fullAddress,
         paymentMethod,
         orderNumber: String(Math.floor(1000 + Math.random() * 9000)),
+        // Solo cuando hace falta: el que paga en efectivo no tiene por que ver
+        // la cuenta del local en su pantalla.
+        transferencia: paymentMethod === 'transfer' ? datosTransferencia : undefined,
       }
       sessionStorage.setItem('qc_pending_order', JSON.stringify(pendingOrder))
       router.push('/order-confirmation')
@@ -315,6 +320,7 @@ export function useCheckout() {
   }, [
     isAcceptingOrders, businessMessage, deliveryType, deliveryData,
     shippingResult, zones, items, getTotal, paymentMethod, cashAmount, router,
+    datosTransferencia,
   ])
 
   const clearFieldError = useCallback((field: 'name' | 'phone' | 'address') => {
@@ -341,6 +347,7 @@ export function useCheckout() {
     // Business status
     isAcceptingOrders,
     businessMessage,
+    datosTransferencia,
     checkingBusiness,
 
     // Zones & Shipping

@@ -22,6 +22,7 @@ export default function CheckoutPage() {
     fieldErrors,
     isAcceptingOrders,
     businessMessage,
+    datosTransferencia,
     checkingBusiness,
     zones,
     shippingResult,
@@ -151,6 +152,7 @@ export default function CheckoutPage() {
                 onPaymentMethodChange={onPaymentMethodChange}
                 cashAmount={cashAmount}
                 onCashAmountChange={onCashAmountChange}
+                datosTransferencia={datosTransferencia}
                 shippingResult={shippingResult}
                 hasZones={zones.length > 0}
                 isCalculatingShipping={isCalculatingShipping}

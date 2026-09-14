@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { DatoCopiable } from '@/components/checkout/dato-copiable'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion, useReducedMotion } from 'framer-motion'
@@ -26,6 +27,8 @@ export interface PendingOrder {
   address?: string
   paymentMethod: string
   orderNumber: string
+  /** Alias y CBU del local, solo cuando el pago es por transferencia. */
+  transferencia?: { alias: string | null; cbu: string | null }
 }
 
 const PAYMENT_LABELS: Record<string, string> = {
@@ -174,6 +177,33 @@ export default function OrderConfirmationPage() {
     </motion.div>
   )
 
+  // Los datos para transferir van antes del boton de WhatsApp: es el momento en
+  // que el cliente efectivamente paga, y antes de esto no habia ningun momento
+  // —le contaban el alias por chat, si alguien estaba del otro lado—.
+  const datosTransferencia =
+    order.paymentMethod === 'transfer' && (order.transferencia?.alias || order.transferencia?.cbu) ? (
+      <motion.div
+        initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: shouldReduceMotion ? 0 : 0.4, duration: 0.35 }}
+        className="bg-white rounded-2xl border border-[#F0EBE1] shadow-warm p-5 space-y-3"
+      >
+        <div>
+          <h3 className="font-bold text-[#2D1A0E] text-sm">Transferí a esta cuenta</h3>
+          <p className="text-xs text-[#78706A] mt-0.5">
+            Después mandá el comprobante por WhatsApp junto con el pedido.
+          </p>
+        </div>
+
+        {order.transferencia.alias && (
+          <DatoCopiable etiqueta="Alias" valor={order.transferencia.alias} />
+        )}
+        {order.transferencia.cbu && (
+          <DatoCopiable etiqueta="CBU / CVU" valor={order.transferencia.cbu} mono />
+        )}
+      </motion.div>
+    ) : null
+
   const whatsappCta = (
     <motion.div
       initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
@@ -251,6 +281,7 @@ export default function OrderConfirmationPage() {
         >
           {checkmarkAndTitle}
           {summaryCard}
+          {datosTransferencia}
           {whatsappCta}
           {stepsCard}
           {backLink}
@@ -272,6 +303,7 @@ export default function OrderConfirmationPage() {
 
           {/* Right column: CTA + steps */}
           <div className="space-y-5 pt-2">
+            {datosTransferencia}
             {whatsappCta}
             {stepsCard}
           </div>

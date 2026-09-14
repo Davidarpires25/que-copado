@@ -6,6 +6,7 @@ import { Truck, Loader2, Store, AlertCircle, MapPin } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { AddressAutocomplete } from './address-autocomplete'
+import { DatoCopiable } from './dato-copiable'
 import { CashIcon, BankTransferIcon, MercadoPagoIcon, NavigationIcon } from '@/components/icons'
 import { formatPrice } from '@/lib/utils'
 import type { AddressSuggestion } from '@/lib/services/geocoding'
@@ -48,6 +49,8 @@ interface DeliveryFormProps {
   onPaymentMethodChange: (method: PaymentMethod) => void
   cashAmount: string
   onCashAmountChange: (amount: string) => void
+  /** Alias y CBU del local. Si vienen vacios, no se muestra la seccion. */
+  datosTransferencia?: { alias: string | null; cbu: string | null }
   shippingResult?: ShippingResult
   hasZones?: boolean
   isCalculatingShipping?: boolean
@@ -152,7 +155,7 @@ const paymentMethods = [
   {
     id: 'transfer' as const,
     label: 'Transferencia',
-    description: 'Te enviamos los datos',
+    description: 'Alias y CBU al confirmar',
     icon: BankTransferIcon
   },
   {
@@ -172,6 +175,7 @@ export function DeliveryForm({
   onPaymentMethodChange,
   cashAmount,
   onCashAmountChange,
+  datosTransferencia,
   shippingResult,
   hasZones = false,
   isCalculatingShipping = false,
@@ -421,6 +425,28 @@ export function DeliveryForm({
             )
           })}
         </div>
+
+        {/* Datos para transferir. Antes de esto, la opcion prometia "te enviamos
+            los datos" y no habia datos en ningun lado: se los pasaba una persona
+            por WhatsApp, uno por uno. El cliente que elegia transferencia se
+            quedaba esperando a que alguien le contestara para poder pagar.
+
+            Si el local todavia no los cargo, no se muestra nada: una caja vacia
+            con dos etiquetas es peor que no prometer nada. */}
+        {paymentMethod === 'transfer' && (datosTransferencia?.alias || datosTransferencia?.cbu) && (
+          <div className="mt-3 rounded-xl border border-[#E7E0D3] bg-white p-4 space-y-3">
+            <p className="text-xs font-medium text-[#78706A]">
+              Transferí a esta cuenta y mandanos el comprobante por WhatsApp.
+            </p>
+
+            {datosTransferencia.alias && (
+              <DatoCopiable etiqueta="Alias" valor={datosTransferencia.alias} />
+            )}
+            {datosTransferencia.cbu && (
+              <DatoCopiable etiqueta="CBU / CVU" valor={datosTransferencia.cbu} mono />
+            )}
+          </div>
+        )}
 
         {/* Cash Amount Input */}
         {paymentMethod === 'cash' && (

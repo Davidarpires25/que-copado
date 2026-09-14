@@ -854,6 +854,10 @@ export interface BusinessSettings {
   closing_time: string
   is_paused: boolean
   pause_message: string | null
+  /** Alias de la cuenta. Null o vacio: el checkout no muestra datos de transferencia. */
+  transfer_alias: string | null
+  /** CBU o CVU de la cuenta. Mismo criterio que el alias. */
+  transfer_cbu: string | null
   created_at: string
   updated_at: string
 }

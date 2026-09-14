@@ -37,6 +37,8 @@ export async function getBusinessSettings(): Promise<{
           closing_time: '01:00',
           is_paused: false,
           pause_message: 'Estamos cerrados temporalmente. Volvemos pronto!',
+          transfer_alias: null,
+          transfer_cbu: null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
@@ -60,6 +62,8 @@ export async function updateBusinessSettings(updates: {
   closing_time?: string
   is_paused?: boolean
   pause_message?: string
+  transfer_alias?: string | null
+  transfer_cbu?: string | null
 }): Promise<{ data: BusinessSettings | null; error: string | null }> {
   try {
     const supabase = await createAdminClient()
@@ -90,9 +94,28 @@ export async function updateBusinessSettings(updates: {
       }
     }
 
+    // El alias y el CBU se guardan sin espacios de sobra y vacio se guarda como
+    // null: la diferencia entre "" y null decide si el checkout muestra la
+    // seccion, y dos formas de decir "no hay cuenta" es una de mas.
+    const limpio = { ...updates }
+    for (const campo of ['transfer_alias', 'transfer_cbu'] as const) {
+      if (campo in limpio) {
+        const valor = limpio[campo]?.trim() ?? ''
+        limpio[campo] = valor === '' ? null : valor
+      }
+    }
+
+    // El CBU argentino tiene 22 digitos y el CVU de las billeteras tambien. Se
+    // valida el largo pero no el digito verificador: un CBU mal tipeado que
+    // igual pasa la cuenta es raro, y bloquear a alguien que quiere guardar un
+    // numero que su banco si acepta es peor que dejarlo guardar.
+    if (limpio.transfer_cbu && !/^\d{22}$/.test(limpio.transfer_cbu)) {
+      return { data: null, error: 'El CBU o CVU tiene que ser de 22 dígitos, sin espacios ni guiones' }
+    }
+
     const { data, error } = await supabase
       .from('business_settings')
-      .update(updates)
+      .update(limpio)
       .eq('id', SETTINGS_ID)
       .select()
       .single()
@@ -155,34 +178,53 @@ export async function toggleBusinessPause(
   }
 }
 
+/** Datos de cobro que el checkout le muestra al cliente. */
+export interface DatosTransferencia {
+  alias: string | null
+  cbu: string | null
+}
+
 /**
  * Verificar si el negocio está aceptando pedidos (público - para checkout)
+ *
+ * Devuelve tambien los datos de transferencia porque salen de la misma fila que
+ * el horario: pedirlos aparte seria un segundo viaje para leer el mismo registro
+ * que ya esta en la mano. Van null cuando no estan cargados, y ahi el checkout
+ * no muestra la seccion.
  */
 export async function checkIfAcceptingOrders(): Promise<{
   accepting: boolean
   message: string | null
+  transferencia: DatosTransferencia
 }> {
+  const sinDatos: DatosTransferencia = { alias: null, cbu: null }
+
   try {
     const { data: settings, error } = await getBusinessSettings()
 
     if (error || !settings) {
-      return { accepting: true, message: null }
+      return { accepting: true, message: null, transferencia: sinDatos }
+    }
+
+    const transferencia: DatosTransferencia = {
+      alias: settings.transfer_alias?.trim() || null,
+      cbu: settings.transfer_cbu?.trim() || null,
     }
 
     const { checkBusinessStatus } = await import('@/lib/services/business-hours')
     const status = checkBusinessStatus(settings)
 
     if (status.isPaused) {
-      return { accepting: false, message: status.message }
+      return { accepting: false, message: status.message, transferencia }
     }
 
     if (!status.isOpen) {
-      return { accepting: false, message: status.message }
+      return { accepting: false, message: status.message, transferencia }
     }
 
-    return { accepting: true, message: null }
+    return { accepting: true, message: null, transferencia }
   } catch (error) {
     devError('Error in checkIfAcceptingOrders:', error)
-    return { accepting: true, message: null }
+    return { accepting: true, message: null, transferencia: sinDatos }
   }
 }

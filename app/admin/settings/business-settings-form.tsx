@@ -31,6 +31,7 @@ const DAYS_OF_WEEK = [
 const TABS = [
   { key: 'horarios', label: 'Horarios' },
   { key: 'pausa', label: 'Pausa' },
+  { key: 'cobros', label: 'Cobros' },
   { key: 'apariencia', label: 'Apariencia' },
   { key: 'datos', label: 'Datos' },
 ] as const
@@ -62,6 +63,8 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
   const [openingTime, setOpeningTime] = useState(settings.opening_time)
   const [closingTime, setClosingTime] = useState(settings.closing_time)
   const [pauseMessage, setPauseMessage] = useState(settings.pause_message || '')
+  const [transferAlias, setTransferAlias] = useState(settings.transfer_alias || '')
+  const [transferCbu, setTransferCbu] = useState(settings.transfer_cbu || '')
 
   const businessStatus = checkBusinessStatus(settings)
 
@@ -74,7 +77,9 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
     !sameDays(operatingDays, settings.operating_days) ||
     openingTime !== settings.opening_time ||
     closingTime !== settings.closing_time ||
-    pauseMessage !== (settings.pause_message || '')
+    pauseMessage !== (settings.pause_message || '') ||
+    transferAlias !== (settings.transfer_alias || '') ||
+    transferCbu !== (settings.transfer_cbu || '')
 
   const handleToggleDay = (day: number) => {
     setOperatingDays((prev) =>
@@ -94,6 +99,8 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
       opening_time: openingTime,
       closing_time: closingTime,
       pause_message: pauseMessage || undefined,
+      transfer_alias: transferAlias,
+      transfer_cbu: transferCbu,
     })
     setIsSaving(false)
 
@@ -118,7 +125,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
     }
   }
 
-  const showSave = tab === 'horarios' || tab === 'pausa'
+  const showSave = tab === 'horarios' || tab === 'pausa' || tab === 'cobros'
 
   return (
     <AdminLayout
@@ -299,6 +306,45 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
                     )}
                   </span>
                 </button>
+              </div>
+            </div>
+          )}
+
+          {tab === 'cobros' && (
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-2xl font-semibold text-[var(--admin-text)]">Cobros</h2>
+                <p className="mt-1.5 text-sm text-[var(--admin-text-muted)]">
+                  Lo que ve el cliente cuando elige transferencia en el checkout. Si lo dejás
+                  vacío, no se le muestra nada y los datos se los tenés que pasar a mano.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="transferAlias" className={LABEL}>Alias</label>
+                <Input
+                  id="transferAlias"
+                  value={transferAlias}
+                  onChange={(e) => setTransferAlias(e.target.value)}
+                  placeholder="que.copado.mp"
+                  className={cn(FIELD, 'max-w-md')}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="transferCbu" className={LABEL}>CBU o CVU</label>
+                <Input
+                  id="transferCbu"
+                  value={transferCbu}
+                  onChange={(e) => setTransferCbu(e.target.value.replace(/[^0-9]/g, ''))}
+                  inputMode="numeric"
+                  placeholder="0000003100010000000001"
+                  maxLength={22}
+                  className={cn(FIELD, 'max-w-md font-mono tracking-wide')}
+                />
+                <p className="mt-2 text-sm text-[var(--admin-text-muted)]">
+                  22 dígitos. Se guarda sin espacios ni guiones.
+                </p>
               </div>
             </div>
           )}
