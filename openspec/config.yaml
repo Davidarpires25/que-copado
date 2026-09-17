@@ -1,0 +1,67 @@
+schema: spec-driven
+
+context: |
+  Language: es
+  All artifacts must be written in es.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  ## Proyecto
+
+  Que Copado es el sistema de una hamburgueseria de San Fernando del Valle de
+  Catamarca: catalogo publico con carrito, checkout que termina en WhatsApp, y
+  un panel de administracion que incluye el POS de caja (mostrador y mesas),
+  cocina, stock por recetas y arqueo.
+
+  Next.js 16 (App Router) + React 19 + TypeScript. Base: Supabase (PostgreSQL
+  con RLS). Desplegado en Netlify. Mapas con Leaflet y Turf.js para las zonas
+  de reparto.
+
+  No es un proyecto de laboratorio: hay un local usandolo todos los dias. Un
+  cambio que rompe la caja deja a alguien sin poder cobrar con gente esperando.
+
+  ## El agente de WhatsApp es un repo aparte
+
+  AgentePOS vive en `../AgentePOS`: Python + FastAPI, tambien gobernado por
+  OpenSpec. Atiende el WhatsApp del local y crea los pedidos llamando a este
+  POS por HTTP (`app/api/agent/*`, autenticado con un secreto compartido).
+
+  El contrato entre los dos vive en las specs de AgentePOS (capability
+  `integracion-pos`) y no se duplica aca: un contrato, una casa. Cuando un
+  cambio cruza los dos repos, la propuesta dice cual lo lidera.
+
+  La regla que sostiene la division: la logica de negocio de pedidos vive en
+  este repo —horarios, stock de elaborados por receta, recalculo de precios,
+  zonas de envio, numeracion por trigger— y el agente nunca la reimplementa.
+
+  ## Como se verifica aca
+
+  No hay suite de tests automatizados. Lo que vale como evidencia es, en este
+  orden: una consulta contra la base de produccion (via MCP de Supabase o
+  PostgREST con la clave correspondiente), el endpoint real corriendo, y
+  `npm run lint` + `npm run build`. Una funcion SQL se prueba dentro de una
+  transaccion con `rollback` antes de darla por buena.
+
+  Cada viaje a Supabase cuesta ~160ms fijos, medido sobre los logs. Es la
+  unidad con la que se razona el rendimiento en este proyecto: la pregunta no
+  es que tan pesada es la consulta sino cuantas olas hay.
+
+rules:
+  proposal:
+    - Indicar siempre si el cambio toca tambien AgentePOS, y cual de los dos repos lidera
+    - Incluir una seccion "Fuera de alcance"
+    - Decir que se rompe hoy en el local, no solo que mejora
+  specs:
+    - Los contratos HTTP especifican request, response y errores con ejemplos concretos
+    - Todo cambio de esquema nombra su migracion en `supabase/migrations/`
+  tasks:
+    - Cada tarea debe ser verificable sin ambiguedad, y decir con que se verifica
+    - Las tareas que tocan la caja o el cobro dicen como se prueban sin ensuciar datos reales
+
+operations:
+  apply:
+    guidance:
+      - Nunca dar una tarea por hecha sin evidencia de que funciona
+      - Las pruebas que escriben en produccion se revierten y se deja constancia
+  archive:
+      guidance:
+      - Al archivar, actualizar `tasks/lessons.md` si el cambio dejo una leccion

@@ -16,6 +16,8 @@ Que Copado is a Next.js SaaS application for a burger restaurant (hamburgueserí
 - Si algo sale mal, PARA y vuelve a planificar de inmediato; no sigas forzando
 - Usa el modo planificación para los pasos de verificación, no solo para la construcción
 - Escribe especificaciones detalladas por adelantado para reducir la ambigüedad
+- Para trabajo no trivial, ese plan es un cambio de OpenSpec (ver "Gestión de
+  Tareas"). Un arreglo chico y obvio no necesita propuesta: necesita hacerse
 
 ### 2. Estrategia de Subagentes
 - Usa subagentes con frecuencia para mantener limpia la ventana de contexto principal
@@ -47,14 +49,43 @@ Que Copado is a Next.js SaaS application for a burger restaurant (hamburgueserí
 - Cero necesidad de cambio de contexto por parte del usuario
 - Ve a arreglar los tests de CI que fallan sin que te digan cómo
 
-## Gestión de Tareas
+## Gestión de Tareas: OpenSpec
 
-1. **Planificar Primero**: Escribe el plan en `tasks/todo.md` con elementos verificables
-2. **Verificar Plan**: Confirma antes de comenzar la implementación
-3. **Seguir el Progreso**: Marca los elementos como completados a medida que avances
-4. **Explicar Cambios**: Resumen de alto nivel en cada paso
-5. **Documentar Resultados**: Añade una sección de revisión a `tasks/todo.md`
-6. **Capturar Lecciones**: Actualiza `tasks/lessons.md` después de las correcciones
+El proyecto se gobierna con OpenSpec (`openspec/`). El CLI es `openspec`
+(`@fission-ai/openspec`), y el flujo se maneja con los comandos `/opsx:*`.
+
+**La estructura:**
+
+- `openspec/specs/<capability>/spec.md` — lo que el sistema hace **hoy**. Es la
+  verdad vigente, y solo cambia al archivar.
+- `openspec/changes/<nombre>/` — una propuesta en curso: `proposal.md` (qué y por
+  qué), `design.md` (cómo), `tasks.md` (pasos verificables) y `specs/<capability>/spec.md`
+  con el **delta** de comportamiento, no la spec entera.
+- `openspec/changes/archive/` — lo ya desplegado y volcado a `specs/`.
+
+**El ciclo:**
+
+1. **Proponer** antes de tocar código: `/opsx:propose "<idea>"` (o `/opsx:new` +
+   `/opsx:continue` para ir artefacto por artefacto). Crear artefactos es
+   planificar: no se edita código del proyecto en ese paso.
+2. **Confirmar la propuesta** con el usuario antes de implementar.
+3. **Implementar** con `/opsx:apply`, marcando cada tarea a medida que se termina.
+4. **Verificar** con `/opsx:verify` antes de dar nada por cerrado.
+5. **Archivar** con `/opsx:archive` una vez desplegado: ahí el delta se vuelca a
+   `openspec/specs/` y la spec vigente queda actualizada. **Este paso es el que
+   le da sentido al resto** — sin archivar, `specs/` queda vacío y OpenSpec se
+   convierte en una carpeta de propuestas.
+6. **Capturar Lecciones**: actualizar `tasks/lessons.md` después de las
+   correcciones. OpenSpec no tiene un artefacto equivalente: las specs dicen qué
+   hace el sistema, las lecciones dicen cómo no volver a romperlo.
+
+**Lo que dejó de usarse:** `tasks/todo.md` queda como registro histórico (hasta
+2026-09-14) y no se escribe más. Lo que antes era su plan ahora es un cambio en
+`openspec/changes/`, y lo que era su sección de revisión es la spec archivada.
+
+**Un cambio que cruza los dos repos** (este y `../AgentePOS`) se especifica en el
+repo que lo lidera y se referencia desde el otro. El contrato HTTP del agente
+vive en las specs de AgentePOS y no se duplica acá.
 
 ## Principios Fundamentales
 
