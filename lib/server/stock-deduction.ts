@@ -360,6 +360,22 @@ export async function syncCombosAvailability(supabase: SupabaseClient): Promise<
   return cambio
 }
 
+/**
+ * El barrido de disponibilidad: que productos quedan marcados como agotados.
+ *
+ * Es la unica copia. Corre despues de cada movimiento de stock —vender,
+ * cancelar, comprar, ajustar— y desde el disparo manual.
+ *
+ * Estuvo escrito dos veces, aca y en `app/actions/stock.ts`, y eso costo un bug:
+ * al agregar los combos se extendio una sola, asi que un combo se apagaba al
+ * vender y no al comprar. El orden importa —los combos van despues de los
+ * elaborados, para que un combo vea en la misma pasada que su hamburguesa acaba
+ * de agotarse— y con dos copias ese detalle tambien divergio.
+ */
+export async function syncAvailability(supabase: SupabaseClient): Promise<void> {
+  return syncElaboradoAvailability(supabase)
+}
+
 async function syncElaboradoAvailability(supabase: SupabaseClient): Promise<void> {
   const { data: products, error: prodError } = await supabase
     .from('products')
@@ -428,6 +444,18 @@ type IngReq = Map<string, { requiredQty: number; currentStock: number; trackingE
  * Exported so the public page can display urgency indicators.
  */
 export async function calcElaboradoStock(supabase: SupabaseClient, productId: string): Promise<number | null> {
+  return _calcTheoreticalStock(supabase, productId)
+}
+
+/**
+ * Cuantas unidades de un elaborado se pueden armar con el stock que hay.
+ *
+ * Recorre sus recetas, aplica mermas y baja por las sub-recetas. Tambien estaba
+ * duplicada —`_calculateTheoreticalStock` en `app/actions/stock.ts`, con la
+ * misma cuenta escrita distinto y unos logs de medicion que corrian en
+ * produccion—. Esta es la unica.
+ */
+export async function calcularStockTeorico(supabase: SupabaseClient, productId: string): Promise<number | null> {
   return _calcTheoreticalStock(supabase, productId)
 }
 

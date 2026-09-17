@@ -7,7 +7,7 @@ import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
 import { escalarComponente } from '@/lib/server/sub-recipes'
 import { devError } from '@/lib/server/error-messages'
 import { recalculateProductsForIngredient } from './recipes'
-import { syncCombosAvailability } from '@/lib/server/stock-deduction'
+import { syncAvailability, calcularStockTeorico } from '@/lib/server/stock-deduction'
 import type {
   StockMovementFilters,
   StockAdjustmentData,
@@ -510,7 +510,7 @@ export async function adjustStock(
   } else {
     // Ingredient: re-evaluate all elaborado products that depend on it
     try {
-      await _syncElaboradoAvailability(supabase)
+      await syncAvailability(supabase)
     } catch { /* best effort */ }
   }
 
@@ -601,7 +601,7 @@ export async function registerPurchase(
 
   // Ingredient stock increased: re-evaluate elaborado product availability (best-effort)
   try {
-    await _syncElaboradoAvailability(supabase)
+    await syncAvailability(supabase)
   } catch { /* best effort */ }
 
   revalidateStock()
@@ -706,7 +706,7 @@ export async function getTheoreticalStock(
   if (!user) return { data: null, error: 'No autorizado' }
 
   try {
-    const stock = await _calculateTheoreticalStock(supabase, productId)
+    const stock = await calcularStockTeorico(supabase, productId)
     return { data: stock, error: null }
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Error calculando stock teorico'
@@ -817,7 +817,7 @@ export async function syncElaboradoAvailabilityAction(): Promise<{ data: boolean
   const user = await getAuthUser(supabase)
   if (!user) return { data: null, error: 'No autorizado' }
 
-  await _syncElaboradoAvailability(supabase)
+  await syncAvailability(supabase)
   revalidateStock()
   return { data: true, error: null }
 }
@@ -827,55 +827,6 @@ export async function syncElaboradoAvailabilityAction(): Promise<{ data: boolean
  * Updates is_out_of_stock / auto_disabled flags and revalidates the public storefront.
  * Best-effort: call from any action that changes ingredient stock.
  */
-/**
- * El mismo barrido que corre despues de una venta, pero por el lado de las
- * compras y los ajustes.
- *
- * Son dos copias de la misma idea —esta y la de `lib/server/stock-deduction.ts`—
- * y eso ya costo un bug: al agregar los combos se extendio una sola, asi que un
- * combo se apagaba al vender y no al comprar. La parte de combos vive en un solo
- * lugar y las dos la llaman; unificar el resto es otro trabajo.
- */
-async function _syncElaboradoAvailability(supabase: SupabaseAdminClient): Promise<void> {
-  await syncCombosAvailability(supabase as unknown as Parameters<typeof syncCombosAvailability>[0])
-
-  const { data: products, error: prodError } = await supabase
-    .from('products')
-    .select('id, is_out_of_stock, auto_disabled')
-    .eq('product_type', 'elaborado')
-    .eq('is_active', true)
-
-  if (prodError || !products || products.length === 0) return
-
-  let anyChanged = false
-
-  for (const product of products) {
-    try {
-      const theoreticalStock = await _calculateTheoreticalStock(supabase, product.id)
-      if (theoreticalStock === null) continue
-
-      if (theoreticalStock === 0 && !product.is_out_of_stock) {
-        await supabase
-          .from('products')
-          .update({ is_out_of_stock: true, auto_disabled: true })
-          .eq('id', product.id)
-        anyChanged = true
-      } else if (theoreticalStock > 0 && product.is_out_of_stock && product.auto_disabled) {
-        await supabase
-          .from('products')
-          .update({ is_out_of_stock: false, auto_disabled: false })
-          .eq('id', product.id)
-        anyChanged = true
-      }
-    } catch (err) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error(`[Stock] Error syncing availability for product ${product.id}:`, err)
-      }
-    }
-  }
-
-  if (anyChanged) revalidateProducts()
-}
 
 /**
  * Toggles is_out_of_stock for an elaborado product.
@@ -1056,138 +1007,8 @@ async function _syncReventaProduct(
   }
 }
 
-type IngredientRequirements = Map<string, {
-  requiredQty: number
-  currentStock: number
-  trackingEnabled: boolean
-}>
 
-async function _calculateTheoreticalStock(
-  supabase: SupabaseAdminClient,
-  productId: string
-): Promise<number | null> {
-  const tStart = Date.now()
-  console.info(`[Timing][_calculateTheoreticalStock] start ${productId}`)
-  const { data: productRecipes, error: prError } = await supabase
-    .from('product_recipes')
-    .select(`
-      quantity,
-      recipes (
-        id,
-        recipe_ingredients (
-          quantity,
-          unit,
-          ingredient_id,
-          ingredients (
-            id,
-            unit,
-            waste_percentage,
-            current_stock,
-            stock_tracking_enabled
-          )
-        )
-      )
-    `)
-    .eq('product_id', productId)
 
-  if (prError || !productRecipes || productRecipes.length === 0) return null
-
-  const requirements: IngredientRequirements = new Map()
-
-  for (const pr of productRecipes) {
-    const recipeMultiplier = pr.quantity ?? 1
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const recipe = pr.recipes as any
-    if (!recipe?.recipe_ingredients) continue
-
-    for (const ri of recipe.recipe_ingredients) {
-      const ingredient = ri.ingredients
-      if (!ingredient) continue
-
-      const effectiveUnit = ri.unit ?? ingredient.unit
-      await _collectIngredientRequirements(
-        supabase,
-        ingredient.id,
-        recipeMultiplier * ri.quantity,
-        effectiveUnit,
-        requirements,
-        new Set<string>()
-      )
-    }
-  }
-
-  let minProducible: number | null = null
-  let hasAnyTracked = false
-
-  for (const [, req] of requirements) {
-    if (!req.trackingEnabled) continue
-    hasAnyTracked = true
-    if (req.requiredQty <= 0) continue
-    const producible = Math.floor(req.currentStock / req.requiredQty)
-    if (minProducible === null || producible < minProducible) {
-      minProducible = producible
-    }
-  }
-
-  if (!hasAnyTracked) return null
-  console.info(`[Timing][_calculateTheoreticalStock] end ${productId} took ${Date.now() - tStart}ms`)
-  return minProducible ?? 0
-}
-
-async function _collectIngredientRequirements(
-  supabase: SupabaseAdminClient,
-  ingredientId: string,
-  quantityInRecipeUnit: number,
-  recipeUnit: string,
-  requirements: IngredientRequirements,
-  visited: Set<string>
-): Promise<void> {
-  if (visited.has(ingredientId)) return
-  visited.add(ingredientId)
-
-  const { data: ingredient } = await supabase
-    .from('ingredients')
-    .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled, yield_quantity')
-    .eq('id', ingredientId)
-    .single()
-
-  if (!ingredient) return
-  if (getBaseUnit(recipeUnit) !== getBaseUnit(ingredient.unit)) return
-
-  const baseQty = convertToBaseUnit(quantityInRecipeUnit, recipeUnit)
-  const wastePct = Number(ingredient.waste_percentage) || 0
-  const wasteFactor = 1 - wastePct / 100
-  const actualQty = wasteFactor > 0 ? baseQty / wasteFactor : baseQty
-
-  const { data: subItems } = await supabase
-    .from('ingredient_sub_recipes')
-    .select('child_ingredient_id, quantity, unit')
-    .eq('parent_ingredient_id', ingredientId)
-
-  if (subItems && subItems.length > 0) {
-    for (const sub of subItems) {
-      await _collectIngredientRequirements(
-        supabase,
-        sub.child_ingredient_id,
-        escalarComponente(sub.quantity, actualQty, ingredient.yield_quantity),
-        sub.unit,
-        requirements,
-        new Set(visited)
-      )
-    }
-  } else {
-    const existing = requirements.get(ingredientId)
-    if (existing) {
-      existing.requiredQty += actualQty
-    } else {
-      requirements.set(ingredientId, {
-        requiredQty: actualQty,
-        currentStock: Number(ingredient.current_stock),
-        trackingEnabled: ingredient.stock_tracking_enabled,
-      })
-    }
-  }
-}
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
