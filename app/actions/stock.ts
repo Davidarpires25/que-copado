@@ -361,7 +361,13 @@ export async function toggleStockTracking(
 
   if (error) return devError(error)
 
-  revalidateStock()
+  // Sin revalidar a proposito. `revalidateStock()` incluye `/admin/stock`, que es
+  // la pagina donde esta parado quien apreto el interruptor: revalidarla obliga a
+  // re-renderizar el server component y la pantalla salta al tope. Quien estaba
+  // revisando una tabla larga pierde el lugar en cada activacion.
+  //
+  // No hace falta: la tabla ya aplica el cambio en su estado y lo revierte si
+  // esto falla.
   return { data: true, error: null }
 }
 
@@ -391,7 +397,10 @@ export async function updateMinStock(
 
   if (error) return devError(error)
 
-  revalidateStock()
+  // Mismo criterio que `toggleStockTracking`: no se revalida `/admin/stock`
+  // porque es la pagina desde donde se edita, y revalidarla mueve la pantalla.
+  // Cambiar un umbral no mueve stock ni deja movimiento: la fila se actualiza
+  // sola.
   return { data: true, error: null }
 }
 

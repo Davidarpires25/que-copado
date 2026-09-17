@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { MinStockCell } from './min-stock-cell'
 import { Search, Pencil, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -85,7 +86,13 @@ export function ProductsStockTab({
     }
   }
 
-  const handleStockAdjusted = (updatedItem: ProductWithStock) => {
+  // Cambiar el minimo puede poner al producto en rojo sin que su cantidad se
+  // haya movido, asi que pasa por el mismo recalculo de alertas que el ajuste.
+  const handleMinStockSaved = (product: ProductWithStock, nuevo: number | null) => {
+    handleStockAdjusted({ ...product, min_stock: nuevo }, false)
+  }
+
+  const handleStockAdjusted = (updatedItem: ProductWithStock, cerrarDialogo = true) => {
     onProductsChange(
       products.map((p) => (p.id === updatedItem.id ? updatedItem : p))
     )
@@ -106,7 +113,7 @@ export function ProductsStockTab({
     } else {
       onAlertsChange(alerts.filter((a) => !(a.id === updatedItem.id && a.type === 'product')))
     }
-    setAdjustTarget(null)
+    if (cerrarDialogo) setAdjustTarget(null)
   }
 
   return (
@@ -211,11 +218,14 @@ export function ProductsStockTab({
                         )}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {product.stock_tracking_enabled && product.min_stock !== null ? (
-                          <span className="text-[var(--admin-text-muted)] text-sm">{product.min_stock} u</span>
-                        ) : (
-                          <span className="text-[var(--admin-text-muted)] text-sm">--</span>
-                        )}
+                        <MinStockCell
+                          type="product"
+                          id={product.id}
+                          value={product.min_stock}
+                          unitLabel="u"
+                          disabled={!product.stock_tracking_enabled}
+                          onSaved={(nuevo) => handleMinStockSaved(product, nuevo)}
+                        />
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">
                         {(() => {

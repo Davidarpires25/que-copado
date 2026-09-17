@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { MinStockCell } from './min-stock-cell'
 import { Pencil, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -77,7 +78,13 @@ export function IngredientsStockTab({
     }
   }
 
-  const handleStockAdjusted = (updatedItem: IngredientWithStock) => {
+  // Cambiar el minimo puede poner al item en rojo sin que su cantidad se haya
+  // movido, asi que pasa por el mismo recalculo de alertas que el ajuste.
+  const handleMinStockSaved = (ingredient: IngredientWithStock, nuevo: number | null) => {
+    handleStockAdjusted({ ...ingredient, min_stock: nuevo }, false)
+  }
+
+  const handleStockAdjusted = (updatedItem: IngredientWithStock, cerrarDialogo = true) => {
     onIngredientsChange(
       ingredients.map((i) => (i.id === updatedItem.id ? updatedItem : i))
     )
@@ -99,7 +106,7 @@ export function IngredientsStockTab({
     } else {
       onAlertsChange(alerts.filter((a) => !(a.id === updatedItem.id && a.type === 'ingredient')))
     }
-    setAdjustTarget(null)
+    if (cerrarDialogo) setAdjustTarget(null)
   }
 
   const formatStock = (value: number, unit: string) => {
@@ -171,13 +178,14 @@ export function IngredientsStockTab({
                         )}
                       </TableCell>
                       <TableCell className="hidden md:table-cell text-center">
-                        {ingredient.stock_tracking_enabled && ingredient.min_stock !== null ? (
-                          <span className="text-[var(--admin-text-muted)] text-sm">
-                            {formatStock(ingredient.min_stock, ingredient.unit)}
-                          </span>
-                        ) : (
-                          <span className="text-[var(--admin-text-muted)] text-sm">--</span>
-                        )}
+                        <MinStockCell
+                          type="ingredient"
+                          id={ingredient.id}
+                          value={ingredient.min_stock}
+                          unitLabel={ingredient.unit}
+                          disabled={!ingredient.stock_tracking_enabled}
+                          onSaved={(nuevo) => handleMinStockSaved(ingredient, nuevo)}
+                        />
                       </TableCell>
                       <TableCell className="text-center">
                         {status === 'ok' && (
