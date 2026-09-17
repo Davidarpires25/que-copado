@@ -26,7 +26,8 @@ export interface PendingOrder {
   deliveryType: 'delivery' | 'pickup'
   address?: string
   paymentMethod: string
-  orderNumber: string
+  /** La etiqueta ya armada, "#17". Antes era un numero al azar. */
+  orderLabel: string
   /** Alias y CBU del local, solo cuando el pago es por transferencia. */
   transferencia?: { alias: string | null; cbu: string | null; titular: string | null }
 }
@@ -148,7 +149,7 @@ export default function OrderConfirmationPage() {
       {/* Order number badge */}
       <div className="flex justify-center">
         <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#FFF9F0] text-[#2D1A0E] font-bold text-sm">
-          Pedido #{order.orderNumber}
+          Pedido {order.orderLabel}
         </span>
       </div>
     </>

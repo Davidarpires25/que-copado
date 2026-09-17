@@ -1,4 +1,5 @@
 import { formatPrice } from '@/lib/utils'
+import { orderLabel } from '@/lib/utils/order-number'
 import type { Json, PaymentMethod } from '@/lib/types/database'
 import type { OrderItem } from '@/lib/types/orders'
 import { PAYMENT_METHOD_CONFIG } from '@/lib/types/orders'
@@ -158,7 +159,7 @@ export function generateWhatsAppMessage(options: WhatsAppMessageOptions): string
   }
 
   let message = `🍔 *NUEVO PEDIDO - QUE COPADO*\n\n`
-  message += `*Pedido ${orderNumber != null ? `#${orderNumber}` : `#${orderId.slice(-4).toUpperCase()}`}*\n\n`
+  message += `*Pedido ${orderLabel({ order_number: orderNumber, id: orderId })}*\n\n`
   message += `*Cliente:* ${customerName}\n`
   message += `*Teléfono:* ${customerPhone}\n`
   message += `*Dirección:* ${address}${zoneInfo}\n`

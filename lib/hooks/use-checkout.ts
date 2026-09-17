@@ -6,6 +6,7 @@ import { useCartStore, getCartItemName, getCartItemPrice } from '@/lib/store/car
 import { getActiveDeliveryZones } from '@/app/actions/delivery-zones'
 import { calculateShippingCost } from '@/app/actions/shipping'
 import { createOrder } from '@/app/actions/orders'
+import { orderLabel } from '@/lib/utils/order-number'
 import { checkIfAcceptingOrders, type DatosTransferencia } from '@/app/actions/business-settings'
 import { calculateShippingByZone } from '@/lib/services/shipping'
 import { generateWhatsAppMessage } from '@/lib/services/order-formatter'
@@ -302,7 +303,13 @@ export function useCheckout() {
         deliveryType: deliveryType as 'delivery' | 'pickup',
         address: fullAddress,
         paymentMethod,
-        orderNumber: String(Math.floor(1000 + Math.random() * 9000)),
+        // El numero del pedido, no uno inventado. Esta linea generaba
+        // Math.random() de cuatro digitos, asi que la pantalla decia "Pedido
+        // #4821" mientras el mensaje de WhatsApp y el POS decian "#17": el
+        // cliente que citaba el de la pantalla nombraba un pedido que no
+        // existia. Se arma con el mismo helper que el mensaje para que no
+        // vuelvan a separarse.
+        orderLabel: orderLabel({ order_number: order.order_number, id: order.id }),
         // Solo cuando hace falta: el que paga en efectivo no tiene por que ver
         // la cuenta del local en su pantalla.
         transferencia: paymentMethod === 'transfer' ? datosTransferencia : undefined,
