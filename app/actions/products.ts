@@ -352,6 +352,14 @@ export async function setProductComponents(productId: string, items: ProductComp
     if (insertError) return { data: null, error: insertError.message }
   }
 
+  // El costo del combo sale de lo que cuestan sus componentes: se calcula acá,
+  // al guardarlos, y se mantiene al dia desde el recalculo de costos cuando una
+  // compra cambia el precio de alguno.
+  try {
+    const { recalcularCostoDeCombo } = await import('./recipes')
+    await recalcularCostoDeCombo(supabase, productId)
+  } catch { /* best effort: el combo queda sin costo hasta el proximo recalculo */ }
+
   revalidateProducts()
   revalidateStock()
   return { data: true, error: null }

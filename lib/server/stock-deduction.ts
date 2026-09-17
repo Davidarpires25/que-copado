@@ -308,6 +308,58 @@ async function _syncReventaProduct(
  * Restores them when stock recovers (ONLY if auto_disabled=true).
  * Best-effort: errors never propagate.
  */
+/**
+ * Apaga o enciende los combos segun lo que incluyen.
+ *
+ * Un combo no tiene stock propio: su disponibilidad es la de sus componentes.
+ * Y uno sin componentes tampoco se puede vender —no hay nada que entregar—, asi
+ * que tambien queda apagado.
+ *
+ * `auto_disabled` distingue lo que apago el sistema de lo que apago una persona:
+ * si el local marco el combo como agotado a mano, esto no se lo enciende.
+ *
+ * Devuelve si cambio algo, para que el barrido general sepa si hay que revalidar.
+ */
+export async function syncCombosAvailability(supabase: SupabaseClient): Promise<boolean> {
+  const { data: combos } = await supabase
+    .from('products')
+    .select('id, is_out_of_stock, auto_disabled, product_components!parent_id (component_id, products:component_id (is_out_of_stock, is_active))')
+    .eq('product_type', 'combo')
+    .eq('is_active', true)
+
+  if (!combos || combos.length === 0) return false
+
+  let cambio = false
+
+  for (const combo of combos) {
+    const componentes = (combo.product_components ?? []) as unknown as {
+      products: { is_out_of_stock: boolean; is_active: boolean } | null
+    }[]
+
+    const sinComponentes = componentes.length === 0
+    const algunoNoDisponible = componentes.some(
+      (c) => !c.products || !c.products.is_active || c.products.is_out_of_stock
+    )
+    const deberiaEstarAgotado = sinComponentes || algunoNoDisponible
+
+    if (deberiaEstarAgotado && !combo.is_out_of_stock) {
+      await supabase
+        .from('products')
+        .update({ is_out_of_stock: true, auto_disabled: true })
+        .eq('id', combo.id)
+      cambio = true
+    } else if (!deberiaEstarAgotado && combo.is_out_of_stock && combo.auto_disabled) {
+      await supabase
+        .from('products')
+        .update({ is_out_of_stock: false, auto_disabled: false })
+        .eq('id', combo.id)
+      cambio = true
+    }
+  }
+
+  return cambio
+}
+
 async function syncElaboradoAvailability(supabase: SupabaseClient): Promise<void> {
   const { data: products, error: prodError } = await supabase
     .from('products')
@@ -343,6 +395,16 @@ async function syncElaboradoAvailability(supabase: SupabaseClient): Promise<void
       }
     }
   }
+
+  // Los combos siguen la misma regla que los elaborados, pero mirando
+  // componentes en vez de recetas: si algo de lo que incluye no esta
+  // disponible, el combo tampoco. Un combo que se puede pedir sin la bebida
+  // termina en una discusion en el mostrador.
+  //
+  // Va despues del barrido de elaborados a proposito: si una hamburguesa se
+  // acaba de marcar agotada, el combo que la lleva tiene que verlo en esta misma
+  // pasada y no en la siguiente.
+  if (await syncCombosAvailability(supabase)) anyChanged = true
 
   if (anyChanged) {
     // Defer revalidation to avoid calling revalidatePath during render

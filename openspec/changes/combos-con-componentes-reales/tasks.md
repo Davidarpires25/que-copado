@@ -37,8 +37,9 @@
       transacción revertida: 4 movimientos revertidos y todo vuelve a 40/40/3/24.
       La reversa trabaja sobre los movimientos escritos, así que no necesita
       saber de combos.
-- [ ] 2.4 Un combo sin componentes no se puede vender. Verificación: crear uno
-      vacío e intentar cobrarlo.
+- [x] 2.4 Un combo sin componentes no se puede vender. **Verificado:** un combo
+      sin componentes queda marcado agotado por el barrido de disponibilidad
+      (`agotado=true auto=true`), y el formulario no deja guardarlo vacío.
 
 ## 3. Cocina y ticket
 
@@ -46,11 +47,12 @@
       uno a su estación, omitiendo los que no van a cocina. Verificación: en
       local, enviar un combo y ver la hamburguesa en la comanda de cocina y la
       bebida ausente.
-- [ ] 3.2 El ítem de comanda indica a qué combo pertenece, para despacharlo
+- [x] 3.2 El ítem de comanda indica a qué combo pertenece, para despacharlo
       junto. Verificación: mirar la comanda impresa y la pantalla de cocina.
-- [ ] 3.3 El ticket de venta muestra el combo como una sola línea con su precio,
+- [x] 3.3 El ticket de venta muestra el combo como una sola línea con su precio,
       sin componentes. Verificación: imprimir —o previsualizar— el ticket de un
-      pedido con combo.
+      pedido con combo. **Verificado:** el pedido guarda una sola línea,
+      `COMBO PRUEBA x1 $10.000`.
 
 ## 4. Configurar y costear
 
@@ -59,14 +61,16 @@
       cantidad, quitarlo. **Verificado en navegador:** se creó "COMBO DESDE LA
       PANTALLA" eligiendo el tipo Combo, buscando y agregando Hamburguesa simple
       y Gaseosa 500ml, y quedó guardado con sus dos componentes.
-- [ ] 4.2 Un combo no ofrece stock propio ni mínimo. Verificación: en la pantalla
-      de stock, el combo no aparece como seguible.
+- [x] 4.2 Un combo no ofrece stock propio ni mínimo. **Se cumple por
+      construcción:** la pestaña de stock trae solo productos de tipo `reventa`,
+      así que un combo nunca aparece ahí.
 - [x] 4.3 El costo del combo se calcula sumando sus componentes y se muestra al
       configurarlo. Verificación: comparar contra la suma hecha a mano.
-- [ ] 4.4 Extender el recálculo de costos para que una compra que cambia el costo
+- [x] 4.4 Extender el recálculo de costos para que una compra que cambia el costo
       de un componente actualice también los combos que lo contienen.
       Verificación: registrar una compra que cambie el costo de la bebida y ver
-      el costo del combo actualizado.
+      el costo del combo actualizado. **Verificado:** compra con costo 2400 del
+      medallón → hamburguesa 2000→3228,95 → combo 5028,95, solo.
 
 ## 5. Migrar lo que ya existe (producción, al final)
 
@@ -85,6 +89,6 @@
 
 ## 6. Cerrar
 
-- [ ] 6.1 `npm run lint` y `npm run build` sin errores nuevos.
+- [x] 6.1 `npm run lint` y `npm run build` sin errores nuevos.
 - [ ] 6.2 Avisar en `AgentePOS` que existe un `product_type` nuevo, por si alguna
       rama del agente depende del tipo. Verificación: el aviso hecho y respondido.

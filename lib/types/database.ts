@@ -955,10 +955,18 @@ export const PRODUCT_TYPE_DESCRIPTIONS: Record<ProductType, string> = {
 }
 
 // Kitchen routing helper — use instead of hardcoded `=== 'elaborado'`
-// El combo no esta aca: el que va a cocina no es el combo sino cada uno de sus
-// componentes, con su propia estacion. De eso se encarga el armado de comandas,
-// que lo expande antes de mirar el tipo.
-export const KITCHEN_PRODUCT_TYPES: ProductType[] = ['elaborado', 'mitad']
+// El combo esta aca aunque no tenga estacion propia.
+//
+// Quien decide si un pedido pasa por cocina antes de cobrarse es la caja, con
+// esta lista. Dejarlo afuera —que fue el primer intento, razonando que el que va
+// a cocina es cada componente y no el combo— hacia que un combo con hamburguesa
+// se cobrara de una sin que cocina se enterara nunca.
+//
+// La comanda igual se arma por componente y omite la reventa, asi que un combo
+// de solo bebidas no genera comanda: lo unico que pasa es que el pedido espera
+// el cobro en vez de cobrarse al instante, que es como se comporta cualquier
+// pedido que hay que armar.
+export const KITCHEN_PRODUCT_TYPES: ProductType[] = ['elaborado', 'mitad', 'combo']
 export const sendsToKitchen = (pt: string): boolean =>
   KITCHEN_PRODUCT_TYPES.includes(pt as ProductType)
 

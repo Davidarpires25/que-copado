@@ -302,6 +302,54 @@ export async function recalculateProductCost(supabase: SupabaseClient, productId
     .from('products')
     .update({ cost: Math.round(totalCost * 100) / 100 })
     .eq('id', productId)
+
+  // Si este producto forma parte de algun combo, el costo del combo cambio con
+  // el. Sin esto, una compra que sube el precio de la carne actualiza la
+  // hamburguesa y deja la promo mintiendo sobre su margen.
+  await recalcularCombosQueUsan(supabase, productId)
+}
+
+/**
+ * El costo de un combo es la suma de lo que cuestan sus componentes.
+ *
+ * Se recalcula cuando cambia el costo de cualquiera de ellos, que es la unica
+ * forma de que el margen de la promocion sea un dato y no una estimacion vieja.
+ */
+export async function recalcularCostoDeCombo(supabase: SupabaseClient, comboId: string) {
+  const { data: componentes } = await supabase
+    .from('product_components')
+    .select('quantity, products:component_id (cost)')
+    .eq('parent_id', comboId)
+
+  if (!componentes || componentes.length === 0) {
+    await supabase.from('products').update({ cost: null }).eq('id', comboId)
+    return
+  }
+
+  let total = 0
+  for (const c of componentes) {
+    const prod = c.products as unknown as { cost: number | null } | null
+    total += Number(prod?.cost ?? 0) * Number(c.quantity ?? 1)
+  }
+
+  await supabase
+    .from('products')
+    .update({ cost: Math.round(total * 100) / 100 })
+    .eq('id', comboId)
+}
+
+/** Actualiza el costo de los combos que incluyen un producto dado. */
+async function recalcularCombosQueUsan(supabase: SupabaseClient, productId: string) {
+  const { data: enCombos } = await supabase
+    .from('product_components')
+    .select('parent_id')
+    .eq('component_id', productId)
+
+  if (!enCombos || enCombos.length === 0) return
+
+  for (const id of [...new Set(enCombos.map((c) => c.parent_id))]) {
+    await recalcularCostoDeCombo(supabase, id)
+  }
 }
 
 /** Recalculate all products that use a given recipe */

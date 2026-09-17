@@ -7,6 +7,7 @@ import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
 import { escalarComponente } from '@/lib/server/sub-recipes'
 import { devError } from '@/lib/server/error-messages'
 import { recalculateProductsForIngredient } from './recipes'
+import { syncCombosAvailability } from '@/lib/server/stock-deduction'
 import type {
   StockMovementFilters,
   StockAdjustmentData,
@@ -826,7 +827,18 @@ export async function syncElaboradoAvailabilityAction(): Promise<{ data: boolean
  * Updates is_out_of_stock / auto_disabled flags and revalidates the public storefront.
  * Best-effort: call from any action that changes ingredient stock.
  */
+/**
+ * El mismo barrido que corre despues de una venta, pero por el lado de las
+ * compras y los ajustes.
+ *
+ * Son dos copias de la misma idea —esta y la de `lib/server/stock-deduction.ts`—
+ * y eso ya costo un bug: al agregar los combos se extendio una sola, asi que un
+ * combo se apagaba al vender y no al comprar. La parte de combos vive en un solo
+ * lugar y las dos la llaman; unificar el resto es otro trabajo.
+ */
 async function _syncElaboradoAvailability(supabase: SupabaseAdminClient): Promise<void> {
+  await syncCombosAvailability(supabase as unknown as Parameters<typeof syncCombosAvailability>[0])
+
   const { data: products, error: prodError } = await supabase
     .from('products')
     .select('id, is_out_of_stock, auto_disabled')
