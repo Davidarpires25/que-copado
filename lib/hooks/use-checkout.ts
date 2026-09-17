@@ -54,7 +54,7 @@ export function useCheckout() {
   // Business status
   const [isAcceptingOrders, setIsAcceptingOrders] = useState(true)
   const [businessMessage, setBusinessMessage] = useState<string | null>(null)
-  const [datosTransferencia, setDatosTransferencia] = useState<DatosTransferencia>({ alias: null, cbu: null })
+  const [datosTransferencia, setDatosTransferencia] = useState<DatosTransferencia>({ alias: null, cbu: null, titular: null })
   const [checkingBusiness, setCheckingBusiness] = useState(true)
 
   // Delivery zones

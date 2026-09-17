@@ -50,7 +50,7 @@ interface DeliveryFormProps {
   cashAmount: string
   onCashAmountChange: (amount: string) => void
   /** Alias y CBU del local. Si vienen vacios, no se muestra la seccion. */
-  datosTransferencia?: { alias: string | null; cbu: string | null }
+  datosTransferencia?: { alias: string | null; cbu: string | null; titular: string | null }
   shippingResult?: ShippingResult
   hasZones?: boolean
   isCalculatingShipping?: boolean
@@ -433,12 +433,15 @@ export function DeliveryForm({
 
             Si el local todavia no los cargo, no se muestra nada: una caja vacia
             con dos etiquetas es peor que no prometer nada. */}
-        {paymentMethod === 'transfer' && (datosTransferencia?.alias || datosTransferencia?.cbu) && (
+        {paymentMethod === 'transfer' && (datosTransferencia?.alias || datosTransferencia?.cbu || datosTransferencia?.titular) && (
           <div className="mt-3 rounded-xl border border-[#E7E0D3] bg-white p-4 space-y-3">
             <p className="text-xs font-medium text-[#78706A]">
               Transferí a esta cuenta y mandanos el comprobante por WhatsApp.
             </p>
 
+            {datosTransferencia.titular && (
+              <DatoCopiable etiqueta="Titular" valor={datosTransferencia.titular} />
+            )}
             {datosTransferencia.alias && (
               <DatoCopiable etiqueta="Alias" valor={datosTransferencia.alias} />
             )}

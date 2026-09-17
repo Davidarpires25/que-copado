@@ -858,6 +858,8 @@ export interface BusinessSettings {
   transfer_alias: string | null
   /** CBU o CVU de la cuenta. Mismo criterio que el alias. */
   transfer_cbu: string | null
+  /** Titular de la cuenta: lo que el banco del cliente le muestra al transferir. */
+  transfer_titular: string | null
   created_at: string
   updated_at: string
 }

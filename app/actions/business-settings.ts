@@ -39,6 +39,7 @@ export async function getBusinessSettings(): Promise<{
           pause_message: 'Estamos cerrados temporalmente. Volvemos pronto!',
           transfer_alias: null,
           transfer_cbu: null,
+          transfer_titular: null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
@@ -64,6 +65,7 @@ export async function updateBusinessSettings(updates: {
   pause_message?: string
   transfer_alias?: string | null
   transfer_cbu?: string | null
+  transfer_titular?: string | null
 }): Promise<{ data: BusinessSettings | null; error: string | null }> {
   try {
     const supabase = await createAdminClient()
@@ -98,7 +100,7 @@ export async function updateBusinessSettings(updates: {
     // null: la diferencia entre "" y null decide si el checkout muestra la
     // seccion, y dos formas de decir "no hay cuenta" es una de mas.
     const limpio = { ...updates }
-    for (const campo of ['transfer_alias', 'transfer_cbu'] as const) {
+    for (const campo of ['transfer_alias', 'transfer_cbu', 'transfer_titular'] as const) {
       if (campo in limpio) {
         const valor = limpio[campo]?.trim() ?? ''
         limpio[campo] = valor === '' ? null : valor
@@ -182,6 +184,7 @@ export async function toggleBusinessPause(
 export interface DatosTransferencia {
   alias: string | null
   cbu: string | null
+  titular: string | null
 }
 
 /**
@@ -197,7 +200,7 @@ export async function checkIfAcceptingOrders(): Promise<{
   message: string | null
   transferencia: DatosTransferencia
 }> {
-  const sinDatos: DatosTransferencia = { alias: null, cbu: null }
+  const sinDatos: DatosTransferencia = { alias: null, cbu: null, titular: null }
 
   try {
     const { data: settings, error } = await getBusinessSettings()
@@ -209,6 +212,7 @@ export async function checkIfAcceptingOrders(): Promise<{
     const transferencia: DatosTransferencia = {
       alias: settings.transfer_alias?.trim() || null,
       cbu: settings.transfer_cbu?.trim() || null,
+      titular: settings.transfer_titular?.trim() || null,
     }
 
     const { checkBusinessStatus } = await import('@/lib/services/business-hours')

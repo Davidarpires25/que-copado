@@ -65,6 +65,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
   const [pauseMessage, setPauseMessage] = useState(settings.pause_message || '')
   const [transferAlias, setTransferAlias] = useState(settings.transfer_alias || '')
   const [transferCbu, setTransferCbu] = useState(settings.transfer_cbu || '')
+  const [transferTitular, setTransferTitular] = useState(settings.transfer_titular || '')
 
   const businessStatus = checkBusinessStatus(settings)
 
@@ -79,7 +80,8 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
     closingTime !== settings.closing_time ||
     pauseMessage !== (settings.pause_message || '') ||
     transferAlias !== (settings.transfer_alias || '') ||
-    transferCbu !== (settings.transfer_cbu || '')
+    transferCbu !== (settings.transfer_cbu || '') ||
+    transferTitular !== (settings.transfer_titular || '')
 
   const handleToggleDay = (day: number) => {
     setOperatingDays((prev) =>
@@ -101,6 +103,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
       pause_message: pauseMessage || undefined,
       transfer_alias: transferAlias,
       transfer_cbu: transferCbu,
+      transfer_titular: transferTitular,
     })
     setIsSaving(false)
 
@@ -317,6 +320,21 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
                 <p className="mt-1.5 text-sm text-[var(--admin-text-muted)]">
                   Lo que ve el cliente cuando elige transferencia en el checkout. Si lo dejás
                   vacío, no se le muestra nada y los datos se los tenés que pasar a mano.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="transferTitular" className={LABEL}>Titular de la cuenta</label>
+                <Input
+                  id="transferTitular"
+                  value={transferTitular}
+                  onChange={(e) => setTransferTitular(e.target.value)}
+                  placeholder="Nombre y apellido, o razón social"
+                  className={cn(FIELD, 'max-w-md')}
+                />
+                <p className="mt-2 text-sm text-[var(--admin-text-muted)]">
+                  Es el nombre que el banco le muestra al cliente antes de confirmar la
+                  transferencia. Sin esto, ve aparecer a alguien que no conoce y frena.
                 </p>
               </div>
 

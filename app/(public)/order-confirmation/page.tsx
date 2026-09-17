@@ -28,7 +28,7 @@ export interface PendingOrder {
   paymentMethod: string
   orderNumber: string
   /** Alias y CBU del local, solo cuando el pago es por transferencia. */
-  transferencia?: { alias: string | null; cbu: string | null }
+  transferencia?: { alias: string | null; cbu: string | null; titular: string | null }
 }
 
 const PAYMENT_LABELS: Record<string, string> = {
@@ -181,7 +181,8 @@ export default function OrderConfirmationPage() {
   // que el cliente efectivamente paga, y antes de esto no habia ningun momento
   // —le contaban el alias por chat, si alguien estaba del otro lado—.
   const datosTransferencia =
-    order.paymentMethod === 'transfer' && (order.transferencia?.alias || order.transferencia?.cbu) ? (
+    order.paymentMethod === 'transfer' &&
+    (order.transferencia?.alias || order.transferencia?.cbu || order.transferencia?.titular) ? (
       <motion.div
         initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -195,6 +196,9 @@ export default function OrderConfirmationPage() {
           </p>
         </div>
 
+        {order.transferencia.titular && (
+          <DatoCopiable etiqueta="Titular" valor={order.transferencia.titular} />
+        )}
         {order.transferencia.alias && (
           <DatoCopiable etiqueta="Alias" valor={order.transferencia.alias} />
         )}
