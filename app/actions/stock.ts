@@ -108,19 +108,20 @@ export async function getStockAlerts(): Promise<{ data: StockAlert[] | null; err
   const user = await getAuthUser(supabase)
   if (!user) return { data: null, error: 'No autorizado' }
 
-  // Run both queries in parallel
+  // Sin el filtro de `min_stock is not null`: un item en rojo es una alerta
+  // aunque nadie le haya puesto minimo. Antes, vender de mas algo sin minimo
+  // definido dejaba el stock en negativo sin que apareciera en ningun lado —el
+  // aviso existia, pero moria en un console.error del servidor—.
   const [ingResult, prodResult] = await Promise.all([
     supabase
       .from('ingredients')
       .select('id, name, unit, current_stock, min_stock')
       .eq('stock_tracking_enabled', true)
-      .not('min_stock', 'is', null)
       .order('name'),
     supabase
       .from('products')
       .select('id, name, current_stock, min_stock')
       .eq('stock_tracking_enabled', true)
-      .not('min_stock', 'is', null)
       .order('name'),
   ])
 
@@ -132,9 +133,9 @@ export async function getStockAlerts(): Promise<{ data: StockAlert[] | null; err
 
   const alerts: StockAlert[] = []
 
-  // Filter ingredients where current_stock < min_stock
+  // En rojo, o por debajo del minimo si tiene uno.
   for (const ing of lowIngredients ?? []) {
-    if (ing.min_stock !== null && ing.current_stock < ing.min_stock) {
+    if (ing.current_stock < 0 || (ing.min_stock !== null && ing.current_stock < ing.min_stock)) {
       alerts.push({
         id: ing.id,
         name: ing.name,
@@ -146,9 +147,8 @@ export async function getStockAlerts(): Promise<{ data: StockAlert[] | null; err
     }
   }
 
-  // Filter products where current_stock < min_stock
   for (const prod of lowProducts ?? []) {
-    if (prod.min_stock !== null && prod.current_stock < prod.min_stock) {
+    if (prod.current_stock < 0 || (prod.min_stock !== null && prod.current_stock < prod.min_stock)) {
       alerts.push({
         id: prod.id,
         name: prod.name,

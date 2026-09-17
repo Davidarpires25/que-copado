@@ -56,6 +56,10 @@ export function ProductsStockTab({
 
   const getStockStatus = (item: ProductWithStock) => {
     if (!item.stock_tracking_enabled) return 'untracked'
+    // El rojo va antes que "agotado" y que "bajo": un producto en -6 esta
+    // agotado, si, pero ademas hay algo mal cargado o vendido sin respaldo, y
+    // eso hay que poder verlo sin abrir los movimientos.
+    if (item.current_stock < 0) return 'negative'
     if (item.is_out_of_stock) return 'out_of_stock'
     if (item.min_stock !== null && item.current_stock <= item.min_stock) return 'low'
     return 'ok'
@@ -254,6 +258,11 @@ export function ProductsStockTab({
                         )}
                         {status === 'out_of_stock' && (
                           <Badge className="bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30 hover:bg-red-500/15">Agotado</Badge>
+                        )}
+                        {status === 'negative' && (
+                          <Badge className="bg-red-600 text-white border border-red-700 hover:bg-red-600">
+                            En rojo
+                          </Badge>
                         )}
                         {status === 'untracked' && (
                           <Badge className="bg-slate-500/15 text-slate-400 border border-slate-500/30 hover:bg-slate-500/15">Sin tracking</Badge>

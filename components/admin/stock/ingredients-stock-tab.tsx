@@ -47,6 +47,10 @@ export function IngredientsStockTab({
 
   const getStockStatus = (item: IngredientWithStock) => {
     if (!item.stock_tracking_enabled) return 'untracked'
+    // El rojo va antes que el bajo: un item con 2 y minimo 5 es una compra
+    // pendiente; uno con -39 es un error de carga o una venta sin respaldo, y
+    // necesita otra accion. Colapsarlos en "Bajo" escondia el segundo.
+    if (item.current_stock < 0) return 'negative'
     if (item.min_stock !== null && item.current_stock <= item.min_stock) return 'low'
     return 'ok'
   }
@@ -196,6 +200,11 @@ export function IngredientsStockTab({
                         {status === 'low' && (
                           <Badge className="bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30 hover:bg-red-500/15 animate-pulse-soft">
                             Bajo
+                          </Badge>
+                        )}
+                        {status === 'negative' && (
+                          <Badge className="bg-red-600 text-white border border-red-700 hover:bg-red-600">
+                            En rojo
                           </Badge>
                         )}
                         {status === 'untracked' && (

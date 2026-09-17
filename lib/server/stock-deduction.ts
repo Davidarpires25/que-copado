@@ -64,13 +64,23 @@ function acumular(destino: Map<string, MovimientoPendiente>, mov: MovimientoPend
  * @param orderId  - The order UUID for traceability
  * @param userId   - The authenticated user who made the sale
  */
+/** Un item que quedo con stock por debajo de cero al descontar una venta. */
+export interface ItemEnRojo {
+  tipo: 'ingredient' | 'product'
+  id: string
+  /** Nombre para mostrar. Se resuelve aca porque la base solo devuelve el id. */
+  nombre: string
+  stock: number
+}
+
 export async function deductStockForOrder(
   supabase: SupabaseClient,
   items: StockDeductionItem[],
   orderId: string,
   _userId: string | null
-): Promise<void> {
+): Promise<ItemEnRojo[]> {
   const pendientes = new Map<string, MovimientoPendiente>()
+  let enRojo: ItemEnRojo[] = []
 
   for (const item of items) {
     if (item.quantity <= 0) continue
@@ -109,13 +119,16 @@ export async function deductStockForOrder(
       if (resultado?.duplicado) {
         console.error(`[Stock] El pedido ${orderId} ya habia descontado stock; no se duplico`)
       }
-      // Vender en rojo no se bloquea, pero queda constancia: antes una venta que
-      // dejaba el stock en negativo no se distinguia de una normal.
+      // Vender en rojo no se bloquea —un local vende igual cuando lo que esta
+      // mal es el conteo y no la mercaderia—, pero el aviso tiene que llegar a
+      // quien cobra. Hasta acá moria en este console.error: el sistema sabia que
+      // se vendio algo que no habia y no se lo decia a nadie.
       if (resultado?.negativos?.length) {
         console.error(
           `[Stock] El pedido ${orderId} dejo items en negativo:`,
           JSON.stringify(resultado.negativos)
         )
+        enRojo = await _resolverNombres(supabase, resultado.negativos as CrudoEnRojo[])
       }
     }
   }
@@ -140,6 +153,43 @@ export async function deductStockForOrder(
       console.error('[Stock] Error syncing elaborado availability:', err)
     }
   })
+
+  return enRojo
+}
+
+/** Lo que devuelve la base: el id, sin nombre. */
+interface CrudoEnRojo { tipo: string; id: string; stock: number }
+
+/**
+ * Le pone nombre a los items que quedaron en rojo.
+ *
+ * La base devuelve ids porque es lo que tiene a mano; quien cobra necesita leer
+ * "Medallon de carne", no un uuid. Son dos consultas como mucho y corren solo
+ * cuando efectivamente hubo un negativo.
+ */
+async function _resolverNombres(supabase: SupabaseClient, crudos: CrudoEnRojo[]): Promise<ItemEnRojo[]> {
+  const idsIngredientes = crudos.filter((c) => c.tipo === 'ingredient').map((c) => c.id)
+  const idsProductos = crudos.filter((c) => c.tipo === 'product').map((c) => c.id)
+
+  const [ingredientes, productos] = await Promise.all([
+    idsIngredientes.length
+      ? supabase.from('ingredients').select('id, name').in('id', idsIngredientes)
+      : Promise.resolve({ data: [] }),
+    idsProductos.length
+      ? supabase.from('products').select('id, name').in('id', idsProductos)
+      : Promise.resolve({ data: [] }),
+  ])
+
+  const nombres = new Map<string, string>()
+  for (const i of ingredientes.data ?? []) nombres.set(i.id, i.name)
+  for (const p of productos.data ?? []) nombres.set(p.id, p.name)
+
+  return crudos.map((c) => ({
+    tipo: c.tipo === 'ingredient' ? 'ingredient' as const : 'product' as const,
+    id: c.id,
+    nombre: nombres.get(c.id) ?? 'Ítem sin nombre',
+    stock: Number(c.stock),
+  }))
 }
 
 // ---------------------------------------------------------------------------
@@ -392,7 +442,11 @@ async function syncElaboradoAvailability(supabase: SupabaseClient): Promise<void
       const theoreticalStock = await _calcTheoreticalStock(supabase, product.id)
       if (theoreticalStock === null) continue
 
-      if (theoreticalStock === 0 && !product.is_out_of_stock) {
+      // Menor o igual, no igual: preguntar por el cero exacto funciona mientras
+      // nada lo cruce de un salto, y un pedido de 40 unidades con 1 en stock lo
+      // cruza. Con el stock en -39 el producto no entraba en esta rama y se
+      // seguia ofreciendo. La rama de reventa, mas abajo, ya preguntaba asi.
+      if (theoreticalStock <= 0 && !product.is_out_of_stock) {
         await supabase
           .from('products')
           .update({ is_out_of_stock: true, auto_disabled: true })
