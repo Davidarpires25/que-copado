@@ -8,7 +8,11 @@
     "start": "next start",
     "lint": "eslint",
     "check:pagos": "node --experimental-strip-types scripts/check-payment-split.ts",
-    "check:agente": "node --experimental-strip-types scripts/check-agent-contract.ts"
+    "check:agente": "node --experimental-strip-types scripts/check-agent-contract.ts",
+    "db:start": "supabase start",
+    "db:reset": "supabase db reset",
+    "db:stop": "supabase stop",
+    "db:studio": "echo \"Supabase Studio: http://127.0.0.1:54323\""
   },
   "dependencies": {
     "@geoman-io/leaflet-geoman-free": "^2.19.2",

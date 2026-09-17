@@ -167,6 +167,67 @@ La aplicación estará disponible en:
 - **Catálogo:** http://localhost:3000
 - **Admin:** http://localhost:3000/admin/login
 
+### 7. Base de datos local para probar (recomendado)
+
+Hay un local usando este sistema todos los días. Probar contra su base es cargar
+pedidos y movimientos de stock reales, así que para desarrollar conviene levantar
+una base propia: mismo esquema, datos inventados, y se puede romper sin
+consecuencias.
+
+Necesita Docker corriendo y el CLI de Supabase:
+
+```bash
+npm install -g --prefix ~/.local supabase   # sin sudo; ~/.local/bin ya suele estar en el PATH
+npm run db:start                            # levanta Postgres, auth y storage
+```
+
+La primera vez baja unos gigas de imágenes. Cuando termina imprime las URLs y
+las claves locales.
+
+Después, en `.env.local`, reemplazá las tres variables de Supabase por las
+locales —están comentadas al final de `.env.local.example`— y arrancá la app
+normalmente con `npm run dev`.
+
+**Usuario de prueba:** `prueba@local.test` / `prueba1234`
+
+Esas credenciales están escritas en `supabase/seed.sql` a propósito: la base es
+descartable y vive en localhost. No sirven contra ninguna otra.
+
+El seed deja el negocio abierto las 24 horas, tres productos —dos elaborados con
+receta y uno de reventa—, cinco ingredientes con stock, dos zonas de reparto que
+comparten un borde y cuatro mesas. Alcanza para abrir caja, cargar un pedido,
+cobrarlo y registrar una compra.
+
+```bash
+npm run db:reset    # borra todo y vuelve a aplicar esquema + seed
+npm run db:stop     # apaga los contenedores
+npm run db:studio   # muestra la URL del panel de Supabase local
+```
+
+`db:reset` es el que más vas a usar: deja la base como recién sembrada en unos
+segundos. Si rompiste algo probando, se arregla ahí.
+
+**Para volver a producción:** devolvé a `.env.local` las claves de tu proyecto en
+Supabase. La app no distingue una base de otra —eso lo deciden solo esas
+variables—, así que vale la pena mirar cuáles tenés puestas antes de tocar el
+panel de admin.
+
+#### Cómo se reconstruye el esquema
+
+`supabase/migrations/` tiene una **línea base** volcada de producción y una
+migración con lo que vive fuera del esquema `public`. Eso es lo que aplica
+`db:reset`.
+
+Las migraciones anteriores quedaron en `supabase/migrations-historico/` y ya no
+se aplican: durante mucho tiempo los cambios se hicieron desde el editor SQL de
+Supabase sin dejar archivo, y esa carpeta dejó de reproducir la base real —le
+faltaban la caja, las mesas y los pagos divididos, entre otras cosas—. Se
+conservan porque explican por qué el esquema es como es. Ver el LEEME de esa
+carpeta.
+
+De ahora en más, cada cambio de esquema va como migración nueva sobre la línea
+base.
+
 ## Estructura del Proyecto
 
 ```

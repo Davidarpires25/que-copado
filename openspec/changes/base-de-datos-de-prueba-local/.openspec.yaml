@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-17
+# Cambio de herramientas: no altera lo que el sistema hace para quien lo usa.
+skip_specs: true

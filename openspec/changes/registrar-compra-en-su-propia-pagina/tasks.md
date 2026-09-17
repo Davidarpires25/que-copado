@@ -2,9 +2,9 @@
 
 > Todo en `que-copado`. No toca `AgentePOS`.
 >
-> Este cambio escribe en `stock_movements` e `ingredients` al probarlo. La base
-> de producción está en uso y no hay base de prueba todavía, así que la 5.2 se
-> verifica con la próxima compra real: no se cargan compras inventadas.
+> Este cambio escribe en `stock_movements` e `ingredients` al probarlo. Se
+> verificó entero contra la base local de `base-de-datos-de-prueba-local`, con
+> una compra registrada de verdad: producción no se tocó.
 
 ## 1. La página
 
@@ -17,10 +17,10 @@
       verifica sesión con `getAuthUser` y redirige a `/admin/login` si no hay,
       trae los ingredientes y monta el formulario dentro de `AdminLayout`.
       Verificación: `npm run build` lista la ruta `/admin/stock/compras/nueva`.
-- [ ] 1.3 Al confirmar, volver a `/admin/stock` con los datos frescos; al
+- [x] 1.3 Al confirmar, volver a `/admin/stock` con los datos frescos; al
       cancelar, volver sin registrar nada. Verificación: recorrer los dos
       caminos en el navegador y ver que la tabla de stock refleje lo cargado.
-      **Implementado; falta la pasada en navegador.**
+      **Verificado en navegador contra la base local.**
 
 ## 2. Buscar y agregar
 
@@ -32,7 +32,7 @@
 
 ## 3. El estado vacío
 
-- [ ] 3.1 Cuando no hay ningún ingrediente, la página muestra el aviso y el
+- [x] 3.1 Cuando no hay ningún ingrediente, la página muestra el aviso y el
       enlace a `/admin/ingredients/new` en vez del formulario. Verificación:
       entrar a la ruta con la lista de ingredientes vacía —basta con pasarle
       una lista vacía al componente— y ver el aviso, no un selector sin
@@ -54,7 +54,7 @@
 - [x] 5.1 `npm run lint` y `npm run build` sin errores nuevos —la única
       advertencia esperada es la preexistente de `SupabaseClient` en
       `app/actions/orders.ts`.
-- [ ] 5.2 Registrar una compra de prueba de dos líneas y comprobar contra la
+- [x] 5.2 Registrar una compra de prueba de dos líneas y comprobar contra la
       base que el stock subió y que quedaron dos `stock_movements` de tipo
       `purchase` con `previous_stock` y `new_stock` correctos. Hacerlo sobre un
       ingrediente de prueba creado para esto, o revertir después dejando
@@ -62,7 +62,7 @@
       consumo y no se ensucia con pruebas.
 - [x] 5.3 Comprobar que la ruta está protegida: pedirla sin sesión redirige a
       `/admin/login`.
-- [ ] 5.4 Recorrer los escenarios de la spec que no cubren las tareas de
+- [x] 5.4 Recorrer los escenarios de la spec que no cubren las tareas de
       arriba: con la compra vacía no se puede confirmar, una cantidad en cero
       deja el botón apagado, quitar una línea devuelve el ingrediente al
       buscador, y la unidad mostrada es la del ingrediente.
