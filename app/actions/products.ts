@@ -2,7 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
-import { revalidateStorefront, revalidateProducts } from '@/lib/server/revalidate'
+import { revalidateStorefront, revalidateProducts, revalidateStock } from '@/lib/server/revalidate'
 import { friendlyError } from '@/lib/server/error-messages'
 
 export async function createProduct(formData: FormData) {
@@ -284,4 +284,91 @@ export async function bulkDelete(productIds: string[]) {
   revalidateStorefront()
   revalidateProducts()
   return { success: true, count: productIds.length }
+}
+
+// ---------------------------------------------------------------------------
+// Combos
+// ---------------------------------------------------------------------------
+
+/** Lo que incluye un combo: que producto y cuantas veces. */
+export interface ProductComponentItem {
+  component_id: string
+  quantity: number
+}
+
+/**
+ * Define los componentes de un combo, reemplazando los que tuviera.
+ *
+ * Mismo criterio que `setProductRecipes`: borra y vuelve a escribir, porque el
+ * conjunto es chico y asi no hay que calcular diferencias.
+ *
+ * Las reglas de que puede ser componente se validan aca y no solo en la
+ * pantalla: un combo dentro de otro combo dejaria el descuento de stock
+ * dependiendo de una cadena que nadie controla.
+ */
+export async function setProductComponents(productId: string, items: ProductComponentItem[]) {
+  const supabase = await createAdminClient()
+  const user = await getAuthUser(supabase)
+  if (!user) return { data: null, error: 'No autorizado' }
+  if (!productId) return { data: null, error: 'Falta el producto' }
+
+  for (const item of items) {
+    if (!item.component_id) return { data: null, error: 'Componente invalido' }
+    if (!item.quantity || item.quantity <= 0) return { data: null, error: 'La cantidad debe ser mayor a 0' }
+    if (item.component_id === productId) return { data: null, error: 'Un combo no puede incluirse a si mismo' }
+  }
+
+  if (items.length > 0) {
+    const { data: componentes, error: errorLectura } = await supabase
+      .from('products')
+      .select('id, name, product_type')
+      .in('id', items.map((i) => i.component_id))
+
+    if (errorLectura) return { data: null, error: 'No se pudieron verificar los componentes' }
+
+    const combo = componentes?.find((c) => c.product_type === 'combo')
+    if (combo) {
+      return { data: null, error: `"${combo.name}" es un combo y no puede ser parte de otro` }
+    }
+  }
+
+  const { error: deleteError } = await supabase
+    .from('product_components')
+    .delete()
+    .eq('parent_id', productId)
+
+  if (deleteError) return { data: null, error: deleteError.message }
+
+  if (items.length > 0) {
+    const { error: insertError } = await supabase
+      .from('product_components')
+      .insert(items.map((item, i) => ({
+        parent_id: productId,
+        component_id: item.component_id,
+        quantity: item.quantity,
+        sort_order: i,
+      })))
+
+    if (insertError) return { data: null, error: insertError.message }
+  }
+
+  revalidateProducts()
+  revalidateStock()
+  return { data: true, error: null }
+}
+
+/** Los componentes de un combo, con los datos del producto que representan. */
+export async function getProductComponents(productId: string) {
+  const supabase = await createAdminClient()
+  const user = await getAuthUser(supabase)
+  if (!user) return { data: null, error: 'No autorizado' }
+
+  const { data, error } = await supabase
+    .from('product_components')
+    .select('component_id, quantity, sort_order')
+    .eq('parent_id', productId)
+    .order('sort_order')
+
+  if (error) return { data: null, error: error.message }
+  return { data, error: null }
 }

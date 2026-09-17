@@ -116,9 +116,16 @@ pregunta abierta.
 con su precio, que es lo correcto. Conviene avisar a ese repo por si ramifica por
 `product_type` en algún lado.
 
-## Open Questions
+### Un componente agotado deja el combo sin stock
 
-- **Qué pasa cuando un componente se agota**: ¿el combo se marca sin stock
-  automáticamente, como ya ocurre con los elaborados, o se deja vender? Se puede
-  responder al implementar sin cambiar el modelo ni las tareas: es una regla sobre
-  la disponibilidad, no sobre la estructura.
+Resuelto: el combo sigue la regla del elaborado. Cuando alguno de sus componentes
+no está disponible —un elaborado sin ingredientes o una reventa en cero— el combo
+se marca sin stock automáticamente, y vuelve solo cuando el componente se repone.
+
+Es el mismo mecanismo que ya corre para los elaborados
+(`syncElaboradoAvailability`, con `auto_disabled` para no pisar un apagado
+manual), extendido para mirar componentes además de recetas.
+
+**Por qué no dejarlo vender igual:** un combo que se puede pedir sin bebida
+termina en una discusión en el mostrador. Y el local ya conoce este
+comportamiento porque es el que tienen sus elaborados.

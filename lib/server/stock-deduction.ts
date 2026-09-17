@@ -87,13 +87,7 @@ export async function deductStockForOrder(
 
       if (productError || !product) continue
 
-      if (product.product_type === 'reventa') {
-        if (product.stock_tracking_enabled) {
-          acumular(pendientes, { tipo: 'product', id: product.id, cantidad: item.quantity })
-        }
-      } else if (product.product_type === 'elaborado') {
-        await collectElaboradoStock(supabase, productId, item.quantity, pendientes)
-      }
+      await acumularProducto(supabase, product, item.quantity, pendientes)
     } catch (err) {
       if (process.env.NODE_ENV === 'development') {
         console.error(`[Stock] Error calculando stock del producto ${productId}:`, err)
@@ -483,6 +477,69 @@ async function _collectReqs(
         currentStock: Number(ingredient.current_stock),
         trackingEnabled: ingredient.stock_tracking_enabled,
       })
+    }
+  }
+}
+
+/** Lo minimo que hace falta saber de un producto para descontarlo. */
+interface ProductoParaDescontar {
+  id: string
+  product_type: string | null
+  stock_tracking_enabled?: boolean | null
+}
+
+/**
+ * Acumula lo que descuenta un producto, sea del tipo que sea.
+ *
+ * Un combo se expande a sus componentes y cada uno vuelve a entrar por acá: la
+ * bebida descuenta como reventa y la hamburguesa camina su receta. Eso es lo que
+ * hace que la coca de un combo y la coca vendida sola salgan del mismo stock, en
+ * vez de los dos inventarios paralelos que habia antes.
+ *
+ * La expansion ocurre acá y no al vender: el pedido guarda el combo como lo que
+ * es —una linea con su precio— y recien al descontar se resuelve en partes.
+ */
+async function acumularProducto(
+  supabase: SupabaseClient,
+  product: ProductoParaDescontar,
+  cantidad: number,
+  pendientes: Map<string, MovimientoPendiente>,
+  profundidad = 0
+): Promise<void> {
+  if (product.product_type === 'reventa') {
+    if (product.stock_tracking_enabled) {
+      acumular(pendientes, { tipo: 'product', id: product.id, cantidad })
+    }
+    return
+  }
+
+  if (product.product_type === 'elaborado') {
+    await collectElaboradoStock(supabase, product.id, cantidad, pendientes)
+    return
+  }
+
+  if (product.product_type === 'combo') {
+    // Un combo no contiene combos —lo impide la configuracion— pero el limite
+    // esta igual: un ciclo en la base no puede colgar un cobro.
+    if (profundidad > 2) return
+
+    const { data: componentes, error } = await supabase
+      .from('product_components')
+      .select('quantity, products:component_id (id, product_type, stock_tracking_enabled)')
+      .eq('parent_id', product.id)
+
+    if (error || !componentes) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`[Stock] No se pudieron leer los componentes del combo ${product.id}:`, error?.message)
+      }
+      return
+    }
+
+    for (const componente of componentes) {
+      const hijo = componente.products as unknown as ProductoParaDescontar | null
+      if (!hijo) continue
+      // La cantidad se multiplica: tres combos con dos bebidas cada uno son seis.
+      await acumularProducto(supabase, hijo, cantidad * Number(componente.quantity ?? 1), pendientes, profundidad + 1)
     }
   }
 }

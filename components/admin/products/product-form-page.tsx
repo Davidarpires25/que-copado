@@ -29,6 +29,8 @@ import { toast } from 'sonner'
 import { createProduct, updateProduct } from '@/app/actions/products'
 import { setProductRecipes } from '@/app/actions/recipes'
 import { RecipeSelector, type ProductRecipeItem } from './recipe-selector'
+import { ComponentSelector, type ComponentCandidate, type ProductComponentItem } from './component-selector'
+import { setProductComponents } from '@/app/actions/products'
 import { ImageUploader } from './image-uploader'
 import type { Category, Product, RecipeWithIngredients, ProductType, HalfConfig } from '@/lib/types/database'
 import { PRODUCT_TYPE_LABELS, PRODUCT_TYPE_DESCRIPTIONS } from '@/lib/types/database'
@@ -55,6 +57,9 @@ interface ProductFormPageProps {
   categories: Category[]
   recipes: RecipeWithIngredients[]
   initialRecipes?: ProductRecipeItem[]
+  /** Productos que pueden ser componentes de un combo (sin combos, sin este mismo). */
+  componentCandidates?: ComponentCandidate[]
+  initialComponents?: ProductComponentItem[]
 }
 
 export function ProductFormPage({
@@ -63,6 +68,8 @@ export function ProductFormPage({
   categories,
   recipes,
   initialRecipes = [],
+  componentCandidates = [],
+  initialComponents = [],
 }: ProductFormPageProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -72,6 +79,7 @@ export function ProductFormPage({
     (product?.product_type as ProductType) ?? 'elaborado'
   )
   const [selectedRecipes, setSelectedRecipes] = useState<ProductRecipeItem[]>(initialRecipes)
+  const [selectedComponents, setSelectedComponents] = useState<ProductComponentItem[]>(initialComponents)
   const [isActive, setIsActive] = useState(product?.is_active ?? true)
   const [isOutOfStock, setIsOutOfStock] = useState(product?.is_out_of_stock ?? false)
 
@@ -141,6 +149,16 @@ export function ProductFormPage({
             return
           }
 
+          if (productType === 'combo' || product?.product_type === 'combo') {
+            const compResult = await setProductComponents(
+              product!.id,
+              productType === 'combo' ? selectedComponents : []
+            )
+            if (compResult.error) {
+              toast.error('Producto guardado pero hubo un error con los componentes: ' + compResult.error)
+            }
+          }
+
           const recipeResult = await setProductRecipes(
             product.id,
             productType === 'elaborado' ? selectedRecipes : []
@@ -157,6 +175,13 @@ export function ProductFormPage({
           if (result.error) {
             toast.error(result.error)
             return
+          }
+
+          if (result.product && productType === 'combo' && selectedComponents.length > 0) {
+            const compResult = await setProductComponents(result.product.id, selectedComponents)
+            if (compResult.error) {
+              toast.error('Producto creado pero hubo un error con los componentes: ' + compResult.error)
+            }
           }
 
           if (result.product && productType === 'elaborado' && selectedRecipes.length > 0) {
@@ -221,6 +246,7 @@ export function ProductFormPage({
                 disabled={
                   isPending ||
                   (productType === 'elaborado' && selectedRecipes.length === 0) ||
+                  (productType === 'combo' && selectedComponents.length === 0) ||
                   (productType === 'mitad' && halfPricingMethod === 'cost_markup' && (!halfMarkupPct || isNaN(parseFloat(halfMarkupPct))))
                 }
                 className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -312,8 +338,8 @@ export function ProductFormPage({
                   <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
                     Tipo de producto
                   </Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(['elaborado', 'reventa', 'mitad'] as ProductType[]).map((type) => (
+                  <div className="grid grid-cols-2 gap-2">
+                    {(['elaborado', 'reventa', 'mitad', 'combo'] as ProductType[]).map((type) => (
                       <button
                         key={type}
                         type="button"
@@ -334,6 +360,15 @@ export function ProductFormPage({
                     ))}
                   </div>
                 </div>
+
+                {/* Componentes (combo) */}
+                {productType === 'combo' && (
+                  <ComponentSelector
+                    candidates={componentCandidates}
+                    selected={selectedComponents}
+                    onChange={setSelectedComponents}
+                  />
+                )}
 
                 {/* Recipe selector (elaborado only) */}
                 {productType === 'elaborado' && (

@@ -938,24 +938,53 @@ export type ProductRecipeWithDetails = ProductRecipe & {
 }
 
 // Product types
-export type ProductType = 'elaborado' | 'reventa' | 'mitad'
+export type ProductType = 'elaborado' | 'reventa' | 'mitad' | 'combo'
 
 export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
   elaborado: 'Elaborado',
   reventa: 'Reventa',
   mitad: 'Mitad y Mitad',
+  combo: 'Combo',
 }
 
 export const PRODUCT_TYPE_DESCRIPTIONS: Record<ProductType, string> = {
   elaborado: 'Se prepara con recetas (ej: hamburguesas, papas)',
   reventa: 'Se compra y revende tal cual (ej: bebidas, extras)',
   mitad: 'Pizza con selección de 2 mitades',
+  combo: 'Varios productos juntos a un precio propio',
 }
 
 // Kitchen routing helper — use instead of hardcoded `=== 'elaborado'`
+// El combo no esta aca: el que va a cocina no es el combo sino cada uno de sus
+// componentes, con su propia estacion. De eso se encarga el armado de comandas,
+// que lo expande antes de mirar el tipo.
 export const KITCHEN_PRODUCT_TYPES: ProductType[] = ['elaborado', 'mitad']
 export const sendsToKitchen = (pt: string): boolean =>
   KITCHEN_PRODUCT_TYPES.includes(pt as ProductType)
+
+/**
+ * Un combo: varios productos que se entregan juntos a un precio propio.
+ *
+ * No tiene stock ni receta propia. Lo que descuenta, lo que va a cocina y lo que
+ * cuesta sale de sus componentes, que son los mismos productos que se venden
+ * sueltos.
+ */
+export const esCombo = (pt: string | null | undefined): boolean => pt === 'combo'
+
+/** Un componente de un combo: que producto entra y cuantas veces. */
+export interface ProductComponent {
+  id: string
+  parent_id: string
+  component_id: string
+  quantity: number
+  sort_order: number
+  created_at: string
+}
+
+/** El componente con los datos del producto que representa, para mostrarlo. */
+export type ProductComponentWithProduct = ProductComponent & {
+  products: Pick<Product, 'id' | 'name' | 'price' | 'cost' | 'product_type' | 'station' | 'is_out_of_stock'> | null
+}
 
 /**
  * Un pedido que llego entero desde afuera, en vez de armarse en la caja.

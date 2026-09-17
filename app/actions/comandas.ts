@@ -60,8 +60,63 @@ export async function sendToKitchen(orderId: string): Promise<{
 
     const grouped = new Map<Station, ItemWithStation[]>()
 
+    // Un combo no tiene estacion: la tienen sus componentes. Se leen de una sola
+    // vez los componentes de todos los combos del pedido, para no hacer una
+    // consulta por linea.
+    const idsDeCombos = newItems
+      .filter((i) => (i.products as unknown as { product_type: string | null } | null)?.product_type === 'combo')
+      .map((i) => i.product_id)
+      .filter((id): id is string => !!id)
+
+    const componentesPorCombo = new Map<string, { nombre: string; cantidad: number; station: Station | null; esReventa: boolean }[]>()
+
+    if (idsDeCombos.length > 0) {
+      const { data: componentes } = await supabase
+        .from('product_components')
+        .select('parent_id, quantity, products:component_id (name, station, product_type)')
+        .in('parent_id', idsDeCombos)
+
+      for (const c of componentes ?? []) {
+        const prod = c.products as unknown as { name: string; station: string | null; product_type: string | null } | null
+        if (!prod) continue
+        const lista = componentesPorCombo.get(c.parent_id) ?? []
+        lista.push({
+          nombre: prod.name,
+          cantidad: Number(c.quantity ?? 1),
+          station: (prod.station as Station | null) ?? null,
+          esReventa: prod.product_type === 'reventa',
+        })
+        componentesPorCombo.set(c.parent_id, lista)
+      }
+    }
+
     for (const item of newItems) {
       const product = item.products as unknown as { station: string | null; product_type: string | null } | null
+      const saleTag = (item as Record<string, unknown>).sale_tag as string | null ?? null
+
+      // El combo se reemplaza por lo que incluye. Cada componente sigue la regla
+      // que ya existia: a su estacion, y la reventa no va a cocina.
+      //
+      // El nombre del combo viaja en cada componente para que despacho sepa que
+      // se entregan juntos: sin eso, cocina prepara bien y en el mostrador nadie
+      // sabe que esa hamburguesa va con una bebida.
+      if (product?.product_type === 'combo') {
+        const componentes = componentesPorCombo.get(item.product_id ?? '') ?? []
+        for (const comp of componentes) {
+          if (comp.esReventa || !comp.station) continue
+          if (!grouped.has(comp.station)) grouped.set(comp.station, [])
+          grouped.get(comp.station)!.push({
+            id: item.id,
+            product_name: `${comp.nombre}  ·  ${item.product_name}`,
+            quantity: item.quantity * comp.cantidad,
+            notes: item.notes ?? null,
+            sale_tag: saleTag,
+            station: comp.station,
+          })
+        }
+        continue
+      }
+
       if (product?.product_type === 'reventa') continue // reventa products never go to kitchen
       const station = product?.station as Station | null
       if (!station) continue // skip items without station
@@ -72,7 +127,7 @@ export async function sendToKitchen(orderId: string): Promise<{
         product_name: item.product_name,
         quantity: item.quantity,
         notes: item.notes ?? null,
-        sale_tag: (item as Record<string, unknown>).sale_tag as string | null ?? null,
+        sale_tag: saleTag,
         station,
       })
     }
