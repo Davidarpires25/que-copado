@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import Link from 'next/link'
 import { Package, AlertTriangle, PackagePlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -9,7 +10,6 @@ import { IngredientsStockTab } from './ingredients-stock-tab'
 import { ProductsStockTab } from './products-stock-tab'
 import { MovementsTab } from './movements-tab'
 import { ConsumptionTab } from './consumption-tab'
-import { PurchaseDialog } from './purchase-dialog'
 import type {
   IngredientWithStock,
   ProductWithStock,
@@ -47,7 +47,6 @@ export function StockDashboard({
   const [movements, setMovements] = useState(initialMovements)
   const [elaboradoProducts, setElaboradoProducts] = useState(initialElaboradoProducts)
   const [theoreticalStocks] = useState(initialTheoreticalStocks)
-  const [purchaseOpen, setPurchaseOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'ingredientes' | 'productos' | 'movimientos' | 'consumo'>('ingredientes')
   const [ingredientSearch, setIngredientSearch] = useState('')
 
@@ -111,28 +110,26 @@ export function StockDashboard({
             />
           </div>
           <div className="ml-auto">
-            <Button
-              onClick={() => setPurchaseOpen(true)}
-              className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all hover:scale-105 active:scale-95"
-            >
-              <PackagePlus className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Registrar Compra</span>
-              <span className="sm:hidden">Compra</span>
-            </Button>
+            <Link href="/admin/stock/compras/nueva">
+              <Button className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all hover:scale-105 active:scale-95">
+                <PackagePlus className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Registrar Compra</span>
+                <span className="sm:hidden">Compra</span>
+              </Button>
+            </Link>
           </div>
         </div>
       )}
 
       {activeTab !== 'ingredientes' && (
         <div className="flex justify-end mb-4">
-          <Button
-            onClick={() => setPurchaseOpen(true)}
-            className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all hover:scale-105 active:scale-95"
-          >
-            <PackagePlus className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Registrar Compra</span>
-            <span className="sm:hidden">Compra</span>
-          </Button>
+          <Link href="/admin/stock/compras/nueva">
+            <Button className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all hover:scale-105 active:scale-95">
+              <PackagePlus className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Registrar Compra</span>
+              <span className="sm:hidden">Compra</span>
+            </Button>
+          </Link>
         </div>
       )}
 
@@ -217,12 +214,6 @@ export function StockDashboard({
           <ConsumptionTab initialData={initialConsumption ?? []} />
         </div>
       )}
-
-      <PurchaseDialog
-        open={purchaseOpen}
-        onOpenChange={setPurchaseOpen}
-        ingredients={ingredients}
-      />
     </AdminLayout>
   )
 }
