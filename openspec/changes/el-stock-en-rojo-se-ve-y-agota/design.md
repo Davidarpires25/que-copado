@@ -35,7 +35,27 @@ con 1 en stock lo cruza—.
 El camino de vuelta también se corrige: hoy vuelve a estar disponible cuando el
 stock es mayor a cero, que ya es lo correcto y no cambia.
 
-### El aviso de venta en rojo viaja con la respuesta del cobro
+### El aviso llega por las alertas, no por un cartel al cobrar
+
+**Decidido con David.** El ítem en rojo aparece en el contador de alertas y en la
+pantalla de stock a los segundos de la venta, y eso alcanza.
+
+El motivo es concreto: el descuento de stock corre dentro de `after()`, o sea
+después de que la respuesta del cobro ya se fue. Fue una decisión deliberada para
+que cobrar no espere —midió alrededor de un segundo—. Devolver el aviso con esa
+respuesta obligaría a volver a esperarlo.
+
+**Alternativas consideradas:** volver a esperar el descuento (paga esa latencia en
+cada cobro, para un aviso que la mayoría de las veces no aparece) o empujar el
+aviso por el canal de tiempo real que la caja ya usa (no paga latencia, pero es
+bastante más trabajo). Si con las alertas no alcanza en el uso real, la segunda
+queda disponible.
+
+**Lo que igual se hizo:** `deductStockForOrder` devuelve los ítems en rojo con su
+nombre resuelto en vez de escribirlos en un log. La información ya está lista para
+quien quiera mostrarla.
+
+### El aviso de venta en rojo viaja con la respuesta del cobro (descartado)
 
 El descuento de stock corre después de confirmar la venta y es best-effort: no
 puede tumbar un cobro. Así que el aviso no puede ser un error que bloquee; es

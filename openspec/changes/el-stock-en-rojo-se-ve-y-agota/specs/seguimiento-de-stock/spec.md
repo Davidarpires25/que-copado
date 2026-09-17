@@ -43,11 +43,14 @@ un error de carga o una venta sin respaldo, y necesita otra acción.
 - **THEN** la pantalla de stock lo señala como en rojo, distinto de "bajo"
 - **AND** la cantidad negativa se lee tal cual, sin redondear a cero
 
-### Requirement: Una venta que deja stock en rojo se avisa
+### Requirement: Un ítem en rojo es siempre una alerta
 
-Cuando una venta deje algún ítem con stock negativo, el sistema SHALL dejar
-constancia visible para quien opera, y SHALL NOT limitarse al registro del
-servidor.
+Un ítem con stock negativo SHALL contarse como alerta de stock **aunque no tenga
+mínimo definido**, y SHALL NOT quedar reducido al registro del servidor.
+
+Las alertas se filtraban por "tiene mínimo", así que vender de más algo sin
+mínimo dejaba el stock en rojo en silencio total: ni contador, ni cartel, ni
+pantalla. El único rastro era un `console.error` del servidor.
 
 La venta no se bloquea: un local vende igual cuando lo que está mal es el conteo
 y no la mercadería. Lo que no puede pasar es que nadie se entere.
@@ -56,4 +59,10 @@ y no la mercadería. Lo que no puede pasar es que nadie se entere.
 
 - **WHEN** al descontar el stock de un pedido algún ítem queda por debajo de cero
 - **THEN** la venta se completa
-- **AND** quien la cobró recibe un aviso de qué quedó en rojo
+- **AND** ese ítem pasa a figurar entre las alertas de stock, con su contador y
+  su cartel, sin que nadie tenga que buscarlo
+
+#### Scenario: Un ítem en rojo sin mínimo definido
+
+- **WHEN** un ítem queda en negativo y nunca tuvo un mínimo configurado
+- **THEN** aparece igual entre las alertas

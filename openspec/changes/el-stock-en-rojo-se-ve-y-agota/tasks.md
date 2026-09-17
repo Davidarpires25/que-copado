@@ -46,9 +46,12 @@
       que la respuesta trae qué quedó en rojo. **Hecho:** `deductStockForOrder`
       devuelve los ítems en rojo con su nombre resuelto, en vez de escribirlos en
       un `console.error`. Falta quién lo muestra: ver 4.2.
-- [ ] 4.2 Mostrarlo en la caja después de cobrar, sin bloquear el cobro.
-      Verificación: en local, cobrar un pedido que deja stock en negativo y ver
-      el aviso con el nombre del ítem.
+- [x] 4.2 Mostrarlo en la caja después de cobrar, sin bloquear el cobro.
+      **Resuelto de otra forma, decidido con David:** el aviso llega por las
+      alertas —contador del sidebar y cartel de la pantalla de stock— y no por un
+      cartel al cobrar. Un cartel exigiría volver a esperar el descuento de stock,
+      que se sacó del camino crítico a propósito. Verificado: un ítem en rojo sin
+      mínimo aparece en el contador, cosa que antes no pasaba.
 
 ## 5. Cerrar
 
