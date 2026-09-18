@@ -1266,3 +1266,144 @@ export async function getInsumosDelProducto(
 
   return { data: lineas, error: null }
 }
+
+// ---------------------------------------------------------------------------
+// La planilla de conteo
+// ---------------------------------------------------------------------------
+
+/** Una linea de la planilla: lo que el sistema dice tener de un insumo. */
+export interface LineaDePlanilla {
+  id: string
+  nombre: string
+  unidad: string
+  /** Lo que el sistema dice. Lo contado y la diferencia se escriben a mano. */
+  stockDelSistema: number
+  sigue: boolean
+}
+
+/** Los insumos de una categoria, juntos. */
+export interface GrupoDePlanilla {
+  categoria: string
+  lineas: LineaDePlanilla[]
+}
+
+/** Una categoria de insumos, con cuantos tiene, para elegir antes de imprimir. */
+export interface CategoriaParaPlanilla {
+  id: string
+  nombre: string
+  insumos: number
+}
+
+/**
+ * Los insumos sin categoria van juntos bajo esta clave, no se pierden.
+ *
+ * Sin `export`: un archivo `'use server'` solo puede exportar funciones async,
+ * porque todo lo que exporta queda expuesto como server action. La clave viaja
+ * igual, adentro del `id` de la categoria que devuelve `getCategoriasParaPlanilla`.
+ */
+const SIN_CATEGORIA = 'sin-categoria'
+
+/**
+ * Las categorias de insumos con cuantos tiene cada una.
+ *
+ * Se piden antes de imprimir para elegir que entra: marcando CARNES y
+ * PANIFICACION sale la hoja del freezer y no las 120 filas de todo. El numero
+ * al lado es para no llevarse tres paginas sin querer.
+ */
+export async function getCategoriasParaPlanilla(): Promise<{
+  data: CategoriaParaPlanilla[] | null
+  error: string | null
+}> {
+  const supabase = await createAdminClient()
+  const user = await getAuthUser(supabase)
+  if (!user) return { data: null, error: 'No autorizado' }
+
+  const [{ data: categorias }, { data: insumos, error }] = await Promise.all([
+    supabase.from('ingredient_categories').select('id, name').order('name'),
+    supabase.from('ingredients').select('category_id').eq('is_active', true),
+  ])
+
+  if (error) return devError(error)
+
+  const cuenta = new Map<string, number>()
+  for (const i of insumos ?? []) {
+    const clave = i.category_id ?? SIN_CATEGORIA
+    cuenta.set(clave, (cuenta.get(clave) ?? 0) + 1)
+  }
+
+  const resultado: CategoriaParaPlanilla[] = (categorias ?? [])
+    .map((c) => ({ id: c.id, nombre: c.name, insumos: cuenta.get(c.id) ?? 0 }))
+    .filter((c) => c.insumos > 0)
+
+  const sinCategoria = cuenta.get(SIN_CATEGORIA) ?? 0
+  if (sinCategoria > 0) {
+    resultado.push({ id: SIN_CATEGORIA, nombre: 'Sin categoría', insumos: sinCategoria })
+  }
+
+  return { data: resultado, error: null }
+}
+
+/**
+ * Los insumos para llevar al papel, agrupados por categoria.
+ *
+ * Sin categorias elegidas devuelve todo: es lo que pasa si alguien entra
+ * directo a la URL de impresion.
+ *
+ * Los que no tienen categoria van juntos y visibles. Son 32 de 120, asi que
+ * dejarlos afuera en silencio seria perder un cuarto del deposito.
+ */
+export async function getPlanillaDeConteo(
+  categoriaIds: string[] = []
+): Promise<{ data: GrupoDePlanilla[] | null; error: string | null }> {
+  const supabase = await createAdminClient()
+  const user = await getAuthUser(supabase)
+  if (!user) return { data: null, error: 'No autorizado' }
+
+  const [{ data: categorias }, { data: insumos, error }] = await Promise.all([
+    supabase.from('ingredient_categories').select('id, name'),
+    supabase
+      .from('ingredients')
+      .select('id, name, unit, current_stock, stock_tracking_enabled, category_id')
+      .eq('is_active', true)
+      .order('name'),
+  ])
+
+  if (error) return devError(error)
+
+  const nombreDeCategoria = new Map((categorias ?? []).map((c) => [c.id, c.name]))
+  const elegidas = new Set(categoriaIds)
+  const filtrar = elegidas.size > 0
+
+  const grupos = new Map<string, GrupoDePlanilla>()
+
+  for (const i of insumos ?? []) {
+    const clave = i.category_id ?? SIN_CATEGORIA
+    if (filtrar && !elegidas.has(clave)) continue
+
+    const nombre = clave === SIN_CATEGORIA
+      ? 'Sin categoría'
+      : nombreDeCategoria.get(clave) ?? 'Sin categoría'
+
+    const grupo: GrupoDePlanilla = grupos.get(clave) ?? { categoria: nombre, lineas: [] }
+    grupo.lineas.push({
+      id: i.id,
+      nombre: i.name,
+      unidad: i.unit,
+      stockDelSistema: Number(i.current_stock) || 0,
+      sigue: i.stock_tracking_enabled,
+    })
+    grupos.set(clave, grupo)
+  }
+
+  // Alfabetico por categoria, con los sin categoria al final: son el grupo mas
+  // heterogeneo y el que menos sentido tiene contar de un saque.
+  const ordenados = [...grupos.entries()]
+    .sort(([a, ga], [b, gb]) => {
+      if (a === SIN_CATEGORIA) return 1
+      if (b === SIN_CATEGORIA) return -1
+      return ga.categoria.localeCompare(gb.categoria, 'es')
+    })
+    .map(([, g]) => g)
+
+  return { data: ordenados, error: null }
+}

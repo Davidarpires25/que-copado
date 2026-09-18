@@ -6,6 +6,7 @@ import { Package, AlertTriangle, PackagePlus, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { AdminLayout } from '@/components/admin/layout/admin-layout'
+import { PlanillaDialog } from '@/components/admin/stock/planilla-dialog'
 import { IngredientsStockTab } from './ingredients-stock-tab'
 import { ProductsStockTab } from './products-stock-tab'
 import { MovementsTab } from './movements-tab'
@@ -111,7 +112,8 @@ export function StockDashboard({
               className="w-full bg-[var(--admin-bg)] border border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-9 pl-9 pr-3 rounded-md placeholder:text-[var(--admin-text-muted)] focus:outline-none focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
             />
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <PlanillaDialog />
             <Link href="/admin/stock/compras/nueva">
               <Button className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all hover:scale-105 active:scale-95">
                 <PackagePlus className="h-4 w-4 mr-2" />
@@ -124,7 +126,8 @@ export function StockDashboard({
       )}
 
       {activeTab !== 'ingredientes' && (
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end items-center gap-2 mb-4">
+          <PlanillaDialog />
           <Link href="/admin/stock/compras/nueva">
             <Button className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all hover:scale-105 active:scale-95">
               <PackagePlus className="h-4 w-4 mr-2" />
