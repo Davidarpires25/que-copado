@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { requireAgentSecret } from '@/lib/server/agent-auth'
 import { agentInternalError } from '@/lib/server/agent-errors'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { getMaxElaboradoQuantity } from '@/lib/server/elaborado-stock'
+import { getMaxQuantities } from '@/lib/server/elaborado-stock'
 import { devError } from '@/lib/server/logger'
 
 // La disponibilidad depende del stock, que cambia durante el servicio.
@@ -57,12 +57,9 @@ export async function GET(request: Request) {
     }
 
     // La disponibilidad de un elaborado no es una columna: sale de recorrer sus
-    // recetas. Se consultan en paralelo y solo los que hacen falta.
-    const elaborados = (products ?? []).filter((p) => p.product_type === 'elaborado')
-    const topes = await Promise.all(
-      elaborados.map((p) => getMaxElaboradoQuantity(supabase, p.id))
-    )
-    const topePorProducto = new Map(elaborados.map((p, i) => [p.id, topes[i]]))
+    // recetas. La de un combo tampoco: sale de sus recetas propias y de lo que
+    // incluye. Se consultan en paralelo y solo los que hacen falta.
+    const topePorProducto = await getMaxQuantities(supabase, products ?? [])
 
     const items: MenuItem[] = (products ?? []).map((p) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,7 +78,7 @@ export async function GET(request: Request) {
         return { ...base, available: false, max_quantity: 0 }
       }
 
-      if (p.product_type === 'elaborado') {
+      if (p.product_type === 'elaborado' || p.product_type === 'combo') {
         const tope = topePorProducto.get(p.id) ?? null
         // null = no tiene ingredientes trackeados, o sea sin tope.
         if (tope === null) return { ...base, available: true }

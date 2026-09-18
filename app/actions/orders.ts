@@ -9,7 +9,7 @@ import { getAuthUser } from '@/lib/server/auth'
 import { devError } from '@/lib/server/logger'
 import { revalidateOrders } from '@/lib/server/revalidate'
 import { esTelefonoValido } from '@/lib/utils/phone'
-import { getMaxElaboradoQuantity } from '@/lib/server/elaborado-stock'
+import { getMaxQuantities } from '@/lib/server/elaborado-stock'
 import { checkRateLimit } from '@/lib/server/rate-limit'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Order, OrderSource, OrderStatus, OrderWithZone } from '@/lib/types/database'
@@ -45,17 +45,7 @@ export async function validateCartStock(
 
     const issues: StockIssue[] = []
 
-    const elaboradoItems = cartItems.filter((item) => {
-      const product = products?.find((p) => p.id === item.id)
-      return product?.product_type === 'elaborado'
-    })
-
-    const elaboradoMaxQtys = await Promise.all(
-      elaboradoItems.map((item) => getMaxElaboradoQuantity(supabase, item.id))
-    )
-    const elaboradoMaxMap = new Map(
-      elaboradoItems.map((item, i) => [item.id, elaboradoMaxQtys[i]])
-    )
+    const topes = await getMaxQuantities(supabase, products ?? [])
 
     for (const item of cartItems) {
       const product = products?.find((p) => p.id === item.id)
@@ -70,8 +60,8 @@ export async function validateCartStock(
         continue
       }
 
-      if (product.product_type === 'elaborado') {
-        const maxQty = elaboradoMaxMap.get(item.id) ?? null
+      if (product.product_type === 'elaborado' || product.product_type === 'combo') {
+        const maxQty = topes.get(item.id) ?? null
         if (maxQty !== null && maxQty < item.quantity) {
           issues.push({
             productId: item.id,
@@ -209,24 +199,11 @@ export async function createOrder(
       return { data: null, error: 'Error al verificar disponibilidad de productos' }
     }
 
-    // Cuanto se puede armar de cada elaborado, todo junto. Era una consulta por
-    // hamburguesa adentro del `for`, o sea en serie: tres hamburguesas eran tres
-    // viajes de ~160ms para 7ms de trabajo real (medido con EXPLAIN ANALYZE).
-    // `validateCartStock`, en este mismo archivo, ya lo hacia con Promise.all.
-    // Set y no array: el mismo producto puede venir dos veces en el carrito
-    // —dos veces la misma hamburguesa, con observaciones distintas— y no tiene
-    // sentido preguntar dos veces por el mismo.
-    const elaboradoIds = [...new Set(
-      data.items
-        .filter((item) => products?.find((p) => p.id === item.id)?.product_type === 'elaborado')
-        .map((item) => item.id)
-    )]
-
-    const maximos = new Map(
-      (await Promise.all(
-        elaboradoIds.map(async (id) => [id, await getMaxElaboradoQuantity(supabase, id)] as const)
-      ))
-    )
+    // Cuanto se puede armar de cada elaborado y de cada combo, todo junto. Era
+    // una consulta por hamburguesa adentro del `for`, o sea en serie: tres
+    // hamburguesas eran tres viajes de ~160ms para 7ms de trabajo real (medido
+    // con EXPLAIN ANALYZE).
+    const maximos = await getMaxQuantities(supabase, products ?? [])
 
     for (const item of data.items) {
       const product = products?.find((p) => p.id === item.id)
@@ -239,7 +216,7 @@ export async function createOrder(
         return { data: null, error: `"${item.name}" se agotó. Por favor actualizá tu carrito.` }
       }
 
-      if (product.product_type === 'elaborado') {
+      if (product.product_type === 'elaborado' || product.product_type === 'combo') {
         const maxQty = maximos.get(product.id) ?? null
         if (maxQty !== null && maxQty < item.quantity) {
           return {

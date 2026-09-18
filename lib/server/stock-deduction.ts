@@ -361,9 +361,14 @@ async function _syncReventaProduct(
 /**
  * Apaga o enciende los combos segun lo que incluyen.
  *
- * Un combo no tiene stock propio: su disponibilidad es la de sus componentes.
- * Y uno sin componentes tampoco se puede vender —no hay nada que entregar—, asi
- * que tambien queda apagado.
+ * Un combo no tiene stock propio: su disponibilidad sale de sus dos partes. De
+ * los componentes, que son productos del catalogo con su propia disponibilidad.
+ * Y de sus recetas propias —el envase, la preparacion que es del combo y de
+ * nadie mas—, que son recetas como las de un elaborado y se miran igual. Si se
+ * acabaron las cajas, el combo no sale aunque la hamburguesa y la bebida esten.
+ *
+ * Un combo sin componentes ni recetas tampoco se puede vender —no hay nada que
+ * entregar—, asi que tambien queda apagado.
  *
  * `auto_disabled` distingue lo que apago el sistema de lo que apago una persona:
  * si el local marco el combo como agotado a mano, esto no se lo enciende.
@@ -386,11 +391,17 @@ export async function syncCombosAvailability(supabase: SupabaseClient): Promise<
       products: { is_out_of_stock: boolean; is_active: boolean } | null
     }[]
 
-    const sinComponentes = componentes.length === 0
+    // Lo propio del combo: sus recetas. `null` es "no tiene recetas con stock
+    // trackeado", que no limita; un numero en cero o menos si.
+    const stockPropio = await _calcTheoreticalStock(supabase, combo.id).catch(() => null)
+    const sinRecetasPropias = stockPropio === null
+
+    const sinNada = componentes.length === 0 && sinRecetasPropias
     const algunoNoDisponible = componentes.some(
       (c) => !c.products || !c.products.is_active || c.products.is_out_of_stock
     )
-    const deberiaEstarAgotado = sinComponentes || algunoNoDisponible
+    const faltaLoPropio = stockPropio !== null && stockPropio <= 0
+    const deberiaEstarAgotado = sinNada || algunoNoDisponible || faltaLoPropio
 
     if (deberiaEstarAgotado && !combo.is_out_of_stock) {
       await supabase

@@ -95,23 +95,71 @@
       **Hecho:** el costo suma ahora los ingredientes de las recetas propias más
       el costo de los componentes.
 
-## 5. Migrar lo que ya existe (producción, al final)
+## 5. Migrar lo que ya existe — **cancelada**
 
-- [ ] 5.1 Escribir el mapeo de cada bebida-ingrediente al producto de reventa que
-      le corresponde, y **revisarlo con David antes de aplicar**: `coca-coca 375`,
-      `coca cola descartable 1.5lts`, `fanta 500ml`, `sprite 500ml`.
-      Verificación: el mapeo aprobado, por escrito, en la migración.
-- [ ] 5.2 Migración que convierte los tres combos actuales a tipo `combo` con sus
-      componentes, y desactiva las bebidas-ingrediente sin borrarlas ni tocar sus
-      movimientos. Verificación: aplicada primero en local sobre una copia del
-      caso real; los tres combos quedan con componentes y el historial intacto.
-- [ ] 5.3 Conteo físico de bebidas antes de aplicar en producción, y ajuste del
-      stock real. **El stock de las bebidas empieza a bajar de verdad desde este
-      momento**, y lo que el sistema decía hasta ahora no era cierto.
-      Verificación: el stock del sistema coincide con lo contado.
+David, 2026-09-18: *"no le des importancia a esos combos, ya que hay nuevos y
+sacaremos los viejos"*. Los tres combos actuales se dan de baja y los nuevos se
+cargan con el tipo `combo` desde la pantalla. No hay datos que migrar.
+
+Queda escrito lo que se averiguo, porque vale para cuando se carguen los nuevos:
+
+- Solo **dos** ingredientes-bebida estaban realmente en una receta:
+  `coca-coca 375` (x2 en COMBO PATTY Y GASEOSA) y `coca cola descartable 1.5lts`
+  (x1 en COMBO PLAZA). `fanta 500ml` y `sprite 500ml` como ingredientes no los
+  usaba ninguna receta: son filas muertas.
+- El tercer combo, PROMO DE BURGUER CON PAPAS, no lleva bebida.
+- **De 19 productos en BEBIDAS, solo 3 tienen costo cargado.** Un combo cuyo
+  componente no tiene costo se va a costear de menos. Cuando se carguen los
+  combos nuevos hay que cargar el costo de las bebidas que usen.
+- **El stock de una bebida que hoy sale en un combo esta alto**, no bajo: solo
+  bajaba al venderla suelta. Conviene contarlas al cargar el combo nuevo.
+
+- [-] 5.1 Mapeo de bebida-ingrediente a producto de reventa. **No aplica**: los
+      combos viejos se dan de baja.
+- [-] 5.2 Migracion de los tres combos. **No aplica**, por lo mismo.
+- [-] 5.3 Conteo fisico previo. **No aplica** como paso de migracion; queda como
+      la nota de arriba para cuando se carguen los combos nuevos.
 
 ## 6. Cerrar
 
 - [x] 6.1 `npm run lint` y `npm run build` sin errores nuevos.
-- [ ] 6.2 Avisar en `AgentePOS` que existe un `product_type` nuevo, por si alguna
-      rama del agente depende del tipo. Verificación: el aviso hecho y respondido.
+- [x] 6.2 Avisar en `AgentePOS` que existe un `product_type` nuevo. **Revisado:
+      ninguna rama de `AgentePOS` depende del tipo de producto** —el contrato le
+      pasa `available` y `max_quantity`, no el tipo—, asi que no habia nada que
+      avisar. Pero revisarlo destapo el hueco de la tarea 6.3.
+
+- [x] 6.3 **El combo se ofrecia sin tope.** Tres lugares calculaban "cuantas
+      unidades se pueden vender" preguntando por el literal `'elaborado'`: el
+      menu del agente, `validateCartStock` y el guard de `createOrder`. Un combo
+      no entraba en ninguno, asi que salia sin techo: el agente lo podia ofrecer
+      sin limite y el checkout aceptaba diez con stock para tres.
+      `getMaxComboQuantity()` calcula el tope de un combo —sus recetas propias y
+      sus componentes, dividiendo por la cantidad— y `getMaxQuantities()` es
+      ahora el unico lugar donde se arma ese Map, para los tres.
+      **Verificado en local** con un combo hibrido (1 caja propia, 1 hamburguesa,
+      2 gaseosas) sobre stock de 5 cajas / 40 hamburguesas / 24 gaseosas:
+      tope = 5, que es la caja. Antes: sin tope.
+
+- [x] 6.4 **El barrido no miraba las recetas propias del combo.**
+      `syncCombosAvailability` solo preguntaba por los componentes, asi que un
+      combo al que se le acabaron las cajas seguia ofreciendose. Ahora mira las
+      dos partes, como el descuento (tarea 2.0).
+
+## Lo que quedo abierto
+
+**El tope de un elaborado tampoco se aplica hoy, y eso es anterior a este
+cambio.** `createAdminClient()` usa la clave **anon** —lo dice su propio
+comentario— y `ingredients` solo tiene policy de lectura para `authenticated`.
+El resultado es que `ingredients` vuelve `null` y la cuenta termina en "sin
+tope", siempre. Verificado contra la base local: el endpoint del agente no
+emite `max_quantity` para ninguna hamburguesa.
+
+Alcanza a tres caminos: el menu del agente, `validateCartStock` y el guard de
+`createOrder`. Lo que si protege es `is_out_of_stock`, que el barrido mantiene
+al dia desde los caminos autenticados; lo que no se aplica es el **techo de
+cantidad**.
+
+Por eso el tope del combo hoy se calcula solo por sus componentes —que son
+productos, y esos anon si los lee—. La mitad de recetas del combo queda ciega
+igual que la de un elaborado. Se anota como cambio aparte: es un problema de
+RLS y de que cliente usa cada camino, mas grande que los combos.
