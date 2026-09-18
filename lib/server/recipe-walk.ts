@@ -69,7 +69,7 @@ export async function recorrerInsumos(
   fuente: FuenteDeInsumos,
   ingredientId: string,
   cantidadEnUnidadDeReceta: number,
-  unidadDeReceta: string,
+  unidadDeReceta: string | null,
   alLlegarAlFondo: AlLlegarAlFondo,
   visitados: Set<string> = new Set()
 ): Promise<void> {
@@ -84,18 +84,23 @@ export async function recorrerInsumos(
   const insumo = await fuente.insumo(ingredientId)
   if (!insumo) return
 
+  // La linea de receta puede no traer unidad: entonces se entiende en la del
+  // insumo. La columna lo permite, y sin este respaldo una linea sin unidad
+  // se descartaria en silencio, dejando de descontar ese insumo.
+  const unidad = unidadDeReceta || insumo.unit
+
   // Una receta en gramos contra un insumo en litros no se puede comparar. Antes
   // de descartarla se avisa, porque es un error de carga y no un caso normal.
-  if (getBaseUnit(unidadDeReceta) !== getBaseUnit(insumo.unit)) {
+  if (getBaseUnit(unidad) !== getBaseUnit(insumo.unit)) {
     if (process.env.NODE_ENV === 'development') {
       console.error(
-        `[Stock] Unidades incompatibles: la receta usa '${unidadDeReceta}' y el insumo '${insumo.id}' esta en '${insumo.unit}'`
+        `[Stock] Unidades incompatibles: la receta usa '${unidad}' y el insumo '${insumo.id}' esta en '${insumo.unit}'`
       )
     }
     return
   }
 
-  const cantidadBase = convertToBaseUnit(cantidadEnUnidadDeReceta, unidadDeReceta)
+  const cantidadBase = convertToBaseUnit(cantidadEnUnidadDeReceta, unidad)
   const merma = Number(insumo.waste_percentage) || 0
   const factor = 1 - merma / 100
   const cantidadConMerma = factor > 0 ? cantidadBase / factor : cantidadBase

@@ -49,8 +49,23 @@ de desplegar.
 `ingredients` siguen decidiendo quién puede escribir. Se revoca de `anon` y se
 otorga a `authenticated`.
 
+## Y lo mismo en el descuento de la venta
+
+Se hizo en el mismo cambio, porque es el mismo problema: `deductStockForOrder`
+hacía una consulta por item para el producto, otra por sus recetas, y **dos por
+cada insumo**. Un pedido de tres productos con las recetas reales —unos 9
+insumos cada uno— son ~60 idas y vueltas en serie, esperadas antes de
+contestarle a quien cobra.
+
+Ahora son **6**, sea cual sea el tamaño del pedido: los productos, los
+componentes de los combos, los productos de esos componentes, y las tres de la
+carga de recetas que ya usaban el barrido y la pantalla de stock.
+
+Al pasar a datos ya cargados quedaron sin uso `acumularProducto`,
+`collectElaboradoStock` y `collectIngredientCascade`.
+
 ## Fuera de alcance
 
-- **El descuento de la venta**, que también hace dos consultas por insumo para
-  armar los movimientos. Es proporcional al tamaño del pedido —mucho menos que
-  el barrido, que eran 260 fijas— y se puede llevar a la carga masiva aparte.
+- **Que el cobro de mostrador no espere el descuento**, como ya hace el de mesa
+  con `after()`. Es una decisión sobre cuándo se descuenta respecto de la
+  respuesta, no un arreglo.

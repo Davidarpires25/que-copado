@@ -82,6 +82,47 @@ export interface ItemEnRojo {
   stock: number
 }
 
+
+/**
+ * Lo que descuentan las recetas de un producto, con todo ya cargado.
+ *
+ * Es el mismo recorrido de siempre; lo unico distinto es que los insumos salen
+ * de memoria y no de una consulta por cada uno.
+ */
+async function _descontarRecetas(
+  cargado: RecetasEnMemoria,
+  productId: string,
+  cantidad: number,
+  pendientes: Map<string, MovimientoPendiente>
+): Promise<void> {
+  for (const pr of cargado.porProducto.get(productId) ?? []) {
+    const multiplicador = pr.quantity ?? 1
+    const receta = pr.recipes
+    if (!receta?.recipe_ingredients) continue
+
+    for (const ri of receta.recipe_ingredients) {
+      await recorrerInsumos(
+        cargado.fuente,
+        ri.ingredient_id,
+        cantidad * multiplicador * ri.quantity,
+        ri.unit,
+        (insumo, cantidadBase) => {
+          if (!insumo.stock_tracking_enabled) return
+          // De vuelta a la unidad en que esta guardado el stock: el recorrido
+          // devuelve unidad base para poder comparar entre recetas, pero lo que
+          // se descuenta se resta a `ingredients.current_stock`.
+          acumular(pendientes, {
+            tipo: 'ingredient',
+            id: insumo.id,
+            cantidad: convertFromBaseUnit(cantidadBase, insumo.unit),
+          })
+        },
+        new Set<string>()
+      )
+    }
+  }
+}
+
 export async function deductStockForOrder(
   supabase: SupabaseClient,
   items: StockDeductionItem[],
@@ -91,22 +132,95 @@ export async function deductStockForOrder(
   const pendientes = new Map<string, MovimientoPendiente>()
   let enRojo: ItemEnRojo[] = []
 
+  // Todo lo que hace falta, traido de una.
+  //
+  // Antes esto era una consulta por item para el producto, otra por sus
+  // recetas, y dos por cada insumo. Un pedido de tres hamburguesas eran ~60
+  // idas y vueltas en serie, esperadas antes de contestarle a quien cobra. El
+  // barrido ya se habia arreglado igual; esto era lo que quedaba.
+  const cantidadPorProducto = new Map<string, number>()
   for (const item of items) {
     if (item.quantity <= 0) continue
-
     const productId = resolveProductId(item)
     if (!productId) continue
+    // El mismo producto puede venir dos veces --con observaciones distintas--
+    // y es un solo descuento.
+    cantidadPorProducto.set(productId, (cantidadPorProducto.get(productId) ?? 0) + item.quantity)
+  }
 
-    try {
-      const { data: product, error: productError } = await supabase
+  if (cantidadPorProducto.size === 0) return []
+
+  const productos = new Map<string, ProductoParaDescontar>()
+  const { data: filas } = await supabase
+    .from('products')
+    .select('id, product_type, current_stock, stock_tracking_enabled')
+    .in('id', [...cantidadPorProducto.keys()])
+  for (const fila of filas ?? []) productos.set(fila.id, fila as ProductoParaDescontar)
+
+  // Los componentes de los combos, y los productos de esos componentes. Un
+  // combo no contiene combos, asi que con una vuelta alcanza.
+  const combos = [...productos.values()].filter((p) => p.product_type === 'combo')
+  const componentesPorCombo = new Map<string, { id: string; cantidad: number }[]>()
+
+  if (combos.length > 0) {
+    const { data: componentes } = await supabase
+      .from('product_components')
+      .select('parent_id, component_id, quantity')
+      .in('parent_id', combos.map((c) => c.id))
+
+    const idsDeComponentes = new Set<string>()
+    for (const c of componentes ?? []) {
+      const lista = componentesPorCombo.get(c.parent_id) ?? []
+      lista.push({ id: c.component_id, cantidad: Number(c.quantity ?? 1) })
+      componentesPorCombo.set(c.parent_id, lista)
+      if (!productos.has(c.component_id)) idsDeComponentes.add(c.component_id)
+    }
+
+    if (idsDeComponentes.size > 0) {
+      const { data: hijos } = await supabase
         .from('products')
         .select('id, product_type, current_stock, stock_tracking_enabled')
-        .eq('id', productId)
-        .single()
+        .in('id', [...idsDeComponentes])
+      for (const hijo of hijos ?? []) productos.set(hijo.id, hijo as ProductoParaDescontar)
+    }
+  }
 
-      if (productError || !product) continue
+  // Las recetas y los insumos de todo lo que participa, en tres consultas.
+  const cargado = await cargarRecetasEnMemoria(supabase, [...productos.keys()])
 
-      await acumularProducto(supabase, product, item.quantity, pendientes)
+  // Lo que descuenta cada producto, ya sin volver a la base.
+  const acumular_ = async (productId: string, cantidad: number, profundidad = 0): Promise<void> => {
+    const producto = productos.get(productId)
+    if (!producto || cantidad <= 0) return
+
+    if (producto.product_type === 'reventa') {
+      if (producto.stock_tracking_enabled) {
+        acumular(pendientes, { tipo: 'product', id: producto.id, cantidad })
+      }
+      return
+    }
+
+    // Un elaborado descuenta sus recetas. Un combo, sus recetas propias --el
+    // envase, la preparacion que solo existe dentro del combo-- y ademas sus
+    // componentes, que son productos terminados y salen del mismo stock que si
+    // se vendieran sueltos.
+    if (cargado) await _descontarRecetas(cargado, productId, cantidad, pendientes)
+
+    if (producto.product_type !== 'combo') return
+
+    // Un combo no contiene combos --lo impide la configuracion-- pero el limite
+    // esta igual: un ciclo en la base no puede colgar un cobro.
+    if (profundidad > 2) return
+
+    for (const componente of componentesPorCombo.get(productId) ?? []) {
+      // La cantidad se multiplica: tres combos con dos bebidas cada uno son seis.
+      await acumular_(componente.id, cantidad * componente.cantidad, profundidad + 1)
+    }
+  }
+
+  for (const [productId, cantidad] of cantidadPorProducto) {
+    try {
+      await acumular_(productId, cantidad)
     } catch (err) {
       if (process.env.NODE_ENV === 'development') {
         console.error(`[Stock] Error calculando stock del producto ${productId}:`, err)
@@ -278,35 +392,6 @@ function insumosDesdeLaBase(supabase: SupabaseClient): FuenteDeInsumos {
   }
 }
 
-async function collectIngredientCascade(
-  supabase: SupabaseClient,
-  ingredientId: string,
-  quantityInRecipeUnit: number,
-  recipeUnit: string,
-  pendientes: Map<string, MovimientoPendiente>,
-  visited: Set<string>
-): Promise<void> {
-  await recorrerInsumos(
-    insumosDesdeLaBase(supabase),
-    ingredientId,
-    quantityInRecipeUnit,
-    recipeUnit,
-    (insumo, cantidadBase) => {
-      if (!insumo.stock_tracking_enabled) return
-      // De vuelta a la unidad en que esta guardado el stock. El recorrido
-      // devuelve unidad base para poder comparar entre recetas, pero lo que se
-      // descuenta se resta a `ingredients.current_stock`, que esta en la unidad
-      // del insumo. Sin esta vuelta, una receta de 30 g descontaba 0,03 de un
-      // stock en gramos: mil veces menos de lo que se usa.
-      acumular(pendientes, {
-        tipo: 'ingredient',
-        id: insumo.id,
-        cantidad: convertFromBaseUnit(cantidadBase, insumo.unit),
-      })
-    },
-    visited
-  )
-}
 
 
 
@@ -773,138 +858,4 @@ interface ProductoParaDescontar {
   stock_tracking_enabled?: boolean | null
 }
 
-/**
- * Acumula lo que descuenta un producto, sea del tipo que sea.
- *
- * Un combo se expande a sus componentes y cada uno vuelve a entrar por acá: la
- * bebida descuenta como reventa y la hamburguesa camina su receta. Eso es lo que
- * hace que la coca de un combo y la coca vendida sola salgan del mismo stock, en
- * vez de los dos inventarios paralelos que habia antes.
- *
- * La expansion ocurre acá y no al vender: el pedido guarda el combo como lo que
- * es —una linea con su precio— y recien al descontar se resuelve en partes.
- */
-async function acumularProducto(
-  supabase: SupabaseClient,
-  product: ProductoParaDescontar,
-  cantidad: number,
-  pendientes: Map<string, MovimientoPendiente>,
-  profundidad = 0
-): Promise<void> {
-  if (product.product_type === 'reventa') {
-    if (product.stock_tracking_enabled) {
-      acumular(pendientes, { tipo: 'product', id: product.id, cantidad })
-    }
-    return
-  }
 
-  if (product.product_type === 'elaborado') {
-    await collectElaboradoStock(supabase, product.id, cantidad, pendientes)
-    return
-  }
-
-  if (product.product_type === 'combo') {
-    // Un combo no contiene combos —lo impide la configuracion— pero el limite
-    // esta igual: un ciclo en la base no puede colgar un cobro.
-    if (profundidad > 2) return
-
-    // Un combo descuenta DOS cosas, no una.
-    //
-    // Sus recetas propias: el envase —caja, palillos, vasos— y la preparacion
-    // que solo existe dentro del combo, como el pan especifico de la promo. Eso
-    // no pertenece a ningun componente y no es un producto del catalogo.
-    await collectElaboradoStock(supabase, product.id, cantidad, pendientes)
-
-    // Y sus componentes, que son productos terminados y descuentan del mismo
-    // stock que si se vendieran sueltos. Ahi va la bebida.
-
-    const { data: componentes, error } = await supabase
-      .from('product_components')
-      .select('quantity, products:component_id (id, product_type, stock_tracking_enabled)')
-      .eq('parent_id', product.id)
-
-    if (error || !componentes) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error(`[Stock] No se pudieron leer los componentes del combo ${product.id}:`, error?.message)
-      }
-      return
-    }
-
-    for (const componente of componentes) {
-      const hijo = componente.products as unknown as ProductoParaDescontar | null
-      if (!hijo) continue
-      // La cantidad se multiplica: tres combos con dos bebidas cada uno son seis.
-      await acumularProducto(supabase, hijo, cantidad * Number(componente.quantity ?? 1), pendientes, profundidad + 1)
-    }
-  }
-}
-
-/**
- * Deducts stock for an 'elaborado' product by walking its recipes and
- * recursively decrementing each ingredient (including sub-recipe cascades).
- *
- * Chain: product -> product_recipes -> recipes -> recipe_ingredients -> ingredients -> sub-recipes
- */
-async function collectElaboradoStock(
-  supabase: SupabaseClient,
-  productId: string,
-  orderQuantity: number,
-  pendientes: Map<string, MovimientoPendiente>
-): Promise<void> {
-  // Fetch all recipe ingredients for this product in one query
-  const { data: productRecipes, error: prError } = await supabase
-    .from('product_recipes')
-    .select(`
-      quantity,
-      recipes (
-        id,
-        recipe_ingredients (
-          quantity,
-          unit,
-          ingredient_id,
-          ingredients (
-            id,
-            unit,
-            waste_percentage,
-            current_stock,
-            stock_tracking_enabled
-          )
-        )
-      )
-    `)
-    .eq('product_id', productId)
-
-  if (prError || !productRecipes) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`[Stock] Failed to fetch recipes for product ${productId}:`, prError?.message)
-    }
-    return
-  }
-
-  // Walk the recipe tree and deduct ingredients
-  for (const pr of productRecipes) {
-    const recipeMultiplier = pr.quantity ?? 1
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const recipe = pr.recipes as any
-    if (!recipe?.recipe_ingredients) continue
-
-    for (const ri of recipe.recipe_ingredients) {
-      const ingredient = ri.ingredients
-      if (!ingredient) continue
-
-      // Total quantity = order qty * product_recipes.quantity * recipe_ingredients.quantity
-      const totalQty = orderQuantity * recipeMultiplier * ri.quantity
-      // Effective unit: use recipe_ingredient.unit if specified, else ingredient's own unit
-      const effectiveUnit = ri.unit ?? ingredient.unit
-
-      await collectIngredientCascade(
-        supabase,
-        ingredient.id,
-        totalQty,
-        effectiveUnit,
-        pendientes,
-        new Set<string>()
-      )
-    }
-  }
-}
