@@ -58,6 +58,23 @@ Agregado después: *"estaría bueno saber qué falta y por qué se apagó"*.
       el producto, dice qué falta y aclara lo del mostrador; al marcarlo
       disponible a mano, el aviso desaparece.
 
+## 7. El detalle de insumos en la fila
+
+David: *"pensaba en una opción en la tabla de alertas que abra una sección y
+muestre la información de los ingredientes y lo que falta"*. Mejor que el cartel
+de arriba: el dato va donde ya está mirando.
+
+- [x] 7.1 `getInsumosDelProducto()` devuelve de qué depende un producto: qué
+      pide de cada insumo, cuánto hay y para cuántas unidades alcanza. Se pide
+      al desplegar una fila, no para toda la tabla.
+- [x] 7.2 La fila de la tabla de alertas se despliega y muestra esa tabla, con
+      el insumo que frena marcado. Si hay empate en el mínimo están todos:
+      comprar solo uno no destraba el producto.
+- [x] 7.3 Sacado el link del tooltip de "Auto-deshabilitado", que ofrecía "Ver
+      ingredientes faltantes" y llevaba a la misma pantalla donde ya estabas.
+- [x] 7.4 **Verificado en el navegador:** la fila se despliega, lista los
+      insumos y marca cuál frena.
+
 ## 5. Cerrar
 
 - [x] 5.1 `npm run lint` y `npm run build` sin errores nuevos.
