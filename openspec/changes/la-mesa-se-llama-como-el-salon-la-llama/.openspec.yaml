@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-17
+# Como se nombra algo que ya existe: no cambia comportamiento del sistema.
+skip_specs: true
