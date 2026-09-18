@@ -1,0 +1,4 @@
+schema: spec-driven
+# Refactor: no cambia lo que el sistema hace, solo deja de hacerlo tres veces.
+skip_specs: true
+created: 2026-09-18

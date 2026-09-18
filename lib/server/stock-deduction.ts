@@ -1,6 +1,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { convertToBaseUnit, convertFromBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
-import { escalarComponente } from '@/lib/server/sub-recipes'
+import { convertFromBaseUnit } from '@/lib/server/unit-conversion'
+import {
+  recorrerInsumos,
+  acumularRequerimiento,
+  cuantasSalen,
+  type FuenteDeInsumos,
+  type InsumoDelRecorrido,
+  type ComponenteDeSubReceta,
+  type Requerimientos,
+} from '@/lib/server/recipe-walk'
 import { revalidateProducts } from '@/lib/server/revalidate'
 
 /**
@@ -240,6 +248,35 @@ export async function restoreStockForOrder(
 /**
  * Deducts stock for a 'reventa' product (direct stock on products table).
  */
+
+/**
+ * Los insumos, leidos de la base de a uno.
+ *
+ * Es la fuente que usa el recorrido compartido cuando no hay nada precargado:
+ * el descuento de una venta y el calculo de un producto suelto. La pantalla de
+ * stock usa otra, que trabaja sobre Maps ya traidos, para no hacer una consulta
+ * por insumo.
+ */
+function insumosDesdeLaBase(supabase: SupabaseClient): FuenteDeInsumos {
+  return {
+    async insumo(id) {
+      const { data } = await supabase
+        .from('ingredients')
+        .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled, yield_quantity')
+        .eq('id', id)
+        .single()
+      return data as InsumoDelRecorrido | null
+    },
+    async subRecetas(id) {
+      const { data } = await supabase
+        .from('ingredient_sub_recipes')
+        .select('child_ingredient_id, quantity, unit')
+        .eq('parent_ingredient_id', id)
+      return (data ?? []) as ComponenteDeSubReceta[]
+    },
+  }
+}
+
 async function collectIngredientCascade(
   supabase: SupabaseClient,
   ingredientId: string,
@@ -248,76 +285,26 @@ async function collectIngredientCascade(
   pendientes: Map<string, MovimientoPendiente>,
   visited: Set<string>
 ): Promise<void> {
-  if (visited.has(ingredientId)) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`[Stock] Cycle detected for ingredient ${ingredientId}, skipping`)
-    }
-    return
-  }
-  visited.add(ingredientId)
-
-  const { data: ingredient, error: ingError } = await supabase
-    .from('ingredients')
-    .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled, yield_quantity')
-    .eq('id', ingredientId)
-    .single()
-
-  if (ingError || !ingredient) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`[Stock] Failed to fetch ingredient ${ingredientId}:`, ingError?.message)
-    }
-    return
-  }
-
-  const baseQty = convertToBaseUnit(quantityInRecipeUnit, recipeUnit)
-
-  if (getBaseUnit(recipeUnit) !== getBaseUnit(ingredient.unit)) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        `[Stock] Unit incompatibility: recipe uses '${recipeUnit}' but ingredient '${ingredient.id}' uses '${ingredient.unit}'`
-      )
-    }
-    return
-  }
-
-  const wastePct = Number(ingredient.waste_percentage) || 0
-  const wasteFactor = 1 - wastePct / 100
-  const actualQty = wasteFactor > 0 ? baseQty / wasteFactor : baseQty
-
-  // Un ingrediente con sub-receta se resuelve a sus componentes y no descuenta
-  // de si mismo: las preparaciones se hacen en el momento, no se guardan. Es el
-  // mismo criterio que usa _collectReqs para decidir si alcanza el stock.
-  const { data: subItems } = await supabase
-    .from('ingredient_sub_recipes')
-    .select('child_ingredient_id, quantity, unit')
-    .eq('parent_ingredient_id', ingredientId)
-
-  if (subItems && subItems.length > 0) {
-    for (const sub of subItems) {
-      await collectIngredientCascade(
-        supabase,
-        sub.child_ingredient_id,
-        escalarComponente(sub.quantity, actualQty, ingredient.yield_quantity),
-        sub.unit,
-        pendientes,
-        new Set(visited)
-      )
-    }
-    return
-  }
-
-  if (ingredient.stock_tracking_enabled) {
-    // De vuelta a la unidad en que esta guardado el stock. `actualQty` viene en
-    // unidad base para poder comparar entre recetas, pero lo que se descuenta
-    // se resta a `ingredients.current_stock`, que esta en la unidad del insumo.
-    // Sin esta vuelta, una receta de 30 g descontaba 0,03 de un stock en
-    // gramos: mil veces menos de lo que se usa.
-    acumular(pendientes, {
-      tipo: 'ingredient',
-      id: ingredient.id,
-      cantidad: convertFromBaseUnit(actualQty, ingredient.unit),
-    })
-  }
+  await recorrerInsumos(
+    insumosDesdeLaBase(supabase),
+    ingredientId,
+    quantityInRecipeUnit,
+    recipeUnit,
+    (insumo, cantidadBase) => {
+      if (!insumo.stock_tracking_enabled) return
+      // De vuelta a la unidad en que esta guardado el stock. El recorrido
+      // devuelve unidad base para poder comparar entre recetas, pero lo que se
+      // descuenta se resta a `ingredients.current_stock`, que esta en la unidad
+      // del insumo. Sin esta vuelta, una receta de 30 g descontaba 0,03 de un
+      // stock en gramos: mil veces menos de lo que se usa.
+      acumular(pendientes, {
+        tipo: 'ingredient',
+        id: insumo.id,
+        cantidad: convertFromBaseUnit(cantidadBase, insumo.unit),
+      })
+    },
+    visited
+  )
 }
 
 
@@ -531,7 +518,6 @@ async function syncElaboradoAvailability(supabase: SupabaseClient): Promise<void
   }
 }
 
-type IngReq = Map<string, { requiredQty: number; currentStock: number; trackingEnabled: boolean }>
 
 /**
  * Computes the maximum number of units of an elaborado product that can be
@@ -568,7 +554,7 @@ export async function calcularStockTeorico(supabase: SupabaseClient, productId: 
 async function _requerimientos(
   supabase: SupabaseClient,
   productId: string
-): Promise<IngReq | null> {
+): Promise<Requerimientos | null> {
   const { data: productRecipes, error } = await supabase
     .from('product_recipes')
     .select(`
@@ -593,7 +579,7 @@ async function _requerimientos(
 
   if (error || !productRecipes || productRecipes.length === 0) return null
 
-  const requirements: IngReq = new Map()
+  const requirements: Requerimientos = new Map()
 
   for (const pr of productRecipes) {
     const recipeMultiplier = pr.quantity ?? 1
@@ -606,12 +592,12 @@ async function _requerimientos(
       if (!ingredient) continue
 
       const effectiveUnit = ri.unit ?? ingredient.unit
-      await _collectReqs(
-        supabase,
+      await recorrerInsumos(
+        insumosDesdeLaBase(supabase),
         ingredient.id,
         recipeMultiplier * ri.quantity,
         effectiveUnit,
-        requirements,
+        (insumo, cantidadBase) => acumularRequerimiento(requirements, insumo, cantidadBase),
         new Set<string>()
       )
     }
@@ -624,19 +610,7 @@ async function _calcTheoreticalStock(supabase: SupabaseClient, productId: string
   const requirements = await _requerimientos(supabase, productId)
   if (!requirements) return null
 
-  let minProducible: number | null = null
-  let hasAnyTracked = false
-
-  for (const [, req] of requirements) {
-    if (!req.trackingEnabled) continue
-    hasAnyTracked = true
-    if (req.requiredQty <= 0) continue
-    const producible = Math.floor(req.currentStock / req.requiredQty)
-    if (minProducible === null || producible < minProducible) minProducible = producible
-  }
-
-  if (!hasAnyTracked) return null
-  return minProducible ?? 0
+  return cuantasSalen(requirements)
 }
 
 /**
@@ -687,59 +661,6 @@ export async function insumosQueFaltan(
   return faltan
 }
 
-async function _collectReqs(
-  supabase: SupabaseClient,
-  ingredientId: string,
-  quantityInRecipeUnit: number,
-  recipeUnit: string,
-  requirements: IngReq,
-  visited: Set<string>
-): Promise<void> {
-  if (visited.has(ingredientId)) return
-  visited.add(ingredientId)
-
-  const { data: ingredient } = await supabase
-    .from('ingredients')
-    .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled, yield_quantity')
-    .eq('id', ingredientId)
-    .single()
-
-  if (!ingredient) return
-  if (getBaseUnit(recipeUnit) !== getBaseUnit(ingredient.unit)) return
-
-  const baseQty = convertToBaseUnit(quantityInRecipeUnit, recipeUnit)
-  const wastePct = Number(ingredient.waste_percentage) || 0
-  const wasteFactor = 1 - wastePct / 100
-  const actualQty = wasteFactor > 0 ? baseQty / wasteFactor : baseQty
-
-  const { data: subItems } = await supabase
-    .from('ingredient_sub_recipes')
-    .select('child_ingredient_id, quantity, unit')
-    .eq('parent_ingredient_id', ingredientId)
-
-  if (subItems && subItems.length > 0) {
-    for (const sub of subItems) {
-      await _collectReqs(supabase, sub.child_ingredient_id, escalarComponente(sub.quantity, actualQty, ingredient.yield_quantity), sub.unit, requirements, new Set(visited))
-    }
-  } else {
-    const existing = requirements.get(ingredientId)
-    if (existing) {
-      existing.requiredQty += actualQty
-    } else {
-      requirements.set(ingredientId, {
-        requiredQty: actualQty,
-        // El stock tambien va a unidad base. La receta ya se convertia --30 g
-        // pasaban a 0,03 kg-- pero el stock se usaba crudo, asi que 199,88 g se
-        // dividian como si fueran 199,88 kg: para cualquier insumo cargado en
-        // gramos o mililitros el sistema creia que habia mil veces mas. El
-        // morron alcanzaba para 6662 pizzas en vez de 6, o sea que esos insumos
-        // nunca limitaban nada.
-        currentStock: convertToBaseUnit(Number(ingredient.current_stock), ingredient.unit),
-        trackingEnabled: ingredient.stock_tracking_enabled,
-      })
-    }
-  }
-}
 
 /** Lo minimo que hace falta saber de un producto para descontarlo. */
 interface ProductoParaDescontar {

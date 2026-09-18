@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
+import { calcularStockTeorico } from '@/lib/server/stock-deduction'
 import { createServiceRoleClient } from '@/lib/supabase/admin'
 import { devError } from '@/lib/server/logger'
 
@@ -34,76 +34,27 @@ function clienteQueLeeInsumos(respaldo: SupabaseClient): SupabaseClient {
 }
 
 /**
- * Calcula cuántas unidades de un producto elaborado se pueden producir
- * con el stock actual de ingredientes. Replica la lógica de deductElaboradoStock
- * pero en modo lectura. Retorna null si no hay ingredientes trackeados (sin límite).
+ * Cuantas unidades de un elaborado se pueden armar con el stock que hay.
  *
- * Vive acá y no en `app/actions/orders.ts` porque tiene dos consumidores: la
- * validación de stock del checkout y el endpoint del menú que consume el agente
+ * La cuenta vive en `stock-deduction.ts`, que es donde tambien se descuenta:
+ * preguntar "cuantas salen" y "descontar una" tienen que mirar exactamente lo
+ * mismo. Aca estaba escrita de nuevo, con su propia consulta, y las dos copias
+ * ya habian divergido: esta no bajaba por las sub-recetas. Un producto con un
+ * insumo compuesto daba un numero en el checkout y otro en la pantalla de stock.
+ *
+ * Lo unico propio de esta capa es con que permisos corre la lectura.
+ *
+ * Vive aca y no en `app/actions/orders.ts` porque tiene dos consumidores: la
+ * validacion de stock del checkout y el endpoint del menu que consume el agente
  * de WhatsApp. Un archivo `'use server'` no es el lugar: todo lo que exporta
- * queda expuesto como server action, y esta función recibe un cliente de
+ * queda expuesto como server action, y esta funcion recibe un cliente de
  * Supabase, que no es serializable.
  */
 export async function getMaxElaboradoQuantity(
   supabase: SupabaseClient,
   productId: string
 ): Promise<number | null> {
-  const { data: productRecipes } = await clienteQueLeeInsumos(supabase)
-    .from('product_recipes')
-    .select(`
-      quantity,
-      recipes (
-        recipe_ingredients (
-          quantity,
-          unit,
-          ingredients (
-            id,
-            unit,
-            waste_percentage,
-            current_stock,
-            stock_tracking_enabled
-          )
-        )
-      )
-    `)
-    .eq('product_id', productId)
-
-  if (!productRecipes?.length) return null
-
-  let maxQty: number | null = null
-
-  for (const pr of productRecipes) {
-    const recipeMultiplier = (pr.quantity as number) ?? 1
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const recipe = pr.recipes as any
-    if (!recipe?.recipe_ingredients) continue
-
-    for (const ri of recipe.recipe_ingredients) {
-      const ingredient = ri.ingredients
-      if (!ingredient?.stock_tracking_enabled) continue
-      if (ingredient.current_stock === null) continue
-
-      const effectiveUnit = ri.unit ?? ingredient.unit
-      if (getBaseUnit(effectiveUnit) !== getBaseUnit(ingredient.unit)) continue
-
-      // Cantidad necesaria del ingrediente por 1 unidad de producto
-      const neededPerUnit = convertToBaseUnit(recipeMultiplier * ri.quantity, effectiveUnit)
-      const wastePct = Number(ingredient.waste_percentage) || 0
-      const wasteFactor = 1 - wastePct / 100
-      const actualNeededPerUnit = wasteFactor > 0 ? neededPerUnit / wasteFactor : neededPerUnit
-      if (actualNeededPerUnit <= 0) continue
-
-      // El stock va a unidad base igual que la receta. Se convertia una sola
-      // punta: 30 g de la receta pasaban a 0,03 kg, pero 199,88 g de stock se
-      // dividian como 199,88 kg. Mil veces mas de lo que hay, asi que un insumo
-      // en gramos o mililitros nunca limitaba nada.
-      const stockBase = convertToBaseUnit(Number(ingredient.current_stock), ingredient.unit)
-      const producible = Math.floor(stockBase / actualNeededPerUnit)
-      if (maxQty === null || producible < maxQty) maxQty = producible
-    }
-  }
-
-  return maxQty
+  return calcularStockTeorico(clienteQueLeeInsumos(supabase), productId)
 }
 
 /**

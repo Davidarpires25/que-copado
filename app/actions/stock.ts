@@ -4,6 +4,15 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { revalidateStock, revalidateStorefront } from '@/lib/server/revalidate'
 import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
+import {
+  recorrerInsumos,
+  acumularRequerimiento,
+  cuantasSalen,
+  type FuenteDeInsumos,
+  type InsumoDelRecorrido,
+  type ComponenteDeSubReceta,
+  type Requerimientos,
+} from '@/lib/server/recipe-walk'
 import { escalarComponente } from '@/lib/server/sub-recipes'
 import { devError } from '@/lib/server/error-messages'
 import { recalculateProductsForIngredient } from './recipes'
@@ -867,10 +876,11 @@ export async function getAllTheoreticalStocks(): Promise<{
     prMap.set(pr.product_id, arr)
   }
 
-  // Calculate all theoretical stocks in memory — zero additional DB calls
+  // Todo en memoria: no hay una sola consulta mas. Los `await` de adentro
+  // resuelven valores que ya estan, asi que cuestan un microtask cada uno.
   const result: Record<string, number | null> = {}
   for (const product of products) {
-    result[product.id] = _calcTheoreticalInMemory(product.id, prMap, ingMap, subMap)
+    result[product.id] = await _calcTheoreticalInMemory(product.id, prMap, ingMap, subMap)
   }
 
   return { data: result, error: null }
@@ -950,18 +960,41 @@ type PREntry = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   recipes: { recipe_ingredients: Array<{ ingredient_id: string; quantity: number; unit: string }> } | any
 }
-type Req = { requiredQty: number; currentStock: number; trackingEnabled: boolean }
+/**
+ * Cuantas unidades salen, con todo ya traido.
+ *
+ * Es el mismo recorrido que usa el descuento: lo unico distinto es de donde
+ * salen los insumos. La pantalla de stock calcula 16 productos de una, y hacer
+ * una consulta por insumo serian cientos de viajes; por eso trae todo en tres
+ * consultas y despues pregunta a estos Maps.
+ *
+ * Antes esto era una copia entera de la cuenta, con sus propias conversiones y
+ * sus propias mermas. Cuando aparecio el error de unidades habia que arreglarlo
+ * aca tambien, y esa es exactamente la forma en que estas copias se van
+ * separando.
+ */
+function fuenteEnMemoria(ingMap: Map<string, IngData>, subMap: Map<string, SubData[]>): FuenteDeInsumos {
+  return {
+    async insumo(id) {
+      return (ingMap.get(id) as InsumoDelRecorrido | undefined) ?? null
+    },
+    async subRecetas(id) {
+      return (subMap.get(id) ?? []) as ComponenteDeSubReceta[]
+    },
+  }
+}
 
-function _calcTheoreticalInMemory(
+async function _calcTheoreticalInMemory(
   productId: string,
   prMap: Map<string, PREntry[]>,
   ingMap: Map<string, IngData>,
   subMap: Map<string, SubData[]>
-): number | null {
+): Promise<number | null> {
   const productRecipes = prMap.get(productId)
   if (!productRecipes || productRecipes.length === 0) return null
 
-  const requirements = new Map<string, Req>()
+  const fuente = fuenteEnMemoria(ingMap, subMap)
+  const requerimientos: Requerimientos = new Map()
 
   for (const pr of productRecipes) {
     const multiplier = pr.quantity ?? 1
@@ -970,87 +1003,18 @@ function _calcTheoreticalInMemory(
 
     for (const ri of recipe.recipe_ingredients) {
       const effectiveUnit = ri.unit ?? ingMap.get(ri.ingredient_id)?.unit ?? ri.unit
-      _collectReqsInMemory(
+      await recorrerInsumos(
+        fuente,
         ri.ingredient_id,
         multiplier * ri.quantity,
         effectiveUnit,
-        requirements,
-        ingMap,
-        subMap,
+        (insumo, cantidadBase) => acumularRequerimiento(requerimientos, insumo, cantidadBase),
         new Set<string>()
       )
     }
   }
 
-  let minProducible: number | null = null
-  let hasAnyTracked = false
-
-  for (const [, req] of requirements) {
-    if (!req.trackingEnabled) continue
-    hasAnyTracked = true
-    if (req.requiredQty <= 0) continue
-    const producible = Math.floor(req.currentStock / req.requiredQty)
-    if (minProducible === null || producible < minProducible) {
-      minProducible = producible
-    }
-  }
-
-  if (!hasAnyTracked) return null
-  return minProducible ?? 0
-}
-
-function _collectReqsInMemory(
-  ingredientId: string,
-  quantityInRecipeUnit: number,
-  recipeUnit: string,
-  requirements: Map<string, Req>,
-  ingMap: Map<string, IngData>,
-  subMap: Map<string, SubData[]>,
-  visited: Set<string>
-): void {
-  if (visited.has(ingredientId)) return
-  visited.add(ingredientId)
-
-  const ingredient = ingMap.get(ingredientId)
-  if (!ingredient) return
-  if (getBaseUnit(recipeUnit) !== getBaseUnit(ingredient.unit)) return
-
-  const baseQty = convertToBaseUnit(quantityInRecipeUnit, recipeUnit)
-  const wastePct = Number(ingredient.waste_percentage) || 0
-  const wasteFactor = 1 - wastePct / 100
-  const actualQty = wasteFactor > 0 ? baseQty / wasteFactor : baseQty
-
-  const subItems = subMap.get(ingredientId)
-  if (subItems && subItems.length > 0) {
-    for (const sub of subItems) {
-      _collectReqsInMemory(
-        sub.child_ingredient_id,
-        escalarComponente(sub.quantity, actualQty, ingredient.yield_quantity),
-        sub.unit,
-        requirements,
-        ingMap,
-        subMap,
-        new Set(visited)
-      )
-    }
-  } else {
-    const existing = requirements.get(ingredientId)
-    if (existing) {
-      existing.requiredQty += actualQty
-    } else {
-      requirements.set(ingredientId, {
-        requiredQty: actualQty,
-        // El stock tambien va a unidad base. La receta ya se convertia --30 g
-        // pasaban a 0,03 kg-- pero el stock se usaba crudo, asi que 199,88 g se
-        // dividian como si fueran 199,88 kg: para cualquier insumo cargado en
-        // gramos o mililitros el sistema creia que habia mil veces mas. El
-        // morron alcanzaba para 6662 pizzas en vez de 6, o sea que esos insumos
-        // nunca limitaban nada.
-        currentStock: convertToBaseUnit(Number(ingredient.current_stock), ingredient.unit),
-        trackingEnabled: ingredient.stock_tracking_enabled,
-      })
-    }
-  }
+  return cuantasSalen(requerimientos)
 }
 
 // ---------------------------------------------------------------------------
@@ -1410,10 +1374,12 @@ export async function checkStockForItems(
       }
 
       // Compute theoretical stock for each elaborado in-memory
+      //
+      // Aca habia un console.info por producto midiendo cuanto tardaba la
+      // cuenta. Corria en produccion, en cada cobro, y ya no mide nada: la
+      // cuenta no toca la base.
       for (const prod of elaboradoProducts) {
-        const tStart = Date.now()
-        const theoreticalStock = _calcTheoreticalInMemory(prod.id, prMap, ingMap, subMap)
-        console.info(`[Timing][checkStockForItems][batch] product ${prod.id} theoreticalStock computed in ${Date.now() - tStart}ms`)
+        const theoreticalStock = await _calcTheoreticalInMemory(prod.id, prMap, ingMap, subMap)
         if (theoreticalStock !== null && theoreticalStock < prod.requested) {
           warnings.push({
             product_id: prod.id,

@@ -261,41 +261,17 @@ export async function recalculateProductCost(supabase: SupabaseClient, productId
 
   if (!product || product.product_type === 'reventa') return
 
-  const { data: productRecipes } = await supabase
-    .from('product_recipes')
-    .select('quantity, recipes(recipe_ingredients(quantity, unit, ingredients(unit, cost_per_unit, waste_percentage)))')
-    .eq('product_id', productId)
+  // Una sola cuenta del costo de las recetas, compartida con la del combo.
+  // Estaban escritas dos veces, con la misma conversion de unidades y la misma
+  // merma; el error de unidades que aparecio hoy habia que arreglarlo en las
+  // dos, y esa es la forma en que estas copias terminan diciendo cosas
+  // distintas.
+  const totalCost = await _costoDeRecetasDe(supabase, productId)
 
-  if (!productRecipes || productRecipes.length === 0) {
-    // Elaborado product with no recipes - clear cost
+  if (totalCost === null) {
+    // Un elaborado sin recetas no tiene costo que calcular.
     await supabase.from('products').update({ cost: null }).eq('id', productId)
     return
-  }
-
-  let totalCost = 0
-  for (const pr of productRecipes) {
-    const recipe = pr.recipes as unknown as {
-      recipe_ingredients: Array<{
-        quantity: number
-        unit: string | null
-        ingredients: { unit: string; cost_per_unit: number; waste_percentage: number }
-      }>
-    }
-    if (recipe?.recipe_ingredients) {
-      let recipeCost = 0
-      for (const ri of recipe.recipe_ingredients) {
-        // 1. Convert quantity to base unit
-        const effectiveUnit = ri.unit ?? ri.ingredients.unit
-        const qtyBase = convertToBaseUnit(ri.quantity, effectiveUnit)
-        // 2. Apply waste percentage
-        const wastePct = ri.ingredients.waste_percentage ?? 0
-        const wasteFactor = 1 - wastePct / 100
-        const actualQty = wasteFactor > 0 ? qtyBase / wasteFactor : qtyBase
-        // 3. Calculate subtotal
-        recipeCost += actualQty * ri.ingredients.cost_per_unit
-      }
-      totalCost += recipeCost * pr.quantity
-    }
   }
 
   await supabase
@@ -331,7 +307,7 @@ export async function recalcularCostoDeCombo(supabase: SupabaseClient, comboId: 
   // Mas el de sus recetas propias: el envase y la preparacion que solo existe
   // dentro del combo. Sin esto, la caja y los palillos salen gratis y el margen
   // de la promo miente para arriba.
-  total += await _costoDeRecetasDe(supabase, comboId)
+  total += (await _costoDeRecetasDe(supabase, comboId)) ?? 0
 
   const tieneAlgo = (componentes?.length ?? 0) > 0 || total > 0
 
@@ -341,8 +317,14 @@ export async function recalcularCostoDeCombo(supabase: SupabaseClient, comboId: 
     .eq('id', comboId)
 }
 
-/** Lo que cuestan los ingredientes de las recetas de un producto. */
-async function _costoDeRecetasDe(supabase: SupabaseClient, productId: string): Promise<number> {
+/**
+ * Lo que cuestan los ingredientes de las recetas de un producto.
+ *
+ * `null` cuando el producto no tiene recetas, que es distinto de costar cero:
+ * un elaborado sin receta no tiene costo calculable y su `cost` se limpia, y un
+ * combo sin recetas propias igual puede costar por sus componentes.
+ */
+async function _costoDeRecetasDe(supabase: SupabaseClient, productId: string): Promise<number | null> {
   const { data: productRecipes } = await supabase
     .from('product_recipes')
     .select(`
@@ -357,7 +339,7 @@ async function _costoDeRecetasDe(supabase: SupabaseClient, productId: string): P
     `)
     .eq('product_id', productId)
 
-  if (!productRecipes?.length) return 0
+  if (!productRecipes?.length) return null
 
   let total = 0
   for (const pr of productRecipes) {
