@@ -119,6 +119,11 @@ function OrderRow({
               )}
               <span className="font-semibold text-sm text-[var(--admin-text)] truncate group-hover:text-[var(--admin-accent-text)] transition-colors">
                 {order.order_type === 'mesa'
+                  // Sin el nombre de la mesa a proposito: el historial lista
+                  // pedidos de `orders`, que guarda el numero y no el nombre.
+                  // Traerlo seria una consulta mas por una pantalla de consulta,
+                  // y un pedido viejo con el nombre de hoy tampoco seria mas
+                  // cierto: la mesa pudo haberse renombrado desde entonces.
                   ? `Mesa ${order.table_number || ''}`
                   : 'Mostrador'}
               </span>

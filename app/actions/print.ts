@@ -5,6 +5,7 @@ import { getAuthUser } from '@/lib/server/auth'
 import { SIN_ASIGNAR, etiquetaComensal } from '@/lib/constants/sale-tags'
 import { devError } from '@/lib/server/logger'
 import { sendsToKitchen, esPedidoRemoto } from '@/lib/types/database'
+import { etiquetaDeMesa } from '@/lib/utils/table-label'
 
 const PAYMENT_LABELS: Record<string, string> = {
   cash: 'Efectivo',
@@ -45,6 +46,36 @@ function fechaDelPedido(createdAt: string | null | undefined) {
       minute: '2-digit',
     }),
   }
+}
+
+/**
+ * Como se llama la mesa de un pedido, para la comanda y el ticket.
+ *
+ * El pedido guarda `table_number`, un numero suelto: el nombre vive en
+ * `restaurant_tables`. Sin esta lectura, la comanda dice "Mesa 4" para una mesa
+ * que el salon llama "Vereda 1", y el plato sale a buscar un lugar que no
+ * existe.
+ *
+ * No se guarda el nombre en la orden a proposito: si la mesa se renombra, una
+ * comanda abierta tiene que decir como se llama hoy, no como se llamaba cuando
+ * se abrio la cuenta.
+ *
+ * Es una consulta por numero sobre una tabla de pocas filas, y la impresion no
+ * esta en el camino critico del cobro.
+ */
+async function _etiquetaDeMesaDelPedido(
+  supabase: Awaited<ReturnType<typeof createAdminClient>>,
+  tableNumber: number | null | undefined
+): Promise<string> {
+  if (tableNumber == null) return 'Mostrador'
+
+  const { data } = await supabase
+    .from('restaurant_tables')
+    .select('number, label')
+    .eq('number', tableNumber)
+    .maybeSingle()
+
+  return etiquetaDeMesa({ number: tableNumber, label: data?.label ?? null })
 }
 
 export async function printClientTicketAction(
@@ -114,7 +145,7 @@ export async function printClientTicketAction(
         orderNumber: order.order_number ?? null,
         orderLabel:
           order.order_type === 'mesa' && order.table_number
-            ? `Mesa ${order.table_number}`
+            ? await _etiquetaDeMesaDelPedido(supabase, order.table_number)
             : 'Mostrador',
         dateStr,
         timeStr,
@@ -293,7 +324,7 @@ export async function printKitchenTicketAction(
         orderNumber: order.order_number ?? null,
         orderLabel:
           order.order_type === 'mesa' && order.table_number
-            ? `Mesa ${order.table_number}`
+            ? await _etiquetaDeMesaDelPedido(supabase, order.table_number)
             : esRemoto
               // Que la cocina sepa que sale a la calle, por donde entro y para
               // quien: un pedido de WhatsApp que dijera "Web" manda a buscarlo

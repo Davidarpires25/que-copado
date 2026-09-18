@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { etiquetaDeMesa } from '@/lib/utils/table-label'
 import { CreditCard,
   ArrowLeft, Users, Loader2, Printer,
 } from 'lucide-react'
@@ -212,7 +213,7 @@ export function TablePayView({
               </button>
               <span className="text-[var(--admin-border)]">/</span>
               <h1 className="text-lg font-bold text-[var(--admin-text)]">
-                Cobrar — Mesa {table.number}
+                Cobrar — {etiquetaDeMesa(table)}
               </h1>
             </div>
             {hasGuests && (
@@ -266,7 +267,7 @@ export function TablePayView({
               <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--admin-border)]/60 shrink-0">
                 <div className="flex items-center gap-2">
                   <span className="text-[14px] font-semibold text-[var(--admin-text)]">
-                    Cuenta Mesa {table.number}
+                    Cuenta {etiquetaDeMesa(table)}
                   </span>
                 </div>
                 {totalItemCount > 0 && (
@@ -385,7 +386,7 @@ export function TablePayView({
           <div className="px-5 py-5 border-b border-[var(--admin-border)]">
             <h2 className="text-[16px] font-bold text-[var(--admin-text)]">Resumen de Cobro</h2>
             <p className="text-[12px] font-medium text-[var(--admin-text-muted)] mt-0.5">
-              Mesa {table.number} — {sectionLabel}
+              {etiquetaDeMesa(table)} — {sectionLabel}
             </p>
           </div>
 

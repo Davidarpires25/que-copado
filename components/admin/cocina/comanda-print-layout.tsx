@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { etiquetaDeMesa } from '@/lib/utils/table-label'
 import type { Comanda } from '@/lib/types/comandas'
 import { orderLabel as numeroDePedido } from '@/lib/utils/order-number'
 
@@ -11,9 +12,11 @@ interface ComandaPrintLayoutProps {
     /** El numero del PEDIDO, no el de la comanda: es lo que cruza cocina con caja. */
     order_number: number | null
   }
+  /** Nombre de la mesa, si tiene. Sin esto se cae al numero. */
+  tableLabel?: string | null
 }
 
-export function ComandaPrintLayout({ comanda }: ComandaPrintLayoutProps) {
+export function ComandaPrintLayout({ comanda, tableLabel }: ComandaPrintLayoutProps) {
   useEffect(() => {
     const timer = setTimeout(() => window.print(), 400)
     return () => clearTimeout(timer)
@@ -21,7 +24,7 @@ export function ComandaPrintLayout({ comanda }: ComandaPrintLayoutProps) {
 
   const orderLabel =
     comanda.order_type === 'mesa' && comanda.table_number
-      ? `Mesa ${comanda.table_number}`
+      ? etiquetaDeMesa({ number: comanda.table_number, label: tableLabel })
       : 'Mostrador'
 
   const date = new Date(comanda.created_at)

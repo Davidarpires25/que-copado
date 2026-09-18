@@ -8,7 +8,7 @@ import { ComandaCard } from './comanda-card'
 import { cn } from '@/lib/utils'
 import type { Comanda } from '@/lib/types/comandas'
 
-type ComandaWithOrder = Comanda & { order_type: string | null; table_number: number | null }
+type ComandaWithOrder = Comanda & { order_type: string | null; table_number: number | null; table_label: string | null }
 
 interface KitchenDisplayProps {
   initialComandas: ComandaWithOrder[]

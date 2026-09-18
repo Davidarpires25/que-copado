@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { etiquetaDeMesa } from '@/lib/utils/table-label'
 import { cn, formatPrice } from '@/lib/utils'
 import { TABLE_STATUS_CONFIG } from '@/lib/types/tables'
 import type { TableWithOrder } from '@/lib/types/tables'
@@ -49,7 +50,7 @@ export function TableCard({ table, isSelected, onClick }: TableCardProps) {
     >
       <div className="flex w-full items-center justify-between gap-2">
         <span className="text-[13px] font-semibold leading-none text-[var(--admin-text)]">
-          Mesa {table.number}
+          {etiquetaDeMesa(table)}
         </span>
 
         <span

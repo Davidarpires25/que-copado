@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { etiquetaDeMesa } from '@/lib/utils/table-label'
 import { formatPrice } from '@/lib/utils'
 import type { Order } from '@/lib/types/database'
 import { orderLabel as numeroDePedido } from '@/lib/utils/order-number'
@@ -18,6 +19,8 @@ interface TicketPrintLayoutProps {
   cashReceived?: number
   isKitchen?: boolean
   guestName?: string
+  /** Nombre de la mesa, si tiene. Sin esto se cae al numero. */
+  tableLabel?: string | null
 }
 
 const PAYMENT_LABELS: Record<string, string> = {
@@ -42,7 +45,7 @@ const PRINT_STYLES = `
   #ticket-root { font-family: 'Courier New', monospace; }
 `
 
-export function TicketPrintLayout({ order, items, cashReceived, isKitchen = false, guestName }: TicketPrintLayoutProps) {
+export function TicketPrintLayout({ order, items, cashReceived, isKitchen = false, guestName, tableLabel}: TicketPrintLayoutProps) {
   useEffect(() => {
     if (window.self !== window.top) return
     const timer = setTimeout(() => window.print(), 400)
@@ -55,7 +58,7 @@ export function TicketPrintLayout({ order, items, cashReceived, isKitchen = fals
   const timeStr = `${pad(date.getHours())}:${pad(date.getMinutes())}`
 
   const orderLabel = order.order_type === 'mesa' && order.table_number
-    ? `Mesa ${order.table_number}`
+    ? etiquetaDeMesa({ number: order.table_number, label: tableLabel })
     : 'Mostrador'
 
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0)

@@ -23,6 +23,14 @@ export default async function ComandaPrintPage({ params }: PageProps) {
 
   if (error || !data) notFound()
 
+  // El nombre de la mesa vive en `restaurant_tables`; el pedido solo guarda el
+  // numero. Sin esto la comanda dice "Mesa 4" para una mesa que el salon llama
+  // "Vereda 1".
+  const numeroDeMesa = (data.orders as { table_number: number | null } | null)?.table_number ?? null
+  const { data: mesa } = numeroDeMesa != null
+    ? await supabase.from('restaurant_tables').select('label').eq('number', numeroDeMesa).maybeSingle()
+    : { data: null }
+
   const order = data.orders as { order_type: string | null; table_number: number | null; order_number: number | null } | null
 
   const comanda: Comanda & { order_type: string | null; table_number: number | null; order_number: number | null } = {
@@ -60,7 +68,7 @@ export default async function ComandaPrintPage({ params }: PageProps) {
         `}</style>
       </head>
       <body>
-        <ComandaPrintLayout comanda={comanda} />
+        <ComandaPrintLayout comanda={comanda} tableLabel={mesa?.label ?? null} />
       </body>
     </html>
   )

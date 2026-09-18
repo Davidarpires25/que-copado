@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { etiquetaDeMesa } from '@/lib/utils/table-label'
 import { Printer, Clock, ChefHat, GlassWater } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { updateComandaStatus } from '@/app/actions/comandas'
@@ -8,7 +9,7 @@ import { toast } from 'sonner'
 import type { Comanda, ComandaStatus } from '@/lib/types/comandas'
 
 interface ComandaCardProps {
-  comanda: Comanda & { order_type: string | null; table_number: number | null }
+  comanda: Comanda & { order_type: string | null; table_number: number | null; table_label?: string | null }
 }
 
 const STATUS_CONFIG: Record<ComandaStatus, { label: string; next: ComandaStatus | null; nextLabel: string | null; color: string }> = {
@@ -55,7 +56,7 @@ export function ComandaCard({ comanda }: ComandaCardProps) {
 
   const orderLabel =
     comanda.order_type === 'mesa' && comanda.table_number
-      ? `Mesa ${comanda.table_number}`
+      ? etiquetaDeMesa({ number: comanda.table_number, label: comanda.table_label })
       : 'Mostrador'
 
   return (

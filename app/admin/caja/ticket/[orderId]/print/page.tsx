@@ -69,6 +69,12 @@ export default async function TicketPrintPage({ params, searchParams }: PageProp
 
   const cashReceived = cash ? parseFloat(cash) : undefined
 
+  // Mismo motivo que en la comanda: el pedido guarda el numero de mesa, el
+  // nombre esta en `restaurant_tables`.
+  const { data: mesa } = order.table_number != null
+    ? await supabase.from('restaurant_tables').select('label').eq('number', order.table_number).maybeSingle()
+    : { data: null }
+
   return (
     <TicketPrintLayout
       order={order as Order}
@@ -76,6 +82,7 @@ export default async function TicketPrintPage({ params, searchParams }: PageProp
       cashReceived={cashReceived}
       isKitchen={isKitchen}
       guestName={guestTag ?? undefined}
+      tableLabel={mesa?.label ?? null}
     />
   )
 }

@@ -250,7 +250,7 @@ export async function updateComandaStatus(
  * Opcionalmente filtra por station.
  */
 export async function getActiveComandas(station?: Station): Promise<{
-  data: (Comanda & { order_type: string | null; table_number: number | null })[]
+  data: (Comanda & { order_type: string | null; table_number: number | null; table_label: string | null })[]
   error: string | null
 }> {
   try {
@@ -279,6 +279,25 @@ export async function getActiveComandas(station?: Station): Promise<{
       return { data: [], error: 'Error al obtener comandas' }
     }
 
+    // Los nombres de las mesas, de una sola consulta para todas las comandas.
+    // La pantalla de cocina muestra a que mesa va cada comanda, y si dice el
+    // numero cuando el salon la llama por su nombre, el plato sale a buscar un
+    // lugar que no existe.
+    const numerosDeMesa = [...new Set(
+      (data ?? [])
+        .map((c) => (c.orders as { table_number: number | null } | null)?.table_number)
+        .filter((n): n is number => n != null)
+    )]
+
+    const nombresDeMesa = new Map<number, string | null>()
+    if (numerosDeMesa.length > 0) {
+      const { data: mesas } = await supabase
+        .from('restaurant_tables')
+        .select('number, label')
+        .in('number', numerosDeMesa)
+      for (const m of mesas ?? []) nombresDeMesa.set(m.number, m.label)
+    }
+
     const result = (data ?? []).map((c) => {
       const order = c.orders as { order_type: string | null; table_number: number | null } | null
       return {
@@ -300,6 +319,7 @@ export async function getActiveComandas(station?: Station): Promise<{
         })),
         order_type: order?.order_type ?? null,
         table_number: order?.table_number ?? null,
+        table_label: order?.table_number != null ? nombresDeMesa.get(order.table_number) ?? null : null,
       }
     })
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { etiquetaDeMesa } from '@/lib/utils/table-label'
 import { printClientTicketAction, printKitchenTicketAction } from '@/app/actions/print'
 import {
   Plus, Bell, CircleDollarSign, Loader2, AlertTriangle, Printer, ChefHat,
@@ -196,7 +197,7 @@ export function TableOrderPanel({
           {/* Left: Mesa + zone + item count */}
           <div className="flex items-center gap-2">
             <span className="text-[15px] font-bold text-[var(--admin-text)]">
-              Mesa {table.number}
+              {etiquetaDeMesa(table)}
             </span>
             <span className="text-[13px] text-[var(--admin-text-muted)]">—</span>
             <span className="text-[13px] text-[var(--admin-text-muted)]">{sectionLabel}</span>
@@ -498,7 +499,7 @@ export function TableOrderPanel({
       <ConfirmDialog
         open={showCancelConfirm}
         onOpenChange={setShowCancelConfirm}
-        title={`Cancelar pedido de Mesa ${table.number}`}
+        title={`Cancelar pedido de ${etiquetaDeMesa(table)}`}
         description="Esta acción no se puede deshacer. Los ítems del pedido se perderán."
         confirmLabel="Sí, cancelar"
         variant="destructive"

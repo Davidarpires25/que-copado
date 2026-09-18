@@ -16,6 +16,7 @@ import { TableOrderPanel } from './table-order-panel'
 import { AddItemsView } from './add-items-view'
 import { TablePayView } from './table-pay-view'
 import { TABLE_SECTION_LABELS } from '@/lib/types/tables'
+import { etiquetaDeMesa } from '@/lib/utils/table-label'
 // TablePaymentDialog kept as file — no longer rendered here
 import { BottomSheet } from '@/components/ui/bottom-sheet'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -526,7 +527,7 @@ export function PosInterface({
     }
     if (!data) return
 
-    toast.success(`Mesa ${table.number} abierta`)
+    toast.success(`${etiquetaDeMesa(table)} abierta`)
 
     // La mesa se abre con lo que ya devolvio el servidor. Antes se esperaba un
     // segundo viaje —getTables(), que trae TODAS las mesas con sus items— solo
@@ -813,10 +814,10 @@ export function PosInterface({
               sectionLabel={TABLE_SECTION_LABELS[payingTable.section] || payingTable.section}
               onBack={() => setPayingTable(null)}
               onPaid={() => {
-                const tableNum = payingTable.number
+                const nombreDeMesa = etiquetaDeMesa(payingTable)
                 setPayingTable(null)
                 setSelectedTable(null)
-                toast.success(`Mesa ${tableNum} cobrada`)
+                toast.success(`${nombreDeMesa} cobrada`)
                 void handleTablePaid()
               }}
             />
@@ -969,7 +970,7 @@ export function PosInterface({
         <BottomSheet
           open={showMobileTablePanel}
           onClose={() => setShowMobileTablePanel(false)}
-          title={`Mesa ${selectedTable.number}`}
+          title={etiquetaDeMesa(selectedTable)}
         >
           <TableOrderPanel
             table={selectedTable}
