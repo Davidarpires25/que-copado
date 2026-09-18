@@ -17,16 +17,17 @@ import { toast } from 'sonner'
 /**
  * Elegir qué entra en la planilla antes de imprimirla.
  *
- * Son 120 insumos activos: sin elegir, la hoja del freezer sale con las cajas
- * de pizza y los palillos adentro. Se filtra por categoría, que es lo que hay
- * cargado hoy —CARNES, PANIFICACION, DESCARTABLE…—.
+ * Sin elegir, la hoja del freezer sale con las cajas de pizza y los palillos
+ * adentro. Se filtra por categoría, y los insumos van separados de los
+ * productos de reventa: son dos cosas distintas y se cuentan en lugares
+ * distintos. Las bebidas, por ejemplo, son productos de reventa.
  *
  * El número de filas va a la vista mientras se marca, para no llevarse tres
  * páginas sin querer.
  *
- * Nota: la categoría dice *qué es* un insumo, no *dónde está guardado*. CARNES
- * está en el freezer y UTENSILIO no, así que se acerca; si alguna vez hace
- * falta "freezer / heladera / seco" eso es un campo nuevo.
+ * Nota: la categoría dice *qué es*, no *dónde está guardado*. CARNES está en el
+ * freezer y UTENSILIO no, así que se acerca; si alguna vez hace falta
+ * "freezer / heladera / seco" eso es un campo nuevo.
  */
 export function PlanillaDialog() {
   const [abierto, setAbierto] = useState(false)
@@ -63,7 +64,7 @@ export function PlanillaDialog() {
 
   const total = categorias
     .filter((c) => elegidas.size === 0 || elegidas.has(c.id))
-    .reduce((s, c) => s + c.insumos, 0)
+    .reduce((s, c) => s + c.filas, 0)
 
   const imprimir = () => {
     const query = elegidas.size > 0 ? `?categorias=${[...elegidas].join(',')}` : ''
@@ -99,26 +100,41 @@ export function PlanillaDialog() {
               Buscando las categorías…
             </p>
           ) : (
-            <div className="space-y-1.5 max-h-72 overflow-y-auto">
-              {categorias.map((c) => {
-                const marcada = elegidas.has(c.id)
+            <div className="space-y-4 max-h-80 overflow-y-auto">
+              {/* Separados a proposito: un insumo se consume haciendo otra cosa
+                  y un producto de reventa se vende tal cual, asi que se cuentan
+                  en lugares distintos y se puede llevar una lista sin la otra. */}
+              {(['insumo', 'reventa'] as const).map((origen) => {
+                const delOrigen = categorias.filter((c) => c.origen === origen)
+                if (delOrigen.length === 0) return null
+
                 return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => alternar(c.id)}
-                    className={cn(
-                      'w-full flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors',
-                      marcada
-                        ? 'border-[var(--admin-accent)] bg-[var(--admin-accent)]/10'
-                        : 'border-[var(--admin-border)] hover:bg-[var(--admin-surface-2)]'
-                    )}
-                  >
-                    <span className="text-sm">{c.nombre}</span>
-                    <span className="text-xs text-[var(--admin-text-muted)]">
-                      {c.insumos} {c.insumos === 1 ? 'insumo' : 'insumos'}
-                    </span>
-                  </button>
+                  <div key={origen} className="space-y-1.5">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]">
+                      {origen === 'insumo' ? 'Insumos' : 'Productos de reventa'}
+                    </p>
+                    {delOrigen.map((c) => {
+                      const marcada = elegidas.has(c.id)
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => alternar(c.id)}
+                          className={cn(
+                            'w-full flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors',
+                            marcada
+                              ? 'border-[var(--admin-accent)] bg-[var(--admin-accent)]/10'
+                              : 'border-[var(--admin-border)] hover:bg-[var(--admin-surface-2)]'
+                          )}
+                        >
+                          <span className="text-sm">{c.nombre}</span>
+                          <span className="text-xs text-[var(--admin-text-muted)]">
+                            {c.filas}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
                 )
               })}
             </div>
@@ -128,7 +144,7 @@ export function PlanillaDialog() {
             <p className="text-sm text-[var(--admin-text-muted)]">
               {elegidas.size === 0 ? 'Todo: ' : 'Van a salir '}
               <strong className="text-[var(--admin-text)]">{total}</strong>{' '}
-              {total === 1 ? 'insumo' : 'insumos'}
+              {total === 1 ? 'ítem' : 'ítems'}
             </p>
             <Button
               onClick={imprimir}

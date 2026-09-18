@@ -31,8 +31,21 @@ export function AdminRouteShell({ children }: { children: React.ReactNode }) {
     return () => { document.documentElement.classList.remove('admin-dark') }
   }, [theme])
 
-  // Rutas full-screen sin sidebar — cada una gestiona su propio layout
+  // Rutas full-screen sin sidebar — cada una gestiona su propio layout.
+  //
+  // Toda pagina de impresion entra por la regla y no por la lista: lo que sale
+  // impreso es el papel, no el panel. El ticket de caja estaba contemplado por
+  // su prefijo, pero la ficha tecnica, la comanda de cocina y la planilla de
+  // conteo salian con el encabezado del admin --el boton de menu y "Que
+  // Copado"-- pegado arriba de la hoja.
+  //
+  // Por regla y no agregando cuatro rutas a mano: la proxima pagina de
+  // impresion que se agregue ya sale limpia. Es el mismo olvido que dejo el
+  // combo sin tope en tres caminos.
+  const esImpresion = pathname.endsWith('/print')
+
   const skipShell =
+    esImpresion ||
     pathname === '/admin/login' ||
     pathname === '/admin/caja' ||
     pathname.startsWith('/admin/caja/ticket')

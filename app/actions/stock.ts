@@ -1271,43 +1271,112 @@ export async function getInsumosDelProducto(
 // La planilla de conteo
 // ---------------------------------------------------------------------------
 
-/** Una linea de la planilla: lo que el sistema dice tener de un insumo. */
+type SupabaseAdmin = Awaited<ReturnType<typeof createAdminClient>>
+
+/** Una linea de la planilla: lo que el sistema dice tener de algo. */
 export interface LineaDePlanilla {
   id: string
   nombre: string
   unidad: string
   /** Lo que el sistema dice. Lo contado y la diferencia se escriben a mano. */
   stockDelSistema: number
-  sigue: boolean
+  /** Si es un producto de reventa y no un insumo. Se cuentan igual. */
+  esProducto: boolean
 }
 
-/** Los insumos de una categoria, juntos. */
+/** Lo que hay que contar de una categoria, junto. */
 export interface GrupoDePlanilla {
   categoria: string
+  /** Para que el papel diga si es deposito o mercaderia que se revende. */
+  esReventa: boolean
   lineas: LineaDePlanilla[]
 }
 
-/** Una categoria de insumos, con cuantos tiene, para elegir antes de imprimir. */
+/** Una categoria, con cuantas filas tiene, para elegir antes de imprimir. */
 export interface CategoriaParaPlanilla {
   id: string
   nombre: string
-  insumos: number
+  filas: number
+  /** De donde salen: del deposito de insumos o de los productos que se revenden. */
+  origen: 'insumo' | 'reventa'
 }
 
 /**
- * Los insumos sin categoria van juntos bajo esta clave, no se pierden.
+ * Lo que no tiene categoria va junto bajo esta clave, no se pierde.
  *
  * Sin `export`: un archivo `'use server'` solo puede exportar funciones async,
  * porque todo lo que exporta queda expuesto como server action. La clave viaja
- * igual, adentro del `id` de la categoria que devuelve `getCategoriasParaPlanilla`.
+ * igual, adentro del `id` de la categoria.
  */
 const SIN_CATEGORIA = 'sin-categoria'
 
 /**
- * Las categorias de insumos con cuantos tiene cada una.
+ * Lo que se cuenta: insumos y productos de reventa, los dos.
  *
- * Se piden antes de imprimir para elegir que entra: marcando CARNES y
- * PANIFICACION sale la hoja del freezer y no las 120 filas de todo. El numero
+ * David, mirando la primera version: "no sale lo que hay en el sistema en el
+ * caso de bebidas, ninguna sale con seguimiento". Y era cierto: las bebidas
+ * reales son **productos de reventa**, no insumos. La planilla listaba los 12
+ * insumos-bebida --las filas muertas que quedaron de cuando las gaseosas se
+ * cargaban como ingredientes de un combo, ninguna con seguimiento-- y dejaba
+ * afuera las 16 bebidas de verdad.
+ *
+ * Frente a la heladera lo que se cuenta es la botella. Que el sistema la llame
+ * insumo o producto es una distincion suya, no del que cuenta.
+ *
+ * Solo lo que tiene seguimiento: si el sistema no lleva la cuenta de algo, no
+ * hay numero contra el cual comparar y la fila es ruido. Eso es justo lo que se
+ * veia: una hoja entera diciendo "sin seguimiento".
+ */
+async function _loQueSeCuenta(supabase: SupabaseAdmin) {
+  const [insumos, productos, catInsumos, catProductos] = await Promise.all([
+    supabase
+      .from('ingredients')
+      .select('id, name, unit, current_stock, category_id')
+      .eq('is_active', true)
+      .eq('stock_tracking_enabled', true)
+      .order('name'),
+    supabase
+      .from('products')
+      .select('id, name, current_stock, category_id')
+      .eq('is_active', true)
+      .eq('product_type', 'reventa')
+      .eq('stock_tracking_enabled', true)
+      .order('name'),
+    supabase.from('ingredient_categories').select('id, name'),
+    supabase.from('categories').select('id, name'),
+  ])
+
+  return { insumos, productos, catInsumos, catProductos }
+}
+
+/**
+ * La clave de un grupo: de donde sale, y de que categoria.
+ *
+ * Los insumos y los productos tienen cada uno su tabla de categorias, y las dos
+ * tienen una BEBIDAS. En la primera version se agrupaban por nombre para que
+ * cayeran juntas, y David lo corrigio: "entonces deberia haber una opcion para
+ * productos de reventa".
+ *
+ * Tiene razon. Son dos cosas distintas: un insumo se consume haciendo otra
+ * cosa, un producto de reventa se vende tal cual. Mezclarlos bajo un mismo
+ * titulo deja al que cuenta sin saber por que una gaseosa aparece dos veces, y
+ * sin poder llevarse solo una de las dos listas.
+ */
+function _clavePorCategoria(
+  categoryId: string | null,
+  nombres: Map<string, string>,
+  origen: 'insumo' | 'reventa'
+): { clave: string; nombre: string } {
+  const nombre = categoryId ? nombres.get(categoryId) : null
+  if (!nombre) return { clave: `${origen}:${SIN_CATEGORIA}`, nombre: 'Sin categoría' }
+  return { clave: `${origen}:${categoryId}`, nombre }
+}
+
+/**
+ * Las categorias con cuantas filas tiene cada una.
+ *
+ * Se piden antes de imprimir para elegir que entra: marcando CARNES y BEBIDAS
+ * sale la hoja del freezer y la heladera, y no las 120 filas de todo. El numero
  * al lado es para no llevarse tres paginas sin querer.
  */
 export async function getCategoriasParaPlanilla(): Promise<{
@@ -1318,39 +1387,48 @@ export async function getCategoriasParaPlanilla(): Promise<{
   const user = await getAuthUser(supabase)
   if (!user) return { data: null, error: 'No autorizado' }
 
-  const [{ data: categorias }, { data: insumos, error }] = await Promise.all([
-    supabase.from('ingredient_categories').select('id, name').order('name'),
-    supabase.from('ingredients').select('category_id').eq('is_active', true),
-  ])
+  const { insumos, productos, catInsumos, catProductos } = await _loQueSeCuenta(supabase)
+  if (insumos.error) return devError(insumos.error)
+  if (productos.error) return devError(productos.error)
 
-  if (error) return devError(error)
+  const nombresInsumo = new Map((catInsumos.data ?? []).map((c) => [c.id, c.name]))
+  const nombresProducto = new Map((catProductos.data ?? []).map((c) => [c.id, c.name]))
 
-  const cuenta = new Map<string, number>()
-  for (const i of insumos ?? []) {
-    const clave = i.category_id ?? SIN_CATEGORIA
-    cuenta.set(clave, (cuenta.get(clave) ?? 0) + 1)
+  const cuenta = new Map<string, { nombre: string; filas: number; origen: 'insumo' | 'reventa' }>()
+
+  const sumar = (
+    categoryId: string | null,
+    nombres: Map<string, string>,
+    origen: 'insumo' | 'reventa'
+  ) => {
+    const { clave, nombre } = _clavePorCategoria(categoryId, nombres, origen)
+    const actual = cuenta.get(clave) ?? { nombre, filas: 0, origen }
+    actual.filas += 1
+    cuenta.set(clave, actual)
   }
 
-  const resultado: CategoriaParaPlanilla[] = (categorias ?? [])
-    .map((c) => ({ id: c.id, nombre: c.name, insumos: cuenta.get(c.id) ?? 0 }))
-    .filter((c) => c.insumos > 0)
+  for (const i of insumos.data ?? []) sumar(i.category_id, nombresInsumo, 'insumo')
+  for (const p of productos.data ?? []) sumar(p.category_id, nombresProducto, 'reventa')
 
-  const sinCategoria = cuenta.get(SIN_CATEGORIA) ?? 0
-  if (sinCategoria > 0) {
-    resultado.push({ id: SIN_CATEGORIA, nombre: 'Sin categoría', insumos: sinCategoria })
-  }
+  // Los insumos primero: es el deposito, y es lo que mas filas tiene. Lo que no
+  // tiene categoria va al fondo de su bloque.
+  const resultado = [...cuenta.entries()]
+    .map(([clave, { nombre, filas, origen }]) => ({ id: clave, nombre, filas, origen }))
+    .sort((a, b) => {
+      if (a.origen !== b.origen) return a.origen === 'insumo' ? -1 : 1
+      if (a.id.endsWith(SIN_CATEGORIA)) return 1
+      if (b.id.endsWith(SIN_CATEGORIA)) return -1
+      return a.nombre.localeCompare(b.nombre, 'es')
+    })
 
   return { data: resultado, error: null }
 }
 
 /**
- * Los insumos para llevar al papel, agrupados por categoria.
+ * Lo que hay que contar, agrupado por categoria.
  *
  * Sin categorias elegidas devuelve todo: es lo que pasa si alguien entra
  * directo a la URL de impresion.
- *
- * Los que no tienen categoria van juntos y visibles. Son 32 de 120, asi que
- * dejarlos afuera en silencio seria perder un cuarto del deposito.
  */
 export async function getPlanillaDeConteo(
   categoriaIds: string[] = []
@@ -1359,51 +1437,75 @@ export async function getPlanillaDeConteo(
   const user = await getAuthUser(supabase)
   if (!user) return { data: null, error: 'No autorizado' }
 
-  const [{ data: categorias }, { data: insumos, error }] = await Promise.all([
-    supabase.from('ingredient_categories').select('id, name'),
-    supabase
-      .from('ingredients')
-      .select('id, name, unit, current_stock, stock_tracking_enabled, category_id')
-      .eq('is_active', true)
-      .order('name'),
-  ])
+  const { insumos, productos, catInsumos, catProductos } = await _loQueSeCuenta(supabase)
+  if (insumos.error) return devError(insumos.error)
+  if (productos.error) return devError(productos.error)
 
-  if (error) return devError(error)
+  const nombresInsumo = new Map((catInsumos.data ?? []).map((c) => [c.id, c.name]))
+  const nombresProducto = new Map((catProductos.data ?? []).map((c) => [c.id, c.name]))
 
-  const nombreDeCategoria = new Map((categorias ?? []).map((c) => [c.id, c.name]))
   const elegidas = new Set(categoriaIds)
   const filtrar = elegidas.size > 0
-
   const grupos = new Map<string, GrupoDePlanilla>()
 
-  for (const i of insumos ?? []) {
-    const clave = i.category_id ?? SIN_CATEGORIA
-    if (filtrar && !elegidas.has(clave)) continue
-
-    const nombre = clave === SIN_CATEGORIA
-      ? 'Sin categoría'
-      : nombreDeCategoria.get(clave) ?? 'Sin categoría'
-
-    const grupo: GrupoDePlanilla = grupos.get(clave) ?? { categoria: nombre, lineas: [] }
-    grupo.lineas.push({
-      id: i.id,
-      nombre: i.name,
-      unidad: i.unit,
-      stockDelSistema: Number(i.current_stock) || 0,
-      sigue: i.stock_tracking_enabled,
-    })
+  const agregar = (
+    linea: LineaDePlanilla,
+    categoryId: string | null,
+    nombres: Map<string, string>,
+    origen: 'insumo' | 'reventa'
+  ) => {
+    const { clave, nombre } = _clavePorCategoria(categoryId, nombres, origen)
+    if (filtrar && !elegidas.has(clave)) return
+    const grupo: GrupoDePlanilla =
+      grupos.get(clave) ?? { categoria: nombre, esReventa: origen === 'reventa', lineas: [] }
+    grupo.lineas.push(linea)
     grupos.set(clave, grupo)
   }
 
-  // Alfabetico por categoria, con los sin categoria al final: son el grupo mas
+  for (const i of insumos.data ?? []) {
+    agregar(
+      {
+        id: i.id,
+        nombre: i.name,
+        unidad: i.unit,
+        stockDelSistema: Number(i.current_stock) || 0,
+        esProducto: false,
+      },
+      i.category_id,
+      nombresInsumo,
+      'insumo'
+    )
+  }
+
+  for (const p of productos.data ?? []) {
+    agregar(
+      {
+        id: p.id,
+        // Un producto de reventa se cuenta de a uno: la unidad es la botella.
+        nombre: p.name,
+        unidad: 'unidad',
+        stockDelSistema: Number(p.current_stock) || 0,
+        esProducto: true,
+      },
+      p.category_id,
+      nombresProducto,
+      'reventa'
+    )
+  }
+
+  // Alfabetico, con lo que no tiene categoria al final: es el grupo mas
   // heterogeneo y el que menos sentido tiene contar de un saque.
   const ordenados = [...grupos.entries()]
     .sort(([a, ga], [b, gb]) => {
-      if (a === SIN_CATEGORIA) return 1
-      if (b === SIN_CATEGORIA) return -1
+      if (ga.esReventa !== gb.esReventa) return ga.esReventa ? 1 : -1
+      if (a.endsWith(SIN_CATEGORIA)) return 1
+      if (b.endsWith(SIN_CATEGORIA)) return -1
       return ga.categoria.localeCompare(gb.categoria, 'es')
     })
-    .map(([, g]) => g)
+    .map(([, g]) => {
+      g.lineas.sort((x, y) => x.nombre.localeCompare(y.nombre, 'es'))
+      return g
+    })
 
   return { data: ordenados, error: null }
 }

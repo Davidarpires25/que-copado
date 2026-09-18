@@ -16,6 +16,11 @@ interface PlanillaConteoPrintLayoutProps {
  * sistema? Para tener en papel físico y controlar en el freezer una vez por
  * semana".
  *
+ * Lista insumos y productos de reventa juntos: frente a la heladera lo que se
+ * cuenta es la botella, y que el sistema la llame insumo o producto es una
+ * distinción suya. Solo lo que tiene seguimiento, porque de lo demás no hay
+ * número contra el cual comparar.
+ *
  * Tres columnas y no una: lo que dice el sistema, lo contado, y la diferencia.
  * Se evaluó el conteo ciego —solo el nombre y una línea vacía, para que quien
  * cuenta cuente en vez de confirmar el número que ya ve— y se eligió mostrarlo,
@@ -73,7 +78,9 @@ export function PlanillaConteoPrintLayout({ grupos, fecha }: PlanillaConteoPrint
           font-size: 9.5pt; font-weight: 700; text-transform: uppercase;
           letter-spacing: .5pt; background: #eef2f7; padding: 4pt 6pt;
           border-left: 3px solid #333;
+          display: flex; justify-content: space-between; align-items: baseline;
         }
+        .grupo-origen { font-size: 7.5pt; font-weight: 500; color: #666; letter-spacing: .3pt; }
 
         table { width: 100%; border-collapse: collapse; }
         th {
@@ -89,7 +96,6 @@ export function PlanillaConteoPrintLayout({ grupos, fecha }: PlanillaConteoPrint
         /* Anchas a proposito: se escriben a mano, parado frente al freezer. */
         .col-escribir { width: 26mm; background: #fafbfc; }
 
-        .sin-seguimiento { color: #888; }
         .nota-pie { margin-top: 10pt; padding-top: 5pt; border-top: 1px solid #ccc;
                     font-size: 7.5pt; color: #777; display: flex; justify-content: space-between; }
 
@@ -110,7 +116,7 @@ export function PlanillaConteoPrintLayout({ grupos, fecha }: PlanillaConteoPrint
       <div className="screen-bar">
         <span>
           Vista previa — Planilla de conteo:{' '}
-          <strong>{totalLineas} {totalLineas === 1 ? 'insumo' : 'insumos'}</strong>
+          <strong>{totalLineas} {totalLineas === 1 ? 'ítem' : 'ítems'}</strong>
           {grupos.length > 1 ? ` en ${grupos.length} categorías` : ''}
         </span>
         <button onClick={() => window.print()}>
@@ -148,18 +154,24 @@ export function PlanillaConteoPrintLayout({ grupos, fecha }: PlanillaConteoPrint
 
         {grupos.length === 0 ? (
           <p style={{ color: '#777', fontSize: '9.5pt' }}>
-            No hay insumos en las categorías elegidas.
+            No hay nada con seguimiento en las categorías elegidas.
           </p>
         ) : (
           grupos.map((grupo) => (
             <div className="grupo" key={grupo.categoria}>
               <div className="grupo-nombre">
-                {grupo.categoria} · {grupo.lineas.length}
+                {grupo.categoria}
+                {/* Un insumo y un producto de reventa pueden compartir el
+                    nombre de categoria --BEBIDAS esta en las dos tablas-- y se
+                    cuentan en lugares distintos. El titulo lo aclara. */}
+                <span className="grupo-origen">
+                  {grupo.esReventa ? 'reventa' : 'insumo'} · {grupo.lineas.length}
+                </span>
               </div>
               <table>
                 <thead>
                   <tr>
-                    <th>Insumo</th>
+                    <th>Qué se cuenta</th>
                     <th className="col-unidad">Un.</th>
                     <th className="col-sistema">Sistema</th>
                     <th className="col-escribir">Contado</th>
@@ -169,15 +181,10 @@ export function PlanillaConteoPrintLayout({ grupos, fecha }: PlanillaConteoPrint
                 <tbody>
                   {grupo.lineas.map((linea) => (
                     <tr key={linea.id}>
-                      <td className="celda">
-                        {linea.nombre}
-                        {!linea.sigue && (
-                          <span className="sin-seguimiento"> · sin seguimiento</span>
-                        )}
-                      </td>
+                      <td className="celda">{linea.nombre}</td>
                       <td className="celda col-unidad">{linea.unidad}</td>
                       <td className="celda col-sistema">
-                        {linea.sigue ? formatCantidad(linea.stockDelSistema) : '—'}
+                        {formatCantidad(linea.stockDelSistema)}
                       </td>
                       <td className="col-escribir" />
                       <td className="col-escribir" />
@@ -191,9 +198,9 @@ export function PlanillaConteoPrintLayout({ grupos, fecha }: PlanillaConteoPrint
 
         <div className="nota-pie">
           <span>
-            Las diferencias se corrigen desde Stock, con el ajuste de cada insumo.
+            Las diferencias se corrigen desde Stock, con el ajuste de cada ítem.
           </span>
-          <span>{totalLineas} {totalLineas === 1 ? 'insumo' : 'insumos'}</span>
+          <span>{totalLineas} {totalLineas === 1 ? 'ítem' : 'ítems'}</span>
         </div>
       </div>
     </>

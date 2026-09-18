@@ -37,6 +37,32 @@
       categoría. La URL con `?categorias=` filtra.
 - [x] 4.2 `npm run lint` y `npm run build` sin errores nuevos.
 
+## 5. Lo que faltaba, visto por David al usarla
+
+- [x] 5.1 **El panel se colaba en el papel.** Las páginas de impresión
+      renderizaban dentro del shell del admin, así que la hoja salía con el
+      botón de menú y "Que Copado" arriba. Estaban contempladas las de caja por
+      su prefijo; la ficha técnica, la comanda de cocina y la planilla no.
+      Se arregló por regla —toda ruta que termina en `/print` saltea el shell—
+      y no agregando cuatro rutas a mano: la próxima página de impresión ya
+      sale limpia. **Verificado en las cuatro.**
+- [x] 5.2 **Las bebidas no salían.** David: *"ninguna bebida sale con
+      seguimiento"*. Era cierto y peor de lo que parecía: las bebidas reales
+      son **productos de reventa**, no insumos. La planilla listaba los 12
+      insumos-bebida —las filas muertas de cuando las gaseosas se cargaban como
+      ingredientes de un combo, ninguna con seguimiento— y dejaba afuera las 16
+      bebidas de verdad. Ahora entran los productos de reventa con seguimiento.
+- [x] 5.3 **Solo lo que tiene seguimiento.** Si el sistema no lleva la cuenta de
+      algo no hay número contra el cual comparar, y la fila es ruido. Era
+      exactamente lo que se veía: una hoja entera diciendo "sin seguimiento".
+- [x] 5.4 **Insumos y reventa, separados.** David: *"entonces debería haber una
+      opción para productos de reventa"*. En la primera versión se agrupaban por
+      nombre de categoría, así que las dos BEBIDAS caían juntas. Tiene razón:
+      son dos cosas distintas, se cuentan en lugares distintos, y ahora el
+      selector los ofrece por separado y el papel lo aclara en cada grupo.
+      **Verificado:** el diálogo muestra INSUMOS y PRODUCTOS DE REVENTA, y la
+      URL `?categorias=reventa:<id>` trae solo la hoja de la heladera.
+
 ## Lo que salió distinto
 
 **`'use server'` no deja exportar una constante.** La clave de "sin categoría"
