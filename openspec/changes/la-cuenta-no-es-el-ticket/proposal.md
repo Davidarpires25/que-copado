@@ -38,18 +38,17 @@ Son dos papeles distintos y hoy hay uno solo:
 - **El ticket**, después de pagar: lo que se pagó. Ítems, total, con qué se pagó
   y el vuelto.
 
-Sacar la línea de pago y dejar solo el total —lo que propone David— resuelve la
-mentira. Pero deja un papel que parece un ticket al que le falta algo, y que
-alguien puede guardar como comprobante. **Si el papel es otra cosa, conviene que
-lo diga.**
+Se propuso además que el papel se anunciara —un encabezado `CUENTA` y un pie
+distinto— para que nadie lo confunda con un comprobante. **David lo miró y eligió
+lo mínimo: sacar la línea de pago y nada más.** Es su papel y su mostrador; el
+encabezado queda como algo a agregar si alguna vez se confunden.
 
 ## What Changes
 
 - **Antes de cobrar, la línea de pago no se imprime.** Queda el total, que es lo
   único cierto en ese momento.
-- **El papel dice qué es**: cuenta o ticket, según se haya cobrado o no.
-- **Después de cobrar, nada cambia**: el ticket sigue como está, con el método y
-  el vuelto.
+- **Nada más cambia**: ni el encabezado, ni el pie, ni el ticket de después de
+  cobrar.
 
 ## Capabilities
 

@@ -22,17 +22,20 @@ se agregue se olvida. Es el mismo olvido que hizo que el combo saliera sin tope
 en tres caminos y que el pedido de WhatsApp no apareciera en caja. El papel se
 mira a sí mismo.
 
-### La cuenta dice que es una cuenta
+### Solo se saca la línea de pago
 
-Encabezado distinto —`CUENTA` en vez de nada— y sin la línea de pago. Con eso,
-quien lo recibe sabe que no es un comprobante y quien lo imprime ve enseguida
-si se equivocó de botón.
+Se propuso un encabezado `CUENTA` y un pie distinto, para que el papel se
+anuncie y nadie lo guarde como comprobante. **David vio los dos y eligió lo
+mínimo.**
 
-**Alternativa considerada: dejar solo el total, sin encabezado.** Es lo que
-propuso David y resuelve la mentira. Se le agrega el encabezado porque un ticket
-al que le falta la línea de pago no se lee como "otro documento", se lee como un
-ticket incompleto — y el papel sale de una impresora térmica, sin más contexto
-que lo que dice.
+Es la decisión correcta de quien conoce el mostrador: el papel de antes de
+cobrar se lo lleva alguien que está parado ahí, no viaja solo. El riesgo que
+resolvía el encabezado —que se confunda con un comprobante— es hipotético; el
+cambio que evita es real.
+
+Queda como algo a agregar si alguna vez se confunden. Cambiar una palabra del
+encabezado después es barato; lo que no se puede deshacer es imprimir "Efectivo"
+en un pedido que nadie pagó.
 
 ### El `'cash'` al crear queda para después
 

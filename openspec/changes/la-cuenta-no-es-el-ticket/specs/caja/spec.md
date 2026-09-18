@@ -10,8 +10,6 @@ SHALL mostrar ningún método de pago.
 Lo que se imprime **después** de cobrar SHALL mostrar además con qué se pagó y
 el vuelto, si lo hubo.
 
-Cada uno SHALL decir cuál de los dos es.
-
 Existe porque no se cumplía: el pedido se crea con `payment_method` en efectivo
 como valor de arranque, y el ticket imprimía esa línea sin preguntar si alguien
 había pagado. El papel que se le llevaba a la mesa para que eligiera cómo pagar
@@ -22,7 +20,6 @@ ya decía "Efectivo".
 - **WHEN** se imprime el ticket de un pedido que todavía no se cobró
 - **THEN** salen los ítems y el total
 - **AND** no aparece ningún método de pago
-- **AND** el papel se identifica como cuenta
 
 #### Scenario: Se imprime después de cobrar
 

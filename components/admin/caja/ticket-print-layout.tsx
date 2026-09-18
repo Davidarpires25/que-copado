@@ -61,6 +61,18 @@ export function TicketPrintLayout({ order, items, cashReceived, isKitchen = fals
     ? etiquetaDeMesa({ number: order.table_number, label: tableLabel })
     : 'Mostrador'
 
+  // Si todavia no se cobro, el metodo de pago no se imprime.
+  //
+  // El pedido nace con `payment_method: 'cash'` --esta escrito asi a proposito,
+  // con el comentario "default, will be set on payment", en tables.ts y en la
+  // RPC de mostrador--. El ticket lo imprimia sin preguntar, asi que el papel
+  // que se le lleva a la mesa para que elija como pagar ya decia "Efectivo".
+  //
+  // Se mira el estado del pedido y no un parametro de quien imprime: son cuatro
+  // los botones que sacan este ticket --panel de cobro, mesa, historial y
+  // mostrador-- y el proximo que se agregue se olvidaria de pasarlo.
+  const yaSeCobro = order.status === 'pagado'
+
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0)
   const displayTotal = guestName ? subtotal : order.total
   const change = cashReceived ? cashReceived - displayTotal : 0
@@ -148,18 +160,20 @@ export function TicketPrintLayout({ order, items, cashReceived, isKitchen = fals
         </div>
 
         {/* Payment */}
-        <div className="border-t border-dashed border-black pt-2 space-y-1">
-          <div className="flex justify-between">
-            <span>{PAYMENT_LABELS[order.payment_method] ?? order.payment_method}</span>
-            <span>{cashReceived ? formatPrice(cashReceived) : formatPrice(displayTotal)}</span>
-          </div>
-          {cashReceived && change > 0 && (
+        {yaSeCobro && (
+          <div className="border-t border-dashed border-black pt-2 space-y-1">
             <div className="flex justify-between">
-              <span>Vuelto</span>
-              <span>{formatPrice(change)}</span>
+              <span>{PAYMENT_LABELS[order.payment_method] ?? order.payment_method}</span>
+              <span>{cashReceived ? formatPrice(cashReceived) : formatPrice(displayTotal)}</span>
             </div>
-          )}
-        </div>
+            {cashReceived && change > 0 && (
+              <div className="flex justify-between">
+                <span>Vuelto</span>
+                <span>{formatPrice(change)}</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Footer */}
         <div className="text-center text-xs mt-3 pt-2 border-t border-dashed border-black">
