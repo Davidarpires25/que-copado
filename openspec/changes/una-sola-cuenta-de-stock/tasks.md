@@ -19,6 +19,18 @@
       `null` cuando el producto no tiene recetas —distinto de costar cero, que
       es lo que necesita el combo—.
 
+## 2bis. Y con una sola cuenta, el barrido deja de ser una cascada
+
+- [x] 2.2 `cargarRecetasEnMemoria()`: las tres consultas que hacían falta, de
+      una vez, compartidas. Estaban escritas **tres veces** —la pantalla de
+      stock, la validación de cobro, y el barrido ni siquiera las tenía—.
+- [x] 2.3 El barrido de disponibilidad las usa. **Corría después de cada venta
+      haciendo una consulta por receta más dos por insumo, encadenadas: con 14
+      elaborados y 123 insumos son 260 viajes en serie**, esperados antes de
+      contestarle a quien está cobrando. Ahora son 4.
+- [x] 2.4 `getAllTheoreticalStocks` y `checkStockForItems` usan la misma carga y
+      la misma cuenta; se borró `_calcTheoreticalInMemory`, que era otra copia.
+
 ## 3. Verificar que nada se movió
 
 - [x] 3.1 **Los topes, idénticos** a los medidos antes del refactor:
@@ -32,3 +44,7 @@
       refactor— y el combo en 6428,95, que es 3228,95 + 200 de caja + 3000 de
       dos gaseosas.
 - [x] 3.5 `npm run lint` y `npm run build` sin errores nuevos.
+- [x] 3.6 **Repetido después de la carga masiva**, con los mismos números:
+      topes 40/68/5/24, el cobro de un combo descontó su caja (5→4) y el
+      medallón (40→39), el barrido lo escondió al quedarse sin cajas, y la
+      compra a 2400 dejó la hamburguesa en 3228,95.

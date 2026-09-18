@@ -173,3 +173,24 @@ export function cuantasSalen(requerimientos: Requerimientos): number | null {
   if (!algunoSeSigue) return null
   return minimo ?? 0
 }
+
+/**
+ * Los insumos, de Maps ya traidos.
+ *
+ * Cuando hay que calcular muchos productos de una, preguntarle a la base por
+ * cada insumo son cientos de viajes encadenados. Con todo cargado, el mismo
+ * recorrido no hace una sola consulta.
+ */
+export function fuenteEnMemoria(
+  insumos: Map<string, InsumoDelRecorrido>,
+  subRecetas: Map<string, ComponenteDeSubReceta[]>
+): FuenteDeInsumos {
+  return {
+    async insumo(id) {
+      return insumos.get(id) ?? null
+    },
+    async subRecetas(id) {
+      return subRecetas.get(id) ?? []
+    },
+  }
+}

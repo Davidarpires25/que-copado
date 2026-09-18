@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { convertFromBaseUnit } from '@/lib/server/unit-conversion'
 import {
+  fuenteEnMemoria,
   recorrerInsumos,
   acumularRequerimiento,
   cuantasSalen,
@@ -308,6 +309,102 @@ async function collectIngredientCascade(
 }
 
 
+
+/** Una linea de `product_recipes` con su receta y los insumos de esa receta. */
+export interface RecetaDeProducto {
+  product_id: string
+  quantity: number
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  recipes: { recipe_ingredients: Array<{ ingredient_id: string; quantity: number; unit: string }> } | any
+}
+
+/** Todo lo que hace falta para calcular varios productos sin volver a la base. */
+export interface RecetasEnMemoria {
+  porProducto: Map<string, RecetaDeProducto[]>
+  fuente: FuenteDeInsumos
+}
+
+/**
+ * Trae de una vez todo lo que hace falta para calcular varios productos.
+ *
+ * Tres consultas en paralelo en vez de una cascada. El barrido de
+ * disponibilidad corre despues de **cada venta** y hacia una consulta por
+ * receta mas dos por insumo, todas encadenadas: con 14 elaborados y 123
+ * insumos son 260 viajes en serie, esperados antes de contestarle a quien
+ * cobra.
+ */
+export async function cargarRecetasEnMemoria(
+  supabase: SupabaseClient,
+  productIds: string[]
+): Promise<RecetasEnMemoria | null> {
+  if (productIds.length === 0) return null
+
+  const [recetas, subRecetas, insumos] = await Promise.all([
+    supabase
+      .from('product_recipes')
+      .select('product_id, quantity, recipes ( recipe_ingredients ( ingredient_id, quantity, unit ) )')
+      .in('product_id', productIds),
+    supabase
+      .from('ingredient_sub_recipes')
+      .select('parent_ingredient_id, child_ingredient_id, quantity, unit'),
+    supabase
+      .from('ingredients')
+      .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled, yield_quantity'),
+  ])
+
+  if (recetas.error || subRecetas.error || insumos.error) return null
+
+  const porInsumo = new Map<string, InsumoDelRecorrido>(
+    (insumos.data ?? []).map((i) => [i.id, i as InsumoDelRecorrido])
+  )
+
+  const porPadre = new Map<string, ComponenteDeSubReceta[]>()
+  for (const sub of subRecetas.data ?? []) {
+    const lista = porPadre.get(sub.parent_ingredient_id) ?? []
+    lista.push(sub as ComponenteDeSubReceta)
+    porPadre.set(sub.parent_ingredient_id, lista)
+  }
+
+  const porProducto = new Map<string, RecetaDeProducto[]>()
+  for (const pr of (recetas.data ?? []) as RecetaDeProducto[]) {
+    const lista = porProducto.get(pr.product_id) ?? []
+    lista.push(pr)
+    porProducto.set(pr.product_id, lista)
+  }
+
+  return { porProducto, fuente: fuenteEnMemoria(porInsumo, porPadre) }
+}
+
+/** Cuantas unidades salen de un producto, con todo ya cargado. */
+export async function stockTeoricoEnMemoria(
+  productId: string,
+  cargado: RecetasEnMemoria
+): Promise<number | null> {
+  const recetas = cargado.porProducto.get(productId)
+  if (!recetas || recetas.length === 0) return null
+
+  const requerimientos: Requerimientos = new Map()
+
+  for (const pr of recetas) {
+    const multiplicador = pr.quantity ?? 1
+    const receta = pr.recipes
+    if (!receta?.recipe_ingredients) continue
+
+    for (const ri of receta.recipe_ingredients) {
+      await recorrerInsumos(
+        cargado.fuente,
+        ri.ingredient_id,
+        multiplicador * ri.quantity,
+        ri.unit,
+        (insumo, cantidadBase) => acumularRequerimiento(requerimientos, insumo, cantidadBase),
+        new Set<string>()
+      )
+    }
+  }
+
+  return cuantasSalen(requerimientos)
+}
+
 /**
  * Que un producto quede visible o no, en un solo lugar.
  *
@@ -477,9 +574,16 @@ async function syncElaboradoAvailability(supabase: SupabaseClient): Promise<void
 
   let anyChanged = false
 
+  // Todo de una: el barrido corre despues de cada venta y antes se hacia una
+  // consulta por receta mas dos por insumo, encadenadas. Con 14 elaborados y
+  // 123 insumos eran 260 viajes en serie, esperados antes de contestarle a
+  // quien esta cobrando. Ahora son tres.
+  const cargado = await cargarRecetasEnMemoria(supabase, products.map((p) => p.id))
+  if (!cargado) return
+
   for (const product of products) {
     try {
-      const theoreticalStock = await _calcTheoreticalStock(supabase, product.id)
+      const theoreticalStock = await stockTeoricoEnMemoria(product.id, cargado)
       if (theoreticalStock === null) continue
 
       // Mayor a cero, no distinto de cero: preguntar por el cero exacto

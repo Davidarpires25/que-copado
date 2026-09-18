@@ -4,19 +4,10 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { revalidateStock, revalidateStorefront } from '@/lib/server/revalidate'
 import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
-import {
-  recorrerInsumos,
-  acumularRequerimiento,
-  cuantasSalen,
-  type FuenteDeInsumos,
-  type InsumoDelRecorrido,
-  type ComponenteDeSubReceta,
-  type Requerimientos,
-} from '@/lib/server/recipe-walk'
 import { escalarComponente } from '@/lib/server/sub-recipes'
 import { devError } from '@/lib/server/error-messages'
 import { recalculateProductsForIngredient } from './recipes'
-import { syncAvailability, calcularStockTeorico, syncReventaProduct, insumosQueFaltan, detalleDeInsumos } from '@/lib/server/stock-deduction'
+import { syncAvailability, calcularStockTeorico, syncReventaProduct, insumosQueFaltan, detalleDeInsumos, cargarRecetasEnMemoria, stockTeoricoEnMemoria } from '@/lib/server/stock-deduction'
 import type {
   StockMovementFilters,
   StockAdjustmentData,
@@ -816,71 +807,14 @@ export async function getAllTheoreticalStocks(): Promise<{
   if (prodError) return devError(prodError)
   if (!products || products.length === 0) return { data: {}, error: null }
 
-  const productIds = products.map((p) => p.id)
+  // La misma carga que usa el barrido: tres consultas y despues todo en
+  // memoria. Estaba escrita aca y el barrido tenia su propia cascada.
+  const cargado = await cargarRecetasEnMemoria(supabase, products.map((p) => p.id))
+  if (!cargado) return { data: {}, error: null }
 
-  // Bulk-fetch everything needed in 3 parallel queries (replaces N×M waterfall)
-  const [prResult, subResult, ingResult] = await Promise.all([
-    supabase
-      .from('product_recipes')
-      .select(`
-        product_id,
-        quantity,
-        recipes (
-          recipe_ingredients (
-            ingredient_id,
-            quantity,
-            unit
-          )
-        )
-      `)
-      .in('product_id', productIds),
-    supabase
-      .from('ingredient_sub_recipes')
-      .select('parent_ingredient_id, child_ingredient_id, quantity, unit'),
-    supabase
-      .from('ingredients')
-      .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled, yield_quantity'),
-  ])
-
-  if (prResult.error) return devError(prResult.error)
-  if (subResult.error) return devError(subResult.error)
-  if (ingResult.error) return devError(ingResult.error)
-
-  // Build in-memory lookup maps
-  type IngData = {
-    id: string; unit: string; waste_percentage: number
-    current_stock: number; stock_tracking_enabled: boolean
-    yield_quantity: number | null
-  }
-  const ingMap = new Map<string, IngData>(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (ingResult.data ?? []).map((i: any) => [i.id, i])
-  )
-
-  const subMap = new Map<string, Array<{ child_ingredient_id: string; quantity: number; unit: string }>>()
-  for (const sub of subResult.data ?? []) {
-    const arr = subMap.get(sub.parent_ingredient_id) ?? []
-    arr.push(sub)
-    subMap.set(sub.parent_ingredient_id, arr)
-  }
-
-  type PREntry = {
-    product_id: string; quantity: number
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    recipes: { recipe_ingredients: Array<{ ingredient_id: string; quantity: number; unit: string }> } | any
-  }
-  const prMap = new Map<string, PREntry[]>()
-  for (const pr of (prResult.data ?? []) as PREntry[]) {
-    const arr = prMap.get(pr.product_id) ?? []
-    arr.push(pr)
-    prMap.set(pr.product_id, arr)
-  }
-
-  // Todo en memoria: no hay una sola consulta mas. Los `await` de adentro
-  // resuelven valores que ya estan, asi que cuestan un microtask cada uno.
   const result: Record<string, number | null> = {}
   for (const product of products) {
-    result[product.id] = await _calcTheoreticalInMemory(product.id, prMap, ingMap, subMap)
+    result[product.id] = await stockTeoricoEnMemoria(product.id, cargado)
   }
 
   return { data: result, error: null }
@@ -900,12 +834,6 @@ export async function syncElaboradoAvailabilityAction(): Promise<{ data: boolean
   revalidateStock()
   return { data: true, error: null }
 }
-
-/**
- * Re-evaluates all elaborado product availability based on current ingredient stock.
- * Updates is_out_of_stock / auto_disabled flags and revalidates the public storefront.
- * Best-effort: call from any action that changes ingredient stock.
- */
 
 /**
  * Marca un producto elaborado como disponible o agotado, a mano.
@@ -945,77 +873,12 @@ export async function toggleElaboradoAvailability(
   return { data: true, error: null }
 }
 
-// ---------------------------------------------------------------------------
-// In-memory calculation helpers (no DB calls — used by getAllTheoreticalStocks)
-// ---------------------------------------------------------------------------
-
-type IngData = {
-  id: string; unit: string; waste_percentage: number
-  current_stock: number; stock_tracking_enabled: boolean
-  yield_quantity: number | null
-}
-type SubData = { child_ingredient_id: string; quantity: number; unit: string }
-type PREntry = {
-  product_id: string; quantity: number
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  recipes: { recipe_ingredients: Array<{ ingredient_id: string; quantity: number; unit: string }> } | any
-}
 /**
- * Cuantas unidades salen, con todo ya traido.
- *
- * Es el mismo recorrido que usa el descuento: lo unico distinto es de donde
- * salen los insumos. La pantalla de stock calcula 16 productos de una, y hacer
- * una consulta por insumo serian cientos de viajes; por eso trae todo en tres
- * consultas y despues pregunta a estos Maps.
- *
- * Antes esto era una copia entera de la cuenta, con sus propias conversiones y
- * sus propias mermas. Cuando aparecio el error de unidades habia que arreglarlo
- * aca tambien, y esa es exactamente la forma en que estas copias se van
- * separando.
+ * Re-evaluates all elaborado product availability based on current ingredient stock.
+ * Updates is_out_of_stock / auto_disabled flags and revalidates the public storefront.
+ * Best-effort: call from any action that changes ingredient stock.
  */
-function fuenteEnMemoria(ingMap: Map<string, IngData>, subMap: Map<string, SubData[]>): FuenteDeInsumos {
-  return {
-    async insumo(id) {
-      return (ingMap.get(id) as InsumoDelRecorrido | undefined) ?? null
-    },
-    async subRecetas(id) {
-      return (subMap.get(id) ?? []) as ComponenteDeSubReceta[]
-    },
-  }
-}
 
-async function _calcTheoreticalInMemory(
-  productId: string,
-  prMap: Map<string, PREntry[]>,
-  ingMap: Map<string, IngData>,
-  subMap: Map<string, SubData[]>
-): Promise<number | null> {
-  const productRecipes = prMap.get(productId)
-  if (!productRecipes || productRecipes.length === 0) return null
-
-  const fuente = fuenteEnMemoria(ingMap, subMap)
-  const requerimientos: Requerimientos = new Map()
-
-  for (const pr of productRecipes) {
-    const multiplier = pr.quantity ?? 1
-    const recipe = pr.recipes
-    if (!recipe?.recipe_ingredients) continue
-
-    for (const ri of recipe.recipe_ingredients) {
-      const effectiveUnit = ri.unit ?? ingMap.get(ri.ingredient_id)?.unit ?? ri.unit
-      await recorrerInsumos(
-        fuente,
-        ri.ingredient_id,
-        multiplier * ri.quantity,
-        effectiveUnit,
-        (insumo, cantidadBase) => acumularRequerimiento(requerimientos, insumo, cantidadBase),
-        new Set<string>()
-      )
-    }
-  }
-
-  return cuantasSalen(requerimientos)
-}
 
 // ---------------------------------------------------------------------------
 // Internal helpers (not exported)
@@ -1320,66 +1183,13 @@ export async function checkStockForItems(
 
     // If there are elaborado products, fetch required recipe/ingredient data once
     if (elaboradoProducts.length > 0) {
-      const productIds = elaboradoProducts.map((p) => p.id)
-      const [prResult, subResult, ingResult] = await Promise.all([
-        supabase
-          .from('product_recipes')
-          .select(`
-            quantity,
-            product_id,
-            recipes (
-              id,
-              recipe_ingredients (
-                quantity,
-                unit,
-                ingredient_id,
-                ingredients (
-                  id,
-                  unit,
-                  waste_percentage,
-                  current_stock,
-                  stock_tracking_enabled
-                )
-              )
-            )
-          `)
-          .in('product_id', productIds),
-        supabase.from('ingredient_sub_recipes').select('parent_ingredient_id, child_ingredient_id, quantity, unit'),
-        supabase
-          .from('ingredients')
-          .select('id, unit, waste_percentage, current_stock, stock_tracking_enabled, yield_quantity'),
-      ])
+      // La misma carga que usa el barrido y la pantalla de stock. Era la
+      // tercera copia de las mismas tres consultas y los mismos tres Maps.
+      const cargado = await cargarRecetasEnMemoria(supabase, elaboradoProducts.map((p) => p.id))
+      if (!cargado) return { data: warnings, error: null }
 
-      if (prResult.error) devError(`Error fetching product_recipes for batch stock check: ${String(prResult.error)}`)
-      if (subResult.error) devError(`Error fetching ingredient_sub_recipes for batch stock check: ${String(subResult.error)}`)
-      if (ingResult.error) devError(`Error fetching ingredients for batch stock check: ${String(ingResult.error)}`)
-
-      // Build maps used by the in-memory calc
-      const ingMap = new Map<string, IngData>(
-        (ingResult.data ?? []).map((i: IngData) => [i.id, i] as const)
-      )
-
-      const subMap = new Map<string, SubData[]>()
-      for (const sub of subResult.data ?? []) {
-        const arr = subMap.get(sub.parent_ingredient_id) ?? []
-        arr.push(sub)
-        subMap.set(sub.parent_ingredient_id, arr)
-      }
-
-      const prMap = new Map<string, PREntry[]>()
-      for (const pr of (prResult.data ?? []) as PREntry[]) {
-        const arr = prMap.get(pr.product_id) ?? []
-        arr.push(pr)
-        prMap.set(pr.product_id, arr)
-      }
-
-      // Compute theoretical stock for each elaborado in-memory
-      //
-      // Aca habia un console.info por producto midiendo cuanto tardaba la
-      // cuenta. Corria en produccion, en cada cobro, y ya no mide nada: la
-      // cuenta no toca la base.
       for (const prod of elaboradoProducts) {
-        const theoreticalStock = await _calcTheoreticalInMemory(prod.id, prMap, ingMap, subMap)
+        const theoreticalStock = await stockTeoricoEnMemoria(prod.id, cargado)
         if (theoreticalStock !== null && theoreticalStock < prod.requested) {
           warnings.push({
             product_id: prod.id,
