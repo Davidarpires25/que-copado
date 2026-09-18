@@ -43,12 +43,36 @@ distinto— para que nadie lo confunda con un comprobante. **David lo miró y el
 lo mínimo: sacar la línea de pago y nada más.** Es su papel y su mostrador; el
 encabezado queda como algo a agregar si alguna vez se confunden.
 
+## El ticket se arma en dos repos, no en uno
+
+Esto apareció al preguntar David si había que tocar el programa de la impresora.
+**Sí, y es donde importa.**
+
+El papel real no sale del HTML. `printClientTicketAction` encola una fila en
+`print_jobs` con los datos del ticket, y el bridge —C#, repo aparte
+`print-bridge`— la lee de Supabase y arma el ESC/POS. El layout HTML es lo que
+se ve en pantalla y lo que sale si se imprime desde el navegador.
+
+Así que el mismo ticket está formateado en tres lugares:
+
+| dónde | qué es |
+|---|---|
+| `components/admin/caja/ticket-print-layout.tsx` | lo que se ve en pantalla |
+| `app/actions/print.ts` | lo que se encola para la impresora |
+| `print-bridge` → `src/PrintBridge/Impresora.cs:112` | lo que sale por la térmica |
+
+Los tres imprimían el medio de pago sin condición. Arreglar solo el primero
+—que fue el primer intento— deja el bug vivo en el papel.
+
 ## What Changes
 
 - **Antes de cobrar, la línea de pago no se imprime.** Queda el total, que es lo
-  único cierto en ese momento.
-- **Nada más cambia**: ni el encabezado, ni el pie, ni el ticket de después de
-  cobrar.
+  único cierto en ese momento. En los tres lugares.
+- **`print.ts` no manda el medio de pago** mientras el pedido no esté cobrado, y
+  el bridge no imprime esa línea si no le llega.
+- **El pie pasa a "¡Felicidades por su compra!"**, pedido del cliente. Solo en el
+  ticket cobrado: antes de cobrar no hay compra que felicitar, y ahí sigue
+  diciendo "Gracias!".
 
 ## Capabilities
 

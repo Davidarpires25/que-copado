@@ -177,7 +177,7 @@ export function TicketPrintLayout({ order, items, cashReceived, isKitchen = fals
 
         {/* Footer */}
         <div className="text-center text-xs mt-3 pt-2 border-t border-dashed border-black">
-          <p>Gracias!</p>
+          <p>{yaSeCobro ? '¡Felicidades por su compra!' : 'Gracias!'}</p>
           <p className="text-xs opacity-60">{numeroDePedido(order)}</p>
         </div>
       </div>

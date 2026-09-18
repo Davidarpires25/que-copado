@@ -129,9 +129,21 @@ export async function printClientTicketAction(
     const total = isRoundSnapshot || isGuestScope ? subtotal : order.total
     const { dateStr, timeStr } = fechaDelPedido(order.created_at)
 
+    // El medio de pago solo se imprime si el pedido se cobro.
+    //
+    // El pedido nace con `payment_method: 'cash'` --esta escrito asi a
+    // proposito, con el comentario "default, will be set on payment"-- y este
+    // ticket lo mandaba sin preguntar. El papel que se le lleva a la mesa para
+    // que elija como pagar ya decia "Efectivo".
+    //
+    // `Parcial` se mantiene: una ronda de una mesa es un corte a proposito, y
+    // esa palabra dice justo eso.
+    const yaSeCobro = order.status === 'pagado'
     const paymentLabel = isRoundSnapshot
       ? 'Parcial'
-      : (PAYMENT_LABELS[order.payment_method] ?? order.payment_method)
+      : yaSeCobro
+        ? (PAYMENT_LABELS[order.payment_method] ?? order.payment_method)
+        : null
     const cashReceived = isRoundSnapshot ? null : options.cashReceived ?? null
     const change =
       isRoundSnapshot || options.cashReceived === undefined || options.cashReceived === null

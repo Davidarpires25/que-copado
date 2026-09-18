@@ -36,6 +36,23 @@ corrida: el dato sigue diciendo efectivo, pero el papel ya no lo repite.
       historial siempre está cobrado; los otros tres pueden estar en los dos
       estados.
 
-## 3. Cerrar
+## 3. El papel de verdad: `print-bridge`
 
-- [x] 3.1 `npm run lint` y `npm run build` sin errores nuevos.
+Lo que sale por la térmica no lo arma este repo. `printClientTicketAction`
+encola en `print_jobs` y el bridge en C# lo formatea.
+
+- [x] 3.1 `print.ts` manda `paymentLabel` vacío mientras el pedido no se cobró.
+      `Parcial` se mantiene: una ronda de una mesa es un corte a propósito.
+      **Verificado:** imprimir desde el panel de cobro encola un job sin
+      `paymentLabel`; reimprimir un pedido cobrado desde el Historial encola
+      `paymentLabel: "Efectivo"`.
+- [x] 3.2 `Impresora.cs` no imprime la línea de pago ni el vuelto si no le
+      llega el medio de pago.
+- [x] 3.3 El pie pasa a "¡Felicidades por su compra!" cuando está cobrado.
+      CP858 —la página de códigos que usa el bridge— soporta el `¡`.
+- [ ] 3.4 **Compilar el bridge y probarlo contra la impresora.** No hay `dotnet`
+      en esta máquina, así que el cambio en C# está escrito y sin compilar.
+
+## 4. Cerrar
+
+- [x] 4.1 `npm run lint` y `npm run build` sin errores nuevos.
