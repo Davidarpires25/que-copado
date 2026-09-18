@@ -1,0 +1,75 @@
+# Proposal
+
+## Why
+
+David: *"si le da a imprimir antes de darle al botón cobrar, marca el efectivo,
+lo cual no debería ser así"*.
+
+El pedido nace diciendo que se paga en efectivo. Está escrito así a propósito,
+con el comentario al lado:
+
+```ts
+payment_method: 'cash', // default, will be set on payment
+```
+
+Y lo mismo en la RPC de mostrador, que inserta `'cash'` al crear el pedido.
+
+El ticket no pregunta si eso pasó: imprime siempre la línea de pago.
+
+```tsx
+<span>{PAYMENT_LABELS[order.payment_method] ?? order.payment_method}</span>
+<span>{cashReceived ? formatPrice(cashReceived) : formatPrice(displayTotal)}</span>
+```
+
+Con lo cual, el papel que se imprime **antes de cobrar** dice "Efectivo
+$15.000" de un pedido que nadie pagó, y de un cliente que capaz paga con
+tarjeta. Hoy hay un pedido `abierto` en producción con `payment_method = 'cash'`
+sin haber sido cobrado.
+
+Y el botón que lo imprime está justo ahí: en el panel de cobro, arriba a la
+derecha, al lado del de la comanda.
+
+## Lo que falta no es solo esa línea
+
+Son dos papeles distintos y hoy hay uno solo:
+
+- **La cuenta**, antes de pagar: lo que se debe. Ítems y total. Es lo que se le
+  lleva a la mesa para que decida cómo paga.
+- **El ticket**, después de pagar: lo que se pagó. Ítems, total, con qué se pagó
+  y el vuelto.
+
+Sacar la línea de pago y dejar solo el total —lo que propone David— resuelve la
+mentira. Pero deja un papel que parece un ticket al que le falta algo, y que
+alguien puede guardar como comprobante. **Si el papel es otra cosa, conviene que
+lo diga.**
+
+## What Changes
+
+- **Antes de cobrar, la línea de pago no se imprime.** Queda el total, que es lo
+  único cierto en ese momento.
+- **El papel dice qué es**: cuenta o ticket, según se haya cobrado o no.
+- **Después de cobrar, nada cambia**: el ticket sigue como está, con el método y
+  el vuelto.
+
+## Capabilities
+
+### Modified Capabilities
+
+`caja` — no existe todavía como capability. Se crea con este cambio, cubriendo
+qué dice cada papel que sale de la caja.
+
+## Impact
+
+**Repos:** solo `que-copado`. Sin migración.
+
+**A decidir en el diseño:** si además se deja de escribir `'cash'` al crear el
+pedido. Es la misma clase de mentira que costó el bug de `auto_disabled` hoy
+—un dato que dice algo que nadie decidió—, pero hay que revisar qué lee
+`payment_method` de un pedido abierto antes de tocarlo.
+
+## Fuera de alcance
+
+- **El pago dividido.** `cobrar_pedido_de_mostrador` recibe `p_splits`, pero el
+  pedido guarda un solo `payment_method` —el principal—. Un pedido cobrado mitad
+  en efectivo y mitad con tarjeta imprime un solo método. Es un problema de la
+  misma línea del ticket, pero con su propia decisión de datos.
