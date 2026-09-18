@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { registerPurchase } from '@/app/actions/stock'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn, formatPrice } from '@/lib/utils'
 import { INGREDIENT_UNIT_ABBR, type IngredientUnit } from '@/lib/types/database'
 import type { IngredientWithStock } from '@/lib/types/stock'
 
@@ -75,6 +75,24 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
 
   const quitar = (ingredientId: string) =>
     setLines((prev) => prev.filter((l) => l.ingredient_id !== ingredientId))
+
+  /**
+   * Lo que sale cada linea, y lo que sale la compra.
+   *
+   * El formulario pedia "costo por unidad" y no mostraba ningun total, asi que
+   * no habia forma de darse cuenta de que el numero estaba mal. Se cargo el
+   * morron como 200 g a $200 la unidad --una compra de $40.000 en morrones-- y
+   * nada lo dijo. Con el total a la vista, ese error se ve al tipearlo.
+   */
+  const totalDeLinea = (l: PurchaseLine): number | null => {
+    const cantidad = parseFloat(l.quantity)
+    const costo = parseFloat(l.cost_per_unit)
+    if (!Number.isFinite(cantidad) || !Number.isFinite(costo)) return null
+    return cantidad * costo
+  }
+
+  const totalDeLaCompra = lines.reduce((suma, l) => suma + (totalDeLinea(l) ?? 0), 0)
+  const lineasConCosto = lines.filter((l) => totalDeLinea(l) !== null).length
 
   const actualizar = (ingredientId: string, campo: 'quantity' | 'cost_per_unit', valor: string) =>
     setLines((prev) =>
@@ -268,10 +286,11 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
             </div>
           ) : (
             <>
-              <div className="hidden md:grid grid-cols-[1fr_9rem_9rem_2.5rem] gap-3 px-5 py-3 border-b border-[var(--admin-border)] text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]">
+              <div className="hidden md:grid grid-cols-[1fr_9rem_9rem_7rem_2.5rem] gap-3 px-5 py-3 border-b border-[var(--admin-border)] text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]">
                 <span>Ingrediente</span>
                 <span>Cantidad</span>
                 <span>Costo por unidad</span>
+                <span className="text-right">Total</span>
                 <span className="sr-only">Quitar</span>
               </div>
 
@@ -282,7 +301,7 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
                     <div
                       key={line.ingredient_id}
                       className={cn(
-                        'grid grid-cols-1 md:grid-cols-[1fr_9rem_9rem_2.5rem] gap-3 px-5 py-4 items-center transition-colors',
+                        'grid grid-cols-1 md:grid-cols-[1fr_9rem_9rem_7rem_2.5rem] gap-3 px-5 py-4 items-center transition-colors',
                         resaltado === line.ingredient_id && 'bg-[var(--admin-accent)]/15'
                       )}
                     >
@@ -329,6 +348,17 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
                         </div>
                       </div>
 
+                      <div className="md:text-right">
+                        <Label className="md:hidden text-[var(--admin-text-muted)] text-xs">Total</Label>
+                        {totalDeLinea(line) === null ? (
+                          <span className="text-sm text-[var(--admin-text-muted)]">—</span>
+                        ) : (
+                          <span className="text-sm font-semibold text-[var(--admin-text)] tabular-nums">
+                            {formatPrice(totalDeLinea(line)!)}
+                          </span>
+                        )}
+                      </div>
+
                       <div className="flex md:justify-center">
                         <button
                           type="button"
@@ -343,6 +373,22 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
                   )
                 })}
               </div>
+
+              {lineasConCosto > 0 && (
+                <div className="flex items-baseline justify-end gap-3 border-t border-[var(--admin-border)] px-5 py-4">
+                  <span className="text-sm text-[var(--admin-text-muted)]">
+                    Total de la compra
+                    {lineasConCosto < lines.length && (
+                      <span className="ml-1 text-xs">
+                        ({lineasConCosto} de {lines.length} con costo)
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-lg font-semibold text-[var(--admin-text)] tabular-nums">
+                    {formatPrice(totalDeLaCompra)}
+                  </span>
+                </div>
+              )}
             </>
           )}
 
