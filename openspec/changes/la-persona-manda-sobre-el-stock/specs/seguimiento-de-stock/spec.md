@@ -45,3 +45,44 @@ pantalla que ofrezca hacerlo.
 - **GIVEN** un producto que nadie marcó a mano
 - **WHEN** su insumo llega a cero
 - **THEN** el sistema lo esconde
+
+### Requirement: El sistema dice qué dejó de ofrecer y por qué
+
+Cuando el sistema deja de ofrecer un producto por falta de stock, SHALL avisarlo
+junto a las alertas de stock, nombrando el producto y lo que falta para poder
+hacerlo.
+
+Esconder un producto es una decisión comercial y se tomaba en silencio: tres
+pizzas desaparecieron del catálogo y el único rastro era un "Salsa de tomate: 0"
+en otra lista, sin nada que conectara una cosa con la otra. Quien atiende se
+enteró por la calle.
+
+El aviso SHALL aclarar que el mostrador sigue pudiendo vender, porque esconder
+solo afecta a la web y a WhatsApp.
+
+Un producto que apagó una persona NO SHALL aparecer en este aviso: quien lo
+apagó ya sabe por qué.
+
+#### Scenario: Se esconde un producto por falta de un insumo
+
+- **WHEN** un insumo llega a cero y el sistema deja de ofrecer los productos que
+  lo usan
+- **THEN** cada producto escondido aparece avisado
+- **AND** el aviso nombra el insumo que falta
+
+#### Scenario: Se esconde un combo por un componente
+
+- **GIVEN** un combo que incluye un producto agotado
+- **WHEN** el sistema deja de ofrecer el combo
+- **THEN** el aviso nombra el componente que falta
+
+#### Scenario: Deja de avisar cuando se resuelve
+
+- **GIVEN** un producto escondido por el sistema
+- **WHEN** una persona lo marca disponible
+- **THEN** el aviso desaparece
+
+#### Scenario: Lo que apagó una persona no se avisa
+
+- **GIVEN** un producto que una persona marcó agotado
+- **THEN** no aparece entre los que el sistema dejó de ofrecer

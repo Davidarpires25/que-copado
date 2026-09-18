@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Package, AlertTriangle, PackagePlus } from 'lucide-react'
+import { Package, AlertTriangle, PackagePlus, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { AdminLayout } from '@/components/admin/layout/admin-layout'
@@ -69,17 +69,19 @@ export function StockDashboard({
     setMovements(initialMovements)
   }
 
-  const elaboradosAgotados = useMemo(
-    () => elaboradoProducts.filter((p) => theoreticalStocks[p.id] === 0).length,
-    [elaboradoProducts, theoreticalStocks]
-  )
-
   const ingredientAlerts = useMemo(() => alerts.filter((a) => a.type === 'ingredient'), [alerts])
   const productAlerts = useMemo(() => alerts.filter((a) => a.type === 'product'), [alerts])
+  const ocultos = useMemo(() => alerts.filter((a) => a.type === 'oculto'), [alerts])
 
   // La lista de movimientos se carga recien al abrir su pestana, asi que el
   // valor inicial viene del server por separado.
-  const totalAlerts = alerts.length + elaboradosAgotados
+  // `ocultos` ya viene adentro de `alerts`: no se suma aparte.
+  //
+  // Antes esto sumaba `elaboradosAgotados` —los elaborados con stock teorico en
+  // cero—, que son exactamente los que el sistema escondio. Con la alerta nueva
+  // el mismo producto se contaba dos veces: el cartel decia 3 y desglosaba 2.
+  // Y `ocultos` dice mejor lo mismo, porque sabe por que insumo fue.
+  const totalAlerts = alerts.length
 
   const alertBreakdown = useMemo(() => {
     const parts: string[] = []
@@ -89,11 +91,11 @@ export function StockDashboard({
     if (productAlerts.length > 0) {
       parts.push(`${productAlerts.length} reventa${productAlerts.length !== 1 ? 's' : ''} bajo`)
     }
-    if (elaboradosAgotados > 0) {
-      parts.push(`${elaboradosAgotados} elaborado${elaboradosAgotados !== 1 ? 's' : ''} agotado${elaboradosAgotados !== 1 ? 's' : ''}`)
+    if (ocultos.length > 0) {
+      parts.push(`${ocultos.length} sin ofrecer`)
     }
     return parts.join(' · ')
-  }, [ingredientAlerts, productAlerts, elaboradosAgotados])
+  }, [ingredientAlerts, productAlerts, ocultos])
 
   return (
     <AdminLayout title="Stock e Inventario" description="Control de inventario de materias primas">
@@ -145,11 +147,48 @@ export function StockDashboard({
         </div>
       )}
 
+      {/* Lo que el sistema dejo de ofrecer, y por que.
+        *
+        * Va arriba de todo y aparte del contador: esconder un producto es una
+        * decision comercial que se tomaba en silencio. El aviso de abajo decia
+        * "Salsa de tomate: 0" y en ningun lado decia que por eso habian
+        * desaparecido tres pizzas del catalogo. */}
+      {ocultos.length > 0 && (
+        <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
+          <div className="flex items-start gap-3">
+            <EyeOff className="mt-0.5 h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400" />
+            <div className="min-w-0 text-sm text-amber-800 dark:text-amber-200">
+              <p className="font-semibold">
+                {ocultos.length === 1
+                  ? 'Dejamos de ofrecer 1 producto'
+                  : `Dejamos de ofrecer ${ocultos.length} productos`}
+                {' '}en la web y en WhatsApp
+              </p>
+              <ul className="mt-1 space-y-0.5">
+                {ocultos.map((o) => (
+                  <li key={o.id}>
+                    <span className="font-medium">{o.name}</span>
+                    {o.falta && o.falta.length > 0 && (
+                      <> — falta {o.falta.join(', ')}</>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-1.5 text-xs opacity-80">
+                En el mostrador se siguen pudiendo vender. Si en la cocina hay,
+                marcalos disponibles desde Productos y no se vuelven a apagar
+                solos.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex items-center gap-0 border-b border-[var(--admin-border)] mb-0 overflow-x-auto no-scrollbar">
         {([
           { key: 'ingredientes', label: 'Stock Actual', alert: ingredientAlerts.length > 0 },
-          { key: 'productos', label: 'Alertas', alert: (productAlerts.length + elaboradosAgotados) > 0 },
+          { key: 'productos', label: 'Alertas', alert: (productAlerts.length + ocultos.length) > 0 },
           { key: 'movimientos', label: 'Movimientos' },
           { key: 'consumo', label: 'Consumo Histórico' },
         ] as const).map(({ key, label, ...rest }) => {

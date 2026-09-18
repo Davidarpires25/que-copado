@@ -33,6 +33,31 @@
       4. vuelve a haber medallones → sigue visible y el forzado **se suelta
          solo** (`forzado=false`)
 
+## 6. Que avise qué escondió y por qué
+
+Agregado después: *"estaría bueno saber qué falta y por qué se apagó"*.
+
+- [x] 6.1 El recorrido de recetas se partió en dos —`_requerimientos()` y el
+      cálculo— para que el mismo paseo conteste las dos preguntas: cuántas
+      unidades salen, y cuál es el insumo que lo impide. `insumosQueFaltan()`
+      devuelve los que no alcanzan ni para una unidad.
+- [x] 6.2 `getStockAlerts` suma una alerta `oculto` por cada producto que apagó
+      el sistema, con lo que falta. Un combo también puede estar frenado por un
+      componente agotado, que no es un insumo sino otro producto.
+- [x] 6.3 La pantalla de Stock lo muestra arriba de todo, separado del contador:
+      *"Dejamos de ofrecer 1 producto en la web y en WhatsApp — Hamburguesa
+      simple — falta Medallón de carne"*, y aclara que en el mostrador se
+      siguen vendiendo.
+- [x] 6.4 Sacado el doble conteo: el contador rojo sumaba `elaboradosAgotados`
+      —los elaborados con stock teórico en cero, que son exactamente los que el
+      sistema escondió—, así que el mismo producto se contaba dos veces: decía 3
+      y desglosaba 2. Ahora cuenta los ocultos, que además saben por qué.
+      **Verificado:** el cartel dice "2 items: 1 ingrediente bajo · 1 sin
+      ofrecer".
+- [x] 6.5 **Verificado en el navegador:** con el medallón en 0, el aviso nombra
+      el producto, dice qué falta y aclara lo del mostrador; al marcarlo
+      disponible a mano, el aviso desaparece.
+
 ## 5. Cerrar
 
 - [x] 5.1 `npm run lint` y `npm run build` sin errores nuevos.

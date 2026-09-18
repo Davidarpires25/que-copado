@@ -547,7 +547,19 @@ export async function calcularStockTeorico(supabase: SupabaseClient, productId: 
   return _calcTheoreticalStock(supabase, productId)
 }
 
-async function _calcTheoreticalStock(supabase: SupabaseClient, productId: string): Promise<number | null> {
+/**
+ * Lo que un producto necesita de cada insumo, bajando por las sub-recetas.
+ *
+ * Se separo del calculo para que el mismo recorrido sirva a dos preguntas:
+ * cuantas unidades salen, y --cuando no sale ninguna-- cual es el insumo que lo
+ * impide. Sin eso el sistema escondia un producto sin poder decir por que, y
+ * quien atiende se enteraba por la calle: tres pizzas desaparecieron y el aviso
+ * decia "Salsa de tomate: 0" sin conectar una cosa con la otra.
+ */
+async function _requerimientos(
+  supabase: SupabaseClient,
+  productId: string
+): Promise<IngReq | null> {
   const { data: productRecipes, error } = await supabase
     .from('product_recipes')
     .select(`
@@ -596,6 +608,13 @@ async function _calcTheoreticalStock(supabase: SupabaseClient, productId: string
     }
   }
 
+  return requirements
+}
+
+async function _calcTheoreticalStock(supabase: SupabaseClient, productId: string): Promise<number | null> {
+  const requirements = await _requerimientos(supabase, productId)
+  if (!requirements) return null
+
   let minProducible: number | null = null
   let hasAnyTracked = false
 
@@ -609,6 +628,31 @@ async function _calcTheoreticalStock(supabase: SupabaseClient, productId: string
 
   if (!hasAnyTracked) return null
   return minProducible ?? 0
+}
+
+/**
+ * Que insumos impiden hacer este producto.
+ *
+ * Devuelve los ids de los que no alcanzan ni para una unidad. Es lo que hay que
+ * comprar para que el producto vuelva a ofrecerse, y es lo que faltaba decir
+ * cuando el sistema lo escondia.
+ *
+ * Un combo tambien puede estar frenado por un componente; eso lo resuelve quien
+ * llama, que ya tiene los componentes a mano.
+ */
+export async function insumosQueFaltan(
+  supabase: SupabaseClient,
+  productId: string
+): Promise<string[]> {
+  const requirements = await _requerimientos(supabase, productId)
+  if (!requirements) return []
+
+  const faltan: string[] = []
+  for (const [ingredientId, req] of requirements) {
+    if (!req.trackingEnabled || req.requiredQty <= 0) continue
+    if (Math.floor(req.currentStock / req.requiredQty) <= 0) faltan.push(ingredientId)
+  }
+  return faltan
 }
 
 async function _collectReqs(

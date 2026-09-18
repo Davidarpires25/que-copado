@@ -7,7 +7,7 @@ import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
 import { escalarComponente } from '@/lib/server/sub-recipes'
 import { devError } from '@/lib/server/error-messages'
 import { recalculateProductsForIngredient } from './recipes'
-import { syncAvailability, calcularStockTeorico, syncReventaProduct } from '@/lib/server/stock-deduction'
+import { syncAvailability, calcularStockTeorico, syncReventaProduct, insumosQueFaltan } from '@/lib/server/stock-deduction'
 import type {
   StockMovementFilters,
   StockAdjustmentData,
@@ -156,6 +156,75 @@ export async function getStockAlerts(): Promise<{ data: StockAlert[] | null; err
         unit: null,
         current_stock: prod.current_stock,
         min_stock: prod.min_stock,
+      })
+    }
+  }
+
+  // Lo que el sistema dejo de ofrecer, y por que.
+  //
+  // Esconder un producto es una decision comercial, y se tomaba sin avisar: las
+  // tres pizzas desaparecieron del catalogo y el unico rastro era un
+  // "Salsa de tomate: 0" en la lista de arriba, sin nada que conectara una cosa
+  // con la otra. Quien atiende se entero por la calle.
+  //
+  // Solo los que apago el sistema —`auto_disabled`—: si una persona lo marco
+  // agotado a mano, ya sabe por que.
+  const { data: escondidos } = await supabase
+    .from('products')
+    .select('id, name, product_type, current_stock, product_components!parent_id (products:component_id (name, is_out_of_stock, is_active))')
+    .eq('is_out_of_stock', true)
+    .eq('auto_disabled', true)
+    .eq('is_active', true)
+    .order('name')
+
+  if (escondidos && escondidos.length > 0) {
+    // Los nombres de todos los insumos, de una: son pocos productos escondidos
+    // pero cada uno puede nombrar varios insumos, y preguntarlos de a uno seria
+    // un viaje por insumo.
+    const porProducto = await Promise.all(
+      escondidos.map(async (prod) => ({
+        prod,
+        faltanIds: prod.product_type === 'reventa' ? [] : await insumosQueFaltan(supabase, prod.id),
+      }))
+    )
+
+    const todosLosIds = [...new Set(porProducto.flatMap((x) => x.faltanIds))]
+    const nombres = new Map<string, string>()
+    if (todosLosIds.length > 0) {
+      const { data: ings } = await supabase
+        .from('ingredients')
+        .select('id, name')
+        .in('id', todosLosIds)
+      for (const i of ings ?? []) nombres.set(i.id, i.name)
+    }
+
+    for (const { prod, faltanIds } of porProducto) {
+      const falta = faltanIds.map((id) => nombres.get(id)).filter((n): n is string => !!n)
+
+      // Un combo tambien se frena por un componente agotado, que no es un
+      // insumo sino otro producto del catalogo.
+      const componentes = (prod.product_components ?? []) as unknown as {
+        products: { name: string; is_out_of_stock: boolean; is_active: boolean } | null
+      }[]
+      for (const c of componentes) {
+        if (c.products && (c.products.is_out_of_stock || !c.products.is_active)) {
+          falta.push(c.products.name)
+        }
+      }
+
+      // Un reventa se esconde por su propio stock, y ese numero ya va abajo.
+      if (prod.product_type === 'reventa' && falta.length === 0) {
+        falta.push(prod.name)
+      }
+
+      alerts.push({
+        id: prod.id,
+        name: prod.name,
+        type: 'oculto',
+        unit: null,
+        current_stock: prod.current_stock ?? 0,
+        min_stock: 0,
+        falta: [...new Set(falta)],
       })
     }
   }

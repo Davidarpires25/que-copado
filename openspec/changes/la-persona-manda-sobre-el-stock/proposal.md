@@ -48,6 +48,10 @@ de Productos, cuyo interruptor escribía una sola de las dos marcas.
   interruptor y no hacían lo mismo.
 - **Un solo barrido de reventa.** `_syncReventaProduct` estaba escrito dos
   veces, con el mismo nombre, en dos archivos.
+- **El sistema dice qué escondió y por qué.** Esconder un producto es una
+  decisión comercial y se tomaba en silencio: las tres pizzas desaparecieron del
+  catálogo y el único rastro era un "Salsa de tomate: 0" en otra lista, sin nada
+  que conectara una cosa con la otra. David se enteró por la calle.
 
 ## Capabilities
 

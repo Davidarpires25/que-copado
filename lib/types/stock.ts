@@ -40,10 +40,18 @@ export interface StockMovementWithDetails extends StockMovement {
 export interface StockAlert {
   id: string
   name: string
-  type: 'ingredient' | 'product'
+  /**
+   * `oculto`: el sistema dejo de ofrecer este producto. No es un insumo bajo,
+   * es una decision que el sistema ya tomo, y hasta ahora la tomaba en
+   * silencio: tres pizzas desaparecieron del catalogo y el unico rastro era
+   * "Salsa de tomate: 0" en otra lista, sin nada que conectara las dos cosas.
+   */
+  type: 'ingredient' | 'product' | 'oculto'
   unit: string | null
   current_stock: number
   min_stock: number
+  /** Solo en `oculto`: que falta para poder volver a hacerlo. */
+  falta?: string[]
 }
 
 // ---------------------------------------------------------------------------
