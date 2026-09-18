@@ -40,6 +40,7 @@ export async function getBusinessSettings(): Promise<{
           transfer_alias: null,
           transfer_cbu: null,
           transfer_titular: null,
+          aplicar_tope_de_stock: false,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
@@ -66,6 +67,7 @@ export async function updateBusinessSettings(updates: {
   transfer_alias?: string | null
   transfer_cbu?: string | null
   transfer_titular?: string | null
+  aplicar_tope_de_stock?: boolean
 }): Promise<{ data: BusinessSettings | null; error: string | null }> {
   try {
     const supabase = await createAdminClient()

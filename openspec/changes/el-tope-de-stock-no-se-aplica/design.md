@@ -78,12 +78,36 @@ cada ingrediente no aparece en ninguna respuesta —ni en el menú del agente, n
 en la validación del carrito, ni en el error de confirmación—, y la policy de
 `ingredients` no se toca: `anon` sigue sin poder leer esa tabla.
 
+### El tope se enciende desde Configuración, y arranca apagado
+
+`business_settings.aplicar_tope_de_stock`, en false por defecto.
+
+No es prudencia abstracta: medido contra los datos reales, 13 de 38 productos
+quedaban con techo de 8 o menos y cinco con techo de 1 —tres pizzas limitadas
+por "Salsa de tomate", que decía tener una unidad—. Desplegarlo encendido era
+rechazar ventas buenas por datos viejos.
+
+El interruptor se lee **adentro de `getMaxQuantities()`**, que ya era el único
+lugar donde se arma el Map de topes. Apagado devuelve un Map vacío, que para
+quien llama es idéntico a "sin tope". Los tres caminos lo respetan sin saber que
+existe, y el próximo que se agregue también.
+
+Se consulta en paralelo con los topes, no antes: encendido no cuesta un viaje
+extra, y apagado se descartan unos números que ya estaban en vuelo. Si la
+consulta falla se responde que no: que una lectura fallida corte la venta sería
+peor que el problema que el tope resuelve.
+
+**El control fino ya existía.** `stock_tracking_enabled` es por ingrediente: si a
+un insumo nadie lo cuenta de verdad, apagarle el seguimiento lo saca del cálculo
+sin tocar el interruptor global.
+
 ## Risks
 
-**Pedidos que hoy entran van a empezar a rebotar.** Es el objetivo del cambio,
-pero es un cambio de comportamiento visible para el local y para quien compra.
-Conviene avisar antes de desplegarlo.
+**Encenderlo rechaza pedidos.** Es el objetivo, pero es un cambio visible en la
+web y en WhatsApp. Por eso arranca apagado y la decisión de encenderlo es del
+local, con el aviso escrito en la misma pantalla.
 
 **El tope depende de que el stock esté bien cargado.** Un ingrediente vigilado
-con stock en cero por olvido —no por falta real— apaga el producto. Ya pasa hoy
-con `is_out_of_stock`, así que no es nuevo, pero ahora también limita cantidades.
+con stock viejo limita el producto por un número que no es cierto. Ya pasa hoy
+con `is_out_of_stock`, pero el techo de cantidad es mucho más filoso que el corte
+en cero: `is_out_of_stock` solo actúa cuando llega a cero.

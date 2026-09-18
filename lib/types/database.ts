@@ -860,6 +860,12 @@ export interface BusinessSettings {
   transfer_cbu: string | null
   /** Titular de la cuenta: lo que el banco del cliente le muestra al transferir. */
   transfer_titular: string | null
+  /**
+   * Si esta encendido, un pedido que pide mas unidades de las que se pueden
+   * armar se rechaza. Apagado por defecto: el tope vale lo que valen los
+   * numeros de stock, y con el stock viejo rechaza ventas buenas.
+   */
+  aplicar_tope_de_stock: boolean
   created_at: string
   updated_at: string
 }

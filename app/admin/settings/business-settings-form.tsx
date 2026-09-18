@@ -32,6 +32,7 @@ const TABS = [
   { key: 'horarios', label: 'Horarios' },
   { key: 'pausa', label: 'Pausa' },
   { key: 'cobros', label: 'Cobros' },
+  { key: 'stock', label: 'Stock' },
   { key: 'apariencia', label: 'Apariencia' },
   { key: 'datos', label: 'Datos' },
 ] as const
@@ -56,6 +57,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
   const [settings, setSettings] = useState(initialSettings)
   const [isSaving, setIsSaving] = useState(false)
   const [isTogglingPause, setIsTogglingPause] = useState(false)
+  const [isTogglingTope, setIsTogglingTope] = useState(false)
   const [tab, setTab] = useState<TabKey>('horarios')
   const { theme, setTheme } = useThemeStore()
 
@@ -125,6 +127,25 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
     } else if (result.data) {
       setSettings(result.data)
       toast.success(result.data.is_paused ? 'Pedidos pausados' : 'Pedidos reanudados')
+    }
+  }
+
+  const handleToggleTope = async () => {
+    setIsTogglingTope(true)
+    const result = await updateBusinessSettings({
+      aplicar_tope_de_stock: !settings.aplicar_tope_de_stock,
+    })
+    setIsTogglingTope(false)
+
+    if (result.error) {
+      toast.error(result.error)
+    } else if (result.data) {
+      setSettings(result.data)
+      toast.success(
+        result.data.aplicar_tope_de_stock
+          ? 'El stock ahora limita las cantidades'
+          : 'El stock ya no limita las cantidades'
+      )
     }
   }
 
@@ -270,6 +291,50 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
                   className={cn(FIELD, 'h-auto min-h-[128px] py-3.5')}
                 />
               </div>
+            </div>
+          )}
+
+          {tab === 'stock' && (
+            <div className="space-y-8">
+              <h2 className="text-2xl font-semibold text-[var(--admin-text)]">Stock</h2>
+
+              <div className="flex items-center gap-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-[var(--admin-text)]">
+                    {settings.aplicar_tope_de_stock
+                      ? 'El stock limita las cantidades'
+                      : 'El stock no limita las cantidades'}
+                  </p>
+                  <p className="text-sm text-[var(--admin-text-muted)] mt-0.5">
+                    {settings.aplicar_tope_de_stock
+                      ? 'Un pedido que pide más unidades de las que se pueden armar se rechaza, en la web y en WhatsApp.'
+                      : 'Se aceptan las cantidades que pidan. Un producto agotado del todo se sigue ocultando.'}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleToggleTope}
+                  disabled={isTogglingTope}
+                  className={cn(
+                    'ml-auto shrink-0 h-11 text-[15px]',
+                    settings.aplicar_tope_de_stock
+                      ? 'border-red-500/50 text-red-700 dark:text-red-400 hover:bg-red-500/10'
+                      : 'border-green-600/50 text-green-700 dark:text-green-400 hover:bg-green-500/10'
+                  )}
+                >
+                  {isTogglingTope && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {settings.aplicar_tope_de_stock ? 'Dejar de limitar' : 'Limitar por stock'}
+                </Button>
+              </div>
+
+              <p className="text-sm text-[var(--admin-text-muted)] border-t border-[var(--admin-border)] pt-6">
+                Prendelo solo cuando el stock esté contado al día. El sistema
+                calcula cuántas unidades puede armar mirando los ingredientes con
+                seguimiento: si uno quedó viejo, el producto se limita por un
+                número que no es cierto y se rechazan pedidos buenos. Si hay un
+                insumo que nadie cuenta, conviene apagarle el seguimiento en vez
+                de dejar el tope apagado para todos.
+              </p>
             </div>
           )}
 

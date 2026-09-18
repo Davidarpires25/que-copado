@@ -156,6 +156,30 @@ export async function getMaxComboQuantity(
 }
 
 /**
+ * Si el local pidio que el tope se aplique.
+ *
+ * Apagado por defecto, y no por prudencia abstracta: medido contra los datos
+ * reales, 13 de 38 productos quedaban con techo de 8 o menos y cinco con techo
+ * de 1 --tres pizzas limitadas por "Salsa de tomate", que decia tener una
+ * unidad--. Con el tope activo, alguien que pide dos pizzas se lleva un rechazo
+ * porque el stock esta viejo, no porque falte salsa.
+ *
+ * El tope vale lo que valen los numeros de stock. Se enciende cuando el conteo
+ * sea confiable, desde Configuracion.
+ *
+ * Si la consulta falla, se responde que no: que una lectura fallida corte la
+ * venta seria peor que el problema que el tope resuelve.
+ */
+async function elTopeEstaEncendido(supabase: SupabaseClient): Promise<boolean> {
+  const { data } = await supabase
+    .from('business_settings')
+    .select('aplicar_tope_de_stock')
+    .single()
+
+  return data?.aplicar_tope_de_stock === true
+}
+
+/**
  * El tope de cada producto cuyo tope no es una columna: elaborados y combos.
  *
  * Existe porque la cuenta estaba a punto de escribirse por cuarta vez. El
@@ -183,13 +207,29 @@ export async function getMaxQuantities(
       .map((p) => p.id)
   )]
 
-  const topes = await Promise.all(
-    ids.map((id) =>
-      tipoPorId.get(id) === 'combo'
-        ? getMaxComboQuantity(supabase, id)
-        : getMaxElaboradoQuantity(supabase, id)
-    )
-  )
+  // Antes de preguntar nada: sin productos que topear no hay consulta que
+  // hacer, y el interruptor no se paga.
+  if (ids.length === 0) return new Map()
+
+  // El interruptor se consulta en paralelo con los topes, no antes: si esta
+  // encendido no costo un viaje extra, y si esta apagado se descartan unos
+  // numeros que ya estaban en vuelo. Es la cuenta barata de las dos.
+  const [encendido, topes] = await Promise.all([
+    elTopeEstaEncendido(supabase),
+    Promise.all(
+      ids.map((id) =>
+        tipoPorId.get(id) === 'combo'
+          ? getMaxComboQuantity(supabase, id)
+          : getMaxElaboradoQuantity(supabase, id)
+      )
+    ),
+  ])
+
+  // Apagado: un Map vacio, que para quien llama es lo mismo que "sin tope".
+  // El interruptor vive aca y en ningun otro lado, asi que los tres caminos
+  // --el menu del agente, el carrito y la confirmacion del pedido-- lo
+  // respetan sin saber que existe.
+  if (!encendido) return new Map()
 
   return new Map(ids.map((id, i) => [id, topes[i]]))
 }

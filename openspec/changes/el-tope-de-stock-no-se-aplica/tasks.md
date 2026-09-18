@@ -64,3 +64,19 @@ cambio.
 **El tope de un combo ya no depende de qué cliente lo pregunte.** Antes, con
 anon, un combo daba 12 —solo lo limitaba la bebida, porque los productos sí se
 leen— y su mitad de recetas quedaba ciega. Ahora da 5, que es la caja.
+
+## 5. El interruptor
+
+Agregado después de medir: David preguntó si conviene rechazar el pedido, y los
+datos le dieron la razón. Ver la tabla en `proposal.md` — Impact.
+
+- [x] 5.1 Migración: `business_settings.aplicar_tope_de_stock`, en false por
+      defecto. **Verificado:** aplicada en local, la columna nace apagada.
+- [x] 5.2 `getMaxQuantities()` lo respeta, y es el único lugar que lo conoce.
+      **Verificado** contra la base local, con el mismo pedido de 50
+      hamburguesas sobre stock para 40:
+      - apagado: el menú no trae `max_quantity` y el pedido **se crea**
+      - prendido: el menú trae 40 y el pedido devuelve `insufficient_stock`
+- [x] 5.3 Solapa Stock en Configuración para prenderlo y apagarlo, con el aviso
+      de cuándo conviene. **Verificado en navegador:** arranca apagado, el texto
+      cambia al prenderlo, y vuelve a apagarse.

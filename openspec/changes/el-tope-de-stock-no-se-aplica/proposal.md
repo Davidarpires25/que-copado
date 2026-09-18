@@ -66,8 +66,28 @@ contrato, solo que hoy nunca viene para un elaborado.
 La primera es la que respeta la decisión que ya está tomada en el código. La
 segunda hay que mirarla con cuidado.
 
-**Riesgo de aplicarlo:** pedidos que hoy entran van a empezar a rebotar. Es el
-objetivo, pero conviene avisarle al local antes.
+**Riesgo de aplicarlo: medido, y es mayor de lo que parecia.** Con los datos
+reales de hoy, si el tope estuviera activo:
+
+| producto | techo | lo que limita | stock |
+|---|---|---|---|
+| Pizza Copada / PIZZA ESPECIAL / Pizza Napolitana | **1** | Salsa de tomate | 1 |
+| Zapping Especial / COMBO PLAZA | **1** | Medallon de zapping | 1 |
+| PROMO DE BURGUER CON PAPAS | 3 | Pan de paty con semilla | 7 |
+| LOMO ESPECIAL CON PAPA | 4 | Bife de lomo | 4 |
+| Sandwich de Milanesa | 5 | Pan de Milanesa | 5 |
+| Hamburguesa Clasica / Burguer Pickles / Burguer Especial / Patty Comun | 7 | Pan de paty con semilla | 7 |
+| Q' Copado | 8 | Medallon casero | 8 |
+
+**13 de 38 productos quedarian con techo de 8 o menos, y cinco con techo de 1.**
+Alguien que pide dos pizzas se lleva un rechazo porque el sistema cree que hay
+una unidad de salsa de tomate. Hoy no pasa: solo 2 productos estan marcados
+agotados, porque `is_out_of_stock` solo se activa en cero.
+
+**Por eso el tope queda detras de un interruptor, apagado.** El tope vale lo que
+valen los numeros de stock, y hoy esos numeros no aguantan una decision
+automatica de rechazar plata. Se enciende desde Configuracion cuando el conteo
+sea confiable.
 
 ## Fuera de alcance
 
