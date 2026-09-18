@@ -11,6 +11,10 @@
 -- cocina prepara bien y en el mostrador nadie sabe que esa hamburguesa va con
 -- una bebida.
 --
+-- Un combo con estacion propia aparece ademas con su propio nombre: significa
+-- que el combo arma algo el mismo —sus recetas traen el envase y la preparacion
+-- especifica— y cocina tiene que verlo.
+--
 -- Lo demas de la funcion queda igual que en la migracion 038.
 
 create or replace function public.crear_pedido_de_mostrador(
@@ -89,7 +93,11 @@ begin
     join products p on p.id = oi.product_id
    where oi.order_id = v_order.id
      and p.station is not null
-     and coalesce(p.product_type, '') not in ('reventa', 'combo')
+     -- El combo entra aca cuando tiene estacion propia: eso significa que el
+     -- combo mismo prepara algo —sus recetas, el armado— y cocina tiene que
+     -- verlo con su nombre. Un combo sin estacion no arma nada por si mismo y
+     -- solo aporta sus componentes, que salen del segundo bloque.
+     and coalesce(p.product_type, '') <> 'reventa'
   union all
   select oi.id,
          c.name || '  ·  ' || oi.product_name,

@@ -33,6 +33,31 @@ Ver `proposal.md` — Why. Lo que condiciona el diseño es lo que ya existe:
 
 ## Decisions
 
+### El combo usa `product_recipes` para lo suyo y `product_components` para lo que incluye
+
+Un combo tiene dos partes y cada una ya tiene su tabla:
+
+- **`product_recipes`** —la que usan los elaborados— para lo que el combo consume
+  por ser ese combo: el envase y la preparación propia.
+- **`product_components`** —la tabla nueva— para los productos terminados que
+  entrega.
+
+**Por qué no solo componentes**, que fue el primer intento: los combos reales
+consumen `Caja de patty`, `Palillo` y `4 vaso y plato de plástico`. Eso no
+pertenece a ningún componente, es del combo. Para expresarlo con componentes
+habría que crear productos de catálogo que nadie vende. Y usan
+`Pan de Promo de burguer`, distinto del pan del producto suelto: la hamburguesa
+del combo no es la que se vende sola, y forzarla a serlo es mentir sobre lo que
+se consume.
+
+**Por qué no solo recetas**, que es como están hoy: la bebida termina como
+ingrediente y descuenta de un inventario paralelo al de esa misma bebida vendida
+suelta. Ese es el problema que originó todo el cambio.
+
+**Consecuencia sobre cocina:** un combo con receta propia sí tiene algo que
+preparar, así que puede tener estación. Ahí aparece en la comanda con su propio
+nombre, además de los componentes que aparecen con el suyo.
+
 ### Una tabla de componentes producto→producto
 
 `product_components`: producto padre, producto hijo, cantidad. Es la relación que

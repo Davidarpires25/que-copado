@@ -101,6 +101,22 @@ export async function sendToKitchen(orderId: string): Promise<{
       // se entregan juntos: sin eso, cocina prepara bien y en el mostrador nadie
       // sabe que esa hamburguesa va con una bebida.
       if (product?.product_type === 'combo') {
+        // Con estacion propia, el combo tambien va a cocina con su nombre: eso
+        // quiere decir que arma algo el mismo, con sus recetas —el envase, la
+        // preparacion que solo existe dentro del combo—.
+        const estacionDelCombo = product.station as Station | null
+        if (estacionDelCombo) {
+          if (!grouped.has(estacionDelCombo)) grouped.set(estacionDelCombo, [])
+          grouped.get(estacionDelCombo)!.push({
+            id: item.id,
+            product_name: item.product_name,
+            quantity: item.quantity,
+            notes: item.notes ?? null,
+            sale_tag: saleTag,
+            station: estacionDelCombo,
+          })
+        }
+
         const componentes = componentesPorCombo.get(item.product_id ?? '') ?? []
         for (const comp of componentes) {
           if (comp.esReventa || !comp.station) continue

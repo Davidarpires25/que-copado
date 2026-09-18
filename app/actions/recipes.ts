@@ -321,21 +321,69 @@ export async function recalcularCostoDeCombo(supabase: SupabaseClient, comboId: 
     .select('quantity, products:component_id (cost)')
     .eq('parent_id', comboId)
 
-  if (!componentes || componentes.length === 0) {
-    await supabase.from('products').update({ cost: null }).eq('id', comboId)
-    return
-  }
-
+  // El costo de sus componentes: productos terminados, con su costo ya hecho.
   let total = 0
-  for (const c of componentes) {
+  for (const c of componentes ?? []) {
     const prod = c.products as unknown as { cost: number | null } | null
     total += Number(prod?.cost ?? 0) * Number(c.quantity ?? 1)
   }
 
+  // Mas el de sus recetas propias: el envase y la preparacion que solo existe
+  // dentro del combo. Sin esto, la caja y los palillos salen gratis y el margen
+  // de la promo miente para arriba.
+  total += await _costoDeRecetasDe(supabase, comboId)
+
+  const tieneAlgo = (componentes?.length ?? 0) > 0 || total > 0
+
   await supabase
     .from('products')
-    .update({ cost: Math.round(total * 100) / 100 })
+    .update({ cost: tieneAlgo ? Math.round(total * 100) / 100 : null })
     .eq('id', comboId)
+}
+
+/** Lo que cuestan los ingredientes de las recetas de un producto. */
+async function _costoDeRecetasDe(supabase: SupabaseClient, productId: string): Promise<number> {
+  const { data: productRecipes } = await supabase
+    .from('product_recipes')
+    .select(`
+      quantity,
+      recipes (
+        recipe_ingredients (
+          quantity,
+          unit,
+          ingredients ( unit, cost_per_unit, waste_percentage )
+        )
+      )
+    `)
+    .eq('product_id', productId)
+
+  if (!productRecipes?.length) return 0
+
+  let total = 0
+  for (const pr of productRecipes) {
+    const recipe = pr.recipes as unknown as {
+      recipe_ingredients: Array<{
+        quantity: number
+        unit: string | null
+        ingredients: { unit: string; cost_per_unit: number; waste_percentage: number } | null
+      }>
+    } | null
+    if (!recipe?.recipe_ingredients) continue
+
+    let costoReceta = 0
+    for (const ri of recipe.recipe_ingredients) {
+      if (!ri.ingredients) continue
+      const unidad = ri.unit ?? ri.ingredients.unit
+      const enBase = convertToBaseUnit(ri.quantity, unidad)
+      const merma = ri.ingredients.waste_percentage ?? 0
+      const factor = 1 - merma / 100
+      const cantidadReal = factor > 0 ? enBase / factor : enBase
+      costoReceta += cantidadReal * ri.ingredients.cost_per_unit
+    }
+    total += costoReceta * (pr.quantity ?? 1)
+  }
+
+  return total
 }
 
 /** Actualiza el costo de los combos que incluyen un producto dado. */

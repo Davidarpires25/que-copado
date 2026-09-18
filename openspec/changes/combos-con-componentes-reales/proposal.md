@@ -28,13 +28,21 @@ podía hacer.
 
 ## What Changes
 
-- **Un tipo de producto nuevo, `combo`**, que no tiene stock ni receta propia:
-  tiene componentes.
+- **Un tipo de producto nuevo, `combo`**, que no tiene stock propio y se arma con
+  dos cosas: **sus propias recetas** —el envase y lo que se prepara solo para el
+  combo— y **componentes**, que son productos del catálogo.
 - **Un componente puede ser un producto de reventa o uno elaborado.** La coca es
   el mismo producto que se vende suelto, así que descuenta del mismo stock; la
   hamburguesa dispara su receta como siempre.
-- **El costo del combo se calcula** sumando el costo de sus componentes, así el
-  margen de la promo deja de ser una estimación.
+- **Las recetas del combo cubren lo que no es un producto.** Los combos actuales
+  consumen `Caja de patty`, `Palillo` y `4 vaso y plato de plástico`: envases que
+  no pertenecen a ningún componente sino al combo. Y usan preparaciones propias
+  —`Pan de Promo de burguer`— que no son las del producto que se vende suelto.
+  Forzar todo eso a ser un producto del catálogo obligaría a inventar ítems que
+  nadie vende.
+- **El costo del combo se calcula** sumando los ingredientes de sus recetas más
+  el costo de sus componentes, así el margen de la promo deja de ser una
+  estimación.
 - **El ticket muestra una sola línea**: el nombre del combo y su precio. Lo que
   compró el cliente es el combo. La comanda, en cambio, se arma por componente:
   la hamburguesa va a cocina, la bebida al despacho, cada una a su estación.
@@ -62,7 +70,9 @@ y va a ver los combos como un producto más con su precio —que es lo correcto�
 pero conviene avisar del tipo nuevo por si ramifica por `product_type`.
 
 **Base:** una tabla de componentes (producto padre → producto hijo, con cantidad)
-y una fila nueva en `product_types`. Migración de datos para los tres combos.
+y una fila nueva en `product_types`. Las recetas del combo usan `product_recipes`,
+que ya existe y ya liga un producto a N recetas: no hace falta nada nuevo.
+Migración de datos para los tres combos.
 
 **Código:**
 
@@ -87,3 +97,6 @@ precio: se vende como cualquier otro.
 - **Precios promocionales por fecha o por horario.** El combo tiene un precio,
   como cualquier producto.
 - **Combos dentro de combos.** Un componente es un producto simple.
+- **Separar el envase del resto de la receta.** Los envases hoy conviven con los
+  ingredientes en la misma receta y así se quedan; distinguirlos es otra
+  conversación, sobre costos y no sobre combos.

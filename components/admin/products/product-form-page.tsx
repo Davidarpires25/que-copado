@@ -184,7 +184,7 @@ export function ProductFormPage({
             }
           }
 
-          if (result.product && productType === 'elaborado' && selectedRecipes.length > 0) {
+          if (result.product && (productType === 'elaborado' || productType === 'combo') && selectedRecipes.length > 0) {
             const recipeResult = await setProductRecipes(result.product.id, selectedRecipes)
             if (recipeResult.error) {
               toast.error('Producto creado pero hubo un error con las recetas: ' + recipeResult.error)
@@ -246,7 +246,7 @@ export function ProductFormPage({
                 disabled={
                   isPending ||
                   (productType === 'elaborado' && selectedRecipes.length === 0) ||
-                  (productType === 'combo' && selectedComponents.length === 0) ||
+                  (productType === 'combo' && selectedComponents.length === 0 && selectedRecipes.length === 0) ||
                   (productType === 'mitad' && halfPricingMethod === 'cost_markup' && (!halfMarkupPct || isNaN(parseFloat(halfMarkupPct))))
                 }
                 className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -361,13 +361,29 @@ export function ProductFormPage({
                   </div>
                 </div>
 
-                {/* Componentes (combo) */}
+                {/* Combo: lo que prepara el mismo, y lo que incluye */}
                 {productType === 'combo' && (
-                  <ComponentSelector
-                    candidates={componentCandidates}
-                    selected={selectedComponents}
-                    onChange={setSelectedComponents}
-                  />
+                  <>
+                    <div className="space-y-1.5">
+                      <RecipeSelector
+                        recipes={recipes}
+                        selectedRecipes={selectedRecipes}
+                        onChange={setSelectedRecipes}
+                      />
+                      <p className="text-xs text-[var(--admin-text-muted)]">
+                        Lo que se prepara o se consume por ser este combo: el envase y la
+                        preparación que no coincide con ningún producto suelto. Opcional.
+                      </p>
+                    </div>
+
+                    <div className="h-px bg-[var(--admin-border)]" />
+
+                    <ComponentSelector
+                      candidates={componentCandidates}
+                      selected={selectedComponents}
+                      onChange={setSelectedComponents}
+                    />
+                  </>
                 )}
 
                 {/* Recipe selector (elaborado only) */}

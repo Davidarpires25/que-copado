@@ -1,6 +1,11 @@
 # Tasks
 
-> Todo en `que-copado`. `AgentePOS` solo recibe un aviso (tarea 6.2).
+> Todo en `que-copado`.
+>
+> **Revisado a mitad de camino:** el primer modelo hacía que un combo fuera solo
+> componentes. Los combos reales consumen envases y preparaciones propias que no
+> son productos del catálogo, así que el combo pasa a tener también sus recetas.
+> Las tareas 2.0, 3.4, 4.4 y 4.5 son las que agrega esa corrección. `AgentePOS` solo recibe un aviso (tarea 6.2).
 >
 > Se verifica contra la base local (`npm run db:start`). **La migración de datos
 > de la sección 5 toca producción y va última**, después de que todo lo demás
@@ -22,6 +27,13 @@
 
 ## 2. Vender un combo descuenta lo correcto
 
+- [x] 2.0 El descuento de un combo suma **sus recetas propias y sus
+      componentes**, no una cosa o la otra. Verificación: un combo con receta
+      propia —con un envase adentro— y un componente de reventa descuenta el
+      envase y la bebida en la misma venta. **Verificado:** un combo con receta
+      propia (Caja de combo) más componentes (hamburguesa + gaseosa) descontó las
+      tres cosas: caja 100→99, medallón 40→39, gaseosa 24→23.
+
 - [x] 2.1 En `lib/server/stock-deduction.ts`, expandir los combos a sus
       componentes antes de armar la lista de movimientos, reusando las ramas de
       reventa y elaborado. Verificación: en local, vender un combo de
@@ -37,12 +49,15 @@
       transacción revertida: 4 movimientos revertidos y todo vuelve a 40/40/3/24.
       La reversa trabaja sobre los movimientos escritos, así que no necesita
       saber de combos.
-- [x] 2.4 Un combo sin componentes no se puede vender. **Verificado:** un combo
+- [x] 2.4 Un combo sin recetas ni componentes no se puede vender. **Verificado:** un combo
       sin componentes queda marcado agotado por el barrido de disponibilidad
       (`agotado=true auto=true`), y el formulario no deja guardarlo vacío.
 
 ## 3. Cocina y ticket
 
+- [x] 3.4 Un combo con receta propia y estación aparece en la comanda de esa
+      estación con su propio nombre, además de sus componentes. **Verificado:**
+      `[cocina] COMBO MIXTO` y `[cocina] Hamburguesa simple · COMBO MIXTO`.
 - [x] 3.1 `sendToKitchen` arma la comanda desde los componentes del combo, cada
       uno a su estación, omitiendo los que no van a cocina. Verificación: en
       local, enviar un combo y ver la hamburguesa en la comanda de cocina y la
@@ -56,6 +71,12 @@
 
 ## 4. Configurar y costear
 
+- [x] 4.5 En el alta y edición de un combo conviven las dos secciones: las
+      recetas propias —lo que se prepara y el envase— y los componentes. Ninguna
+      obligatoria por separado; una de las dos, sí. Verificación: armar en local
+      un combo con receta y componente, y ver los dos guardados. **Hecho:** el
+      formulario de un combo muestra las dos secciones y guarda las dos; alcanza
+      con una de ellas para poder guardar.
 - [x] 4.1 En el alta y edición de producto, cuando el tipo es `combo`, se cargan
       componentes en vez de recetas: buscar un producto, agregarlo con su
       cantidad, quitarlo. **Verificado en navegador:** se creó "COMBO DESDE LA
@@ -69,8 +90,10 @@
 - [x] 4.4 Extender el recálculo de costos para que una compra que cambia el costo
       de un componente actualice también los combos que lo contienen.
       Verificación: registrar una compra que cambie el costo de la bebida y ver
-      el costo del combo actualizado. **Verificado:** compra con costo 2400 del
-      medallón → hamburguesa 2000→3228,95 → combo 5028,95, solo.
+      el costo del combo actualizado. **Verificado para componentes:** compra con
+      costo 2400 del medallón → hamburguesa 2000→3228,95 → combo 5028,95, solo.
+      **Hecho:** el costo suma ahora los ingredientes de las recetas propias más
+      el costo de los componentes.
 
 ## 5. Migrar lo que ya existe (producción, al final)
 

@@ -190,7 +190,9 @@ export function ComponentSelector({ candidates, selected, onChange }: ComponentS
 
       {selected.length === 0 ? (
         <p className="text-xs text-amber-700 dark:text-amber-400/80 text-center py-1">
-          Un combo necesita al menos un componente: sin eso no se puede vender.
+          Sin componentes, el combo solo descuenta sus recetas. Si además entrega
+          un producto terminado —una bebida, por ejemplo— agregalo acá para que
+          salga del mismo stock que si se vendiera suelto.
         </p>
       ) : (
         <div className="flex items-start gap-2 rounded-lg bg-blue-500/10 border border-blue-500/20 px-3 py-2.5">

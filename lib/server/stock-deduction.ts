@@ -667,6 +667,16 @@ async function acumularProducto(
     // esta igual: un ciclo en la base no puede colgar un cobro.
     if (profundidad > 2) return
 
+    // Un combo descuenta DOS cosas, no una.
+    //
+    // Sus recetas propias: el envase —caja, palillos, vasos— y la preparacion
+    // que solo existe dentro del combo, como el pan especifico de la promo. Eso
+    // no pertenece a ningun componente y no es un producto del catalogo.
+    await collectElaboradoStock(supabase, product.id, cantidad, pendientes)
+
+    // Y sus componentes, que son productos terminados y descuentan del mismo
+    // stock que si se vendieran sueltos. Ahi va la bebida.
+
     const { data: componentes, error } = await supabase
       .from('product_components')
       .select('quantity, products:component_id (id, product_type, stock_tracking_enabled)')

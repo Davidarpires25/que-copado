@@ -11,14 +11,22 @@ para el inventario. Esa diferencia es la que ordena todo lo que sigue.
 
 ## ADDED Requirements
 
-### Requirement: Un combo se arma con productos que ya existen
+### Requirement: Un combo se arma con recetas propias y con productos que ya existen
 
-Un combo SHALL definirse como una lista de componentes, donde cada componente es
-un producto del catálogo con una cantidad. Un combo SHALL NOT tener receta ni
-stock propio.
+Un combo SHALL poder definirse con dos partes, cualquiera de ellas vacía pero no
+las dos:
 
-Un componente puede ser un producto de reventa o uno elaborado, y SHALL ser el
-mismo producto que se vende suelto: no una copia con otro nombre.
+- **sus propias recetas**, para lo que se consume por ser ese combo: el envase, y
+  la preparación específica que no coincide con ningún producto suelto;
+- **componentes**, cada uno un producto del catálogo con una cantidad.
+
+Un componente SHALL ser el mismo producto que se vende suelto, no una copia con
+otro nombre. Un combo SHALL NOT tener stock propio.
+
+Las dos partes hacen falta y se ve en los combos que ya existen: consumen
+`Caja de patty`, `Palillo` y `4 vaso y plato de plástico` —envases que no son de
+ningún componente sino del combo— y usan preparaciones propias como
+`Pan de Promo de burguer`, distinta del pan del producto que se vende solo.
 
 #### Scenario: Se arma un combo
 
@@ -33,9 +41,9 @@ mismo producto que se vende suelto: no una copia con otro nombre.
 - **THEN** no se le puede seguir stock ni definir un mínimo
 - **AND** su disponibilidad depende de la de sus componentes
 
-#### Scenario: Un combo sin componentes no se puede vender
+#### Scenario: Un combo vacío no se puede vender
 
-- **WHEN** un combo no tiene ningún componente
+- **WHEN** un combo no tiene ni recetas ni componentes
 - **THEN** no puede confirmarse una venta que lo incluya
 - **AND** quien configura ve que está incompleto
 
@@ -62,6 +70,13 @@ que ninguno de los dos dice cuántas botellas quedan.
 - **THEN** se descuentan los ingredientes de su receta, con sus mermas y
   sub-recetas, igual que si se vendiera la hamburguesa sola
 
+#### Scenario: El combo tiene recetas propias
+
+- **WHEN** se vende un combo con recetas propias
+- **THEN** se descuentan también los ingredientes de esas recetas —envases
+  incluidos— con sus mermas y sub-recetas
+- **AND** eso ocurre además de lo que descuenten sus componentes
+
 #### Scenario: Se venden varios combos
 
 - **WHEN** se venden tres combos de una vez
@@ -72,10 +87,11 @@ que ninguno de los dos dice cuántas botellas quedan.
 - **WHEN** se cancela un pedido que incluía combos
 - **THEN** se devuelve lo descontado por cada componente
 
-### Requirement: El costo del combo es la suma de sus componentes
+### Requirement: El costo del combo suma sus recetas y sus componentes
 
-El costo de un combo SHALL calcularse sumando el costo de cada componente por su
-cantidad, y SHALL recalcularse cuando cambie el costo de cualquiera de ellos.
+El costo de un combo SHALL calcularse sumando los ingredientes de sus recetas
+propias más el costo de cada componente por su cantidad, y SHALL recalcularse
+cuando cambie el costo de cualquiera de ellos.
 
 #### Scenario: Cambia el precio de compra de un componente
 
@@ -103,6 +119,11 @@ su propio documento, donde los componentes sí aparecen.
 Las comandas SHALL armarse a partir de los componentes del combo y SHALL
 respetar la estación de cada uno. Un componente que no va a cocina SHALL NOT
 generar comanda.
+
+#### Scenario: El combo se prepara él mismo
+
+- **WHEN** un combo tiene recetas propias y una estación asignada
+- **THEN** el combo aparece con su nombre en la comanda de esa estación
 
 #### Scenario: Un combo con preparación y bebida
 
