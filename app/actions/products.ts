@@ -109,6 +109,8 @@ export async function updateProduct(productId: string, data: {
   station?: string | null
   is_active?: boolean
   is_out_of_stock?: boolean
+  auto_disabled?: boolean
+  forzado_disponible?: boolean
   // half pizza config fields (handled separately, not sent to products table)
   half_source_category_id?: string | null
   half_pricing_method?: string
@@ -220,8 +222,23 @@ export async function deleteProduct(productId: string) {
   return { success: true }
 }
 
+/**
+ * Marca un producto como disponible o agotado desde la pantalla de productos.
+ *
+ * Escribe las tres marcas juntas, igual que `toggleElaboradoAvailability`.
+ * Antes solo escribia `is_out_of_stock`, y eso dejaba el producto con
+ * `auto_disabled` en true y `is_out_of_stock` en false: una combinacion que el
+ * barrido no produce nunca, porque siempre escribe las dos juntas.
+ *
+ * Que una persona lo marque disponible ahora aguanta: el barrido no lo apaga
+ * mientras `forzado_disponible` este puesto.
+ */
 export async function toggleProductStock(productId: string, isOutOfStock: boolean) {
-  return updateProduct(productId, { is_out_of_stock: isOutOfStock })
+  return updateProduct(productId, {
+    is_out_of_stock: isOutOfStock,
+    auto_disabled: false,
+    forzado_disponible: !isOutOfStock,
+  })
 }
 
 export async function toggleProductActive(productId: string, isActive: boolean) {

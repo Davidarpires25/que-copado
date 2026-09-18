@@ -2,12 +2,12 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
-import { revalidateStock, revalidateProducts, revalidateStorefront } from '@/lib/server/revalidate'
+import { revalidateStock, revalidateStorefront } from '@/lib/server/revalidate'
 import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
 import { escalarComponente } from '@/lib/server/sub-recipes'
 import { devError } from '@/lib/server/error-messages'
 import { recalculateProductsForIngredient } from './recipes'
-import { syncAvailability, calcularStockTeorico } from '@/lib/server/stock-deduction'
+import { syncAvailability, calcularStockTeorico, syncReventaProduct } from '@/lib/server/stock-deduction'
 import type {
   StockMovementFilters,
   StockAdjustmentData,
@@ -505,7 +505,7 @@ export async function adjustStock(
   if (data.type === 'product') {
     // Reventa: sync this product's is_out_of_stock flag directly
     try {
-      await _syncReventaProduct(supabase, data.id, newStock)
+      await syncReventaProduct(supabase, data.id, newStock)
     } catch { /* best effort */ }
   } else {
     // Ingredient: re-evaluate all elaborado products that depend on it
@@ -679,7 +679,7 @@ export async function setInitialStock(
   // Sync availability for reventa products (best-effort)
   if (type === 'product') {
     try {
-      await _syncReventaProduct(supabase, id, quantity)
+      await syncReventaProduct(supabase, id, quantity)
     } catch { /* best effort */ }
   }
 
@@ -829,9 +829,16 @@ export async function syncElaboradoAvailabilityAction(): Promise<{ data: boolean
  */
 
 /**
- * Toggles is_out_of_stock for an elaborado product.
- * When re-enabling manually, clears auto_disabled flag so the system
- * won't auto-restore over an admin's manual decision.
+ * Marca un producto elaborado como disponible o agotado, a mano.
+ *
+ * Marcarlo disponible deja escrito que lo decidio una persona
+ * —`forzado_disponible`—, y eso es lo que impide que el barrido se lo vuelva a
+ * apagar al siguiente movimiento de stock. Marcarlo agotado suelta las dos
+ * marcas: vuelve a ser una decision del sistema.
+ *
+ * Es la misma escritura que hace `toggleProductStock` desde la pantalla de
+ * productos. Estaban separadas y no hacian lo mismo: aquella no limpiaba
+ * `auto_disabled`, y dejaba el producto en un estado que el barrido no produce.
  */
 export async function toggleElaboradoAvailability(
   productId: string,
@@ -845,7 +852,11 @@ export async function toggleElaboradoAvailability(
 
   const { error } = await supabase
     .from('products')
-    .update({ is_out_of_stock: isOutOfStock, auto_disabled: false })
+    .update({
+      is_out_of_stock: isOutOfStock,
+      auto_disabled: false,
+      forzado_disponible: !isOutOfStock,
+    })
     .eq('id', productId)
 
   if (error) return devError(error)
@@ -971,41 +982,11 @@ function _collectReqsInMemory(
 // Internal helpers (not exported)
 // ---------------------------------------------------------------------------
 
-type SupabaseAdminClient = Awaited<ReturnType<typeof createAdminClient>>
 
 /**
  * Auto-disables a reventa product when its stock reaches 0.
  * Restores it when stock recovers (ONLY if auto_disabled=true).
  */
-async function _syncReventaProduct(
-  supabase: SupabaseAdminClient,
-  productId: string,
-  newStock: number
-): Promise<void> {
-  const { data: product } = await supabase
-    .from('products')
-    .select('is_out_of_stock, auto_disabled')
-    .eq('id', productId)
-    .single()
-
-  if (!product) return
-
-  if (newStock <= 0 && !product.is_out_of_stock) {
-    await supabase
-      .from('products')
-      .update({ is_out_of_stock: true, auto_disabled: true })
-      .eq('id', productId)
-    revalidateProducts()
-    revalidateStorefront()
-  } else if (newStock > 0 && product.is_out_of_stock && product.auto_disabled) {
-    await supabase
-      .from('products')
-      .update({ is_out_of_stock: false, auto_disabled: false })
-      .eq('id', productId)
-    revalidateProducts()
-    revalidateStorefront()
-  }
-}
 
 
 

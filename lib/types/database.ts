@@ -144,6 +144,8 @@ export interface Database {
           min_stock: number | null
           stock_tracking_enabled: boolean
           auto_disabled: boolean
+          /** Una persona lo marco disponible a pesar del stock: el barrido no lo apaga. */
+          forzado_disponible: boolean
           station: string | null
           created_at: string
         }
@@ -162,6 +164,7 @@ export interface Database {
           min_stock?: number | null
           stock_tracking_enabled?: boolean
           auto_disabled?: boolean
+          forzado_disponible?: boolean
           station?: string | null
           created_at?: string
         }
@@ -180,6 +183,7 @@ export interface Database {
           min_stock?: number | null
           stock_tracking_enabled?: boolean
           auto_disabled?: boolean
+          forzado_disponible?: boolean
           station?: string | null
           created_at?: string
         }

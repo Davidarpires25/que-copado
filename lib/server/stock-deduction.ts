@@ -144,7 +144,7 @@ export async function deductStockForOrder(
         .select('current_stock')
         .eq('id', mov.id)
         .single()
-      if (prod) await _syncReventaProduct(supabase, mov.id, Number(prod.current_stock))
+      if (prod) await syncReventaProduct(supabase, mov.id, Number(prod.current_stock))
     } catch { /* nunca bloquea la venta */ }
   }
 
@@ -311,37 +311,80 @@ async function collectIngredientCascade(
   }
 }
 
-async function _syncReventaProduct(
+
+/**
+ * Que un producto quede visible o no, en un solo lugar.
+ *
+ * Tres reglas, y la tercera es la que faltaba:
+ *
+ * 1. Sin stock y nadie dijo lo contrario: se apaga, marcando que lo apago el
+ *    sistema —`auto_disabled`— para poder volver a encenderlo solo.
+ * 2. Con stock y apagado por el sistema: se enciende.
+ * 3. **Con stock y forzado a mano: se suelta el forzado.** El motivo para
+ *    forzarlo ya no existe, asi que el producto vuelve a seguir al stock sin
+ *    que nadie tenga que acordarse de apagar la excepcion.
+ *
+ * Y lo que cambio: la rama que apaga ahora mira `forzado_disponible`. Antes no
+ * miraba nada, asi que quien atiende prendia una pizza a mano y el barrido se la
+ * volvia a apagar al siguiente movimiento de stock. La receta decia un pote de
+ * salsa por pizza cuando un pote hace tres: el dato mentia, la persona lo sabia,
+ * y el sistema le ganaba igual.
+ *
+ * Devuelve si escribio algo, para que quien llama sepa si hay que revalidar.
+ */
+async function _aplicarDisponibilidad(
+  supabase: SupabaseClient,
+  producto: {
+    id: string
+    is_out_of_stock: boolean
+    auto_disabled: boolean
+    forzado_disponible?: boolean | null
+  },
+  hayStock: boolean
+): Promise<boolean> {
+  const forzado = producto.forzado_disponible === true
+
+  if (!hayStock && !producto.is_out_of_stock && !forzado) {
+    await supabase
+      .from('products')
+      .update({ is_out_of_stock: true, auto_disabled: true })
+      .eq('id', producto.id)
+    return true
+  }
+
+  if (hayStock && producto.is_out_of_stock && producto.auto_disabled) {
+    await supabase
+      .from('products')
+      .update({ is_out_of_stock: false, auto_disabled: false, forzado_disponible: false })
+      .eq('id', producto.id)
+    return true
+  }
+
+  if (hayStock && forzado) {
+    await supabase
+      .from('products')
+      .update({ forzado_disponible: false })
+      .eq('id', producto.id)
+    return true
+  }
+
+  return false
+}
+
+export async function syncReventaProduct(
   supabase: SupabaseClient,
   productId: string,
   newStock: number
 ): Promise<void> {
   const { data: product } = await supabase
     .from('products')
-    .select('is_out_of_stock, auto_disabled')
+    .select('id, is_out_of_stock, auto_disabled, forzado_disponible')
     .eq('id', productId)
     .single()
 
   if (!product) return
 
-  if (newStock <= 0 && !product.is_out_of_stock) {
-    await supabase
-      .from('products')
-      .update({ is_out_of_stock: true, auto_disabled: true })
-      .eq('id', productId)
-    // Defer revalidation to avoid calling revalidatePath during render
-    setTimeout(() => {
-      try {
-        revalidateProducts()
-      } catch (err) {
-        if (process.env.NODE_ENV === 'development') console.error('[Stock] defer revalidateProducts error:', err)
-      }
-    }, 0)
-  } else if (newStock > 0 && product.is_out_of_stock && product.auto_disabled) {
-    await supabase
-      .from('products')
-      .update({ is_out_of_stock: false, auto_disabled: false })
-      .eq('id', productId)
+  if (await _aplicarDisponibilidad(supabase, product, newStock > 0)) {
     // Defer revalidation to avoid calling revalidatePath during render
     setTimeout(() => {
       try {
@@ -378,7 +421,7 @@ async function _syncReventaProduct(
 export async function syncCombosAvailability(supabase: SupabaseClient): Promise<boolean> {
   const { data: combos } = await supabase
     .from('products')
-    .select('id, is_out_of_stock, auto_disabled, product_components!parent_id (component_id, products:component_id (is_out_of_stock, is_active))')
+    .select('id, is_out_of_stock, auto_disabled, forzado_disponible, product_components!parent_id (component_id, products:component_id (is_out_of_stock, is_active))')
     .eq('product_type', 'combo')
     .eq('is_active', true)
 
@@ -403,17 +446,7 @@ export async function syncCombosAvailability(supabase: SupabaseClient): Promise<
     const faltaLoPropio = stockPropio !== null && stockPropio <= 0
     const deberiaEstarAgotado = sinNada || algunoNoDisponible || faltaLoPropio
 
-    if (deberiaEstarAgotado && !combo.is_out_of_stock) {
-      await supabase
-        .from('products')
-        .update({ is_out_of_stock: true, auto_disabled: true })
-        .eq('id', combo.id)
-      cambio = true
-    } else if (!deberiaEstarAgotado && combo.is_out_of_stock && combo.auto_disabled) {
-      await supabase
-        .from('products')
-        .update({ is_out_of_stock: false, auto_disabled: false })
-        .eq('id', combo.id)
+    if (await _aplicarDisponibilidad(supabase, combo, !deberiaEstarAgotado)) {
       cambio = true
     }
   }
@@ -440,7 +473,7 @@ export async function syncAvailability(supabase: SupabaseClient): Promise<void> 
 async function syncElaboradoAvailability(supabase: SupabaseClient): Promise<void> {
   const { data: products, error: prodError } = await supabase
     .from('products')
-    .select('id, is_out_of_stock, auto_disabled')
+    .select('id, is_out_of_stock, auto_disabled, forzado_disponible')
     .eq('product_type', 'elaborado')
     .eq('is_active', true)
 
@@ -453,21 +486,11 @@ async function syncElaboradoAvailability(supabase: SupabaseClient): Promise<void
       const theoreticalStock = await _calcTheoreticalStock(supabase, product.id)
       if (theoreticalStock === null) continue
 
-      // Menor o igual, no igual: preguntar por el cero exacto funciona mientras
-      // nada lo cruce de un salto, y un pedido de 40 unidades con 1 en stock lo
-      // cruza. Con el stock en -39 el producto no entraba en esta rama y se
-      // seguia ofreciendo. La rama de reventa, mas abajo, ya preguntaba asi.
-      if (theoreticalStock <= 0 && !product.is_out_of_stock) {
-        await supabase
-          .from('products')
-          .update({ is_out_of_stock: true, auto_disabled: true })
-          .eq('id', product.id)
-        anyChanged = true
-      } else if (theoreticalStock > 0 && product.is_out_of_stock && product.auto_disabled) {
-        await supabase
-          .from('products')
-          .update({ is_out_of_stock: false, auto_disabled: false })
-          .eq('id', product.id)
+      // Mayor a cero, no distinto de cero: preguntar por el cero exacto
+      // funciona mientras nada lo cruce de un salto, y un pedido de 40 unidades
+      // con 1 en stock lo cruza. Con el stock en -39 el producto no entraba en
+      // esta rama y se seguia ofreciendo.
+      if (await _aplicarDisponibilidad(supabase, product, theoreticalStock > 0)) {
         anyChanged = true
       }
     } catch (err) {
