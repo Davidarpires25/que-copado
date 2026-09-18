@@ -593,6 +593,20 @@ export async function adjustStock(
  * - Records a stock_movement with type 'purchase'
  * - Optionally updates the ingredient cost_per_unit
  */
+/**
+ * Registra una compra: suma stock, actualiza costos y deja el historial.
+ *
+ * Todo en una sola llamada. Antes recorria las lineas haciendo tres viajes por
+ * cada una --leer, actualizar, insertar el movimiento-- y ademas no era
+ * atomica: si la linea 5 de 10 fallaba, las cuatro primeras quedaban aplicadas
+ * y no habia forma de saber cual mitad habia entrado. Peor, si fallaba el
+ * insert del movimiento el stock ya habia cambiado y el error moria en un
+ * console.error de desarrollo: el stock quedaba alto y el historial no lo
+ * explicaba.
+ *
+ * Ese historial es lo que permitio reconstruir hoy cuanto morron se habia usado
+ * de verdad. Un movimiento que falta es un numero que despues nadie recupera.
+ */
 export async function registerPurchase(
   data: StockPurchaseData
 ): Promise<{ data: boolean | null; error: string | null }> {
@@ -610,65 +624,27 @@ export async function registerPurchase(
     }
   }
 
-  // Process each item
-  for (const item of data.items) {
-    // Read current stock
-    const { data: ingredient, error: readError } = await supabase
-      .from('ingredients')
-      .select('id, current_stock, stock_tracking_enabled')
-      .eq('id', item.ingredient_id)
-      .single()
+  const { data: resultado, error } = await supabase.rpc('registrar_compra_de_stock', {
+    p_items: data.items.map((item) => ({
+      id: item.ingredient_id,
+      cantidad: item.quantity,
+      costo: item.cost_per_unit ?? null,
+    })),
+    p_motivo: data.reason?.trim() || null,
+  })
 
-    if (readError) return devError(readError)
-    if (!ingredient) return { data: null, error: `Ingrediente ${item.ingredient_id} no encontrado` }
+  if (error) return devError(error)
 
-    const previousStock = Number(ingredient.current_stock)
-    const newStock = previousStock + item.quantity
-
-    // Build update payload
-    const updatePayload: Record<string, unknown> = {
-      current_stock: newStock,
-    }
-    if (item.cost_per_unit !== undefined) {
-      updatePayload.cost_per_unit = item.cost_per_unit
-    }
-
-    // Update ingredient stock (and optionally cost)
-    const { error: updateError } = await supabase
-      .from('ingredients')
-      .update(updatePayload)
-      .eq('id', item.ingredient_id)
-
-    if (updateError) return devError(updateError)
-
-    // Insert stock movement
-    const { error: movementError } = await supabase
-      .from('stock_movements')
-      .insert({
-        ingredient_id: item.ingredient_id,
-        movement_type: 'purchase',
-        quantity: item.quantity,
-        previous_stock: previousStock,
-        new_stock: newStock,
-        reason: data.reason?.trim() || 'Compra de mercaderia',
-        reference_type: 'purchase',
-        created_by: user.id,
-      })
-
-    if (movementError) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[Stock] Failed to record purchase movement:', movementError.message)
-      }
-    }
-
-    if (item.cost_per_unit !== undefined) {
-      try {
-        await recalculateProductsForIngredient(supabase, item.ingredient_id)
-      } catch { /* best effort */ }
-    }
+  // Solo los insumos a los que les cambio el costo obligan a recalcular los
+  // productos que los usan. Set porque el mismo insumo puede venir dos veces.
+  const cambiaronCosto = [...new Set((resultado?.cambiaron_costo ?? []) as string[])]
+  for (const ingredientId of cambiaronCosto) {
+    try {
+      await recalculateProductsForIngredient(supabase, ingredientId)
+    } catch { /* best effort: el costo se puede recalcular despues, la compra ya entro */ }
   }
 
-  // Ingredient stock increased: re-evaluate elaborado product availability (best-effort)
+  // Entro stock: puede haber productos que vuelvan a estar disponibles.
   try {
     await syncAvailability(supabase)
   } catch { /* best effort */ }
