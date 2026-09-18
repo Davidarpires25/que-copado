@@ -1,5 +1,37 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
+import { createServiceRoleClient } from '@/lib/supabase/admin'
+import { devError } from '@/lib/server/logger'
+
+/**
+ * El cliente con el que se leen recetas e insumos.
+ *
+ * Toda esta cuenta corria con la clave `anon` —`createAdminClient()` la usa,
+ * pese al nombre— e `ingredients` solo tiene policy de lectura para
+ * `authenticated`. PostgREST devolvia el ingrediente en `null`, la cuenta
+ * salteaba cada uno y terminaba en "sin tope", siempre. El sistema sabia
+ * cuantas hamburguesas podia hacer y aceptaba pedidos de cincuenta.
+ *
+ * El cliente elevado se pide aca adentro y no sale de este archivo. Lo que hay
+ * alrededor es lectura de tres tablas y un numero de vuelta: no escribe nada y
+ * no le presta el cliente a nadie. La alternativa —una funcion `security
+ * definer`— obligaba a escribir la cuenta por segunda vez en SQL, con sus
+ * conversiones de unidad y sus mermas, y este proyecto ya pago dos veces el
+ * precio de tener la misma cuenta escrita dos veces.
+ *
+ * Sin la clave configurada usa el que le pasaron, que es lo que hacia hasta
+ * ahora: se degrada a no aplicar el tope, no a cortar la venta. Un pedido
+ * rechazado por una variable de entorno mal puesta es peor que uno que entra
+ * sin techo.
+ */
+function clienteQueLeeInsumos(respaldo: SupabaseClient): SupabaseClient {
+  try {
+    return createServiceRoleClient()
+  } catch (err) {
+    devError('[stock] sin service role el tope de produccion no se aplica', err)
+    return respaldo
+  }
+}
 
 /**
  * Calcula cuántas unidades de un producto elaborado se pueden producir
@@ -16,7 +48,7 @@ export async function getMaxElaboradoQuantity(
   supabase: SupabaseClient,
   productId: string
 ): Promise<number | null> {
-  const { data: productRecipes } = await supabase
+  const { data: productRecipes } = await clienteQueLeeInsumos(supabase)
     .from('product_recipes')
     .select(`
       quantity,
@@ -95,7 +127,7 @@ export async function getMaxComboQuantity(
   // calculan con la misma cuenta.
   let tope = await getMaxElaboradoQuantity(supabase, productId)
 
-  const { data: componentes } = await supabase
+  const { data: componentes } = await clienteQueLeeInsumos(supabase)
     .from('product_components')
     .select('quantity, products:component_id (id, product_type, current_stock, stock_tracking_enabled)')
     .eq('parent_id', productId)
