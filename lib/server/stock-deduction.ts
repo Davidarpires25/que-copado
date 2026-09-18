@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
+import { convertToBaseUnit, convertFromBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
 import { escalarComponente } from '@/lib/server/sub-recipes'
 import { revalidateProducts } from '@/lib/server/revalidate'
 
@@ -307,7 +307,16 @@ async function collectIngredientCascade(
   }
 
   if (ingredient.stock_tracking_enabled) {
-    acumular(pendientes, { tipo: 'ingredient', id: ingredient.id, cantidad: actualQty })
+    // De vuelta a la unidad en que esta guardado el stock. `actualQty` viene en
+    // unidad base para poder comparar entre recetas, pero lo que se descuenta
+    // se resta a `ingredients.current_stock`, que esta en la unidad del insumo.
+    // Sin esta vuelta, una receta de 30 g descontaba 0,03 de un stock en
+    // gramos: mil veces menos de lo que se usa.
+    acumular(pendientes, {
+      tipo: 'ingredient',
+      id: ingredient.id,
+      cantidad: convertFromBaseUnit(actualQty, ingredient.unit),
+    })
   }
 }
 
@@ -631,6 +640,29 @@ async function _calcTheoreticalStock(supabase: SupabaseClient, productId: string
 }
 
 /**
+ * Que necesita este producto de cada insumo, con lo que hay.
+ *
+ * Es el mismo recorrido que usa el calculo, devuelto en crudo para poder
+ * mostrarlo. Las cantidades salen en unidad base --kg, litro, unidad-- porque
+ * asi es como se comparan: la receta puede pedir gramos y el insumo estar
+ * cargado en kilos.
+ */
+export async function detalleDeInsumos(
+  supabase: SupabaseClient,
+  productId: string
+): Promise<{ ingredientId: string; necesita: number; hay: number; sigue: boolean }[] | null> {
+  const requirements = await _requerimientos(supabase, productId)
+  if (!requirements) return null
+
+  return [...requirements.entries()].map(([ingredientId, req]) => ({
+    ingredientId,
+    necesita: req.requiredQty,
+    hay: req.currentStock,
+    sigue: req.trackingEnabled,
+  }))
+}
+
+/**
  * Que insumos impiden hacer este producto.
  *
  * Devuelve los ids de los que no alcanzan ni para una unidad. Es lo que hay que
@@ -696,7 +728,13 @@ async function _collectReqs(
     } else {
       requirements.set(ingredientId, {
         requiredQty: actualQty,
-        currentStock: Number(ingredient.current_stock),
+        // El stock tambien va a unidad base. La receta ya se convertia --30 g
+        // pasaban a 0,03 kg-- pero el stock se usaba crudo, asi que 199,88 g se
+        // dividian como si fueran 199,88 kg: para cualquier insumo cargado en
+        // gramos o mililitros el sistema creia que habia mil veces mas. El
+        // morron alcanzaba para 6662 pizzas en vez de 6, o sea que esos insumos
+        // nunca limitaban nada.
+        currentStock: convertToBaseUnit(Number(ingredient.current_stock), ingredient.unit),
         trackingEnabled: ingredient.stock_tracking_enabled,
       })
     }

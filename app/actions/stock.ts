@@ -7,7 +7,7 @@ import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
 import { escalarComponente } from '@/lib/server/sub-recipes'
 import { devError } from '@/lib/server/error-messages'
 import { recalculateProductsForIngredient } from './recipes'
-import { syncAvailability, calcularStockTeorico, syncReventaProduct, insumosQueFaltan } from '@/lib/server/stock-deduction'
+import { syncAvailability, calcularStockTeorico, syncReventaProduct, insumosQueFaltan, detalleDeInsumos } from '@/lib/server/stock-deduction'
 import type {
   StockMovementFilters,
   StockAdjustmentData,
@@ -1040,7 +1040,13 @@ function _collectReqsInMemory(
     } else {
       requirements.set(ingredientId, {
         requiredQty: actualQty,
-        currentStock: Number(ingredient.current_stock),
+        // El stock tambien va a unidad base. La receta ya se convertia --30 g
+        // pasaban a 0,03 kg-- pero el stock se usaba crudo, asi que 199,88 g se
+        // dividian como si fueran 199,88 kg: para cualquier insumo cargado en
+        // gramos o mililitros el sistema creia que habia mil veces mas. El
+        // morron alcanzaba para 6662 pizzas en vez de 6, o sea que esos insumos
+        // nunca limitaban nada.
+        currentStock: convertToBaseUnit(Number(ingredient.current_stock), ingredient.unit),
         trackingEnabled: ingredient.stock_tracking_enabled,
       })
     }
@@ -1426,4 +1432,85 @@ export async function checkStockForItems(
     // Graceful degradation: never block the POS flow
     return { data: [], error: null }
   }
+}
+
+// ---------------------------------------------------------------------------
+// El detalle de insumos de un producto, para la pantalla de alertas
+// ---------------------------------------------------------------------------
+
+/** Una linea del detalle: que pide el producto y que hay. */
+export interface InsumoDelProducto {
+  id: string
+  nombre: string
+  /** La unidad en que se comparan las dos cantidades: kg, litro o unidad. */
+  unidad: string
+  /** Cuanto consume una unidad del producto, con merma incluida. */
+  necesita: number
+  hay: number
+  /** Para cuantas unidades del producto alcanza. `null` si no se le sigue el stock. */
+  alcanzaPara: number | null
+  /** Si es este el que frena al producto. */
+  limita: boolean
+  /** Si se le sigue el stock. Sin seguimiento no limita a nadie. */
+  sigue: boolean
+}
+
+/**
+ * De que depende un producto y cuanto queda de cada cosa.
+ *
+ * Existe porque el sistema escondia un producto y lo unico que ofrecia era un
+ * cartel que decia "no hay ingredientes suficientes" y un link a la misma
+ * pantalla donde ya estabas. Saber cual insumo lo frena obligaba a abrir la
+ * ficha tecnica y comparar a mano contra la tabla de stock.
+ *
+ * Se pide al desplegar una fila y no para toda la tabla: son 16 productos y
+ * cada uno recorre sus recetas y sub-recetas.
+ */
+export async function getInsumosDelProducto(
+  productId: string
+): Promise<{ data: InsumoDelProducto[] | null; error: string | null }> {
+  const supabase = await createAdminClient()
+  const user = await getAuthUser(supabase)
+  if (!user) return { data: null, error: 'No autorizado' }
+
+  const detalle = await detalleDeInsumos(supabase, productId)
+  if (!detalle || detalle.length === 0) return { data: [], error: null }
+
+  const { data: ingredientes } = await supabase
+    .from('ingredients')
+    .select('id, name, unit')
+    .in('id', detalle.map((d) => d.ingredientId))
+
+  const porId = new Map((ingredientes ?? []).map((i) => [i.id, i]))
+
+  const lineas: InsumoDelProducto[] = detalle.map((d) => {
+    const ing = porId.get(d.ingredientId)
+    const alcanzaPara = d.sigue && d.necesita > 0 ? Math.floor(d.hay / d.necesita) : null
+    return {
+      id: d.ingredientId,
+      nombre: ing?.name ?? 'Insumo',
+      unidad: getBaseUnit(ing?.unit ?? 'unidad'),
+      necesita: d.necesita,
+      hay: d.hay,
+      alcanzaPara,
+      limita: false,
+      sigue: d.sigue,
+    }
+  })
+
+  // El que limita es el de menor tope. Puede haber mas de uno empatado, y estan
+  // todos: comprar solo uno no destraba el producto.
+  const topes = lineas.map((l) => l.alcanzaPara).filter((t): t is number => t !== null)
+  if (topes.length > 0) {
+    const minimo = Math.min(...topes)
+    for (const l of lineas) if (l.alcanzaPara === minimo) l.limita = true
+  }
+
+  // Primero lo que falta, despues lo que menos queda.
+  lineas.sort((a, b) => {
+    if (a.limita !== b.limita) return a.limita ? -1 : 1
+    return (a.alcanzaPara ?? Infinity) - (b.alcanzaPara ?? Infinity)
+  })
+
+  return { data: lineas, error: null }
 }

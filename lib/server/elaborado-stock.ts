@@ -93,7 +93,12 @@ export async function getMaxElaboradoQuantity(
       const actualNeededPerUnit = wasteFactor > 0 ? neededPerUnit / wasteFactor : neededPerUnit
       if (actualNeededPerUnit <= 0) continue
 
-      const producible = Math.floor(Number(ingredient.current_stock) / actualNeededPerUnit)
+      // El stock va a unidad base igual que la receta. Se convertia una sola
+      // punta: 30 g de la receta pasaban a 0,03 kg, pero 199,88 g de stock se
+      // dividian como 199,88 kg. Mil veces mas de lo que hay, asi que un insumo
+      // en gramos o mililitros nunca limitaba nada.
+      const stockBase = convertToBaseUnit(Number(ingredient.current_stock), ingredient.unit)
+      const producible = Math.floor(stockBase / actualNeededPerUnit)
       if (maxQty === null || producible < maxQty) maxQty = producible
     }
   }

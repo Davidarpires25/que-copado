@@ -53,3 +53,19 @@ export function convertToBaseUnit(quantity: number, fromUnit: string): number {
   if (factor === undefined) return quantity
   return quantity * factor
 }
+
+/**
+ * Converts a quantity from the base unit of its family back to `toUnit`.
+ * kg -> g: *1000, litro -> ml: *1000, rest: *1
+ *
+ * Es la vuelta de `convertToBaseUnit`, y falto desde el principio. La receta se
+ * convertia a unidad base para poder comparar --30 g pasaban a 0,03 kg-- pero
+ * ese numero se restaba tal cual a un stock guardado en gramos. Cada pizza se
+ * comia 0,03 g de morron en vez de 30: los insumos cargados en gramos o
+ * mililitros practicamente no bajaban nunca.
+ */
+export function convertFromBaseUnit(quantity: number, toUnit: string): number {
+  const factor = TO_BASE_FACTOR[toUnit]
+  if (factor === undefined || factor === 0) return quantity
+  return quantity / factor
+}
