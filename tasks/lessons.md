@@ -299,3 +299,92 @@ rol con el que corre —`createAdminClient()` es anon; el service role es
 contar filas afectadas (`{ count: 'exact' }`) o releer. Y cuando lo que falta es
 leer la fila recién escrita, un RPC `security definer` que devuelva solo lo
 necesario resuelve el permiso y el viaje extra de una vez.
+
+---
+
+## 16. Una conversión aplicada a una sola punta
+
+**Qué pasó (2026-09-18).** David preguntó si estaba bien redondear para abajo:
+el orégano decía `29,997 g`. Redondear estaba bien; ese `,997` no. La receta se
+convertía a unidad base para poder comparar entre recetas —30 g pasaban a
+0,03 kg— y ese número se restaba tal cual a `ingredients.current_stock`, que
+está guardado **en la unidad del insumo**. Faltaba la vuelta. Cada pizza se
+comía 0,03 g de morrón en vez de 30: los insumos cargados en gramos o
+mililitros no bajaban nunca y nunca avisaron que se acababan.
+
+El mismo error por el otro lado en la comparación, y en cuatro cálculos de
+costo. Un insumo cargado en kg con receta en gramos estaba bien, porque la base
+de los dos es el kilo: el bug solo tocaba a los insumos cuya **propia** unidad
+no era la base de su familia, que eran dos de cuarenta y cinco.
+
+**Regla.** Cuando una cuenta normaliza unidades, las dos puntas se normalizan o
+ninguna. Y el caso que delata el error es el que casi no existe: si todos los
+insumos están en la unidad base, el bug es invisible. Al revisar una conversión,
+buscar a propósito la fila cuya unidad **no** es la base.
+
+---
+
+## 17. Dos errores que se cancelan parecen una cuenta correcta
+
+**Qué pasó (2026-09-18).** El costo del morrón estaba cargado como `$200` por
+**gramo** —eran $200 por los 200 g comprados— o sea mil veces inflado. Y el
+cálculo del costo del producto multiplicaba una cantidad en kg por un costo por
+gramo, dividiendo por mil. El costo de la pizza daba $9.343, un número creíble,
+y nadie miró dos veces en meses.
+
+Arreglar solo el código llevaba PIZZA ESPECIAL de $9.126 a ~$15.100 contra un
+precio de $16.500. Arreglar solo el dato hacía lo inverso. **Los dos juntos o
+ninguno.**
+
+Por qué el dato entró así: el formulario de compra pedía "costo por unidad" y no
+mostraba ningún total. Cargar `200 g` a `$200` —una compra de $40.000 en
+morrones— no tenía forma de verse.
+
+**Regla.** Un resultado plausible no es evidencia de que la cuenta esté bien: en
+una cadena de multiplicaciones, dos errores inversos se cancelan y el resultado
+final no los delata. Verificar los factores, no el total. Y cuando un formulario
+pide un valor unitario, mostrar lo que ese valor implica —el total— es lo que
+convierte un error invisible en uno obvio al tipearlo.
+
+---
+
+## 18. Antes de automatizar una decisión que cuesta plata, medirla contra los datos reales
+
+**Qué pasó (2026-09-18).** Se arregló que el tope de producción se aplicara de
+verdad —el checkout aceptaba 50 hamburguesas con stock para 3—. Estaba listo
+para desplegar cuando David preguntó: *"¿es recomendable que se rechace el
+pedido? Imaginemos que se carga mal el stock un día y justo se bloquea por eso"*.
+
+Medido contra los datos reales: **13 de 38 productos quedaban con techo de 8 o
+menos, y cinco con techo de 1** —tres pizzas limitadas por "Salsa de tomate",
+que decía tener una unidad—. Alguien pidiendo dos pizzas se llevaba un rechazo
+por un dato viejo. Terminó detrás de un interruptor, apagado.
+
+La pregunta era mejor que la implementación, y la respuesta no salía de razonar
+sino de consultar la base.
+
+**Regla.** Una regla automática vale lo que valen los datos que lee. Antes de
+encender una que rechace ventas, oculte productos o bloquee una operación,
+correrla contra los datos de producción y contar a cuántos alcanza **hoy**. Si
+el número sorprende, la regla va detrás de un interruptor apagado, no directo a
+producción.
+
+---
+
+## 19. La información va donde la persona ya está mirando
+
+**Qué pasó (2026-09-18).** El sistema escondía productos por falta de stock sin
+decirlo: tres pizzas desaparecieron del catálogo y el único rastro era un
+"Salsa de tomate: 0" en otra lista, sin nada que conectara las dos cosas. Se
+agregó un cartel arriba de la pantalla de Stock.
+
+David: *"pensaba en una opción en la tabla de alertas que abra una sección y
+muestre la información de los ingredientes y lo que falta"*. Mejor: el dato por
+producto, en la fila que ya estaba abierta, en vez de un resumen arriba. Y de
+paso reemplazaba un tooltip que ofrecía "Ver ingredientes faltantes" y llevaba a
+la misma pantalla donde ya estabas.
+
+**Regla.** Cuando el sistema toma una decisión que a alguien le va a llamar la
+atención, el "por qué" va pegado a donde se ve el efecto, no en un cartel
+aparte. Un resumen arriba responde "cuántos"; la pregunta real es "por qué
+éste".
