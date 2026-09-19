@@ -441,3 +441,34 @@ código arreglado y contra el viejo. Si pasa en los dos, prueba otra cosa.
 `.env.local` apunta a producción. Un test de navegador que lo lea borra datos
 de verdad. La prueba de que el server quedó apuntando al stack local es que
 entró con `prueba@local.test`, que solo existe ahí.
+
+---
+
+## 22. Un campo numérico controlado por un número no se puede vaciar
+
+**Qué pasó (2026-09-19).** David: *"cuando estoy configurando un ingrediente de
+una receta este se marca en 1 automáticamente pero no me deja borrar el 1 para
+poner lo que yo quiera, lo que me obliga poner un número por delante del 1 para
+borrarlo"*.
+
+Al borrar el último dígito el campo vale `''`, eso no es un número, y el
+`onChange` lo reemplazaba antes de que la persona alcanzara a escribir. Estaba
+en cuatro lugares con tres disfraces distintos, todos con la misma forma:
+
+```tsx
+parseFloat(e.target.value) || 0.001              // se pega en 0.001
+Math.max(1, Number(e.target.value) || 1)         // se pega en 1
+if (!isNaN(val) && val > 0) cambiar(val)         // ignora el borrado
+```
+
+El test lo dejó escrito tal cual lo contó: escribir `250` sobre el campo daba
+`"1250"`.
+
+**Regla.** Un campo de texto tiene **dos** estados: lo que se está escribiendo y
+lo que vale. Mientras tiene foco manda el texto, aunque esté vacío o a medio
+escribir (`"1."`, `"0."`); el valor se avisa hacia arriba solo cuando el texto
+es un número válido. Al salir, soltar el borrador alcanza para que vuelva el
+último valor bueno: arriba nunca llegó otra cosa.
+
+**Corolario.** Un `||` como fallback trata al `0` y al `''` igual que a un error.
+En un campo de cantidad eso es exactamente el bug.

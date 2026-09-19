@@ -3,7 +3,7 @@
 import { Plus, X } from 'lucide-react'
 import { costoDeLinea } from '@/lib/utils/recipe-cost'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Badge } from '@/components/ui/badge'
 import {
   Select,
@@ -90,12 +90,12 @@ export function RecipeBuilder({ ingredients, recipeItems, onChange }: RecipeBuil
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <Input
-                    type="number"
+                  <NumberInput
                     step="0.01"
                     min="0.001"
                     value={item.quantity}
-                    onChange={(e) => handleQuantityChange(item.ingredient_id, parseFloat(e.target.value) || 0.001)}
+                    onValueChange={(n) => handleQuantityChange(item.ingredient_id, n)}
+                    aria-label={`Cantidad de ${ing.name}`}
                     className="w-20 h-8 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm text-center focus:border-[var(--admin-accent)]/50 focus:ring-1 focus:ring-[var(--admin-accent)]/20"
                   />
                   <Badge variant="outline" className="border-[var(--admin-border)] text-[var(--admin-text-muted)] text-xs shrink-0">

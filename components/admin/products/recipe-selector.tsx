@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Plus, X, AlertTriangle, Wheat, BookOpen, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Badge } from '@/components/ui/badge'
 import {
   Select,
@@ -96,14 +96,13 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange }: RecipeSel
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <Input
-                    type="number"
+                  <NumberInput
                     step="1"
                     min="1"
+                    integer
                     value={item.quantity}
-                    onChange={(e) =>
-                      handleQuantityChange(item.recipe_id, parseInt(e.target.value) || 1)
-                    }
+                    onValueChange={(n) => handleQuantityChange(item.recipe_id, n)}
+                    aria-label={`Cantidad de ${recipe.name}`}
                     className="w-16 h-8 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm text-center focus:border-[var(--admin-accent)]/50 focus:ring-1 focus:ring-[var(--admin-accent)]/20"
                   />
                   <Badge variant="outline" className="border-[var(--admin-border)] text-[var(--admin-text-muted)] text-xs shrink-0">

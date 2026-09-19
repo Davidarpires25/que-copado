@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { Search, Plus, Trash2, Info } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { cn, formatPrice } from '@/lib/utils'
 import { PRODUCT_TYPE_LABELS, type ProductType } from '@/lib/types/database'
@@ -107,12 +108,12 @@ export function ComponentSelector({ candidates, selected, onChange }: ComponentS
                     {p?.cost ? ` · costo ${formatPrice(Number(p.cost))}` : ''}
                   </p>
                 </div>
-                <Input
-                  type="number"
+                <NumberInput
                   min="1"
                   step="1"
+                  integer
                   value={item.quantity}
-                  onChange={(e) => cambiarCantidad(item.component_id, Math.max(1, Number(e.target.value) || 1))}
+                  onValueChange={(n) => cambiarCantidad(item.component_id, n)}
                   className="w-20 h-9 bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm"
                   aria-label={`Cantidad de ${p?.name ?? 'componente'}`}
                 />

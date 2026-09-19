@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import {
@@ -426,13 +427,12 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                                   {formatCost(ing.cost_per_unit)} / {baseUnitAbbr}
                                 </p>
                               </div>
-                              <Input
-                                type="number" step="any" min="0"
+                              <NumberInput
+                                step="any"
+                                min="0.001"
                                 value={item.quantity}
-                                onChange={(e) => {
-                                  const val = parseFloat(e.target.value)
-                                  if (!isNaN(val) && val > 0) handleQuantityChange(item.ingredient_id, val)
-                                }}
+                                onValueChange={(n) => handleQuantityChange(item.ingredient_id, n)}
+                                aria-label={`Cantidad de ${ing.name}`}
                                 className="w-full h-9 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm text-center focus:border-[var(--admin-accent)]/50 focus:ring-1 focus:ring-[var(--admin-accent)]/20"
                               />
                               <Select value={item.unit} onValueChange={(v) => handleUnitChange(item.ingredient_id, v)}>
