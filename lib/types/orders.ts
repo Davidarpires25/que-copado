@@ -131,25 +131,26 @@ export const ORDER_STATUS_CONFIG: Record<OrderStatus, {
   },
 }
 
-// Configuración de métodos de pago
+/**
+ * Las etiquetas de los medios de pago.
+ *
+ * Tenia tambien un emoji por medio, y se imprimia en el panel al abrir un
+ * pedido --arriba de un icono que ya estaba ahi--. David: *"hay que eliminar
+ * tambien los emojis que salen cuando le das click y sale el metodo de pago"*.
+ *
+ * El icono de verdad vive en `lib/constants/payments.ts`, que tiene uno de
+ * lucide por medio: billete, banco, QR. Ese dice algo; el emoji era adorno
+ * repetido. Y dos de los cuatro emojis eran la misma tarjeta, asi que ni
+ * siquiera distinguian.
+ *
+ * Los emojis del mensaje de WhatsApp se quedan: ese texto lo lee el cliente en
+ * su telefono y ahi son parte del idioma.
+ */
 export const PAYMENT_METHOD_CONFIG: Record<PaymentMethod, {
   label: string
-  icon: string
 }> = {
-  cash: {
-    label: 'Efectivo',
-    icon: '💵',
-  },
-  transfer: {
-    label: 'Transferencia',
-    icon: '🏦',
-  },
-  mercadopago: {
-    label: 'Mercado Pago',
-    icon: '💳',
-  },
-  card: {
-    label: 'Tarjeta',
-    icon: '💳',
-  },
+  cash: { label: 'Efectivo' },
+  transfer: { label: 'Transferencia' },
+  mercadopago: { label: 'Mercado Pago' },
+  card: { label: 'Tarjeta' },
 }

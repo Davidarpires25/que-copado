@@ -641,3 +641,27 @@ falló como tenía que fallar, y ahí recién valió algo.
 **Detalle operativo:** Playwright borra `test-results/` en cada corrida. Las
 capturas de "antes" se escriben fuera de esa carpeta o se pierden al sacar las
 de "después".
+
+---
+
+## 28. "Lo revisé por código" no es lo mismo que "lo vi"
+
+**Qué pasó (2026-09-19).** Al barrer las tablas del panel dije que seis pantallas
+no se podían medir en local por falta de datos y que las había revisado leyendo
+el código. David preguntó: *"¿la tabla pedido la revisaste?"*.
+
+La tabla estaba bien —su único resaltado es el estado del pedido, que es
+exactamente lo que corresponde—, pero **sembrar cuatro pedidos costó dos
+minutos** y además destapó algo que leer el código no había mostrado: al abrir
+un pedido, el detalle imprimía `💵 Efectivo`, con el emoji encima de un ícono
+genérico que ya estaba al lado.
+
+**Regla.** Cuando la razón para no verificar algo es "no hay datos", la pregunta
+siguiente es cuánto cuesta crearlos. En este proyecto, con el stack local y
+PostgREST, casi siempre son unas líneas y el test se los lleva al terminar.
+"Revisado por código" es un resultado de segunda y hay que decirlo como tal.
+
+**Y un matiz que el código sí dejó claro:** los emojis del mensaje de WhatsApp se
+quedan. Ese texto lo lee el cliente en su teléfono, donde los emojis son parte
+del idioma. El pedido era sacarlos del panel. Vale la pena separar los dos
+destinos antes de borrar en masa.

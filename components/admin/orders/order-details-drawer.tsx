@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { X, Clock, Wallet, Truck } from 'lucide-react'
+import { PAYMENT_METHOD_CONFIG } from '@/lib/constants/payments'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { CustomerBlock } from './customer-block'
@@ -12,7 +13,6 @@ import { formatPrice } from '@/lib/utils'
 import {
   formatDateTime,
   getPaymentMethodLabel,
-  getPaymentMethodIcon,
   parseOrderItems,
 } from '@/lib/services/order-formatter'
 import type { OrderWithZone, OrderStatus } from '@/lib/types/database'
@@ -161,16 +161,20 @@ export function OrderDetailsDrawer({
 
               {/* Payment Method */}
               <div className="bg-[var(--admin-bg)] rounded-xl p-4">
-                <div className="flex items-center gap-3">
-                  <Wallet className="h-4 w-4 text-[var(--admin-text-muted)]" />
-                  <div>
-                    <p className="text-sm text-[var(--admin-text-muted)]">Método de pago</p>
-                    <p className="text-[var(--admin-text)]">
-                      {getPaymentMethodIcon(order.payment_method)}{' '}
-                      {getPaymentMethodLabel(order.payment_method)}
-                    </p>
-                  </div>
-                </div>
+{(() => {
+                  const IconoDelMedio = PAYMENT_METHOD_CONFIG[order.payment_method]?.icon ?? Wallet
+                  return (
+                    <div className="flex items-center gap-3">
+                      <IconoDelMedio className="h-4 w-4 text-[var(--admin-text-muted)]" />
+                      <div>
+                        <p className="text-sm text-[var(--admin-text-muted)]">Método de pago</p>
+                        <p className="text-[var(--admin-text)]">
+                          {getPaymentMethodLabel(order.payment_method)}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
             </div>
 

@@ -80,3 +80,19 @@
       `calc(infinity * 1px)` y el navegador lo calcula como `3.3e7px`. Pasaba
       contra cualquier código. Se corrigió a `parseFloat(...) >= 9999` y recién
       ahí falló contra el código viejo, que es lo que lo hace valer.
+
+## 8. Pedidos, con datos de verdad (lo pidió David: *"¿la tabla pedido la revisaste?"*)
+
+- [x] 8.1 La había revisado solo por código, por no tener datos en local. Se
+      sembraron cuatro pedidos —uno por estado y uno por medio de pago— y se
+      midió: los únicos resaltados son `Recibido`, `Entregado`, `Cancelado` y
+      `Pagado`. La tabla ya estaba bien; el `OrderStatusBadge` es estado.
+- [x] 8.2 **Los emojis del medio de pago.** Al abrir un pedido, el detalle
+      imprimía `💵 Efectivo` —encima de un ícono genérico que ya estaba al lado—.
+      Ahora el ícono es el del medio (billete, banco, QR) y el emoji no está.
+      Dos de los cuatro emojis eran la misma tarjeta, así que ni distinguían.
+- [x] 8.3 Los emojis del mensaje de WhatsApp **se quedan**: ese texto lo lee el
+      cliente en su teléfono y ahí son parte del idioma. Solo se sacaron los del
+      panel.
+- [x] 8.4 Test con los cuatro pedidos sembrados, que se los lleva al terminar.
+      Falla contra el código viejo: `¿emoji en el detalle? true`.

@@ -23,12 +23,6 @@ export function getPaymentMethodLabel(method: PaymentMethod): string {
   return PAYMENT_METHOD_CONFIG[method]?.label || method
 }
 
-/**
- * Obtiene el ícono del método de pago
- */
-export function getPaymentMethodIcon(method: PaymentMethod): string {
-  return PAYMENT_METHOD_CONFIG[method]?.icon || '💰'
-}
 
 /**
  * Formatea una fecha relativa (hace X minutos, hoy, ayer, etc.)
