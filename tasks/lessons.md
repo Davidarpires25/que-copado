@@ -416,3 +416,28 @@ service role hace pasar cualquier consulta y no prueba nada.
 escribí `recipe_ingredients → products(name)` y esa tabla cuelga de `recipes`;
 compilaba perfecto y fallaba en runtime. Las relaciones anidadas se verifican
 contra la base, no contra el compilador.
+
+---
+
+## 21. Un test que no falla contra el código viejo no prueba nada
+
+**Qué pasó (2026-09-19).** David pidió instalar Playwright y escribí cuatro
+tests del borrado de insumos. Pasaron los cuatro a la primera. Antes de
+darlos por buenos, volví `app/actions/ingredients.ts` a la versión anterior al
+arreglo y los corrí de nuevo: fallaron. Recién ahí valían algo.
+
+Dos cosas aparecieron solo por correrlos de verdad:
+
+- El formulario de login manda una **server action**, así que un click antes de
+  que hidrate no hace nada y el test espera una navegación que nunca sale.
+  Esperar al botón no alcanza: existe desde el HTML del servidor.
+- Con `127.0.0.1` Next bloquea sus propios recursos de dev por cross-origin.
+  Con `localhost` anda.
+
+**Regla.** Un test nuevo sobre un arreglo se corre **dos veces**: contra el
+código arreglado y contra el viejo. Si pasa en los dos, prueba otra cosa.
+
+**Y el env del test se escribe en `playwright.config.ts`, no se hereda.**
+`.env.local` apunta a producción. Un test de navegador que lo lea borra datos
+de verdad. La prueba de que el server quedó apuntando al stack local es que
+entró con `prueba@local.test`, que solo existe ahí.

@@ -46,3 +46,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# playwright: resultados y reportes de cada corrida, no codigo
+/test-results/
+/playwright-report/
+/blob-report/
+/.playwright/
