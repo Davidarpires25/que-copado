@@ -26,7 +26,7 @@ export default async function NewProductPage() {
   ])
 
   return (
-    <AdminLayout title="Nuevo Producto" description="Agregá un nuevo producto al catálogo" hidePageHeader>
+    <AdminLayout title="Nuevo Producto" hidePageHeader>
       <ProductFormPage
         mode="create"
         categories={categories ?? []}

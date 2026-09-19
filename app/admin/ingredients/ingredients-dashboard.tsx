@@ -120,7 +120,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
   }
 
   return (
-    <AdminLayout title="Ingredientes" description="Gestiona los ingredientes y sus costos">
+    <AdminLayout title="Ingredientes">
       {ingredients.length === 0 ? (
         <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           <div className="p-16 text-center">

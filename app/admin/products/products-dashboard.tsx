@@ -261,7 +261,7 @@ export function ProductsDashboard({
   // -------------------------------------------------------------------------
 
   return (
-    <AdminLayout title="Productos" description="Administra el catalogo de tu negocio">
+    <AdminLayout title="Productos">
       {products.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}

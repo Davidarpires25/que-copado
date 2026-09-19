@@ -651,7 +651,7 @@ export function CajaHistorial({ sessions, movements }: CajaHistorialProps) {
   ]
 
   return (
-    <AdminLayout title="Arqueos de Caja" description="Arqueos de sesión y movimientos de caja">
+    <AdminLayout title="Arqueos de Caja">
       {/* Stats */}
       <StatTileGrid>
         {[

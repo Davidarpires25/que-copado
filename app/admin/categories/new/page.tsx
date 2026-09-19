@@ -8,7 +8,7 @@ export default async function NewCategoryPage() {
   if (!user) redirect('/admin/login')
 
   return (
-    <AdminLayout title="Nueva Categoría" description="Agregá una nueva categoría al catálogo" hidePageHeader>
+    <AdminLayout title="Nueva Categoría" hidePageHeader>
       <CategoryFormPage mode="create" />
     </AdminLayout>
   )

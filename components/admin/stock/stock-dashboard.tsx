@@ -99,7 +99,7 @@ export function StockDashboard({
   }, [ingredientAlerts, productAlerts, ocultos])
 
   return (
-    <AdminLayout title="Stock e Inventario" description="Control de inventario de materias primas">
+    <AdminLayout title="Stock e Inventario">
       {/* Search + action button (only for tabs that have search) */}
       {(activeTab === 'ingredientes') && (
         <div className="flex items-center gap-3 mb-4">

@@ -15,7 +15,7 @@ export default async function NuevoEmpleadoPage() {
   const { data: roles } = await listRoles()
 
   return (
-    <AdminLayout title="Nuevo Empleado" description="Dale acceso al panel y elegí su rol" hidePageHeader>
+    <AdminLayout title="Nuevo Empleado" hidePageHeader>
       <EmployeeFormPage roles={roles ?? []} />
     </AdminLayout>
   )

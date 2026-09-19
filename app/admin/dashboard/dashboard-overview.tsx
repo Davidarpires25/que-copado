@@ -69,7 +69,7 @@ export function DashboardOverview({
   })), [recentOrders])
 
   return (
-    <AdminLayout title="Dashboard" description="Resumen de tu negocio">
+    <AdminLayout title="Dashboard">
       {/* Operational Status */}
       {(operationalStatus.openTables > 0 || operationalStatus.activeOrders > 0 || operationalStatus.stockAlerts.length > 0) && (
         <>

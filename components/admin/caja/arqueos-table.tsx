@@ -202,7 +202,7 @@ export function ArqueosTable({ sessions }: ArqueosTableProps) {
   }
 
   return (
-    <AdminLayout title="Arqueos de Caja" description="Historial de cierres y arqueos de sesiones">
+    <AdminLayout title="Arqueos de Caja">
       {/* Stats */}
       <StatTileGrid>
         <StatTile label="Sesiones" value={sessions.length} icon={History} />

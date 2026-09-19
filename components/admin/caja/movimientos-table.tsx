@@ -120,7 +120,7 @@ export function MovimientosTable({ movements, sessionFilter }: MovimientosTableP
   const sessionOpenedAt = movements[0]?.cash_register_sessions?.opened_at
 
   return (
-    <AdminLayout title="Movimientos de Caja" description="Historial de ingresos y retiros registrados">
+    <AdminLayout title="Movimientos de Caja">
 
       {/* Session filter banner */}
       {sessionFilter && (

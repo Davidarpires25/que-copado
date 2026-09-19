@@ -19,6 +19,7 @@ import {
 } from '@/app/actions/employees'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { RolesTab } from './roles-tab'
+import { AyudaCampo } from '@/components/ui/ayuda-campo'
 import type { RoleWithPermissions } from '@/lib/types/database'
 
 /**
@@ -124,7 +125,7 @@ export function EmployeesDashboard({
 
   if (loadError) {
     return (
-      <AdminLayout title="Equipo" description="Empleados y permisos">
+      <AdminLayout title="Equipo">
         <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
           <ShieldAlert className="h-10 w-10 text-[var(--admin-text-placeholder)]" />
           <p className="text-[var(--admin-text)] font-medium">{loadError}</p>
@@ -190,7 +191,15 @@ export function EmployeesDashboard({
               <TableHead className="text-[var(--admin-text-muted)]">Nombre</TableHead>
               <TableHead className="text-[var(--admin-text-muted)]">Email</TableHead>
               <TableHead className="text-[var(--admin-text-muted)]">Rol</TableHead>
-              <TableHead className="text-[var(--admin-text-muted)]">Estado</TableHead>
+              <TableHead className="text-[var(--admin-text-muted)]">
+                <span className="inline-flex items-center gap-1.5">
+                  Estado
+                  <AyudaCampo>
+                    Dar de baja no borra la cuenta: conserva los turnos y arqueos que esa persona
+                    cerró. Siempre tiene que quedar alguien que pueda gestionar el equipo.
+                  </AyudaCampo>
+                </span>
+              </TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -269,10 +278,6 @@ export function EmployeesDashboard({
         </Table>
       </div>
 
-      <p className="mt-4 text-xs text-[var(--admin-text-muted)] max-w-2xl">
-        Dar de baja no borra la cuenta: conserva los turnos y arqueos que esa persona cerró. Siempre
-        tiene que quedar alguien que pueda gestionar el equipo.
-      </p>
       </>
       )}
 

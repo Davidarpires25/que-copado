@@ -214,7 +214,7 @@ export function OrdersTable({ initialOrders, initialDateFilter }: OrdersTablePro
   ]
 
   return (
-    <AdminLayout title="Pedidos" description="Gestiona los pedidos de tu negocio">
+    <AdminLayout title="Pedidos">
       {/* Top bar: search + refresh */}
       <div className="flex items-center gap-3 mb-4">
         <div className="relative flex-1 max-w-xs">

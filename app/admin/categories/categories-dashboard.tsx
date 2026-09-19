@@ -35,7 +35,7 @@ export function CategoriesDashboard({ initialCategories, productCountMap = {} }:
   }
 
   return (
-    <AdminLayout title="Categorías" description="Gestiona las categorías de tus productos">
+    <AdminLayout title="Categorías">
       {/* Header toolbar */}
       <div className="flex items-center gap-2 mb-4">
         <div className="relative flex-1 max-w-xs">

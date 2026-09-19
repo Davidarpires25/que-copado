@@ -67,7 +67,7 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
   }
 
   return (
-    <AdminLayout title="Recetas" description="Crea recetas reutilizables para calcular costos de productos">
+    <AdminLayout title="Recetas">
       {recipes.length === 0 ? (
         <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] overflow-hidden">
           <div className="p-16 text-center">

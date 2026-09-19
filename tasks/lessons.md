@@ -722,3 +722,35 @@ foco, y eso cubre teclado y pantalla táctil sin código extra.
 estorba. **No** va lo que hay que saber antes de actuar —el límite de 2MB de una
 imagen se necesita antes de elegir el archivo— ni lo que avisa de un problema:
 un error o una advertencia se muestran, no se esconden.
+
+---
+
+## 31. El subtítulo que reformula el título no informa: decora
+
+**Qué pasó (2026-09-19).** David, limpiando pantallas: *"tratemos siempre de
+reducir lo máximo posible la información para que se vea en la pantalla
+cómodamente"*.
+
+Censando las quince pantallas del panel, el patrón dominante era el mismo en
+casi todas: un subtítulo debajo del título que lo dice otra vez con más
+palabras. **Productos** → *"Administra el catálogo de tu negocio"*.
+**Categorías** → *"Gestiona las categorías de tus productos"*. **Pedidos** →
+*"Gestiona los pedidos de tu negocio"*. Diecisiete en total.
+
+Nadie los lee dos veces, pero se pagan siempre: un renglón arriba de todo, en
+cada pantalla, para siempre.
+
+**Regla.** La prueba es tapar el título y ver si el subtítulo sigue diciendo
+algo. *"Gestiona las categorías de tus productos"* sin *"Categorías"* arriba no
+agrega nada. En cambio *"Quién puede entrar y qué puede hacer"* sí explica qué
+es **Equipo**, y *"Define las áreas de cobertura y costos de envío"* dice que
+una zona controla dos cosas, no una. Esos se quedan.
+
+**Y el otro patrón, el mismo de siempre:** dos mensajes que dicen lo mismo, uno
+gris y uno ámbar. Apareció en producto, en insumos y en combos. Se detecta
+buscando la frase repetida textualmente: en combos, los dos párrafos compartían
+*"se descuenta del mismo stock que si se vendiera suelto"* palabra por palabra.
+
+**Corolario.** Una lista que se despliega sin que la pidan tampoco informa: el
+selector de componentes mostraba el catálogo entero en orden alfabético —250px—
+antes de que nadie escribiera nada.
