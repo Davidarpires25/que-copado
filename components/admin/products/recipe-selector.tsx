@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { Plus, X, AlertTriangle, Wheat, BookOpen, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NumberInput } from '@/components/ui/number-input'
-import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -66,9 +65,10 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange }: RecipeSel
       <div className="flex items-center justify-between">
         <p className="text-[var(--admin-text-muted)] text-sm font-medium">Recetas</p>
         {selectedRecipes.length > 0 && (
-          <Badge variant="outline" className="border-[var(--admin-accent)]/30 text-[var(--admin-price)] bg-[var(--admin-accent)]/10 text-xs">
-            Costo total: {formatCost(totalCost)}
-          </Badge>
+          <p className="text-xs text-[var(--admin-text-muted)]">
+            Costo total{' '}
+            <span className="text-[var(--admin-price)] font-semibold">{formatCost(totalCost)}</span>
+          </p>
         )}
       </div>
 
@@ -105,9 +105,7 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange }: RecipeSel
                     aria-label={`Cantidad de ${recipe.name}`}
                     className="w-16 h-8 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm text-center focus:border-[var(--admin-accent)]/50 focus:ring-1 focus:ring-[var(--admin-accent)]/20"
                   />
-                  <Badge variant="outline" className="border-[var(--admin-border)] text-[var(--admin-text-muted)] text-xs shrink-0">
-                    x
-                  </Badge>
+                  <span className="text-xs text-[var(--admin-text-muted)] shrink-0">x</span>
                 </div>
 
                 <p className="text-xs text-[var(--admin-price)] font-medium w-16 text-right shrink-0">

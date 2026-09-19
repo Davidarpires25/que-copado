@@ -614,3 +614,30 @@ equivocada.
 la carga. Frenar la red no alcanzó. Lo que funcionó fue montarlo en una ruta de
 prueba dentro de un worktree descartable. Ojo: una carpeta que empieza con `_`
 es privada en el App Router y da 404.
+
+---
+
+## 27. Buscar por componente encuentra menos que medir lo que se ve
+
+**Qué pasó (2026-09-19).** Para sacar las píldoras decorativas de las tablas
+hice un inventario buscando `<Badge>`: 31 usos, clasificados uno por uno. Los
+arreglé todos. El test de disciplina —que mide el **estilo calculado** de cada
+elemento de la tabla, no qué componente se usó— encontró uno más: el tipo de
+producto (`Reventa` / `Elaborado`) era una píldora escrita a mano con
+`rounded-full`, sin pasar por el componente.
+
+**Regla.** Un inventario por nombre de componente mide *cómo se escribió*, no
+*qué se ve*. Cuando lo que importa es lo segundo —apariencia, accesibilidad,
+layout— hay que preguntarle al navegador: `getComputedStyle` sobre lo que
+realmente se renderizó.
+
+**Y otra vez la 21, por poco.** Ese mismo test nació vacío: buscaba la cadena
+`"9999"` en `border-radius`, pero `rounded-full` en Tailwind 4 es
+`calc(infinity * 1px)` y el navegador lo calcula como `3.3e7px`. Pasaba contra
+el código viejo **y** contra el nuevo. Solo lo descubrí porque ya es costumbre
+correr todo test nuevo contra la versión anterior. Con `parseFloat(...) >= 9999`
+falló como tenía que fallar, y ahí recién valió algo.
+
+**Detalle operativo:** Playwright borra `test-results/` en cada corrida. Las
+capturas de "antes" se escriben fuera de esa carpeta o se pierden al sacar las
+de "después".

@@ -6,7 +6,6 @@ import { Plus, Wheat, Pencil, Trash2, Search, TrendingUp, Tag, ListTree, Chevron
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { AdminLayout } from '@/components/admin/layout'
@@ -282,21 +281,14 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                       </p>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      {ingredient.ingredient_categories ? (
-                        <Badge
-                          variant="outline"
-                          className="border-[var(--admin-accent)]/30 text-[var(--admin-accent-text)]/80 bg-[var(--admin-accent)]/5 font-medium text-xs"
-                        >
-                          {ingredient.ingredient_categories.name}
-                        </Badge>
-                      ) : (
-                        <span className="text-[var(--admin-text-muted)] text-xs">—</span>
-                      )}
+                      <span className="text-[var(--admin-text-muted)] text-xs">
+                        {ingredient.ingredient_categories?.name ?? '—'}
+                      </span>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="border-[var(--admin-border)] text-[var(--admin-text-muted)] bg-[var(--admin-surface-2)] font-medium">
+                      <span className="text-[var(--admin-text-muted)] text-sm">
                         {INGREDIENT_UNIT_ABBR[ingredient.unit as IngredientUnit] ?? ingredient.unit}
-                      </Badge>
+                      </span>
                     </TableCell>
                     <TableCell>
                       <span className="text-[var(--admin-price)] font-semibold text-sm lg:text-base">

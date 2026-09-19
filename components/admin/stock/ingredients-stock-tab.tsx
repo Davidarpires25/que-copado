@@ -168,9 +168,9 @@ export function IngredientsStockTab({
                         </div>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        <Badge variant="outline" className="border-[var(--admin-border)] text-[var(--admin-text-muted)] bg-[var(--admin-surface-2)] font-medium">
+                        <span className="text-[var(--admin-text-muted)] text-sm">
                           {INGREDIENT_UNIT_ABBR[ingredient.unit as IngredientUnit] ?? ingredient.unit}
-                        </Badge>
+                        </span>
                       </TableCell>
                       <TableCell className="text-center">
                         {ingredient.stock_tracking_enabled ? (

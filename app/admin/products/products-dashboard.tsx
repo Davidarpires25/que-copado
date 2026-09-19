@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { AdminLayout } from '@/components/admin/layout'
 import {
@@ -461,23 +460,16 @@ export function ProductsDashboard({
                             </div>
                           </TableCell>
                           <TableCell className="hidden md:table-cell">
-                            <Badge
-                              variant="outline"
-                              className="border-[var(--admin-accent)]/20 text-[var(--admin-accent-text)] bg-[var(--admin-accent)]/10 font-medium"
-                            >
+                            <span className="text-[var(--admin-text-muted)] text-sm">
                               {product.categories?.name || 'Sin categoría'}
-                            </Badge>
+                            </span>
                           </TableCell>
                           <TableCell className="hidden lg:table-cell">
-                            {product.product_type === 'reventa' ? (
-                              <span className="text-xs bg-blue-500/15 text-blue-700 dark:text-blue-400 px-2 py-1 rounded-full font-medium border border-blue-500/20">
-                                Reventa
-                              </span>
-                            ) : (
-                              <span className="text-xs bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 px-2 py-1 rounded-full font-medium border border-emerald-500/20">
-                                Elaborado
-                              </span>
-                            )}
+                            {/* Que clase de producto es no cambia con lo que
+                                pase: es un atributo, no un estado. */}
+                            <span className="text-sm text-[var(--admin-text-muted)]">
+                              {product.product_type === 'reventa' ? 'Reventa' : 'Elaborado'}
+                            </span>
                           </TableCell>
                           <TableCell>
                             {editingPrice === product.id ? (

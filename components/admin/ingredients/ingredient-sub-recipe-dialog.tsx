@@ -18,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import type { IngredientWithCategory, IngredientUnit, IngredientSubRecipeWithChild } from '@/lib/types/database'
 import { INGREDIENT_UNIT_ABBR } from '@/lib/types/database'
@@ -235,12 +234,9 @@ export function IngredientSubRecipeDialog({
           {/* Summary badge */}
           {summaryText && (
             <div className="flex items-start gap-2 p-2.5 rounded-lg bg-[var(--admin-surface-2)] border border-[var(--admin-border)]">
-              <Badge
-                variant="outline"
-                className="border-[var(--admin-accent)]/30 text-[var(--admin-accent-text)] bg-[var(--admin-accent)]/10 text-xs shrink-0"
-              >
+              <span className="text-sm font-semibold text-[var(--admin-text)] shrink-0">
                 {yieldStr || '1'} {baseUnitAbbr}
-              </Badge>
+              </span>
               <span className="text-sm text-[var(--admin-text-muted)] leading-relaxed">=&nbsp;{summaryText}</span>
             </div>
           )}

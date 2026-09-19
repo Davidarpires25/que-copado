@@ -79,9 +79,7 @@ function IngredientRow({
               {ing.name}
             </span>
             {hasChildren && (
-              <Badge className="bg-[var(--admin-accent)]/10 text-[var(--admin-accent-text)] border border-[var(--admin-accent)]/20 hover:bg-[var(--admin-accent)]/10 text-[10px] py-0 px-1.5">
-                compuesto
-              </Badge>
+              <span className="text-[10px] text-[var(--admin-text-muted)]">compuesto</span>
             )}
             {ing.waste_pct > 0 && (
               <span className="text-[10px] text-amber-700 dark:text-amber-500/70 ml-1">{ing.waste_pct}% merma</span>
@@ -309,9 +307,9 @@ function FichaTecnicaContent({
                         Receta: {recipe.recipe_name}
                       </h4>
                       {recipe.multiplier !== 1 && (
-                        <Badge className="bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)] border border-[var(--admin-accent)]/30 hover:bg-[var(--admin-accent)]/15 text-xs">
+                        <span className="text-xs font-semibold text-[var(--admin-text-muted)]">
                           ×{recipe.multiplier}
-                        </Badge>
+                        </span>
                       )}
                     </div>
                     <div className="rounded-lg border border-[var(--admin-border)] overflow-hidden">
