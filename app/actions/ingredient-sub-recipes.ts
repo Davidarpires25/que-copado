@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { revalidateIngredients } from '@/lib/server/revalidate'
 import { friendlyError } from '@/lib/server/error-messages'
-import { convertToBaseUnit, convertFromBaseUnit } from '@/lib/server/unit-conversion'
+import { costoDeReceta } from '@/lib/utils/recipe-cost'
 import { rendimientoEfectivo } from '@/lib/server/sub-recipes'
 import type { IngredientSubRecipeWithChild } from '@/lib/types/database'
 
@@ -157,22 +157,17 @@ async function recalculateParentCost(parentId: string): Promise<void> {
 
   if (!subItems || subItems.length === 0) return
 
-  let totalCost = 0
-  for (const item of subItems) {
-    const child = item.ingredients as unknown as {
-      unit: string; cost_per_unit: number; waste_percentage: number
-    } | null
-    if (!child) continue
-
-    const baseQty = convertToBaseUnit(item.quantity, item.unit)
-    const wasteFactor = 1 - (child.waste_percentage ?? 0) / 100
-    const actualQty = wasteFactor > 0 ? baseQty / wasteFactor : baseQty
-
-    // De vuelta a la unidad del insumo antes de multiplicar por su precio:
-    // `cost_per_unit` es por gramo para un insumo en gramos, no por kilo. Ver
-    // la nota en `_costoDeRecetasDe`.
-    totalCost += convertFromBaseUnit(actualQty, child.unit) * child.cost_per_unit
-  }
+  // La misma cuenta que usa el costo de un producto: convertir para comparar,
+  // y volver a la unidad del insumo antes de multiplicar por su precio.
+  const totalCost = costoDeReceta(
+    subItems.map((item) => ({
+      quantity: item.quantity,
+      unit: item.unit,
+      ingredients: item.ingredients as unknown as {
+        unit: string; cost_per_unit: number | null; waste_percentage?: number | null
+      } | null,
+    }))
+  )
 
   // totalCost es lo que cuesta la tanda entera; el costo por unidad sale de
   // dividirla por lo que rinde.

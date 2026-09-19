@@ -30,9 +30,35 @@
       orégano a $22/g ahora aportan **$44** al costo del producto, no $0,04.
       La cuenta completa da `1200 + 450 + (0,04/0,95 × 9000) + 44 = 2072,95`,
       que es exactamente lo que queda guardado. Y la ficha imprime "2 g · $44".
-- [ ] 3.5 Recalcular los costos en producción. Solo cambian dos productos
-      —PIZZA ESPECIAL +$96,90 y Pizza Copada +$74,93— porque son los únicos con
-      insumos en gramos. Menos del 1%.
+- [x] 3.5 Recalculados en producción: PIZZA ESPECIAL $8.786,60 → **$8.883,50**
+      y Pizza Copada $9.003,57 → **$9.078,50**. Son los únicos dos con insumos
+      en gramos.
+
+## 5. Y había tres copias más, en el navegador
+
+David, creando un combo: *"el costo es de 763.510 pero en la receta el costo es
+mucho mayor"*. El número es exacto y sale de una receta con **500 g de papa a
+$1.500 el kilo**: el formulario multiplicaba `500 × 1500` = $750.000, sin
+convertir a 0,5 kg. La receta entera daba $763.510 donde cuesta $14.260.
+
+Eran tres cuentas más, y ninguna convertía unidades ni aplicaba merma:
+
+| dónde | |
+|---|---|
+| `recipe-builder.tsx` | el armador de recetas |
+| `recipe-selector.tsx` | el selector de recetas del producto |
+| `product-form-page.tsx` | el costo que muestra el formulario |
+
+- [x] 5.1 `lib/utils/recipe-cost.ts`: la cuenta, una sola vez, en `lib/utils`
+      porque la usan el servidor y el navegador. Las **siete** copias quedan en
+      una.
+- [x] 5.2 Los cinco lugares que quedaban la usan.
+- [x] 5.3 **El formulario no calculaba el costo de un combo.** `calculatedCost`
+      preguntaba por `elaborado` y nada más, así que un combo se creaba sin
+      costo. Ahora suma sus recetas propias más lo que cuestan sus componentes.
+- [x] 5.4 **Verificado en el navegador** con 500 g de papa a $1.500 el kilo: la
+      pantalla de Recetas muestra **$750**, y al guardar el producto el servidor
+      guarda **750**. Antes: 750.000 en los dos lados.
 
 ## 4. Y de paso, uno que apareció al mirarlo
 

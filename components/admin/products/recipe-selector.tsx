@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   } from '@/components/ui/select'
 import type { RecipeWithIngredients } from '@/lib/types/database'
+import { costoDeReceta } from '@/lib/utils/recipe-cost'
 import { formatCost } from '@/lib/constants/recipe-units'
 
 export interface ProductRecipeItem {
@@ -32,11 +33,11 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange }: RecipeSel
 
   const getRecipe = (id: string) => recipes.find((r) => r.id === id)
 
-  const getRecipeCost = (recipe: RecipeWithIngredients) => {
-    return recipe.recipe_ingredients.reduce((sum, ri) => {
-      return sum + ri.quantity * ri.ingredients.cost_per_unit
-    }, 0)
-  }
+  // La misma cuenta que hace el servidor al guardar. Antes multiplicaba la
+  // cantidad cruda por el precio: 500 g de papa a $1.500 el kilo daban
+  // $750.000 en vez de $750.
+  const getRecipeCost = (recipe: RecipeWithIngredients) =>
+    costoDeReceta(recipe.recipe_ingredients)
 
   const totalCost = selectedRecipes.reduce((sum, item) => {
     const recipe = getRecipe(item.recipe_id)

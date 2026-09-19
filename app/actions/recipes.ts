@@ -5,7 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { revalidateRecipes } from '@/lib/server/revalidate'
 import { friendlyError } from '@/lib/server/error-messages'
-import { convertToBaseUnit, convertFromBaseUnit } from '@/lib/server/unit-conversion'
+import { costoDeReceta } from '@/lib/utils/recipe-cost'
 import { devError } from '@/lib/server/logger'
 
 interface RecipeIngredientItem {
@@ -419,29 +419,7 @@ async function _costoDeRecetasDe(supabase: SupabaseClient, productId: string): P
     } | null
     if (!recipe?.recipe_ingredients) continue
 
-    let costoReceta = 0
-    for (const ri of recipe.recipe_ingredients) {
-      if (!ri.ingredients) continue
-      const unidad = ri.unit ?? ri.ingredients.unit
-      const enBase = convertToBaseUnit(ri.quantity, unidad)
-      const merma = ri.ingredients.waste_percentage ?? 0
-      const factor = 1 - merma / 100
-      const cantidadReal = factor > 0 ? enBase / factor : enBase
-
-      // El costo se cobra por unidad del insumo, no por unidad base.
-      //
-      // `cost_per_unit` es el precio de UNA unidad de la unidad del insumo:
-      // por gramo para el oregano, por kilo para la muzzarella. La cantidad se
-      // convertia a unidad base para poder comparar entre recetas, y despues se
-      // multiplicaba por ese precio sin volver: 30 g de morron entraban a la
-      // cuenta como 0,03 y costaban mil veces menos de lo que cuestan.
-      //
-      // Solo afectaba a los insumos cuya propia unidad no es la base de su
-      // familia --gramos y mililitros--, que son dos de cuarenta y cinco. Por
-      // eso el numero final parecia razonable.
-      const enUnidadDelInsumo = convertFromBaseUnit(cantidadReal, ri.ingredients.unit)
-      costoReceta += enUnidadDelInsumo * ri.ingredients.cost_per_unit
-    }
+    const costoReceta = costoDeReceta(recipe.recipe_ingredients)
     total += costoReceta * (pr.quantity ?? 1)
   }
 

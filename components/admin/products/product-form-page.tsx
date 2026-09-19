@@ -4,6 +4,7 @@
    carga el admin pegando una URL arbitraria; next/image falla en runtime si
    el host no esta en images.remotePatterns, asi que <img> es lo correcto. */
 
+import { costoDeReceta } from '@/lib/utils/recipe-cost'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -96,20 +97,34 @@ export function ProductFormPage({
     product?.categories?.name ?? ''
   )
 
-  const calculatedCost =
-    productType === 'elaborado' && selectedRecipes.length > 0
-      ? Math.round(
-          selectedRecipes.reduce((sum, item) => {
-            const recipe = recipes.find((r) => r.id === item.recipe_id)
-            if (!recipe) return sum
-            const recipeCost = recipe.recipe_ingredients.reduce(
-              (s, ri) => s + ri.quantity * ri.ingredients.cost_per_unit,
-              0
-            )
-            return sum + recipeCost * item.quantity
-          }, 0)
-        )
-      : null
+  // Lo que cuestan las recetas elegidas, con la misma cuenta que usa el
+  // servidor al guardar. Antes multiplicaba la cantidad cruda por el precio del
+  // insumo: una receta con 500 g de papa a $1.500 el kilo mostraba $763.510
+  // donde cuesta $14.260.
+  const costoDeLasRecetas = selectedRecipes.reduce((sum, item) => {
+    const recipe = recipes.find((r) => r.id === item.recipe_id)
+    if (!recipe) return sum
+    return sum + costoDeReceta(recipe.recipe_ingredients) * item.quantity
+  }, 0)
+
+  // Un combo cuesta sus recetas propias mas lo que cuestan sus componentes,
+  // que son productos con su costo ya hecho. Antes esto solo se calculaba para
+  // un elaborado, asi que un combo se creaba sin costo.
+  const costoDeLosComponentes =
+    productType === 'combo'
+      ? selectedComponents.reduce((sum, c) => {
+          const prod = componentCandidates.find((p) => p.id === c.component_id)
+          return sum + Number(prod?.cost ?? 0) * c.quantity
+        }, 0)
+      : 0
+
+  const tieneConQueCalcular =
+    (productType === 'elaborado' && selectedRecipes.length > 0) ||
+    (productType === 'combo' && (selectedRecipes.length > 0 || selectedComponents.length > 0))
+
+  const calculatedCost = tieneConQueCalcular
+    ? Math.round(costoDeLasRecetas + costoDeLosComponentes)
+    : null
 
   const handleSubmit = async (formData: FormData) => {
     formData.set('product_type', productType)

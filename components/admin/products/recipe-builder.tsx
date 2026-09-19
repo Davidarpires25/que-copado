@@ -1,6 +1,7 @@
 'use client'
 
 import { Plus, X } from 'lucide-react'
+import { costoDeLinea } from '@/lib/utils/recipe-cost'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -32,10 +33,14 @@ export function RecipeBuilder({ ingredients, recipeItems, onChange }: RecipeBuil
 
   const getIngredient = (id: string) => ingredients.find((i) => i.id === id)
 
-  const totalCost = recipeItems.reduce((sum, item) => {
+  // La misma cuenta que hace el servidor al guardar. Antes multiplicaba la
+  // cantidad cruda por el precio, sin convertir unidades ni aplicar merma.
+  const costoDe = (item: { ingredient_id: string; quantity: number; unit?: string | null }) => {
     const ing = getIngredient(item.ingredient_id)
-    return sum + (ing ? item.quantity * ing.cost_per_unit : 0)
-  }, 0)
+    return ing ? costoDeLinea(item.quantity, item.unit, ing) : 0
+  }
+
+  const totalCost = recipeItems.reduce((sum, item) => sum + costoDe(item), 0)
 
   const handleAdd = (ingredientId: string) => {
     onChange([...recipeItems, { ingredient_id: ingredientId, quantity: 1 }])
@@ -70,7 +75,7 @@ export function RecipeBuilder({ ingredients, recipeItems, onChange }: RecipeBuil
             const ing = getIngredient(item.ingredient_id)
             if (!ing) return null
             const unitAbbr = INGREDIENT_UNIT_ABBR[ing.unit as IngredientUnit] ?? ing.unit
-            const subtotal = item.quantity * ing.cost_per_unit
+            const subtotal = costoDe(item)
 
             return (
               <div
