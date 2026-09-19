@@ -558,7 +558,8 @@ export async function payTableOrder(
     // tiene por que poder tumbar un cobro ya confirmado. La funcion devuelve
     // los items para no gastar otro viaje en buscarlos.
     if (resultado.items?.length) {
-      // after() en vez de una promesa suelta: Netlify es serverless y la
+      // after() en vez de una promesa suelta: el server es serverless --esto
+      // corre en Vercel y en Netlify-- y la
       // invocacion puede terminar antes de que corra, dejando la venta cobrada
       // sin descontar. Sigue sin bloquear la respuesta del cobro.
       after(async () => {

@@ -17,7 +17,7 @@ const PAYMENT_LABELS: Record<string, string> = {
 /**
  * Fecha y hora del pedido, en hora Argentina.
  *
- * Antes esto era `new Date()` sin zona: como el server action corre en Netlify
+ * Antes esto era `new Date()` sin zona: como el server action corre en la nube
  * —que va en UTC— un ticket emitido a las 21:07 de Argentina salia impreso como
  * "11/09, 12:07 a. m.", con la fecha del dia siguiente. En el horario pico de
  * una hamburgueseria eso era casi todos los tickets.

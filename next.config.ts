@@ -37,6 +37,39 @@ const securityHeaders = [
   },
 ]
 
+/**
+ * Cuanto puede guardar el navegador cada cosa.
+ *
+ * Esto vivia en `netlify.toml`, y el proyecto se despliega en Vercel: o sea que
+ * no lo leia nadie. Los tiles del mapa del checkout y las imagenes del menu se
+ * volvian a bajar en cada carga.
+ *
+ * Aca funciona en cualquier plataforma, que es donde tenia que estar desde el
+ * principio: es configuracion de la app, no del lugar donde corre.
+ */
+const cacheHeaders = [
+  {
+    // Lo que genera Next: el nombre lleva un hash, asi que nunca cambia sin
+    // cambiar de nombre. Next ya las pone; quedan explicitas para que se lea.
+    source: '/_next/static/:path*',
+    headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+  },
+  {
+    // Los tiles de Leaflet, que son los que mas pesan y nunca cambian.
+    source: '/leaflet/:path*',
+    headers: [{ key: 'Cache-Control', value: 'public, max-age=604800' }],
+  },
+  {
+    // Los logos y demas estaticos, que viven en la raiz de `public/`.
+    //
+    // La regla que habia apuntaba a `/public/*`, y eso no existe como ruta:
+    // lo que esta en `public/` se sirve en la raiz. O sea que esa cabecera no
+    // hubiera aplicado ni en la plataforma para la que estaba escrita.
+    source: '/:archivo*.(svg|png|jpg|jpeg|webp|ico)',
+    headers: [{ key: 'Cache-Control', value: 'public, max-age=86400' }],
+  },
+]
+
 const nextConfig: NextConfig = {
   async headers() {
     return [
@@ -44,6 +77,7 @@ const nextConfig: NextConfig = {
         source: '/(.*)',
         headers: securityHeaders,
       },
+      ...cacheHeaders,
     ]
   },
   images: {

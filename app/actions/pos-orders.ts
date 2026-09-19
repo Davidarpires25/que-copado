@@ -414,7 +414,7 @@ export async function cancelMostadorOrder(
     //
     // Fuera del camino critico: la cancelacion ya esta escrita y confirmada, y
     // el cajero no tiene por que esperar al stock. after() y no una promesa
-    // suelta porque Netlify es serverless: ver la nota en tables.ts.
+    // suelta porque el server es serverless: ver la nota en tables.ts.
     after(async () => {
       try {
         await restoreStockForOrder(supabase, orderId, user.id)
