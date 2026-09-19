@@ -578,3 +578,39 @@ Si aparece en cada `npm run dev`, o se arregla o se entiende por qué se ignora.
 **Cómo se verificó**, sin levantar nada: `next.config.ts` se puede importar
 desde node con `--experimental-strip-types` y llamar a `headers()` con cada
 `NODE_ENV`. Devuelve la cabecera solo en producción.
+
+---
+
+## 26. Un esqueleto que imita la pantalla se desactualiza solo
+
+**Qué pasó (2026-09-19).** David: *"los skeleton están mostrando tarjetas o
+secciones que ya no están, por ej la caja muestra la sección inferior que
+sacamos, stock sigue mostrando las tarjetas y así etc"*.
+
+Había 13 `loading.tsx`, cada uno una réplica a mano de su pantalla, en otro
+archivo. Stock dibujaba tres tarjetas de estadísticas que no existen y escribía
+*"Control de Stock"* cuando la pantalla se llama *"Stock e Inventario"*. Caja
+dibujaba una banda inferior de 48px con la info del turno, que se mudó adentro
+del POS. Delivery-zones decía *"Zonas de Entrega"* en vez de *"Zonas de
+Envío"*.
+
+Nadie se equivocó: es lo que pasa siempre con una copia en otro archivo. Se
+toca la pantalla, no la copia.
+
+**Regla.** Un esqueleto tiene un solo trabajo: decir "esto está cargando" y
+reservar un espacio parecido. Para eso no hace falta acertarle a la pantalla,
+hace falta **no mentir**. Tres formas genéricas —tabla, tarjetas, formulario—
+cubren once de las trece pantallas del admin y no pueden desactualizarse porque
+no afirman nada puntual. 569 líneas menos.
+
+**Y la parte que más molestaba:** el título era texto escrito a mano. Ahora es
+una barra gris. Un texto que hay que mantener sincronizado ya falló dos veces;
+una barra gris que se convierte en el título de verdad no puede estar
+equivocada.
+
+**Corolario.** Antes de re-sincronizar N copias, preguntarse por qué son copias.
+
+**Y para verlo:** un esqueleto es difícil de capturar porque dura lo que tarda
+la carga. Frenar la red no alcanzó. Lo que funcionó fue montarlo en una ruta de
+prueba dentro de un worktree descartable. Ojo: una carpeta que empieza con `_`
+es privada en el App Router y da 404.
