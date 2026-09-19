@@ -695,3 +695,30 @@ excepciones dichas, o empieza a dar falsos positivos y se termina desactivando.
 
 Relacionado: [[27]] —buscar por componente encontraba menos que medir lo que se
 ve— es el mismo error una capa más arriba.
+
+---
+
+## 30. Una ayuda escondida detrás del hover no existe
+
+**Qué pasó (2026-09-19).** Limpiando texto de más en los formularios, David
+propuso: *"hay mensajes que podríamos dar cuando el mouse se posicione en ese
+campo sin necesidad de mostrarlo abajo"*.
+
+La idea de fondo es correcta —una aclaración que se lee una vez no merece un
+renglón fijo para siempre— pero tenía un problema: si la ayuda aparece al pasar
+el mouse **por el campo**, nadie la encuentra, porque nada indica que exista.
+Nadie pasea el mouse por un formulario a ver qué aparece.
+
+**Regla.** Una ayuda escondida necesita algo visible que diga que está ahí. Un
+signo de pregunta chiquito al lado de la etiqueta ocupa lo que una letra y
+cumple las dos cosas: ahorra el renglón y se deja descubrir.
+
+**Y tiene que abrirse sin mouse.** Un tooltip que solo responde al `hover` no
+existe para quien tabula ni para quien usa el sistema con el dedo. Si el
+disparador es un `<button>` en vez de un `<span>`, se abre también al recibir
+foco, y eso cubre teclado y pantalla táctil sin código extra.
+
+**Qué se esconde y qué no.** Detrás del icono va lo que se lee una vez y después
+estorba. **No** va lo que hay que saber antes de actuar —el límite de 2MB de una
+imagen se necesita antes de elegir el archivo— ni lo que avisa de un problema:
+un error o una advertencia se muestran, no se esconden.

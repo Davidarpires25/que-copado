@@ -7,6 +7,7 @@ import { ArrowLeft, Plus, Trash2, Loader2, PackagePlus, Search } from 'lucide-re
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { AyudaCampo } from '@/components/ui/ayuda-campo'
 import { Textarea } from '@/components/ui/textarea'
 import { registerPurchase } from '@/app/actions/stock'
 import { toast } from 'sonner'
@@ -394,9 +395,13 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
           <div className="border-t border-[var(--admin-border)] p-5 space-y-1.5">
             <Label
               htmlFor="purchase-reason"
-              className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide"
+              className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide inline-flex items-center gap-1.5"
             >
               Descripción / Nota (opcional)
+              <AyudaCampo>
+                Queda en el historial de movimientos. Sin nota se guarda como
+                &quot;Compra de mercadería&quot;.
+              </AyudaCampo>
             </Label>
             <Textarea
               id="purchase-reason"
@@ -406,9 +411,6 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
               rows={2}
               className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] resize-none focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 placeholder:text-[var(--admin-text-muted)]"
             />
-            <p className="text-xs text-[var(--admin-text-muted)]">
-              Queda en el historial de movimientos. Sin nota se guarda como &quot;Compra de mercadería&quot;.
-            </p>
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Loader2, AlertTriangle, Save } from 'lucide-react'
+import { AyudaCampo } from '@/components/ui/ayuda-campo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -217,8 +218,12 @@ export function IngredientFormPage({ mode, ingredient, categories }: IngredientF
         {/* Merma + Categoría */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label htmlFor="ing-waste" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
+            <Label htmlFor="ing-waste" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide inline-flex items-center gap-1.5">
               Merma / Desperdicio
+              <AyudaCampo>
+                Lo que se pierde al preparar: recortes, cáscaras, lo que queda en la olla.
+                Se suma al costo. 0 = sin merma.
+              </AyudaCampo>
             </Label>
             <div className="relative">
               <Input
@@ -235,7 +240,6 @@ export function IngredientFormPage({ mode, ingredient, categories }: IngredientF
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold pointer-events-none">%</span>
             </div>
-            <p className="text-xs text-[var(--admin-text-muted)]">0 = sin merma</p>
           </div>
 
           <div className="space-y-1.5">
@@ -274,9 +278,9 @@ export function IngredientFormPage({ mode, ingredient, categories }: IngredientF
         {/* Activo toggle */}
         <div className="flex items-center justify-between py-3 border-t border-[var(--admin-border)]">
           <div>
-            <p className="text-sm font-medium text-[var(--admin-text)]">Ingrediente activo</p>
-            <p className="text-xs text-[var(--admin-text-muted)] mt-0.5">
-              Los ingredientes inactivos no aparecen al armar recetas
+            <p className="text-sm font-medium text-[var(--admin-text)] inline-flex items-center gap-1.5">
+              Ingrediente activo
+              <AyudaCampo>Los ingredientes inactivos no aparecen al armar recetas.</AyudaCampo>
             </p>
           </div>
           <Switch

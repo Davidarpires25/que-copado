@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { NumberInput } from '@/components/ui/number-input'
+import { AyudaCampo } from '@/components/ui/ayuda-campo'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import {
@@ -382,8 +383,10 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
               {/* Receta activa toggle */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[var(--admin-text)]">Receta activa</p>
-                  <p className="text-xs text-[var(--admin-text-muted)]">Disponible para asignar a productos</p>
+                  <p className="text-sm font-medium text-[var(--admin-text)] inline-flex items-center gap-1.5">
+                    Receta activa
+                    <AyudaCampo>Solo las recetas activas se pueden asignar a un producto.</AyudaCampo>
+                  </p>
                 </div>
                 <Switch
                   checked={isActive}
