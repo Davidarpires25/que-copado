@@ -39,9 +39,9 @@
 - [x] 4.1 Captura antes y después de la tabla de insumos y de la de productos,
       a 1366×768, para mirarlas al lado.
 - [x] 4.2 `npm run lint`, `npm run build` y la suite de Playwright en verde.
-- [ ] 4.3 Mostrárselo a David antes de dar por cerrado: el criterio de si se lee
-      mejor es suyo. Capturas enviadas; falta su veredicto. **Hasta que
-      conteste, el cambio no se archiva.**
+- [x] 4.3 Mostrárselo a David antes de dar por cerrado: el criterio de si se lee
+      mejor es suyo. Vistas las capturas de insumos y stock, antes y después:
+      *"bien"*. Con eso se archiva.
 
 
 ## 5. El barrido completo (lo pidió David: *"¿falta alguna tabla más?"*)
@@ -58,7 +58,10 @@
       que no son datos (spinners, puntos separadores). Si algún día hay datos de
       prueba, entran al test.
 
-## 6. Queda a criterio de David
+## 6. Queda a criterio de David (no bloquea el archivado)
+
+Ninguna de las dos está en la spec: son decisiones sueltas que quedan
+anotadas para cuando él quiera. El cambio se archiva sin ellas.
 
 - [ ] 6.1 **El color del rol en Equipo.** El `<select>` del rol tiene fondo de
       color elegido por un hash de la clave (`estiloDeRol`). El color no
