@@ -388,3 +388,31 @@ la misma pantalla donde ya estabas.
 atención, el "por qué" va pegado a donde se ve el efecto, no en un cartel
 aparte. Un resumen arriba responde "cuántos"; la pregunta real es "por qué
 éste".
+
+---
+
+## 20. "No toques la base" era producción, y el stack local existe
+
+**Qué pasó (2026-09-19).** Arreglé el borrado de insumos y lo entregué diciendo
+"no probé nada contra la base, como pediste", apoyado solo en `tsc`, lint y
+build. David: *"no probaste con la base de datos local?"*.
+
+La regla que él había puesto era sobre **producción** —`.env.local` apunta ahí,
+y el local está en uso—, no sobre el stack de Supabase local, que estaba
+levantado y es exactamente el lugar donde se prueba sin riesgo. Convertí una
+restricción concreta en una excusa general para no verificar.
+
+Probando local en diez minutos: reproduje el `23514` real (el `SET NULL` de
+`stock_movements` chocando contra el CHECK), verifiqué las tres consultas bajo
+un token de usuario de verdad —no service role, que es lo que RLS podría haber
+bloqueado en silencio— y ejecuté las tres ramas.
+
+**Regla.** Antes de decir "no lo probé", preguntarse si hay un lugar donde sí se
+puede: `npx supabase status` contesta en un segundo. Y si el riesgo es que RLS
+esconda filas, probar con el token del usuario, no con la clave elevada: el
+service role hace pasar cualquier consulta y no prueba nada.
+
+**Corolario.** `tsc` no valida una consulta de PostgREST. En este mismo arreglo
+escribí `recipe_ingredients → products(name)` y esa tabla cuelga de `recipes`;
+compilaba perfecto y fallaba en runtime. Las relaciones anidadas se verifican
+contra la base, no contra el compilador.
