@@ -378,11 +378,14 @@ export function ProductFormPage({
                         recipes={recipes}
                         selectedRecipes={selectedRecipes}
                         onChange={setSelectedRecipes}
+                        ayuda={
+                          <>
+                            Lo que se prepara o se consume <strong>por ser este combo</strong>: el
+                            envase y la preparación que no coincide con ningún producto suelto.
+                            Opcional.
+                          </>
+                        }
                       />
-                      <p className="text-xs text-[var(--admin-text-muted)]">
-                        Lo que se prepara o se consume por ser este combo: el envase y la
-                        preparación que no coincide con ningún producto suelto. Opcional.
-                      </p>
                     </div>
 
                     <div className="h-px bg-[var(--admin-border)]" />

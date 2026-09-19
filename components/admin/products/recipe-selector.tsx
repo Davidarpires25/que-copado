@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Plus, X, AlertTriangle, Wheat, BookOpen, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NumberInput } from '@/components/ui/number-input'
+import { AyudaCampo } from '@/components/ui/ayuda-campo'
 import {
   Select,
   SelectContent,
@@ -23,9 +24,18 @@ interface RecipeSelectorProps {
   recipes: RecipeWithIngredients[]
   selectedRecipes: ProductRecipeItem[]
   onChange: (items: ProductRecipeItem[]) => void
+  /**
+   * Aclaracion para el signo de pregunta de al lado de "Recetas".
+   *
+   * Va como prop porque el selector lo comparten los elaborados y los combos,
+   * y lo que hay que explicar es distinto: en un combo la receta es lo que se
+   * consume *por ser combo* --el envase, la preparacion-- y no lo que lleva
+   * adentro, que son sus componentes.
+   */
+  ayuda?: React.ReactNode
 }
 
-export function RecipeSelector({ recipes, selectedRecipes, onChange }: RecipeSelectorProps) {
+export function RecipeSelector({ recipes, selectedRecipes, onChange, ayuda }: RecipeSelectorProps) {
   const usedIds = new Set(selectedRecipes.map((r) => r.recipe_id))
   const availableRecipes = recipes.filter((r) => r.is_active && !usedIds.has(r.id))
 
@@ -63,7 +73,10 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange }: RecipeSel
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-[var(--admin-text-muted)] text-sm font-medium">Recetas</p>
+        <p className="text-[var(--admin-text-muted)] text-sm font-medium inline-flex items-center gap-1.5">
+          Recetas
+          {ayuda && <AyudaCampo>{ayuda}</AyudaCampo>}
+        </p>
         {selectedRecipes.length > 0 && (
           <p className="text-xs text-[var(--admin-text-muted)]">
             Costo total{' '}

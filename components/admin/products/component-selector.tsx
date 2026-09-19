@@ -5,6 +5,7 @@ import { Search, Plus, Trash2, Info } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
+import { AyudaCampo } from '@/components/ui/ayuda-campo'
 import { cn, formatPrice } from '@/lib/utils'
 import { PRODUCT_TYPE_LABELS, type ProductType } from '@/lib/types/database'
 
@@ -82,13 +83,13 @@ export function ComponentSelector({ candidates, selected, onChange }: ComponentS
   return (
     <div className="space-y-4">
       <div>
-        <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
+        <Label className="text-sm font-medium text-[var(--admin-text-muted)] inline-flex items-center gap-1.5">
           Qué incluye el combo
+          <AyudaCampo>
+            Cada componente es un producto del catálogo. Al vender el combo se descuenta del
+            mismo stock que si se vendiera suelto.
+          </AyudaCampo>
         </Label>
-        <p className="text-xs text-[var(--admin-text-muted)] mt-1">
-          Cada componente es un producto del catálogo. Al vender el combo se descuenta del
-          mismo stock que si se vendiera suelto.
-        </p>
       </div>
 
       {/* Lo elegido */}
@@ -151,6 +152,15 @@ export function ComponentSelector({ candidates, selected, onChange }: ComponentS
             />
           </div>
         </div>
+        {/* La lista aparece recien cuando se busca algo.
+          *
+          * Antes salia el catalogo entero en orden alfabetico apenas se elegia
+          * "Combo": 250px de formulario gastados en una lista que nadie navega
+          * --hay mas de cien productos-- para elegir un componente. El
+          * buscador ya dice lo que hay que hacer. David: *"es correcto que se
+          * muestre si no estoy buscando nada?"*. No.
+          */}
+        {busqueda.trim() !== '' && (
         <div className="max-h-56 overflow-y-auto divide-y divide-[var(--admin-border)]">
           {coincidencias.length === 0 ? (
             <p className="p-4 text-sm text-[var(--admin-text-muted)] text-center">
@@ -187,13 +197,12 @@ export function ComponentSelector({ candidates, selected, onChange }: ComponentS
             })
           )}
         </div>
+        )}
       </div>
 
       {selected.length === 0 ? (
         <p className="text-xs text-amber-700 dark:text-amber-400/80 text-center py-1">
-          Sin componentes, el combo solo descuenta sus recetas. Si además entrega
-          un producto terminado —una bebida, por ejemplo— agregalo acá para que
-          salga del mismo stock que si se vendiera suelto.
+          Sin componentes, el combo solo descuenta sus recetas.
         </p>
       ) : (
         <div className="flex items-start gap-2 rounded-lg bg-blue-500/10 border border-blue-500/20 px-3 py-2.5">
