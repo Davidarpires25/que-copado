@@ -85,17 +85,32 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
     }
   }
 
+  /**
+   * Eliminar no siempre elimina: un insumo con movimientos de stock se
+   * desactiva, para no perder el historial con el que se reconstruyen los
+   * faltantes. La accion dice cual de las dos cosas hizo y la lista se acomoda
+   * a eso, asi que no se puede sacar la fila de antemano como antes: si quedo
+   * desactivada, tiene que seguir estando.
+   */
   const handleDelete = async (id: string) => {
-    const prev = ingredients
-    setIngredients((list) => list.filter((i) => i.id !== id))
     setDeleteTarget(null)
     const result = await deleteIngredient(id)
+
     if (result.error) {
       toast.error(result.error)
-      setIngredients(prev)
-    } else {
-      toast.success('Ingrediente eliminado')
+      return
     }
+
+    if (result.data === 'desactivado') {
+      setIngredients((list) => list.map((i) => (i.id === id ? { ...i, is_active: false } : i)))
+      toast.success('Ingrediente desactivado', {
+        description: 'Tiene movimientos de stock, asi que se esconde en vez de borrarse.',
+      })
+      return
+    }
+
+    setIngredients((list) => list.filter((i) => i.id !== id))
+    toast.success('Ingrediente eliminado')
   }
 
   // When bulk price update finishes, re-fetch ingredients by refreshing the page data
@@ -454,7 +469,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         title="Eliminar ingrediente"
-        description="Esta accion no se puede deshacer. Si el ingrediente esta en uso en recetas, no se podra eliminar."
+        description="Si el ingrediente esta en uso en alguna receta, no se va a poder eliminar. Si tiene movimientos de stock, se desactiva en vez de borrarse para no perder el historial."
         confirmLabel="Eliminar"
         onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
       />

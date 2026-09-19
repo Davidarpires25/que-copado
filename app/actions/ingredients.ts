@@ -108,20 +108,117 @@ export async function updateIngredient(
   return { data: ingredient, error: null }
 }
 
+/**
+ * Que pasa cuando se pide eliminar un insumo.
+ *
+ * `eliminado` es el borrado de verdad; `desactivado` es el insumo que ya tiene
+ * historial y se esconde en vez de borrarse.
+ */
+export type ResultadoDeBorrado = 'eliminado' | 'desactivado'
+
+/**
+ * Elimina un insumo, o lo desactiva si tiene historial de stock.
+ *
+ * Antes era un borrado duro y nada mas, y fallaba de tres formas distintas sin
+ * explicar ninguna. Las cuentas al momento de escribir esto: de 106 insumos,
+ * **41** estan en alguna receta, **49** tienen movimientos de stock y solo
+ * **16** se borran limpio.
+ *
+ * Los tres caminos:
+ *
+ * 1. **En uso en una receta** —`recipe_ingredients`, o como hijo de un insumo
+ *    compuesto— no se toca. Borrarlo dejaria la receta incompleta en silencio,
+ *    y desactivarlo tampoco sirve: el producto lo sigue necesitando. Se avisa
+ *    donde esta usado para que se pueda ir a sacarlo.
+ *
+ * 2. **Con movimientos de stock** se desactiva. El borrado duro aca no fallaba
+ *    por la receta sino por algo que no se adivina: la clave de
+ *    `stock_movements` es `ON DELETE SET NULL`, y al dejar el movimiento sin
+ *    insumo choca contra el CHECK que exige que apunte a un insumo **o** a un
+ *    producto. Salia un `23514` que no le dice nada a nadie. Y aunque
+ *    funcionara, no conviene: el historial es lo que permite reconstruir un
+ *    faltante despues, como se hizo con el medallon y con la papa.
+ *
+ * 3. **Sin receta ni movimientos** —recien creado, cargado por error— se borra
+ *    de verdad, que es lo que se espera de un boton que dice Eliminar.
+ */
 export async function deleteIngredient(id: string) {
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { data: null, error: 'No autorizado' }
 
+  // Las tres preguntas juntas: son independientes entre si.
+  const [enRecetas, comoHijo, conHistorial] = await Promise.all([
+    supabase
+      .from('recipe_ingredients')
+      .select('recipes(name)')
+      .eq('ingredient_id', id)
+      .limit(4),
+    supabase
+      .from('ingredient_sub_recipes')
+      .select('ingredients!ingredient_sub_recipes_parent_ingredient_id_fkey(name)')
+      .eq('child_ingredient_id', id)
+      .limit(4),
+    supabase
+      .from('stock_movements')
+      .select('id', { count: 'exact', head: true })
+      .eq('ingredient_id', id),
+  ])
+
+  const primerError = enRecetas.error || comoHijo.error || conHistorial.error
+  if (primerError) return { data: null, error: friendlyError(primerError) }
+
+  const usos = [
+    ...(enRecetas.data ?? []).map((f) => nombreDeLaRelacion(f.recipes)),
+    ...(comoHijo.data ?? []).map((f) => nombreDeLaRelacion(f.ingredients)),
+  ].filter((n): n is string => !!n)
+
+  if (usos.length > 0) {
+    // Los nombres concretos ahorran el paseo por todas las recetas buscando
+    // cual era. De a tres, que es lo que entra en un toast.
+    const muestra = usos.slice(0, 3).join(', ')
+    const resto = usos.length > 3 ? ' y otras mas' : ''
+    return {
+      data: null,
+      error: `No se puede eliminar: lo usan ${muestra}${resto}. Sacalo de ahi primero.`,
+    }
+  }
+
+  if ((conHistorial.count ?? 0) > 0) {
+    const { error } = await supabase
+      .from('ingredients')
+      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .eq('id', id)
+
+    if (error) return { data: null, error: friendlyError(error) }
+
+    revalidateIngredients()
+    return { data: 'desactivado' as ResultadoDeBorrado, error: null }
+  }
+
   const { error } = await supabase.from('ingredients').delete().eq('id', id)
 
   if (error) {
+    // No deberia pasar —ya preguntamos— pero si aparece una referencia nueva
+    // que no conocemos, mejor decir algo cierto que el codigo de Postgres.
     if (error.code === '23503') {
-      return { data: null, error: 'Este ingrediente esta siendo usado en recetas. Elimina las recetas primero.' }
+      return { data: null, error: 'No se puede eliminar: algo mas lo esta usando.' }
     }
     return { data: null, error: friendlyError(error) }
   }
 
   revalidateIngredients()
-  return { data: true, error: null }
+  return { data: 'eliminado' as ResultadoDeBorrado, error: null }
+}
+
+/**
+ * El nombre de una relacion anidada de PostgREST.
+ *
+ * Viene como objeto o como arreglo de uno segun como infiera la cardinalidad,
+ * y `null` cuando RLS no deja leerla. Los tres casos se resuelven igual.
+ */
+function nombreDeLaRelacion(relacion: unknown): string | null {
+  const fila = Array.isArray(relacion) ? relacion[0] : relacion
+  const nombre = (fila as { name?: unknown } | null)?.name
+  return typeof nombre === 'string' ? nombre : null
 }
