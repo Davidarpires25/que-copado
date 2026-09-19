@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Loader2, AlertTriangle, Info, Save } from 'lucide-react'
+import { ArrowLeft, Loader2, AlertTriangle, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -123,9 +123,6 @@ export function IngredientFormPage({ mode, ingredient, categories }: IngredientF
           <h1 className="text-2xl font-bold text-[var(--admin-text)]">
             {isEditing ? `Editar: ${ingredient?.name}` : 'Nuevo Ingrediente'}
           </h1>
-          <p className="text-[var(--admin-text-muted)] text-sm mt-1">
-            {isEditing ? 'Modifica los datos del ingrediente' : 'Agrega un nuevo ingrediente para tus recetas'}
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -289,14 +286,6 @@ export function IngredientFormPage({ mode, ingredient, categories }: IngredientF
             className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-[var(--admin-border)]"
             aria-label="Ingrediente activo"
           />
-        </div>
-
-        {/* Info note */}
-        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-[var(--admin-surface-2)] border border-[var(--admin-border)]">
-          <Info className="h-4 w-4 text-[var(--admin-text-muted)] mt-0.5 shrink-0" />
-          <p className="text-xs text-[var(--admin-text-muted)]">
-            El costo por unidad se usa para calcular automáticamente el costo de las recetas que incluyan este ingrediente.
-          </p>
         </div>
 
         {/* Edit warning */}

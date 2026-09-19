@@ -184,9 +184,6 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[var(--admin-text)]">Registrar compra</h1>
-          <p className="text-[var(--admin-text-muted)] text-sm mt-1">
-            Buscá los ingredientes que entraron y cargá cuánto llegó de cada uno
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button

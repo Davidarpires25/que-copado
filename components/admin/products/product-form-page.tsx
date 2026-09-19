@@ -291,9 +291,6 @@ export function ProductFormPage({
                   <h2 className="text-sm font-semibold text-[var(--admin-text)]">
                     Información del Producto
                   </h2>
-                  <p className="text-xs text-[var(--admin-text-muted)]">
-                    Datos básicos para mostrar en el menú
-                  </p>
                 </div>
                 <div className="h-px bg-[var(--admin-border)]" />
 
@@ -342,9 +339,6 @@ export function ProductFormPage({
                   <h2 className="text-sm font-semibold text-[var(--admin-text)]">
                     Tipo y Preparación
                   </h2>
-                  <p className="text-xs text-[var(--admin-text-muted)]">
-                    Cómo se elabora este producto
-                  </p>
                 </div>
                 <div className="h-px bg-[var(--admin-border)]" />
 
@@ -499,9 +493,6 @@ export function ProductFormPage({
                   <h2 className="text-sm font-semibold text-[var(--admin-text)]">
                     Configuración
                   </h2>
-                  <p className="text-xs text-[var(--admin-text-muted)]">
-                    {productType === 'mitad' ? 'Visibilidad y disponibilidad' : 'Precio, visibilidad y disponibilidad'}
-                  </p>
                 </div>
                 <div className="h-px bg-[var(--admin-border)]" />
 
@@ -579,8 +570,7 @@ export function ProductFormPage({
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-[var(--admin-text)]">Visible (Activo)</p>
-                      <p className="text-xs text-[var(--admin-text-muted)]">Mostrar en el menú</p>
+                      <p className="text-sm font-medium text-[var(--admin-text)]">Visible en el menú</p>
                     </div>
                     <Switch
                       checked={isActive}
@@ -592,7 +582,6 @@ export function ProductFormPage({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-[var(--admin-text)]">Agotado</p>
-                      <p className="text-xs text-[var(--admin-text-muted)]">Marcar como sin stock</p>
                     </div>
                     <Switch
                       checked={isOutOfStock}

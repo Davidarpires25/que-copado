@@ -349,7 +349,6 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
           <div className="w-full min-[1200px]:w-[380px] min-[1200px]:shrink-0 space-y-5">
               <div className="space-y-0.5">
                 <h2 className="text-sm font-semibold text-[var(--admin-text)]">Información de la Receta</h2>
-                <p className="text-xs text-[var(--admin-text-muted)]">Nombre y descripción de la receta</p>
               </div>
               <div className="h-px bg-[var(--admin-border)]" />
 
@@ -408,10 +407,13 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <h2 className="text-sm font-semibold text-[var(--admin-text)]">Ingredientes de la Receta</h2>
-                  <p className="text-xs text-[var(--admin-text-muted)]">
-                    {recipeItems.length > 0
-                      ? `${recipeItems.length} ${recipeItems.length === 1 ? 'ingrediente' : 'ingredientes'}`
-                      : 'Agrega al menos uno'}
+                  {/* El renglon se reserva aunque no haya nada que contar: si
+                      aparece recien con el primer ingrediente, empuja 18px hacia
+                      abajo el boton de agregar, que es justo lo que se arreglo
+                      para que dejara de moverse. Lo agarro su test. */}
+                  <p className="text-xs text-[var(--admin-text-muted)] min-h-4">
+                    {recipeItems.length > 0 &&
+                      `${recipeItems.length} ${recipeItems.length === 1 ? 'ingrediente' : 'ingredientes'}`}
                   </p>
                 </div>
               </div>
