@@ -72,10 +72,10 @@
 
 ## 7. Lo que se aprendió haciéndolo
 
-- [x] 5.1 El inventario por `<Badge>` era incompleto: el tipo de producto era
+- [x] 7.1 El inventario por `<Badge>` era incompleto: el tipo de producto era
       una píldora a mano. El test que mide el estilo calculado encontró lo que
       la búsqueda por componente no.
-- [x] 5.2 El test de 3.2 nació vacío: buscaba la cadena `"9999"` en
+- [x] 7.2 El test de 3.2 nació vacío: buscaba la cadena `"9999"` en
       `border-radius`, pero `rounded-full` en Tailwind 4 es
       `calc(infinity * 1px)` y el navegador lo calcula como `3.3e7px`. Pasaba
       contra cualquier código. Se corrigió a `parseFloat(...) >= 9999` y recién
