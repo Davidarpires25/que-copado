@@ -3,7 +3,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { revalidateStock, revalidateStorefront } from '@/lib/server/revalidate'
-import { convertToBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
+import { convertToBaseUnit, convertFromBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
 import { escalarComponente } from '@/lib/server/sub-recipes'
 import { devError } from '@/lib/server/error-messages'
 import { recalculateProductsForIngredient } from './recipes'
@@ -895,12 +895,23 @@ function _buildPSIngredientNode(
   ingMap: Map<string, PSIngData>,
   visited: Set<string>
 ): ProductionSheetIngredient {
+  // Las cantidades se guardan en la unidad del insumo, no en la base.
+  //
+  // El nodo ya se etiquetaba con `ing.unit`, pero guardaba el numero en unidad
+  // base: para el morron imprimia "0,03 g" donde son 30 g. Y de ese mismo
+  // numero salen otras dos cuentas de la ficha --el costo, que se multiplica
+  // por un `cost_per_unit` que es por gramo, y el faltante, que se compara
+  // contra un `current_stock` que tambien esta en gramos--. Convertir aca
+  // arregla las tres de una, y la vista no se entera.
+  //
+  // La recursion sigue trabajando en unidad base: es la unica forma de escalar
+  // una sub-receta cuyo hijo puede estar en otra unidad que el padre.
   const node: ProductionSheetIngredient = {
     ingredient_id: ing.id,
     name: ing.name,
     unit: ing.unit,
-    net_qty_per_unit: netQtyBase,
-    gross_qty_per_unit: grossQtyBase,
+    net_qty_per_unit: convertFromBaseUnit(netQtyBase, ing.unit),
+    gross_qty_per_unit: convertFromBaseUnit(grossQtyBase, ing.unit),
     waste_pct: Number(ing.waste_percentage) || 0,
     cost_per_unit: Number(ing.cost_per_unit) || 0,
     current_stock: Number(ing.current_stock),

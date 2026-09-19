@@ -7,21 +7,41 @@
       unidad ahora muestra **$40.000** en la línea y en el total. Antes no había
       ningún número que delatara la carga.
 
-## 2. Los datos (bloqueado)
+## 2. Los datos — **desbloqueado por David**
 
-- [ ] 2.1 Corregir `cost_per_unit` de Morrón, Cereales y Papa con los precios
-      reales. **Esperando al cliente.**
-- [ ] 2.2 Revisar `Papel de aluminio`: $14.400 × 65 unidades = $936.000.
+- [x] 2.1 Corregir `cost_per_unit`. **David corrigió el morrón a $2,50/g**
+      ($2.500 el kilo), que era el que hacía saltar el costo. El orégano ya
+      estaba bien: $22/g son $660 el paquete de 30 g.
+- [ ] 2.2 Revisar `Papel de aluminio` ($14.400 × 65) y `Cereales` ($200/g =
+      $200.000 el kilo). Ninguno de los dos está en una receta, así que no
+      afectan el costo de ningún producto: quedan para cuando se usen.
 
-## 3. Las cuentas (van junto con 2)
+## 3. Las cuentas
 
-- [ ] 3.1 `recalculateProductCost` y `_costoDeRecetasDe` comparan en la misma
-      unidad.
-- [ ] 3.2 Lo mismo en `recalcularCostoDeInsumoCompuesto`.
-- [ ] 3.3 La ficha técnica: la cantidad en la unidad del insumo, y el costo con
-      las dos puntas en la misma unidad.
-- [ ] 3.4 Recalcular el costo de todos los productos después de corregir.
-      Verificación: el margen de las tres pizzas antes y después, a la vista.
+- [x] 3.1 `_costoDeRecetasDe` convierte a la unidad del insumo antes de
+      multiplicar por su precio. Ya era una sola función —las dos copias se
+      unificaron en `una-sola-cuenta-de-stock`—, así que fue un solo arreglo.
+- [x] 3.2 Lo mismo en el costo de un insumo compuesto.
+- [x] 3.3 La ficha técnica guarda las cantidades en la unidad del insumo y no
+      en la base. Arregla **tres cosas de una**: la cantidad impresa (decía
+      "0,03 g" donde son 30 g), el costo, y el faltante —que comparaba una
+      cantidad en kilos contra un stock en gramos—. La vista no se enteró.
+- [x] 3.4 **Verificado en el navegador** con un insumo en gramos: 2 g de
+      orégano a $22/g ahora aportan **$44** al costo del producto, no $0,04.
+      La cuenta completa da `1200 + 450 + (0,04/0,95 × 9000) + 44 = 2072,95`,
+      que es exactamente lo que queda guardado. Y la ficha imprime "2 g · $44".
+- [ ] 3.5 Recalcular los costos en producción. Solo cambian dos productos
+      —PIZZA ESPECIAL +$96,90 y Pizza Copada +$74,93— porque son los únicos con
+      insumos en gramos. Menos del 1%.
+
+## 4. Y de paso, uno que apareció al mirarlo
+
+- [x] 4.1 **Un combo recién creado se quedaba sin costo.** `recalculateProductCost`
+      calculaba solo las recetas y, si el combo no tenía recetas propias —el
+      caso normal—, `_costoDeRecetasDe` devolvía `null` y la función le ponía el
+      costo en `null`, borrando lo que sus componentes ya habían calculado. Y
+      con recetas propias le pisaba el costo ignorando los componentes. Ahora
+      deriva a `recalcularCostoDeCombo`, que suma las dos partes.
 
 ## Cómo retomarlo
 

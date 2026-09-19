@@ -5,7 +5,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { revalidateRecipes } from '@/lib/server/revalidate'
 import { friendlyError } from '@/lib/server/error-messages'
-import { convertToBaseUnit } from '@/lib/server/unit-conversion'
+import { convertToBaseUnit, convertFromBaseUnit } from '@/lib/server/unit-conversion'
+import { devError } from '@/lib/server/logger'
 
 interface RecipeIngredientItem {
   ingredient_id: string
@@ -16,6 +17,42 @@ interface RecipeIngredientItem {
 // ---------------------------------------------------------------------------
 // CRUD
 // ---------------------------------------------------------------------------
+
+
+/**
+ * Un insumo que entra a una receta se empieza a contar.
+ *
+ * Estar en una receta significa que cada venta lo consume. Si ademas tiene el
+ * seguimiento apagado, el descuento lo saltea en silencio: no falla, no avisa,
+ * simplemente no lo cuenta.
+ *
+ * Paso de verdad. La papa estuvo en diez recetas con el seguimiento apagado:
+ * trece ventas se comieron 4,6 kg y el sistema siguio diciendo 20. Lo mismo el
+ * pote de aderezo, en nueve recetas, con ocho consumidos y cero descontados.
+ * Ninguno de los dos fue una decision de no contarlos: fue un olvido.
+ *
+ * Solo los que **entran** a la receta, no todos los de la receta en cada
+ * guardado. Si alguien apago a proposito el seguimiento de algo que no quiere
+ * contar --un pellizco de oregano, un palillo-- volver a prenderselo cada vez
+ * que se edita la receta seria pelearle. Ya se aprendio hoy con el barrido que
+ * apagaba lo que una persona habia prendido.
+ */
+async function _seguirLosNuevos(
+  supabase: SupabaseClient,
+  ingredientIds: string[]
+): Promise<void> {
+  if (ingredientIds.length === 0) return
+
+  const { error } = await supabase
+    .from('ingredients')
+    .update({ stock_tracking_enabled: true, updated_at: new Date().toISOString() })
+    .in('id', [...new Set(ingredientIds)])
+    .eq('stock_tracking_enabled', false)
+
+  // Best effort: la receta ya se guardo y no tiene por que fallar si esto no
+  // sale. Lo peor que pasa es quedar como estaba antes de este cambio.
+  if (error) devError('No se pudo activar el seguimiento de los insumos nuevos:', error)
+}
 
 export async function createRecipe(data: {
   name: string
@@ -66,6 +103,9 @@ export async function createRecipe(data: {
     return { data: null, error: 'Error al guardar ingredientes: ' + itemsError.message }
   }
 
+  // Receta nueva: todos sus insumos son nuevos.
+  await _seguirLosNuevos(supabase, data.ingredients.map((i) => i.ingredient_id))
+
   revalidateRecipes()
   return { data: recipe, error: null }
 }
@@ -115,6 +155,16 @@ export async function updateRecipe(
 
   // Update ingredients if provided
   if (data.ingredients) {
+    // Cuales ya estaban, antes de borrarlos. El guardado reescribe la lista
+    // entera, asi que sin esta lectura no hay forma de distinguir un insumo
+    // que se acaba de agregar de uno que ya estaba.
+    const { data: yaEstaban } = await supabase
+      .from('recipe_ingredients')
+      .select('ingredient_id')
+      .eq('recipe_id', id)
+
+    const previos = new Set((yaEstaban ?? []).map((r) => r.ingredient_id))
+
     // Delete existing and re-insert
     const { error: deleteError } = await supabase
       .from('recipe_ingredients')
@@ -135,6 +185,11 @@ export async function updateRecipe(
       )
 
     if (insertError) return { data: null, error: 'Error al guardar ingredientes: ' + insertError.message }
+
+    await _seguirLosNuevos(
+      supabase,
+      data.ingredients.map((i) => i.ingredient_id).filter((id) => !previos.has(id))
+    )
 
     // Recalculate all products that use this recipe
     await recalculateProductsForRecipe(supabase, id)
@@ -261,6 +316,18 @@ export async function recalculateProductCost(supabase: SupabaseClient, productId
 
   if (!product || product.product_type === 'reventa') return
 
+  // Un combo no cuesta lo que sus recetas: cuesta eso mas sus componentes.
+  //
+  // Sin esta bifurcacion, guardar las recetas de un combo le pisaba el costo
+  // con solo la parte de las recetas. Y si el combo no tenia recetas propias
+  // --el caso normal al crearlo-- `_costoDeRecetasDe` devuelve null y esta
+  // funcion le ponia el costo en null, borrando lo que sus componentes ya
+  // habian calculado. Por eso un combo recien creado aparecia sin costo.
+  if (product.product_type === 'combo') {
+    await recalcularCostoDeCombo(supabase, productId)
+    return
+  }
+
   // Una sola cuenta del costo de las recetas, compartida con la del combo.
   // Estaban escritas dos veces, con la misma conversion de unidades y la misma
   // merma; el error de unidades que aparecio hoy habia que arreglarlo en las
@@ -360,7 +427,20 @@ async function _costoDeRecetasDe(supabase: SupabaseClient, productId: string): P
       const merma = ri.ingredients.waste_percentage ?? 0
       const factor = 1 - merma / 100
       const cantidadReal = factor > 0 ? enBase / factor : enBase
-      costoReceta += cantidadReal * ri.ingredients.cost_per_unit
+
+      // El costo se cobra por unidad del insumo, no por unidad base.
+      //
+      // `cost_per_unit` es el precio de UNA unidad de la unidad del insumo:
+      // por gramo para el oregano, por kilo para la muzzarella. La cantidad se
+      // convertia a unidad base para poder comparar entre recetas, y despues se
+      // multiplicaba por ese precio sin volver: 30 g de morron entraban a la
+      // cuenta como 0,03 y costaban mil veces menos de lo que cuestan.
+      //
+      // Solo afectaba a los insumos cuya propia unidad no es la base de su
+      // familia --gramos y mililitros--, que son dos de cuarenta y cinco. Por
+      // eso el numero final parecia razonable.
+      const enUnidadDelInsumo = convertFromBaseUnit(cantidadReal, ri.ingredients.unit)
+      costoReceta += enUnidadDelInsumo * ri.ingredients.cost_per_unit
     }
     total += costoReceta * (pr.quantity ?? 1)
   }

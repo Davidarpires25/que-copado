@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { revalidateIngredients } from '@/lib/server/revalidate'
 import { friendlyError } from '@/lib/server/error-messages'
-import { convertToBaseUnit } from '@/lib/server/unit-conversion'
+import { convertToBaseUnit, convertFromBaseUnit } from '@/lib/server/unit-conversion'
 import { rendimientoEfectivo } from '@/lib/server/sub-recipes'
 import type { IngredientSubRecipeWithChild } from '@/lib/types/database'
 
@@ -142,7 +142,7 @@ export async function deleteIngredientSubRecipes(
 
 /**
  * Recalculates cost_per_unit for a parent ingredient based on its sub-ingredients.
- * cost_parent = sum( convertToBaseUnit(qty, unit) / (1 - waste_pct/100) * child.cost_per_unit )
+ * cost_parent = sum( cantidad en la unidad del hijo / (1 - waste_pct/100) * child.cost_per_unit )
  */
 async function recalculateParentCost(parentId: string): Promise<void> {
   const supabase = await createAdminClient()
@@ -150,7 +150,7 @@ async function recalculateParentCost(parentId: string): Promise<void> {
   const [{ data: subItems }, { data: parent }] = await Promise.all([
     supabase
       .from('ingredient_sub_recipes')
-      .select('quantity, unit, child_ingredient_id, ingredients:child_ingredient_id(cost_per_unit, waste_percentage)')
+      .select('quantity, unit, child_ingredient_id, ingredients:child_ingredient_id(unit, cost_per_unit, waste_percentage)')
       .eq('parent_ingredient_id', parentId),
     supabase.from('ingredients').select('yield_quantity').eq('id', parentId).maybeSingle(),
   ])
@@ -159,13 +159,19 @@ async function recalculateParentCost(parentId: string): Promise<void> {
 
   let totalCost = 0
   for (const item of subItems) {
-    const child = item.ingredients as unknown as { cost_per_unit: number; waste_percentage: number } | null
+    const child = item.ingredients as unknown as {
+      unit: string; cost_per_unit: number; waste_percentage: number
+    } | null
     if (!child) continue
 
     const baseQty = convertToBaseUnit(item.quantity, item.unit)
     const wasteFactor = 1 - (child.waste_percentage ?? 0) / 100
     const actualQty = wasteFactor > 0 ? baseQty / wasteFactor : baseQty
-    totalCost += actualQty * child.cost_per_unit
+
+    // De vuelta a la unidad del insumo antes de multiplicar por su precio:
+    // `cost_per_unit` es por gramo para un insumo en gramos, no por kilo. Ver
+    // la nota en `_costoDeRecetasDe`.
+    totalCost += convertFromBaseUnit(actualQty, child.unit) * child.cost_per_unit
   }
 
   // totalCost es lo que cuesta la tanda entera; el costo por unidad sale de
