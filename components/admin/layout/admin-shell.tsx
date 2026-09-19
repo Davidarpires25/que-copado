@@ -4,15 +4,12 @@ import { createContext, useState, useEffect } from 'react'
 import { Menu, ChefHat } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AdminSidebar, MobileSidebar } from './admin-sidebar'
-import { cn } from '@/lib/utils'
 import { getStockAlerts } from '@/app/actions/stock'
 import { getCurrentUserInfo, type CurrentUserInfo } from '@/app/actions/profile'
-import { useSidebarCollapsed } from '@/lib/hooks/use-sidebar-collapsed'
 
 export const AdminShellContext = createContext(false)
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
-  const [sidebarCollapsed, handleToggleCollapse] = useSidebarCollapsed()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [stockAlertCount, setStockAlertCount] = useState(0)
   const [me, setMe] = useState<CurrentUserInfo | null>(null)
@@ -47,19 +44,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
         {/* Desktop Sidebar */}
         <div className="hidden lg:block">
-          <AdminSidebar collapsed={sidebarCollapsed} onToggleCollapse={handleToggleCollapse} stockAlertCount={stockAlertCount} {...meProps} />
+          <AdminSidebar stockAlertCount={stockAlertCount} {...meProps} />
         </div>
 
         {/* Mobile Sidebar */}
         <MobileSidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} stockAlertCount={stockAlertCount} permissions={me?.permissions ?? null} />
 
         {/* Main Content */}
-        <div
-          className={cn(
-            'transition-all duration-300',
-            sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-64'
-          )}
-        >
+        {/* Clavado en los 72px de la barra angosta: el menu abierto se
+            superpone en vez de correr la pagina. */}
+        <div className="lg:ml-[72px]">
           {/* Mobile Header */}
           <header className="sticky top-0 z-30 h-16 bg-[var(--admin-bg)]/95 backdrop-blur-xl border-b border-[var(--admin-border)] flex items-center px-4 lg:hidden">
             <Button

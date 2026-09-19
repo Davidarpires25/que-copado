@@ -8,13 +8,11 @@ import { SessionOpenScreen } from '@/components/admin/caja/session-open-screen'
 import { PosInterface } from '@/components/admin/caja/pos-interface'
 import { SessionCloseScreen } from '@/components/admin/caja/session-close-screen'
 import { AdminSidebar, MobileSidebar } from '@/components/admin/layout/admin-sidebar'
-import { cn } from '@/lib/utils'
 import type { Category, ProductWithHalfConfig, Order, DeliveryZone } from '@/lib/types/database'
 import type { CashRegisterSession, SessionSummary } from '@/lib/types/cash-register'
 import type { TableWithOrder } from '@/lib/types/tables'
 import type { OrderWithSplits } from '@/lib/types/cash-register'
 import type { CurrentUserInfo } from '@/app/actions/profile'
-import { useSidebarCollapsed } from '@/lib/hooks/use-sidebar-collapsed'
 
 type Screen = 'open' | 'pos' | 'close'
 
@@ -48,7 +46,6 @@ export function CajaDashboard({
   // mesa, asi que la prop del server ya trae el dato fresco. Copiarla a
   // useState congelaba `openTablesCount` hasta recargar la pagina.
   const tables = initialTables
-  const [sidebarCollapsed, handleToggleCollapse] = useSidebarCollapsed()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const openTablesCount = tables.filter((t) => t.status !== 'libre').length
@@ -86,19 +83,16 @@ export function CajaDashboard({
     >
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
-        <AdminSidebar collapsed={sidebarCollapsed} onToggleCollapse={handleToggleCollapse} stockAlertCount={stockAlertCount} {...meProps} />
+        <AdminSidebar stockAlertCount={stockAlertCount} {...meProps} />
       </div>
 
       {/* Mobile Sidebar */}
       <MobileSidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} stockAlertCount={stockAlertCount} {...meProps} />
 
       {/* Main content — shifted right by sidebar width */}
-      <div
-        className={cn(
-          'h-full flex flex-col transition-all duration-300',
-          sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-64'
-        )}
-      >
+      {/* Clavado en los 72px de la barra angosta: el menu abierto se
+          superpone en vez de correr la pagina. */}
+      <div className="h-full flex flex-col lg:ml-[72px]">
         {/* La info del turno se mudo a ShiftBar, dentro del POS. Lo unico
             que queda aca es el acceso al menu en mobile, asi que en desktop la
             banda desaparece entera. */}

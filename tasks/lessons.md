@@ -509,3 +509,39 @@ que cuelga de ella con `position: absolute` si no hay ancestro posicionado: el
 **Y un detalle de método.** El `next dev` de David estaba corriendo y Next 16 no
 deja levantar un segundo. No hay que matarlo: un `git worktree` aparte, con
 `node_modules` enlazado con `cp -al`, corre los tests sin tocarle la sesión.
+
+---
+
+## 24. Un hijo flex no se achica solo, y eso escondió el botón de salir
+
+**Qué pasó (2026-09-19).** David, probando en la netbook: *"el navbar deja de
+mostrar el cerrar sesión y solo mostraba ajustes"*.
+
+El `<nav>` del sidebar tenía `flex-1` pero no `overflow-y-auto`. Un hijo de un
+contenedor flex no baja de su alto de contenido —su mínimo automático es
+`auto`, no `0`— así que con los 15 ítems de un administrador el menú reclamaba
+772px, empujaba "Mi cuenta" y "Cerrar Sesión" fuera de la pantalla, y el
+`overflow-hidden` del `<aside>` los cortaba. Medido en 1366×768: el botón de
+salir quedaba **122px por debajo del borde**. No había forma de cerrar sesión
+desde el menú.
+
+**Regla.** `flex-1` reparte el espacio que sobra; no obliga a nadie a achicarse.
+Para que un hijo flex ceda hace falta `min-h-0`, o convertirlo en contenedor
+scrolleable (`overflow-y-auto`), que es lo mismo por otra vía: el mínimo
+automático de un scroll container sí es 0. Si además del scroll hay un pie que
+tiene que quedarse abajo, esto no es cosmético: es la diferencia entre que el
+pie exista o no.
+
+**Dos trampas que salieron del mismo cambio:**
+
+- Fijar `overflow-y` vuelve `auto` al otro eje. Con las etiquetas siempre en el
+  DOM —para que no parpadeen al expandir— aparecía una barra de scroll
+  horizontal. Hay que poner `overflow-x-hidden` explícito.
+- Montar y desmontar las etiquetas en cada pasada del mouse hace parpadear las
+  filas, y desmontar los títulos de grupo además cambia el alto de la lista y
+  todo salta. Se quedan en el DOM y se desvanecen con `opacity`.
+
+**Y un detalle de teclado.** Abrir con `onFocus` y cerrar con `onBlur` pliega el
+menú en cada Tab, porque moverse entre dos ítems dispara blur y después focus.
+El `onBlur` tiene que mirar `relatedTarget`: si el foco sigue adentro, no se
+hace nada.
