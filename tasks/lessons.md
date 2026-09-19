@@ -472,3 +472,40 @@ es un número válido. Al salir, soltar el borrador alcanza para que vuelva el
 
 **Corolario.** Un `||` como fallback trata al `0` y al `''` igual que a un error.
 En un campo de cantidad eso es exactamente el bug.
+
+---
+
+## 23. Medir antes de rediseñar, aunque el reporte suene obvio
+
+**Qué pasó (2026-09-19).** David reportó que con muchos ingredientes "la
+pantalla no se adapta". Ya había empezado a mover cosas de lugar cuando
+preguntó: *"analiza si es cierto"* / *"o es por que el usuario no hace
+scroll"*. Tenía razón en dudar, y la medición cambió el diagnóstico.
+
+Lo medido en una notebook de 1366×768, agregando 18 ingredientes:
+
+- **Nada estaba roto.** La página scrollea y el botón siempre se alcanza —
+  además, al clickearlo el navegador lo trae solo, porque el foco se va al
+  buscador. Ahí "el usuario no scrollea" era una explicación válida.
+- **Pero el botón bajaba 58px por ingrediente** y el total se iba de pantalla
+  en el séptimo. Lo único que se repite era lo único que se movía.
+- **Y por debajo de 1180px de ancho hay desborde horizontal**, con tres
+  ingredientes, no con dieciocho: la columna está clavada en `w-[380px]` y las
+  dos nunca se apilan. Eso no tiene nada que ver con la cantidad.
+
+Tres problemas distintos donde el reporte sonaba a uno solo, y el que yo iba a
+arreglar de memoria no era el más grave.
+
+**Regla.** Un reporte de usabilidad describe un síntoma, no una causa. Antes de
+mover el layout, medir: posición del control que se repite, qué entra en
+pantalla, a qué ancho desborda. Playwright da esos números en minutos y
+convierte una discusión de opiniones en una tabla.
+
+**Corolario técnico.** Recortar una lista con `overflow-y-auto` no recorta lo
+que cuelga de ella con `position: absolute` si no hay ancestro posicionado: el
+`<select>` escondido que Radix pone por fila se ancla al documento y dejaba
+700px de scroll vacío. El contenedor que recorta necesita `relative`.
+
+**Y un detalle de método.** El `next dev` de David estaba corriendo y Next 16 no
+deja levantar un segundo. No hay que matarlo: un `git worktree` aparte, con
+`node_modules` enlazado con `cp -al`, corre los tests sin tocarle la sesión.

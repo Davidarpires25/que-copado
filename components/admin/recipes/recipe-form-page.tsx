@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useEffect, useRef, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -175,6 +175,30 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
   const [showCreateIngredient, setShowCreateIngredient] = useState(false)
   const [createIngredientName, setCreateIngredientName] = useState('')
   const [newlyCreatedId, setNewlyCreatedId] = useState<string | null>(null)
+
+  /**
+   * La lista de ingredientes scrollea sola; el resto de la pantalla no se mueve.
+   *
+   * Antes la lista crecia sin tope y empujaba hacia abajo lo unico que se
+   * necesita repetir —el boton de agregar— y el total. Con quince ingredientes
+   * cada agregado costaba un viaje de scroll. David: *"cuando se agregan muchos
+   * ingredientes a una receta es dificil seguir agregando mas por que la
+   * pantalla no se adapta"*.
+   *
+   * Al agregar uno, la lista baja hasta el final para que se vea lo que entro:
+   * el boton quedo arriba, asi que sin esto el ingrediente nuevo aparece fuera
+   * de vista.
+   */
+  const listaRef = useRef<HTMLDivElement>(null)
+  const cuantosHabia = useRef(0)
+
+  useEffect(() => {
+    const lista = listaRef.current
+    if (lista && recipeItems.length > cuantosHabia.current) {
+      lista.scrollTop = lista.scrollHeight
+    }
+    cuantosHabia.current = recipeItems.length
+  }, [recipeItems.length])
 
   // Load recipe ingredients on mount (edit mode)
   useEffect(() => {
@@ -391,6 +415,14 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                 </div>
               ) : (
                 <div className="space-y-3">
+                  {/* Agregar va arriba: es lo unico que se repite, y abajo se
+                      alejaba un renglon por cada ingrediente. */}
+                  <IngredientCombobox
+                    availableIngredients={availableIngredients}
+                    onSelect={handleAddIngredient}
+                    onCreateRequest={(name) => { setCreateIngredientName(name); setShowCreateIngredient(true) }}
+                  />
+
                   {recipeItems.length > 0 ? (
                     <div className="space-y-2">
                       {/* Table header */}
@@ -402,6 +434,20 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                         <span className="sr-only">Quitar</span>
                       </div>
 
+                      {/* Solo las filas scrollean. El encabezado de la tabla, el
+                          boton de agregar y el total se quedan donde estan, asi
+                          la pantalla deja de crecer con cada ingrediente.
+
+                          El `relative` no es decorativo: el Select de cada fila
+                          arrastra un <select> nativo escondido con
+                          `position: absolute`, y sin un ancestro posicionado se
+                          ancla al documento. Recortar la lista no lo recorta a
+                          el, y la pagina quedaba con 700px de scroll vacio
+                          debajo de una tarjeta que ya habia terminado. */}
+                      <div
+                        ref={listaRef}
+                        className="relative space-y-2 max-h-[min(46vh,430px)] overflow-y-auto pr-1.5 -mr-1.5"
+                      >
                       {recipeItems.map((item) => {
                         const ing = getIngredient(item.ingredient_id)
                         if (!ing) return null
@@ -486,6 +532,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                           </div>
                         )
                       })}
+                      </div>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -496,12 +543,6 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                       <p className="text-xs text-[var(--admin-text-faint)] mt-1">Agregá al menos uno para calcular el costo</p>
                     </div>
                   )}
-
-                  <IngredientCombobox
-                    availableIngredients={availableIngredients}
-                    onSelect={handleAddIngredient}
-                    onCreateRequest={(name) => { setCreateIngredientName(name); setShowCreateIngredient(true) }}
-                  />
 
                   {/* Total al pie de la lista que lo produce. Antes vivia en un
                       chip arriba y ademas en un "Resumen de Costos" que repetia
