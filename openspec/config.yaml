@@ -13,8 +13,9 @@ context: |
   cocina, stock por recetas y arqueo.
 
   Next.js 16 (App Router) + React 19 + TypeScript. Base: Supabase (PostgreSQL
-  con RLS). Desplegado en Netlify. Mapas con Leaflet y Turf.js para las zonas
-  de reparto.
+  con RLS). Se despliega en Vercel **y** en Netlify desde el mismo repo, asi
+  que la configuracion que una plataforma lee y la otra no --cabeceras, redirects--
+  va en `next.config.ts`. Mapas con Leaflet y Turf.js para las zonas de reparto.
 
   No es un proyecto de laboratorio: hay un local usandolo todos los dias. Un
   cambio que rompe la caja deja a alguien sin poder cobrar con gente esperando.
@@ -35,11 +36,23 @@ context: |
 
   ## Como se verifica aca
 
-  No hay suite de tests automatizados. Lo que vale como evidencia es, en este
-  orden: una consulta contra la base de produccion (via MCP de Supabase o
-  PostgREST con la clave correspondiente), el endpoint real corriendo, y
-  `npm run lint` + `npm run build`. Una funcion SQL se prueba dentro de una
-  transaccion con `rollback` antes de darla por buena.
+  Hay un stack local de Supabase (`npm run db:start`) y una suite de Playwright
+  (`npm run test:e2e`) que corre contra el, nunca contra produccion: el env de
+  los tests vive en `playwright.config.ts` y pisa al de `.env.local`, que
+  apunta al proyecto real.
+
+  Lo que vale como evidencia, en este orden: un test de navegador que falle
+  contra el codigo viejo y pase contra el nuevo --si pasa en los dos, esta
+  probando otra cosa--, una consulta contra la base local, el endpoint real
+  corriendo, y `npm run lint` + `npm run build`. Una funcion SQL se prueba
+  dentro de una transaccion con `rollback` antes de darla por buena.
+
+  Contra produccion no se prueba. Leer esta bien cuando hace falta reconstruir
+  un numero; escribir, solo con permiso explicito y dejando constancia.
+
+  Si el `next dev` de David esta levantado, Next 16 no deja arrancar un segundo:
+  para correr los tests sin tocarle la sesion, un `git worktree` aparte con
+  `node_modules` enlazado por `cp -al`.
 
   Cada viaje a Supabase cuesta ~160ms fijos, medido sobre los logs. Es la
   unidad con la que se razona el rendimiento en este proyecto: la pregunta no
