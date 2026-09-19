@@ -44,7 +44,33 @@
       conteste, el cambio no se archiva.**
 
 
-## 5. Lo que se aprendió haciéndolo
+## 5. El barrido completo (lo pidió David: *"¿falta alguna tabla más?"*)
+
+- [x] 5.1 Censo de las 14 pantallas del panel, midiendo el estilo calculado.
+      Apareció una más: el conteo `1 producto` de `categories/category-list.tsx`,
+      en píldora amarilla. Es un atributo, pasó a texto.
+- [x] 5.2 El test cubre ahora seis pantallas: insumos, stock, productos,
+      categorías, recetas y equipo. Falla contra el código viejo en categorías.
+- [x] 5.3 **Seis pantallas no se pueden medir en local porque no tienen datos**
+      —pedidos, arqueos, analytics, mesas, zonas de envío, cocina—. Revisadas
+      leyendo el código: los resaltados que tienen son de estado (verde/amarillo/
+      rojo del arqueo, ingreso/egreso de caja), contadores de pestaña, o cosas
+      que no son datos (spinners, puntos separadores). Si algún día hay datos de
+      prueba, entran al test.
+
+## 6. Queda a criterio de David
+
+- [ ] 6.1 **El color del rol en Equipo.** El `<select>` del rol tiene fondo de
+      color elegido por un hash de la clave (`estiloDeRol`). El color no
+      significa nada: es decoración, y es justo lo que produce la sensación que
+      describió. Pero es un **control**, no una celda de datos, y el comentario
+      dice que se hizo así para que un rol nuevo se vea consistente sin tocar
+      código. No lo toqué.
+- [ ] 6.2 **Los contadores de pestaña** (`Todos 6`, `Carnes 1`) siguen en
+      píldora. Están fuera de la tabla y un número junto a una etiqueta es un
+      patrón establecido, pero conviene decirlo explícito en la spec.
+
+## 7. Lo que se aprendió haciéndolo
 
 - [x] 5.1 El inventario por `<Badge>` era incompleto: el tipo de producto era
       una píldora a mano. El test que mide el estilo calculado encontró lo que

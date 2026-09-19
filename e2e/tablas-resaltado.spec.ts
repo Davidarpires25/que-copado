@@ -61,10 +61,20 @@ async function resaltadosDeLaTabla(page: import('@playwright/test').Page) {
   })
 }
 
+/**
+ * Las pantallas del panel que tienen tabla y datos con los que probar.
+ *
+ * Faltan las que en la base local estan vacias --pedidos, arqueos, analytics,
+ * mesas, zonas-- donde este test no puede concluir nada: esas se revisaron
+ * leyendo el codigo. Si alguna vez hay datos de prueba, van aca.
+ */
 for (const [ruta, nombre] of [
   ['/admin/ingredients', 'insumos'],
   ['/admin/stock', 'stock'],
   ['/admin/products', 'productos'],
+  ['/admin/categories', 'categorias'],
+  ['/admin/recipes', 'recetas'],
+  ['/admin/empleados', 'equipo'],
 ]) {
   test(`en ${nombre} solo el estado va resaltado`, async ({ page }) => {
     await page.goto(ruta)

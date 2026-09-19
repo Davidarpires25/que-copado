@@ -160,7 +160,10 @@ export function CategoryList({ categories, onEdit, onDeleted,onReorder, isSearch
 
                 {/* Productos count */}
                 <td className="px-4 py-3 hidden sm:table-cell">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)]">
+                  {/* Cuantos productos tiene es un dato de la categoria, no un
+                      estado: no cambia con lo que pase en el turno ni hay que
+                      detectarlo de un vistazo. */}
+                  <span className="text-sm text-[var(--admin-text-muted)]">
                     {count} {count === 1 ? 'producto' : 'productos'}
                   </span>
                 </td>
