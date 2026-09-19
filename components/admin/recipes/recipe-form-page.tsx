@@ -314,7 +314,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
         </nav>
 
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-bold text-[var(--admin-text)]">
             {mode === 'edit' ? 'Editar Receta' : 'Nueva Receta'}
           </h1>
@@ -335,10 +335,18 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
         </div>
 
         {/* Two-column layout — single unified card */}
-        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-8 flex gap-8 items-start">
+        {/* Las dos columnas se apilan por debajo de 1200px.
+          *
+          * Estaban clavadas en `flex` con la izquierda en 380px fijos, sin
+          * apilarse nunca: medido, la pantalla desbordaba a lo ancho 44px a
+          * 1100 y 120px a 1024, y con tres ingredientes, no con dieciocho. El
+          * corte va en 1200 y no en el `xl` de Tailwind (1280) porque a 1180
+          * todavia entra bien, y estirar el ancho util hasta donde da es justo
+          * lo que esta pantalla necesita. */}
+        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 lg:p-8 flex flex-col gap-6 min-[1200px]:flex-row min-[1200px]:gap-8 min-[1200px]:items-start">
 
           {/* ── Columna angosta: son tres campos de texto ── */}
-          <div className="w-[380px] shrink-0 space-y-5">
+          <div className="w-full min-[1200px]:w-[380px] min-[1200px]:shrink-0 space-y-5">
               <div className="space-y-0.5">
                 <h2 className="text-sm font-semibold text-[var(--admin-text)]">Información de la Receta</h2>
                 <p className="text-xs text-[var(--admin-text-muted)]">Nombre y descripción de la receta</p>
@@ -426,7 +434,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                   {recipeItems.length > 0 ? (
                     <div className="space-y-2">
                       {/* Table header */}
-                      <div className="grid grid-cols-[minmax(0,1fr)_110px_96px_110px_36px] gap-3 items-center px-2.5 pb-1.5 border-b border-[var(--admin-border)]">
+                      <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_110px_96px_110px_36px] gap-3 items-center px-2.5 pb-1.5 border-b border-[var(--admin-border)]">
                         <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]/70">Ingrediente</span>
                         <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]/70 text-center">Cantidad</span>
                         <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]/70 text-center">Unidad</span>
@@ -466,8 +474,8 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                               isNew && 'border-[var(--admin-accent)]/60 ring-2 ring-[var(--admin-accent)]/25'
                             )}
                           >
-                            <div className="grid grid-cols-[minmax(0,1fr)_110px_96px_110px_36px] gap-3 items-center">
-                              <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_110px_96px_110px_36px]">
+                              <div className="w-full sm:w-auto min-w-0">
                                 <p className="text-sm text-[var(--admin-text)] font-medium truncate">{ing.name}</p>
                                 <p className="text-xs text-[var(--admin-text-muted)]">
                                   {formatCost(ing.cost_per_unit)} / {baseUnitAbbr}
@@ -479,10 +487,10 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                                 value={item.quantity}
                                 onValueChange={(n) => handleQuantityChange(item.ingredient_id, n)}
                                 aria-label={`Cantidad de ${ing.name}`}
-                                className="w-full h-9 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm text-center focus:border-[var(--admin-accent)]/50 focus:ring-1 focus:ring-[var(--admin-accent)]/20"
+                                className="w-24 sm:w-full h-9 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm text-center focus:border-[var(--admin-accent)]/50 focus:ring-1 focus:ring-[var(--admin-accent)]/20"
                               />
                               <Select value={item.unit} onValueChange={(v) => handleUnitChange(item.ingredient_id, v)}>
-                                <SelectTrigger className="w-full h-9 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-xs focus:ring-1 focus:ring-[var(--admin-accent)]/20 px-2">
+                                <SelectTrigger className="w-20 sm:w-full h-9 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-xs focus:ring-1 focus:ring-[var(--admin-accent)]/20 px-2">
                                   <SelectValue>{selectedUnitAbbr}</SelectValue>
                                 </SelectTrigger>
                                 <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">
@@ -493,7 +501,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                                   ))}
                                 </SelectContent>
                               </Select>
-                              <p className="text-sm text-[var(--admin-price)] font-semibold text-right">
+                              <p className="text-sm text-[var(--admin-price)] font-semibold text-right ml-auto sm:ml-0">
                                 {formatCost(subtotal)}
                               </p>
                               <Button
