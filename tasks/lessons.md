@@ -665,3 +665,33 @@ PostgREST, casi siempre son unas líneas y el test se los lleva al terminar.
 quedan. Ese texto lo lee el cliente en su teléfono, donde los emojis son parte
 del idioma. El pedido era sacarlos del panel. Vale la pena separar los dos
 destinos antes de borrar en masa.
+
+---
+
+## 29. El test encontró lo que buscaba, no lo que importaba
+
+**Qué pasó (2026-09-19).** Escribí un test para que ningún atributo quedara
+resaltado en las tablas del panel. Detectaba "resaltado" como **fondo propio +
+`border-radius` enorme**, o sea: píldoras. Pasó en las seis pantallas.
+
+David: *"en la tabla de recetas el dato de ingredientes se cierra con un
+cuadrado"*. Era una caja con borde y fondo y **cero redondeo**. El test no la
+veía, porque yo había codificado *la forma que había visto en la captura* en
+lugar de *la propiedad que molesta*.
+
+Lo que molesta es que el dato esté **encerrado**. Si está encerrado en una
+píldora o en un cuadrado es irrelevante.
+
+**Regla.** Al escribir una comprobación automática, separar el síntoma que
+motivó el pedido de la propiedad general que hay que defender. El síntoma sirve
+para encontrar el primer caso; si queda como definición, el test solo encuentra
+copias exactas del primero. Escribir la definición en la spec obliga a
+enunciarla, y ahí se nota si es demasiado estrecha.
+
+**Corolario de precisión.** Al ampliar la regla hubo que excluir los controles:
+un `<select>` o un interruptor tienen fondo y borde, y ahí el color no es
+adorno sino parte de cómo se ve que están. Una regla más ancha necesita sus
+excepciones dichas, o empieza a dar falsos positivos y se termina desactivando.
+
+Relacionado: [[27]] —buscar por componente encontraba menos que medir lo que se
+ve— es el mismo error una capa más arriba.

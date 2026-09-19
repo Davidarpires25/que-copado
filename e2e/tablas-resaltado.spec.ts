@@ -38,23 +38,32 @@ test.beforeEach(async ({ page }) => {
   await page.waitForURL(/\/admin\/(?!login)/)
 })
 
-/** Lo que el navegador dibuja como pildora: fondo propio y esquinas redondas. */
+/**
+ * Un dato **encerrado**: con fondo propio y, ademas, borde o esquinas redondas.
+ *
+ * La primera version buscaba solo pildoras --`border-radius` enorme-- y se le
+ * escapo el contador de ingredientes de la tabla de recetas, que iba en una
+ * caja cuadrada con borde. Lo encontro David mirando. Lo que molesta es que el
+ * dato este *encerrado*, no la forma del encierro.
+ *
+ * Los controles quedan afuera: un `<select>` o un interruptor se tocan, y su
+ * color es parte de como se ve que estan. Encerrar no es lo mismo que pintar
+ * algo con lo que se interactua.
+ */
 async function resaltadosDeLaTabla(page: import('@playwright/test').Page) {
   return page.evaluate(() => {
     const encontrados: string[] = []
     document.querySelectorAll('tbody tr').forEach((fila) =>
-      fila.querySelectorAll('span, div').forEach((el) => {
+      fila.querySelectorAll('span, div, p').forEach((el) => {
+        if (el.closest('button, a, select, input, [role="switch"], [role="button"]')) return
         const cs = getComputedStyle(el)
         const conFondo =
           cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent'
-        // `rounded-full` en Tailwind 4 es `calc(infinity * 1px)`, y el
-        // navegador lo calcula como un numero enorme --3.3e7px-- no como
-        // "9999px". Buscar la cadena "9999" no encontraba nada y el test
-        // pasaba contra cualquier codigo, que es no probar nada.
-        const redondo = parseFloat(cs.borderRadius) >= 9999
+        const encerrado = parseFloat(cs.borderRadius) > 0 || parseFloat(cs.borderTopWidth) > 0
         const texto = (el.textContent ?? '').trim()
-        // Sin hijos: interesa la pildora, no el contenedor que la envuelve.
-        if (conFondo && redondo && texto && el.children.length === 0) encontrados.push(texto)
+        // Sin hijos: interesa la caja, no el contenedor que la envuelve.
+        if (conFondo && encerrado && texto && texto.length < 34 && el.children.length === 0)
+          encontrados.push(texto)
       })
     )
     return [...new Set(encontrados)]

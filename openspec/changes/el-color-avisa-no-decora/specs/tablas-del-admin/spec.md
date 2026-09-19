@@ -10,7 +10,14 @@ cambiar según lo que pase en el negocio y que alguien necesita detectar sin
 leer la fila entera.
 
 Un dato que describe qué es una cosa y no cambia solo —su categoría, su unidad
-de medida, un total calculado— SHALL mostrarse como texto.
+de medida, un conteo, un total calculado— SHALL mostrarse como texto.
+
+"Resaltado" SHALL entenderse como **encerrado**: con fondo propio y, además,
+borde o esquinas redondas. La forma del encierro no importa —píldora o caja
+cuadrada—, importa que el dato esté encerrado.
+
+Los **controles** quedan fuera de esta regla: un `<select>` o un interruptor se
+tocan, y su color es parte de cómo se ve que están.
 
 Existe porque el resalte es un recurso que se gasta. Si todas las filas tienen
 algo resaltado, el resalte deja de señalar: en la tabla de insumos la fila de un
@@ -29,6 +36,13 @@ unidad, y solo uno de los tres importaba.
 - **WHEN** se muestra la unidad de un insumo o de una línea de receta
 - **THEN** va como texto, en gris y pegada a la cantidad que acompaña
 - **AND** no lleva forma ni color propios
+
+#### Scenario: Un conteo
+
+- **WHEN** una fila muestra cuántos ingredientes tiene una receta, o cuántos
+  productos tiene una categoría
+- **THEN** va como texto
+- **AND** no se encierra, ni en píldora ni en caja cuadrada
 
 #### Scenario: Un total calculado
 

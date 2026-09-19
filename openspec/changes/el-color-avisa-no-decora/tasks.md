@@ -96,3 +96,15 @@
       panel.
 - [x] 8.4 Test con los cuatro pedidos sembrados, que se los lleva al terminar.
       Falla contra el código viejo: `¿emoji en el detalle? true`.
+
+## 9. La caja cuadrada (lo vio David: *"en recetas el dato de ingredientes se cierra con un cuadrado"*)
+
+- [x] 9.1 El contador de ingredientes de la tabla de recetas iba en una caja con
+      borde y fondo, **sin redondeo**. Pasa a texto.
+- [x] 9.2 **El test no la veía**: buscaba solo píldoras, o sea `border-radius`
+      enorme. Lo que molesta es que el dato esté *encerrado*, no la forma del
+      encierro. La regla ahora es fondo propio **y** (borde o redondeo), con los
+      controles excluidos. Falla contra el código viejo en recetas.
+- [x] 9.3 Barrido de las siete pantallas con datos usando la regla ancha: el
+      único resaltado que queda en todo el panel es el `OK` de Stock, que es
+      estado.

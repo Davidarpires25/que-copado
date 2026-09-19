@@ -178,7 +178,11 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
                       </TableCell>
 
                       <TableCell className="hidden sm:table-cell">
-                        <span className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium border border-[var(--admin-border)] text-[var(--admin-text-muted)] bg-[var(--admin-surface-2)]">
+                        {/* Cuantos ingredientes tiene es un dato de la receta,
+                            no un estado. Iba encerrado en una caja con borde y
+                            fondo --cuadrada, no pildora, que fue justo lo que
+                            hizo que el primer test no la viera. */}
+                        <span className="text-sm text-[var(--admin-text-muted)]">
                           {recipe.recipe_ingredients.length} {recipe.recipe_ingredients.length === 1 ? 'ingrediente' : 'ingredientes'}
                         </span>
                       </TableCell>
