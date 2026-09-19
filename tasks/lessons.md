@@ -545,3 +545,36 @@ pie exista o no.
 menú en cada Tab, porque moverse entre dos ítems dispara blur y después focus.
 El `onBlur` tiene que mirar `relatedTarget`: si el foco sigue adentro, no se
 hace nada.
+
+---
+
+## 25. `headers()` también corre en `next dev`
+
+**Qué pasó (2026-09-19).** Moví las cabeceras de cache de `netlify.toml` a
+`next.config.ts` para que las leyeran las dos plataformas. Quedaron aplicándose
+también en desarrollo, con `immutable` de un año sobre `/_next/static`. Horas
+después, al borrar un hook con el server levantado, a David le explotó la
+pantalla:
+
+> Module `lib/hooks/use-sidebar-collapsed.ts` was instantiated because it was
+> required from `admin-layout.tsx`, but the module factory is not available.
+
+El navegador tenía cacheado un chunk de dev que referenciaba un archivo
+borrado, y con `immutable` no iba a volver a pedirlo nunca.
+
+Lo peor: **Next lo venía avisando en cada arranque** —"Custom Cache-Control
+headers detected for /_next/static/:path* … can break Next.js development
+behavior"— y lo leí varias veces en los logs sin registrarlo, porque estaba
+buscando otra cosa.
+
+**Regla.** `next.config.ts` no distingue entornos por sí solo: lo que se pone en
+`headers()`, `rewrites()` o `redirects()` corre igual en `dev`. Todo lo que sea
+optimización de producción va detrás de
+`process.env.NODE_ENV === 'production'`.
+
+**Y la de fondo:** un warning del framework en el log de arranque no es ruido.
+Si aparece en cada `npm run dev`, o se arregla o se entiende por qué se ignora.
+
+**Cómo se verificó**, sin levantar nada: `next.config.ts` se puede importar
+desde node con `--experimental-strip-types` y llamar a `headers()` con cada
+`NODE_ENV`. Devuelve la cabecera solo en producción.

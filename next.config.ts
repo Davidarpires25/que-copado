@@ -46,6 +46,14 @@ const securityHeaders = [
  *
  * Aca funciona en cualquier plataforma, que es donde tenia que estar desde el
  * principio: es configuracion de la app, no del lugar donde corre.
+ *
+ * **Solo en produccion.** `headers()` tambien corre en `next dev`, y ahi un
+ * `immutable` de un anio sobre `/_next/static` es veneno: los chunks de
+ * desarrollo reusan nombres, el navegador se queda con el viejo y la pagina
+ * revienta con "module factory is not available" apuntando a un archivo que ya
+ * no existe. Paso de verdad al borrar un hook con el server levantado. Next lo
+ * avisa en el arranque --"Setting a custom Cache-Control header can break
+ * Next.js development behavior"-- y hay que hacerle caso.
  */
 const cacheHeaders = [
   {
@@ -77,7 +85,8 @@ const nextConfig: NextConfig = {
         source: '/(.*)',
         headers: securityHeaders,
       },
-      ...cacheHeaders,
+      // En desarrollo no van: ver el comentario de `cacheHeaders`.
+      ...(process.env.NODE_ENV === 'production' ? cacheHeaders : []),
     ]
   },
   images: {
