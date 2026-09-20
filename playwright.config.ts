@@ -48,6 +48,9 @@ export default defineConfig({
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ANON_LOCAL,
       SUPABASE_SERVICE_ROLE_KEY: SERVICE_LOCAL,
       NEXT_PUBLIC_WHATSAPP_NUMBER: '5490000000000',
+      // El contrato del agente se autentica con este secreto. Es de prueba: el
+      // de verdad vive en las variables del despliegue y nunca en el repo.
+      AGENT_API_SECRET: 'secreto-de-prueba-para-los-tests',
     },
   },
 })
