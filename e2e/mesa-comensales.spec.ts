@@ -67,8 +67,15 @@ test.beforeAll(async () => {
 
 test.afterAll(limpiar)
 
+/** Un ticket tal como quedo encolado para la impresora. */
+interface TicketEncolado {
+  guest: string | null
+  total: number
+  items: string[]
+}
+
 /** Lo que quedo encolado para la impresora. */
-async function ticketsEncolados() {
+async function ticketsEncolados(): Promise<TicketEncolado[]> {
   const jobs = await rest(
     `print_jobs?data->>orderId=eq.${orderId}&type=eq.client_ticket&select=data&order=created_at.asc`
   )
@@ -143,7 +150,7 @@ test('los botones del panel no cubren lo compartido', async ({ page }) => {
   // Los dos tickets suman 8000 y la mesa debe 9000: la gaseosa compartida no
   // esta en ninguno de los dos, porque no tiene comensal y el panel solo
   // ofrece un boton por comensal.
-  const sumado = tickets.reduce((acc: number, t: { total: number }) => acc + t.total, 0)
+  const sumado = tickets.reduce((acc, t) => acc + t.total, 0)
   expect(sumado).toBe(8000)
 
   const [orden] = await rest(`orders?id=eq.${orderId}&select=total`)
