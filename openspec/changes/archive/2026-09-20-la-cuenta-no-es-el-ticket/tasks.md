@@ -50,8 +50,12 @@ encola en `print_jobs` y el bridge en C# lo formatea.
       llega el medio de pago.
 - [x] 3.3 El pie pasa a "¡Felicidades por su compra!" cuando está cobrado.
       CP858 —la página de códigos que usa el bridge— soporta el `¡`.
-- [ ] 3.4 **Compilar el bridge y probarlo contra la impresora.** No hay `dotnet`
-      en esta máquina, así que el cambio en C# está escrito y sin compilar.
+- [x] 3.4 **Compilar el bridge y probarlo contra la impresora.** No hay `dotnet`
+      en esta máquina, así que el cambio en C# se escribió sin compilar. David lo
+      compiló en la otra PC y lo probó contra la impresora del local
+      (2026-09-20): *"ya tengo la build de c# y funcionó bien"*. Es la única
+      tarea de todo el cambio verificada por él y no por mí —acá no hay ni
+      `dotnet` ni impresora— y queda dicho así a propósito.
 
 ## 4. Cerrar
 
