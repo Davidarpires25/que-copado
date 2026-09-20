@@ -12,9 +12,19 @@
 - [x] 2.1 Corregir `cost_per_unit`. **David corrigió el morrón a $2,50/g**
       ($2.500 el kilo), que era el que hacía saltar el costo. El orégano ya
       estaba bien: $22/g son $660 el paquete de 30 g.
-- [ ] 2.2 Revisar `Papel de aluminio` ($14.400 × 65) y `Cereales` ($200/g =
-      $200.000 el kilo). Ninguno de los dos está en una receta, así que no
-      afectan el costo de ningún producto: quedan para cuando se usen.
+- [x] 2.2 Revisar `Papel de aluminio` ($14.400 × 65) y `Cereales` ($200/g =
+      $200.000 el kilo). **Revisados otra vez contra producción el 2026-09-20**
+      y siguen igual: ninguno de los dos aparece en ninguna receta ni como hijo
+      de un insumo compuesto, así que no afectan el costo de ningún producto.
+
+      `Papel de aluminio` puede estar bien: es por unidad, y $14.400 el rollo
+      es un precio creíble. `Cereales` casi seguro no: a $200 el gramo son
+      **$200.000 el kilo**, que tiene la forma exacta del error que motivó este
+      cambio —el precio del paquete cargado como precio por gramo—.
+
+      Queda así a propósito: son datos del negocio y los carga David. El día
+      que alguno entre en una receta, el número va a saltar a la vista en el
+      formulario, que es justo lo que arregló la tarea 1.1.
 
 ## 3. Las cuentas
 
@@ -69,37 +79,32 @@ Eran tres cuentas más, y ninguna convertía unidades ni aplicaba merma:
       con recetas propias le pisaba el costo ignorando los componentes. Ahora
       deriva a `recalcularCostoDeCombo`, que suma las dos partes.
 
-## Cómo retomarlo
+## Cómo quedó
 
-**Parado el 2026-09-18 esperando los precios reales.** Lo único que falta para
-arrancar son tres números: cuánto costaron de verdad el morrón, los cereales y
-la papa.
+**Cerrado el 2026-09-20.** La sección que había acá decía *"parado el 2026-09-18
+esperando los precios reales"*; los precios llegaron, se arreglaron las cuentas
+y se verificó contra producción antes de archivar:
 
-**El orden importa, y es la trampa de este cambio.** Los dos errores se
-cancelan: el costo del morrón está ~1000 veces inflado y la cuenta lo divide por
-mil. Si se arregla solo el código, PIZZA ESPECIAL pasa de $9.126 a ~$15.100
-contra un precio de $16.500. Si se arregla solo el dato, pasa lo inverso. Van en
-el mismo commit.
+| | costo | precio | margen |
+|---|---|---|---|
+| Pizza especial | $8.883,50 | $16.500 | **46,2 %** |
+| Pizza Copada | $9.078,50 | $19.000 | **52,2 %** |
 
-**Lo que ya no hay que investigar:**
+El propio cambio había fijado el umbral: *"si alguno queda por debajo del 40%,
+el dato sigue mal"*. Los dos pasan.
 
-- `cost_per_unit` significa el costo de **una unidad de la unidad del insumo**:
-  por gramo para el morrón, por kilo para la muzzarella, por unidad para el
-  huevo. El código lo usa así en todos lados y la mayoría de la carga lo
-  respeta.
-- Los sospechosos son tres, y están cruzados contra lo que se compró:
-  Morrón ($200/g → $40.000 por 200 g), Cereales ($200/g → $600.000) y Papa
-  ($17.000/kg → $340.000 por 20 kg). Más `Papel de aluminio`, $14.400 × 65.
-- **El orégano NO está mal**: $22/g son $660 el paquete de 30 g, que es un
-  precio real de orégano seco.
-- Los cuatro cálculos con el error están listados en `proposal.md` — Why, con
-  archivo y línea.
+**La trampa que tenía, y por qué importaba el orden.** Los dos errores se
+cancelaban: el costo del morrón estaba ~1000 veces inflado y la cuenta lo
+dividía por mil, así que el total parecía razonable. Arreglar solo el código
+—o solo el dato— habría empeorado el número. Fueron juntos.
 
-**Lo que cambió desde que se escribió esto:** el recorrido de recetas se
-unificó (`una-sola-cuenta-de-stock`, archivado). Las cuatro cuentas de costo
-siguen separadas, pero ahora se apoyan en una sola base, así que el arreglo es
-más corto de lo que era cuando se anotó.
+**Lo que quedó de aprendizaje**, más allá del arreglo: eran **siete** copias de
+la misma cuenta —dos en el servidor, una en la ficha técnica, tres en el
+navegador y una de insumos compuestos— y las del navegador ni convertían
+unidades ni aplicaban merma. Una receta con 500 g de papa a $1.500 el kilo
+mostraba **$763.510** donde cuesta **$14.260**. Hoy la cuenta vive una sola vez,
+en `lib/utils/recipe-cost.ts`.
 
-**Después de corregir:** recalcular el costo de todos los productos y mirar el
-margen de las tres pizzas antes y después. Si alguno queda por debajo del 40%,
-el dato sigue mal.
+**Lo único que se dejó sin tocar** es `Cereales` a $200/g —$200.000 el kilo—,
+que tiene la forma exacta de este mismo error pero no está en ninguna receta,
+así que no afecta ningún costo. Ver la tarea 2.2.
