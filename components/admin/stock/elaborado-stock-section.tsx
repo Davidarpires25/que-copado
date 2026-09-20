@@ -54,9 +54,12 @@ function TheoreticalStockChip({ stock }: { stock: number | null | undefined }) {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Badge className="bg-slate-500/15 text-slate-400 border border-slate-500/30 hover:bg-slate-500/15 cursor-help">
-              Sin datos
-            </Badge>
+            {/* "Sin datos" no es un problema, es la ausencia de uno: no hay
+                stock que calcular porque los insumos no se siguen. Va como
+                texto. */}
+            <span className="text-sm text-[var(--admin-text-faint)] cursor-help underline decoration-dotted underline-offset-4">
+              sin datos
+            </span>
           </TooltipTrigger>
           <TooltipContent side="top" className="max-w-[220px] text-center text-xs">
             Habilitá el tracking de ingredientes para calcular el stock
@@ -83,11 +86,13 @@ function TheoreticalStockChip({ stock }: { stock: number | null | undefined }) {
     )
   }
 
-  return (
-    <Badge className="bg-green-500/15 text-green-700 dark:text-green-400 border border-green-500/30 hover:bg-green-500/15">
-      Disponible: {stock}
-    </Badge>
-  )
+  /* Lo normal es el numero pelado.
+   *
+   * Iba en pildora verde --"Disponible: 6"-- en casi todas las filas, y con
+   * eso el "Agotado" rojo competia contra catorce verdes. La columna ya se
+   * llama "Stock teorico", asi que la palabra sobraba; lo que se lee es el
+   * numero. El color queda para cuando hay algo que mirar: critico y agotado. */
+  return <span className="text-sm font-semibold text-[var(--admin-text)]">{stock}</span>
 }
 
 export function ElaboradoStockSection({
@@ -276,14 +281,14 @@ export function ElaboradoStockSection({
 
                       {/* Estado venta */}
                       <TableCell className="text-center hidden sm:table-cell">
+                        {/* Estar a la venta es lo esperado: va como texto.
+                            Lo que hay que ver de un vistazo es cual se cayo. */}
                         {product.is_out_of_stock ? (
                           <Badge className="bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30 hover:bg-red-500/15">
                             No disponible
                           </Badge>
                         ) : (
-                          <Badge className="bg-green-500/15 text-green-700 dark:text-green-400 border border-green-500/30 hover:bg-green-500/15">
-                            A la venta
-                          </Badge>
+                          <span className="text-sm text-[var(--admin-text-muted)]">A la venta</span>
                         )}
                       </TableCell>
 

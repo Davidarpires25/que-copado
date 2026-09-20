@@ -33,6 +33,14 @@ cuadrada—, importa que el dato esté encerrado.
 Los **controles** quedan fuera de esta regla: un `<select>` o un interruptor se
 tocan, y su color es parte de cómo se ve que están.
 
+**Un estado normal tampoco se resalta.** SHALL resaltarse solamente el estado
+que es la **excepción** —el que pide que alguien haga algo—. `Bajo`, `Agotado`,
+`No disponible` sí; `OK`, `A la venta`, `Sin seguimiento` no, porque aparecen en
+casi todas las filas y ahí el resalte deja de señalar: pasa a ser el fondo.
+
+Un estado normal SHALL mostrarse como texto, o como un guion cuando no hay nada
+que decir.
+
 Existe porque el resalte es un recurso que se gasta. Si todas las filas tienen
 algo resaltado, el resalte deja de señalar: en la tabla de insumos la fila de un
 agotado traía el badge rojo del estado, el de la categoría y el círculo de la
@@ -50,6 +58,12 @@ unidad, y solo uno de los tres importaba.
 - **WHEN** se muestra la unidad de un insumo o de una línea de receta
 - **THEN** va como texto, en gris y pegada a la cantidad que acompaña
 - **AND** no lleva forma ni color propios
+
+#### Scenario: Una tabla donde casi todo está bien
+
+- **WHEN** se mira una lista de cien insumos donde tres tienen problema de stock
+- **THEN** solo esas tres filas llevan color
+- **AND** las otras noventa y siete muestran su estado como texto o un guion
 
 #### Scenario: Un conteo
 

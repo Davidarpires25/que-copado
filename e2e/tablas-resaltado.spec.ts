@@ -17,11 +17,20 @@ import { asegurarUsuario, USUARIO } from './local'
  * calculado por el navegador-- y no que componente se uso.
  */
 
-/** Los textos que si son estado y por eso pueden ir resaltados. */
+/**
+ * Los textos que si merecen resaltado: **los que son la excepcion**.
+ *
+ * La primera version de esta lista incluia `OK`, `Sin tracking`, `A la venta`
+ * y `Disponible`, y por eso el test daba verde con una pantalla donde de diez
+ * filas nueve tenian pildora. David: *"sigue habiendo pildoras"*, dos veces.
+ *
+ * El error no estaba en como se medía sino en la lista: si lo normal tambien
+ * se resalta, el resalte no señala nada. Un estado que aparece en casi todas
+ * las filas no es una alerta, es el fondo.
+ */
 const ESTADOS = [
-  'OK', 'Bajo', 'Agotado', 'Negativo', 'Sin seguimiento', 'Sin tracking',
-  'Critico', 'Crítico', 'A la venta', 'No disponible', 'Auto-deshabilitado',
-  'Inactiva', 'Disponible', 'En rojo',
+  'Bajo', 'Agotado', 'Negativo', 'En rojo', 'Critico', 'Crítico',
+  'No disponible', 'Auto-deshabilitado', 'Inactiva',
 ]
 
 test.beforeAll(asegurarUsuario)

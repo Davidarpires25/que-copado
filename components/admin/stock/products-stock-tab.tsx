@@ -250,8 +250,11 @@ export function ProductsStockTab({
                         })()}
                       </TableCell>
                       <TableCell className="text-center">
-                        {status === 'ok' && (
-                          <Badge className="bg-green-500/15 text-green-700 dark:text-green-400 border border-green-500/30 hover:bg-green-500/15">OK</Badge>
+                        {/* Sin novedad, un guion: ver el comentario en
+                            `ingredients-stock-tab`. Una columna que marca todas
+                            las filas no marca ninguna. */}
+                        {(status === 'ok' || status === 'untracked') && (
+                          <span className="text-[var(--admin-text-faint)]">—</span>
                         )}
                         {status === 'low' && (
                           <Badge className="bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30 hover:bg-red-500/15">Bajo</Badge>
@@ -263,9 +266,6 @@ export function ProductsStockTab({
                           <Badge className="bg-red-600 text-white border border-red-700 hover:bg-red-600">
                             En rojo
                           </Badge>
-                        )}
-                        {status === 'untracked' && (
-                          <Badge className="bg-slate-500/15 text-slate-400 border border-slate-500/30 hover:bg-slate-500/15">Sin tracking</Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-center hidden sm:table-cell">

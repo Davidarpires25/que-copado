@@ -785,3 +785,39 @@ así que va como texto. Pero la **flecha** se queda con su color: en un historia
 de cientos de filas lo que se busca es si entró o salió, no cuál de los seis
 nombres es. La regla dice qué se resalta; cuál es el eje por el que se recorre
 una lista lo dice el uso.
+
+---
+
+## 33. Resaltar lo normal es no resaltar nada
+
+**Qué pasó (2026-09-20).** David tuvo que decirme *"sigue habiendo píldoras"*
+**dos veces**, con capturas, después de que yo diera el trabajo por cerrado y
+con un test en verde.
+
+La segunda vez el problema no era el test: era **mi lista**. Había puesto `OK`,
+`Sin tracking`, `A la venta` y `Disponible` como "estados permitidos", así que
+el test aprobaba una pantalla donde de diez filas nueve tenían píldora y una
+sola era una alerta. En la pestaña **Alertas**, sin ninguna alerta, había
+dieciséis píldoras diciendo "todo bien".
+
+Yo había escrito la regla como *"el color es para el estado"*. Estaba
+incompleta. La correcta es:
+
+> **El color marca la excepción, no la regla.**
+
+`Bajo` y `Agotado` sí. `OK` y `A la venta` no: aparecen en casi todas las filas,
+y un estado que está en todas partes no es una alerta, es el fondo. `Sin
+tracking` además repetía la columna de al lado, que tiene el interruptor.
+
+**Regla.** Antes de aprobar una convención, contar en una pantalla real cuántas
+filas la disparan. Si la mayoría, la regla está mal escrita. La pregunta no es
+"¿esto es un estado?" sino "¿esto es lo que quiero que me salte a la vista
+cuando miro cien filas?".
+
+**Y el corolario sobre los tests.** Un test que valida contra una lista escrita
+por mí no prueba que la pantalla esté bien: prueba que coincide con lo que yo
+pensé. Cuando el usuario ve algo que el test aprueba, el sospechoso es la lista.
+
+Relacionado: [[32]] —el test no veía los badges con ícono— fue el problema de la
+primera vez; este es el de la segunda, y es peor, porque el primero era un
+descuido y este era un error de criterio.
