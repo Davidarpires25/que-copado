@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { etiquetaDeMesa } from '@/lib/utils/table-label'
 import { printClientTicketAction, printKitchenTicketAction } from '@/app/actions/print'
+import { SIN_ASIGNAR } from '@/lib/constants/sale-tags'
 import {
   Plus, Bell, CircleDollarSign, Loader2, AlertTriangle, Printer, ChefHat,
 } from 'lucide-react'
@@ -68,6 +69,21 @@ export function TableOrderPanel({
   const activeItems = useMemo(
     () => (orderItems ?? []).filter((item) => item.status !== 'cancelado'),
     [orderItems]
+  )
+
+  /**
+   * Si hay algo que no es de nadie: la picada, la gaseosa de la mesa, o
+   * cualquier cosa cargada antes de que existiera el primer comensal
+   * --`sale_tag` solo se escribe al insertar el item--.
+   *
+   * Sin esto, imprimir el ticket de cada comensal dejaba afuera esos renglones:
+   * dos papeles que sumaban $8.000 para una mesa que debia $9.000. No se
+   * perdia la plata --al cobrar aparecen igual-- pero el papel que se le lleva
+   * a la mesa no cerraba, y eso se discute en el mostrador.
+   */
+  const hayCompartidos = useMemo(
+    () => activeItems.some((item) => !item.sale_tag),
+    [activeItems]
   )
 
   const existingTags = useMemo(() => {
@@ -448,6 +464,21 @@ export function TableOrderPanel({
                 </button>
               )
             })}
+
+            {/* Lo que no es de nadie tambien tiene su papel. Es la misma
+                tarjeta que la vista de cobro ya muestra al dividir: aca
+                faltaba el boton, no la funcion --el servidor ya sabe filtrar
+                por `SIN_ASIGNAR`--. */}
+            {hayCompartidos && (
+              <button
+                onClick={() => printClientTicketAction(order.id, { guestTag: SIN_ASIGNAR }).then(r => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)] text-[11px] font-semibold transition-colors cursor-pointer hover:text-[var(--admin-text)]"
+                style={{ height: 36 }}
+              >
+                <Printer className="h-3.5 w-3.5" />
+                Sin asignar
+              </button>
+            )}
           </div>
         </div>
       )}

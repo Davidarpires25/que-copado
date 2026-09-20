@@ -131,7 +131,7 @@ test('el ticket de un comensal trae solo lo suyo', async ({ page }) => {
   expect(tickets[0].total).toBe(5000)
 })
 
-test('los botones del panel no cubren lo compartido', async ({ page }) => {
+test('los tres papeles juntos suman lo que debe la mesa', async ({ page }) => {
   await page.getByRole('button', { name: /Mesas/i }).first().click()
   await page.waitForTimeout(1200)
   await page.getByText('Mesa de prueba').first().click()
@@ -139,22 +139,22 @@ test('los botones del panel no cubren lo compartido', async ({ page }) => {
 
   const seccion = page.getByText('Imprimir Tickets').first().locator('xpath=../..')
   await seccion.getByRole('button', { name: ANA, exact: true }).first().click()
-  await page.waitForTimeout(900)
+  await page.waitForTimeout(800)
   await seccion.getByRole('button', { name: BETO, exact: true }).first().click()
+  await page.waitForTimeout(800)
+  await seccion.getByRole('button', { name: 'Sin asignar', exact: true }).first().click()
   await page.waitForTimeout(1200)
 
   const tickets = await ticketsEncolados()
-  expect(tickets.map((t) => t.guest)).toEqual([ANA, BETO])
+  expect(tickets.map((t) => t.guest)).toEqual([ANA, BETO, 'Sin asignar'])
   expect(tickets[1].items).toEqual(['Papas de Beto'])
+  expect(tickets[2].items).toEqual(['Gaseosa compartida'])
 
-  // Los dos tickets suman 8000 y la mesa debe 9000: la gaseosa compartida no
-  // esta en ninguno de los dos, porque no tiene comensal y el panel solo
-  // ofrece un boton por comensal.
+  // Lo que se buscaba: los papeles cierran contra lo que debe la mesa.
+  // Antes eran dos botones para tres grupos y sumaban $8.000 contra $9.000.
   const sumado = tickets.reduce((acc, t) => acc + t.total, 0)
-  expect(sumado).toBe(8000)
-
   const [orden] = await rest(`orders?id=eq.${orderId}&select=total`)
-  expect(Number(orden.total)).toBe(9000)
+  expect(sumado).toBe(Number(orden.total))
 })
 
 test('la vista de cobro si agrupa lo compartido en "Sin asignar"', async ({ page }) => {
