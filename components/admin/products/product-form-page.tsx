@@ -656,9 +656,19 @@ export function ProductFormPage({
                   </Select>
                 </div>
 
+                {/* La vista previa aparece cuando hay algo que previsualizar.
+                  *
+                  * En un producto nuevo mostraba una caja gris con "Nombre del
+                  * Producto" y "$0": 250px de pantalla para el esqueleto de
+                  * algo que todavia no existe. Con un nombre escrito si sirve
+                  * --muestra como va a verse la ficha en el menu-- asi que no
+                  * se saca, se pospone. La separacion tambien: una linea que
+                  * separa de nada es una linea de mas.
+                  */}
+                {(previewName.trim() !== '' || imageUrl) && (
+                <>
                 <div className="h-px bg-[var(--admin-border)]" />
 
-                {/* Vista Previa */}
                 <div className="space-y-3">
                   <p className="text-sm font-semibold text-[var(--admin-text)]">Vista Previa</p>
                   <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg)] overflow-hidden">
@@ -697,6 +707,8 @@ export function ProductFormPage({
                     </div>
                   </div>
                 </div>
+                </>
+                )}
             </div>
 
           </div>

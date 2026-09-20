@@ -65,3 +65,16 @@ test('el aviso de combo vacio dice lo suyo en un renglon', async ({ page }) => {
   // Lo que repetia al parrafo de arriba se fue.
   await expect(aviso).not.toContainText('mismo stock que si se vendiera suelto')
 })
+
+test('la vista previa aparece recien cuando hay algo que previsualizar', async ({ page }) => {
+  await page.goto('/admin/products/new')
+  await page.waitForTimeout(700)
+
+  // En un producto nuevo mostraba "Nombre del Producto" y "$0": el esqueleto
+  // de algo que todavia no existe.
+  await expect(page.getByText('Vista Previa')).toHaveCount(0)
+
+  await page.getByPlaceholder('Ej: Classic Burger').fill('ZZ Prueba')
+  await expect(page.getByText('Vista Previa')).toBeVisible()
+  await expect(page.getByText('ZZ Prueba', { exact: true }).last()).toBeVisible()
+})
