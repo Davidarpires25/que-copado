@@ -97,7 +97,19 @@ export function AnalyticsDashboard({
   initialPaymentMethods,
   initialProfitability,
 }: AnalyticsDashboardProps) {
-  // Period states for each section
+  /**
+   * Un periodo por seccion, y no uno solo arriba: es a proposito.
+   *
+   * Son nueve selectores identicos de 7 / 30 / 90 dias repartidos por la
+   * pantalla, y la tentacion de juntarlos en un unico control arriba es
+   * evidente: ahorraria una fila por tarjeta y sacaria mucho ruido. Se le
+   * pregunto a David antes de hacerlo y la respuesta fue que los usa por
+   * separado --mirar ventas a 7 dias mientras compara productos a 90--, asi
+   * que unificarlos le sacaria algo que usa.
+   *
+   * Si algun dia cambia, esto es lo que hay que releer, no un detalle de
+   * implementacion.
+   */
   const [salesPeriod, setSalesPeriod] = useState<AnalyticsPeriod>('7d')
   const [hourlyPeriod, setHourlyPeriod] = useState<AnalyticsPeriod>('30d')
   const [weekdayPeriod, setWeekdayPeriod] = useState<AnalyticsPeriod>('30d')
