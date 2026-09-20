@@ -5,7 +5,6 @@ import { MinStockCell } from './min-stock-cell'
 import { Pencil, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
-import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   Table,
@@ -38,13 +37,6 @@ export function IngredientsStockTab({
 }: IngredientsStockTabProps) {
   const [adjustTarget, setAdjustTarget] = useState<IngredientWithStock | null>(null)
 
-  const filteredIngredients = useMemo(() => {
-    if (!searchQuery) return ingredients
-    return ingredients.filter((i) =>
-      i.name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  }, [ingredients, searchQuery])
-
   const getStockStatus = (item: IngredientWithStock) => {
     if (!item.stock_tracking_enabled) return 'untracked'
     // El rojo va antes que el bajo: un item con 2 y minimo 5 es una compra
@@ -55,9 +47,44 @@ export function IngredientsStockTab({
     return 'ok'
   }
 
-  const isLowStock = (item: IngredientWithStock) => {
-    return item.stock_tracking_enabled && item.min_stock !== null && item.current_stock <= item.min_stock
-  }
+
+  /**
+   * Si esta fila pide atencion, sea por lo que sea.
+   *
+   * `isLowStock` exige que haya un minimo cargado, asi que un insumo en
+   * negativo **sin minimo** no entraba: quedaba sin triangulo y sin el borde
+   * rojo, justo el caso mas grave. David lo vio con el pesto: *"esta en rojo
+   * pero no tiene simbolo de alerta ni el borde como los demas"*.
+   */
+  const necesitaAtencion = (item: IngredientWithStock) =>
+    ['negative', 'low'].includes(getStockStatus(item))
+
+  /**
+   * Primero lo que se sigue y esta mal, despues lo que se sigue y esta bien, y
+   * al final lo que no se sigue.
+   *
+   * David: *"primero los que estan trackeados y con alerta, segundo los que
+   * estan trackeados pero estan bien, y tercero los no trackeados"*. En orden
+   * alfabetico, con mas de cien insumos, los que piden algo aparecen salteados
+   * entre los que no, y hay que recorrer la lista entera para encontrarlos.
+   *
+   * Dentro de cada grupo, alfabetico: asi una fila no cambia de lugar sin
+   * motivo entre una visita y la siguiente.
+   */
+  const ORDEN: Record<string, number> = { negative: 0, low: 1, ok: 2, untracked: 3 }
+
+  const filteredIngredients = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    const visibles = q ? ingredients.filter((i) => i.name.toLowerCase().includes(q)) : ingredients
+
+    return [...visibles].sort((a, b) => {
+      const pa = ORDEN[getStockStatus(a)] ?? 9
+      const pb = ORDEN[getStockStatus(b)] ?? 9
+      if (pa !== pb) return pa - pb
+      return a.name.localeCompare(b.name, 'es')
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- getStockStatus y ORDEN son estables
+  }, [ingredients, searchQuery])
 
   const handleToggleTracking = async (ingredient: IngredientWithStock) => {
     const newValue = !ingredient.stock_tracking_enabled
@@ -137,7 +164,7 @@ export function IngredientsStockTab({
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
                 <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold w-[36%]">Nombre</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold hidden sm:table-cell w-[8%]">Unidad</TableHead>
+                  <TableHead className="text-[var(--admin-text-muted)] font-semibold hidden sm:table-cell w-[8%] text-center">Unidad</TableHead>
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold w-[14%] text-center">Stock Actual</TableHead>
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold hidden md:table-cell w-[12%] text-center">Stock Minimo</TableHead>
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center w-[12%]">Estado</TableHead>
@@ -148,18 +175,18 @@ export function IngredientsStockTab({
               <TableBody>
                 {filteredIngredients.map((ingredient) => {
                   const status = getStockStatus(ingredient)
-                  const lowStock = isLowStock(ingredient)
+                  const enAlerta = necesitaAtencion(ingredient)
 
                   return (
                     <tr
                       key={ingredient.id}
                       className={`border-[var(--admin-border)] hover:bg-[var(--admin-surface-2)] transition-colors group ${
-                        lowStock ? 'border-l-2 border-l-red-500/60' : ''
+                        enAlerta ? 'border-l-2 border-l-red-500/60' : ''
                       }`}
                     >
                       <TableCell>
                         <div className="flex items-center gap-2 min-w-0">
-                          {lowStock && (
+                          {enAlerta && (
                             <AlertTriangle className="h-4 w-4 text-red-700 dark:text-red-400 shrink-0" />
                           )}
                           <p className="font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors text-sm lg:text-base truncate">
@@ -167,14 +194,14 @@ export function IngredientsStockTab({
                           </p>
                         </div>
                       </TableCell>
-                      <TableCell className="hidden sm:table-cell">
+                      <TableCell className="hidden sm:table-cell text-center">
                         <span className="text-[var(--admin-text-muted)] text-sm">
                           {INGREDIENT_UNIT_ABBR[ingredient.unit as IngredientUnit] ?? ingredient.unit}
                         </span>
                       </TableCell>
                       <TableCell className="text-center">
                         {ingredient.stock_tracking_enabled ? (
-                          <span className={`font-semibold text-sm lg:text-base ${lowStock ? 'text-red-700 dark:text-red-400' : 'text-[var(--admin-text)]'}`}>
+                          <span className={`font-semibold text-sm lg:text-base ${enAlerta ? 'text-red-700 dark:text-red-400' : 'text-[var(--admin-text)]'}`}>
                             {formatStock(ingredient.current_stock, ingredient.unit)}
                           </span>
                         ) : (
@@ -192,31 +219,39 @@ export function IngredientsStockTab({
                         />
                       </TableCell>
                       <TableCell className="text-center">
-                        {/* Sin novedad no se muestra nada.
+                        {/* El estado, en texto. Sin caja.
                           *
-                          * "OK" salia en cada fila con seguimiento y "Sin
-                          * tracking" en cada una sin el: de diez filas, nueve
-                          * tenian pildora y una sola era una alerta. Cuando
-                          * todo esta resaltado, nada lo esta, que es lo que
-                          * esta columna existe para evitar.
+                          * Era una pildora, y una pildora se justifica cuando
+                          * el color es la unica senal: el fondo y el borde son
+                          * un segundo canal para quien no distingue bien los
+                          * colores. Aca no hace falta, porque una fila con
+                          * problema ya trae tres senales que no dependen del
+                          * color --el triangulo al lado del nombre, el borde
+                          * rojo de la fila y el numero en rojo--. La caja era
+                          * la cuarta.
                           *
-                          * Y "Sin tracking" ademas repetia la columna de al
-                          * lado, que tiene el interruptor del seguimiento.
-                          *
-                          * Queda el guion: la celda sigue ocupando su lugar y
-                          * se lee que no hay nada que mirar ahi. */}
-                        {(status === 'ok' || status === 'untracked') && (
-                          <span className="text-[var(--admin-text-faint)]">—</span>
+                          * Y sin caja, lo normal puede volver a nombrarse: un
+                          * "OK" en gris no le compite a nada. David: *"no
+                          * conviene solo ponerle el color al texto?"*. Si. */}
+                        {status === 'ok' && (
+                          <span className="text-sm text-[var(--admin-text-muted)]">OK</span>
                         )}
                         {status === 'low' && (
-                          <Badge className="bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30 hover:bg-red-500/15 animate-pulse-soft">
+                          <span className="text-sm font-semibold text-red-700 dark:text-red-400">
                             Bajo
-                          </Badge>
+                          </span>
                         )}
                         {status === 'negative' && (
-                          <Badge className="bg-red-600 text-white border border-red-700 hover:bg-red-600">
+                          <span className="text-sm font-bold text-red-700 dark:text-red-400">
                             En rojo
-                          </Badge>
+                          </span>
+                        )}
+                        {/* Sin seguimiento va un guion, igual que el stock y
+                            el minimo de esa misma fila: la fila entera dice
+                            "aca no hay nada que mirar" con un solo signo, y la
+                            palabra era larga para repetir lo mismo. */}
+                        {status === 'untracked' && (
+                          <span className="text-[var(--admin-text-faint)]">—</span>
                         )}
                       </TableCell>
                       <TableCell className="text-center hidden sm:table-cell">

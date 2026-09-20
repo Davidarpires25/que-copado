@@ -39,6 +39,22 @@ function formatCantidad(n: number): string {
   return redondeado.toLocaleString('es-AR', { maximumFractionDigits: 3 })
 }
 
+/**
+ * En que orden se leen: primero lo que necesita atencion.
+ *
+ * Entre los criticos, primero los que el sistema ya dejo de ofrecer. David:
+ * *"los criticos y autodeshabilitados en segundo orden de prioridad, luego los
+ * criticos sin autodeshabilitado"*. Y tiene sentido: un critico se puede
+ * seguir vendiendo mientras alcance, pero uno auto-deshabilitado ya se cayo
+ * del menu --hay plata que no entra ahora mismo--.
+ */
+function prioridad(nivel: StockLevel, autoDeshabilitado: boolean): number {
+  if (nivel === 'empty') return 0
+  if (nivel === 'critical') return autoDeshabilitado ? 1 : 2
+  if (nivel === 'ok') return 3
+  return 4
+}
+
 function getStockLevel(stock: number | null | undefined): StockLevel {
   if (stock === null || stock === undefined) return 'no-data'
   if (stock === 0) return 'empty'
@@ -46,19 +62,23 @@ function getStockLevel(stock: number | null | undefined): StockLevel {
   return 'ok'
 }
 
-function TheoreticalStockChip({ stock }: { stock: number | null | undefined }) {
-  const level = getStockLevel(stock)
-
-  if (level === 'no-data') {
+/**
+ * Cuanto se puede hacer. Solo el numero.
+ *
+ * Decia "2 · crítico": la cantidad y el estado en la misma celda. David: *"eso
+ * no es atomico, deberia darse otra columna para el estado del stock"*. Tiene
+ * razon y no es un detalle: en una columna que mezcla dos cosas no se puede
+ * escanear ninguna de las dos. Ahora el numero vive en "Stock teorico" y la
+ * palabra en "Estado".
+ */
+function CantidadTeorica({ stock }: { stock: number | null | undefined }) {
+  if (getStockLevel(stock) === 'no-data') {
     return (
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            {/* "Sin datos" no es un problema, es la ausencia de uno: no hay
-                stock que calcular porque los insumos no se siguen. Va como
-                texto. */}
             <span className="text-sm text-[var(--admin-text-faint)] cursor-help underline decoration-dotted underline-offset-4">
-              sin datos
+              —
             </span>
           </TooltipTrigger>
           <TooltipContent side="top" className="max-w-[220px] text-center text-xs">
@@ -69,30 +89,34 @@ function TheoreticalStockChip({ stock }: { stock: number | null | undefined }) {
     )
   }
 
+  return <span className="text-sm font-semibold text-[var(--admin-text)]">{stock}</span>
+}
+
+/** Como esta ese stock: solo dice algo cuando hay algo que decir. */
+function EstadoDelStock({ stock }: { stock: number | null | undefined }) {
+  const level = getStockLevel(stock)
+
   if (level === 'empty') {
     return (
-      <Badge className="bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30 hover:bg-red-500/15 gap-1.5">
-        <AlertTriangle className="h-3 w-3" />
-        Agotado
-      </Badge>
+      // Sin triangulo: la fila ya tiene uno al lado del nombre, y repetir la
+      // misma senal dos veces en el mismo renglon no agrega nada. La que vale
+      // para no depender del color es aquella.
+      <span className="text-sm font-semibold text-red-700 dark:text-red-400">Agotado</span>
     )
   }
 
   if (level === 'critical') {
-    return (
-      <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/15">
-        Crítico: {stock}
-      </Badge>
-    )
+    return <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">Crítico</span>
   }
 
-  /* Lo normal es el numero pelado.
-   *
-   * Iba en pildora verde --"Disponible: 6"-- en casi todas las filas, y con
-   * eso el "Agotado" rojo competia contra catorce verdes. La columna ya se
-   * llama "Stock teorico", asi que la palabra sobraba; lo que se lee es el
-   * numero. El color queda para cuando hay algo que mirar: critico y agotado. */
-  return <span className="text-sm font-semibold text-[var(--admin-text)]">{stock}</span>
+  // "OK" y no un guion: el guion es para cuando no hay dato, y aca si lo hay
+  // --se puede hacer, y alcanza--. Es la misma palabra que usa la tabla de
+  // insumos, asi que las dos se leen igual.
+  if (level === 'ok') {
+    return <span className="text-sm text-[var(--admin-text-muted)]">OK</span>
+  }
+
+  return <span className="text-[var(--admin-text-faint)]">—</span>
 }
 
 export function ElaboradoStockSection({
@@ -129,11 +153,29 @@ export function ElaboradoStockSection({
     setInsumos((prev) => ({ ...prev, [productId]: data ?? [] }))
   }
 
+  /**
+   * Primero lo que necesita atencion.
+   *
+   * Es la pestaña **Alertas**: leerla en orden alfabetico obliga a recorrerla
+   * entera para encontrar los tres que importan entre dieciocho. David:
+   * *"deberia mostrar primero las que estan en alerta, luego las que estan ok
+   * y por ultimo las que no estan en seguimiento"*.
+   *
+   * El orden es agotado, critico, con stock, y al final los que no se pueden
+   * calcular. Dentro de cada grupo, alfabetico, para que una fila no se mueva
+   * de lugar sin motivo entre una visita y la siguiente.
+   */
   const filtered = useMemo(() => {
-    if (!searchQuery.trim()) return products
-    const q = searchQuery.toLowerCase()
-    return products.filter((p) => p.name.toLowerCase().includes(q))
-  }, [products, searchQuery])
+    const q = searchQuery.trim().toLowerCase()
+    const visibles = q ? products.filter((p) => p.name.toLowerCase().includes(q)) : products
+
+    return [...visibles].sort((a, b) => {
+      const pa = prioridad(getStockLevel(theoreticalStocks[a.id]), !!a.auto_disabled)
+      const pb = prioridad(getStockLevel(theoreticalStocks[b.id]), !!b.auto_disabled)
+      if (pa !== pb) return pa - pb
+      return a.name.localeCompare(b.name, 'es')
+    })
+  }, [products, searchQuery, theoreticalStocks])
 
   const handleToggleAvailability = async (product: Product) => {
     const newValue = !product.is_out_of_stock
@@ -208,6 +250,7 @@ export function ElaboradoStockSection({
                 <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold">Nombre</TableHead>
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold">Stock teórico</TableHead>
+                  <TableHead className="text-[var(--admin-text-muted)] font-semibold">Estado</TableHead>
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center hidden sm:table-cell">
                     Estado venta
                   </TableHead>
@@ -276,7 +319,12 @@ export function ElaboradoStockSection({
 
                       {/* Stock teórico */}
                       <TableCell>
-                        <TheoreticalStockChip stock={stock} />
+                        <CantidadTeorica stock={stock} />
+                      </TableCell>
+
+                      {/* Estado del stock */}
+                      <TableCell>
+                        <EstadoDelStock stock={stock} />
                       </TableCell>
 
                       {/* Estado venta */}
@@ -284,9 +332,9 @@ export function ElaboradoStockSection({
                         {/* Estar a la venta es lo esperado: va como texto.
                             Lo que hay que ver de un vistazo es cual se cayo. */}
                         {product.is_out_of_stock ? (
-                          <Badge className="bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30 hover:bg-red-500/15">
+                          <span className="text-sm font-semibold text-red-700 dark:text-red-400">
                             No disponible
-                          </Badge>
+                          </span>
                         ) : (
                           <span className="text-sm text-[var(--admin-text-muted)]">A la venta</span>
                         )}
@@ -367,7 +415,7 @@ export function ElaboradoStockSection({
                       * stock. */}
                     {estaAbierto && (
                       <tr className="border-[var(--admin-border)] bg-[var(--admin-bg)]">
-                        <TableCell colSpan={5} className="p-0">
+                        <TableCell colSpan={6} className="p-0">
                           <div className="px-4 py-3 sm:px-12">
                             {cargandoInsumos === product.id ? (
                               <p className="flex items-center gap-2 py-2 text-sm text-[var(--admin-text-muted)]">

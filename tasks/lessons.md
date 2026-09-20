@@ -821,3 +821,31 @@ pensé. Cuando el usuario ve algo que el test aprueba, el sospechoso es la lista
 Relacionado: [[32]] —el test no veía los badges con ícono— fue el problema de la
 primera vez; este es el de la segunda, y es peor, porque el primero era un
 descuido y este era un error de criterio.
+
+---
+
+## 34. Un aviso que la tabla ya cuenta, sobra
+
+**Qué pasó (2026-09-20).** David, sobre la franja amarilla arriba de Stock:
+*"está ocupando mucho espacio, ¿no hay forma de ponerlo en otro lado?"*.
+
+Esa franja la escribí yo unas horas antes, y en su momento **era el único lugar
+donde se decía que el sistema había dejado de ofrecer un producto**. Entre
+medio, la tabla aprendió a hacerlo: esos productos ahora salen primeros, llevan
+el cartel `Auto-deshabilitado`, y al abrir la fila se ve qué insumo falta. La
+franja pasó a repetir tres veces lo mismo, gratis para mí y a 170px por visita
+para él.
+
+**Regla.** Un aviso resuelve un problema **en un momento dado**. Cuando el resto
+de la pantalla mejora, hay que volver a mirarlo: puede que ya no haga falta, o
+que alcance con el renglón. Nada avisa de que un aviso quedó de más — hay que
+ir a preguntárselo.
+
+**Lo que quedó:** el renglón con el conteo, siempre visible, porque eso sí no
+está en ningún otro lado —que está pasando *ahora* y cuántos son— y el detalle
+a un click, en un `<details>` plegado. Un `<details>` nativo, además, no
+necesita estado ni JavaScript, y se abre con el teclado solo.
+
+**Y el corolario del día.** Las dos tandas de trabajo de hoy —las píldoras y el
+texto de más— salieron de la misma pregunta: *¿esto se gana el lugar que ocupa,
+cada vez que alguien abre esta pantalla?*. Casi nada la resiste dos veces.

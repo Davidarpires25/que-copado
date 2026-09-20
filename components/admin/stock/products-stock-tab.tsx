@@ -6,7 +6,6 @@ import { Search, Pencil, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   Table,
@@ -47,13 +46,6 @@ export function ProductsStockTab({
   const [searchQuery, setSearchQuery] = useState('')
   const [adjustTarget, setAdjustTarget] = useState<ProductWithStock | null>(null)
 
-  const filteredProducts = useMemo(() => {
-    if (!searchQuery) return products
-    return products.filter((p) =>
-      p.name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  }, [products, searchQuery])
-
   const getStockStatus = (item: ProductWithStock) => {
     if (!item.stock_tracking_enabled) return 'untracked'
     // El rojo va antes que "agotado" y que "bajo": un producto en -6 esta
@@ -65,9 +57,43 @@ export function ProductsStockTab({
     return 'ok'
   }
 
-  const isLowStock = (item: ProductWithStock) => {
-    return item.stock_tracking_enabled && !item.is_out_of_stock && item.min_stock !== null && item.current_stock <= item.min_stock
+
+  /**
+   * Si esta fila pide atencion, sea por lo que sea.
+   *
+   * `isLowStock` excluye a proposito el agotado y el negativo --mira solo el
+   * minimo-- asi que usarlo para el triangulo dejaba sin marca justo a las dos
+   * filas mas urgentes. David: *"mostrar el simbolo estado de alerta en el
+   * nombre"*.
+   */
+  const necesitaAtencion = (item: ProductWithStock) =>
+    ['negative', 'out_of_stock', 'low'].includes(getStockStatus(item))
+
+  /**
+   * Primero lo que necesita atencion, despues lo que esta bien, y al final lo
+   * que ni se sigue. Dentro de cada grupo, alfabetico, para que una fila no se
+   * mueva de lugar sin motivo entre una visita y la siguiente.
+   */
+  const ORDEN: Record<string, number> = {
+    negative: 0,
+    out_of_stock: 1,
+    low: 2,
+    ok: 3,
+    untracked: 4,
   }
+
+  const filteredProducts = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    const visibles = q ? products.filter((p) => p.name.toLowerCase().includes(q)) : products
+
+    return [...visibles].sort((a, b) => {
+      const pa = ORDEN[getStockStatus(a)] ?? 9
+      const pb = ORDEN[getStockStatus(b)] ?? 9
+      if (pa !== pb) return pa - pb
+      return a.name.localeCompare(b.name, 'es')
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- getStockStatus y ORDEN son estables
+  }, [products, searchQuery])
 
   const handleToggleTracking = async (product: ProductWithStock) => {
     const newValue = !product.stock_tracking_enabled
@@ -190,18 +216,18 @@ export function ProductsStockTab({
               <TableBody>
                 {filteredProducts.map((product) => {
                   const status = getStockStatus(product)
-                  const lowStock = isLowStock(product)
+                  const enAlerta = necesitaAtencion(product)
 
                   return (
                     <tr
                       key={product.id}
                       className={`border-[var(--admin-border)] hover:bg-[var(--admin-surface-2)] transition-colors group ${
-                        lowStock ? 'border-l-2 border-l-red-500/60' : ''
+                        enAlerta ? 'border-l-2 border-l-red-500/60' : ''
                       }`}
                     >
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          {lowStock && (
+                          {enAlerta && (
                             <AlertTriangle className="h-4 w-4 text-red-700 dark:text-red-400 shrink-0" />
                           )}
                           <p className="font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors text-sm lg:text-base">
@@ -211,7 +237,7 @@ export function ProductsStockTab({
                       </TableCell>
                       <TableCell>
                         {product.stock_tracking_enabled ? (
-                          <span className={`font-semibold text-sm lg:text-base ${lowStock ? 'text-red-700 dark:text-red-400' : 'text-[var(--admin-text)]'}`}>
+                          <span className={`font-semibold text-sm lg:text-base ${enAlerta ? 'text-red-700 dark:text-red-400' : 'text-[var(--admin-text)]'}`}>
                             {Number.isInteger(product.current_stock)
                               ? product.current_stock
                               : product.current_stock.toFixed(2)}{' '}
@@ -250,22 +276,32 @@ export function ProductsStockTab({
                         })()}
                       </TableCell>
                       <TableCell className="text-center">
-                        {/* Sin novedad, un guion: ver el comentario en
-                            `ingredients-stock-tab`. Una columna que marca todas
-                            las filas no marca ninguna. */}
-                        {(status === 'ok' || status === 'untracked') && (
+                        {/* En texto y sin caja: ver el comentario en
+                            `ingredients-stock-tab`. */}
+                        {status === 'ok' && (
+                          <span className="text-sm text-[var(--admin-text-muted)]">OK</span>
+                        )}
+                        {/* Sin seguimiento va un guion, igual que el stock y
+                            el minimo de esa misma fila: la fila entera dice
+                            "aca no hay nada que mirar" con un solo signo, y la
+                            palabra era larga para repetir lo mismo. */}
+                        {status === 'untracked' && (
                           <span className="text-[var(--admin-text-faint)]">—</span>
                         )}
                         {status === 'low' && (
-                          <Badge className="bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30 hover:bg-red-500/15">Bajo</Badge>
+                          <span className="text-sm font-semibold text-red-700 dark:text-red-400">
+                            Bajo
+                          </span>
                         )}
                         {status === 'out_of_stock' && (
-                          <Badge className="bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30 hover:bg-red-500/15">Agotado</Badge>
+                          <span className="text-sm font-semibold text-red-700 dark:text-red-400">
+                            Agotado
+                          </span>
                         )}
                         {status === 'negative' && (
-                          <Badge className="bg-red-600 text-white border border-red-700 hover:bg-red-600">
+                          <span className="text-sm font-bold text-red-700 dark:text-red-400">
                             En rojo
-                          </Badge>
+                          </span>
                         )}
                       </TableCell>
                       <TableCell className="text-center hidden sm:table-cell">

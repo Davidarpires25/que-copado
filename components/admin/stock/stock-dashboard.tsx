@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Package, AlertTriangle, PackagePlus, EyeOff } from 'lucide-react'
+import { Package, AlertTriangle, PackagePlus, EyeOff, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { AdminLayout } from '@/components/admin/layout/admin-layout'
@@ -157,34 +157,48 @@ export function StockDashboard({
         * "Salsa de tomate: 0" y en ningun lado decia que por eso habian
         * desaparecido tres pizzas del catalogo. */}
       {ocultos.length > 0 && (
-        <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
-          <div className="flex items-start gap-3">
-            <EyeOff className="mt-0.5 h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400" />
-            <div className="min-w-0 text-sm text-amber-800 dark:text-amber-200">
-              <p className="font-semibold">
-                {ocultos.length === 1
-                  ? 'Dejamos de ofrecer 1 producto'
-                  : `Dejamos de ofrecer ${ocultos.length} productos`}
-                {' '}en la web y en WhatsApp
-              </p>
-              <ul className="mt-1 space-y-0.5">
-                {ocultos.map((o) => (
-                  <li key={o.id}>
-                    <span className="font-medium">{o.name}</span>
-                    {o.falta && o.falta.length > 0 && (
-                      <> — falta {o.falta.join(', ')}</>
-                    )}
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-1.5 text-xs opacity-80">
-                En el mostrador se siguen pudiendo vender. Si en la cocina hay,
-                marcalos disponibles desde Productos y no se vuelven a apagar
-                solos.
-              </p>
-            </div>
+        /* Plegado por defecto.
+         *
+         * Cuando se escribio, este aviso era el unico lugar donde se decia que
+         * el sistema habia dejado de ofrecer algo. Hoy ya no: esos productos
+         * salen primeros en la tabla, llevan el cartel "Auto-deshabilitado" y
+         * al abrir la fila se ve que insumo falta. La lista entera aca arriba
+         * repetia todo eso y se comia 170px de pantalla en cada visita.
+         *
+         * Queda el renglon, que es lo que no esta en ningun otro lado --que
+         * pasa **ahora mismo** y cuantos son-- y el detalle a un click. David:
+         * *"esta ocupando mucho espacio, quizas en una notificacion que se
+         * pueda abrir"*. */
+        <details className="group mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10">
+          <summary className="flex cursor-pointer list-none items-center gap-3 p-3 text-sm text-amber-800 dark:text-amber-200">
+            <EyeOff className="h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400" />
+            <span className="font-semibold">
+              {ocultos.length === 1
+                ? 'Dejamos de ofrecer 1 producto'
+                : `Dejamos de ofrecer ${ocultos.length} productos`}
+              {' '}en la web y en WhatsApp
+            </span>
+            <ChevronDown className="ml-auto h-4 w-4 shrink-0 transition-transform group-open:rotate-180" />
+          </summary>
+
+          <div className="px-3 pb-3 pl-11 text-sm text-amber-800 dark:text-amber-200">
+            <ul className="space-y-0.5">
+              {ocultos.map((o) => (
+                <li key={o.id}>
+                  <span className="font-medium">{o.name}</span>
+                  {o.falta && o.falta.length > 0 && (
+                    <> — falta {o.falta.join(', ')}</>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-1.5 text-xs opacity-80">
+              En el mostrador se siguen pudiendo vender. Si en la cocina hay,
+              marcalos disponibles desde Productos y no se vuelven a apagar
+              solos.
+            </p>
           </div>
-        </div>
+        </details>
       )}
 
       {/* Tabs */}
