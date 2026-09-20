@@ -61,8 +61,23 @@ async function resaltadosDeLaTabla(page: import('@playwright/test').Page) {
           cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent'
         const encerrado = parseFloat(cs.borderRadius) > 0 || parseFloat(cs.borderTopWidth) > 0
         const texto = (el.textContent ?? '').trim()
-        // Sin hijos: interesa la caja, no el contenedor que la envuelve.
-        if (conFondo && encerrado && texto && texto.length < 34 && el.children.length === 0)
+
+        // Interesa la caja, no el contenedor que la envuelve. La primera
+        // version pedia `children.length === 0`, y eso dejaba afuera cualquier
+        // badge con un icono adentro --el tipo de movimiento del historial de
+        // stock, por ejemplo--. Lo noto David mirando la pantalla. Ahora la
+        // condicion es la correcta: que no contenga otra caja adentro.
+        const contieneOtraCaja = [...el.querySelectorAll('span, div, p')].some((hijo) => {
+          const ch = getComputedStyle(hijo)
+          const hijoConFondo =
+            ch.backgroundColor !== 'rgba(0, 0, 0, 0)' && ch.backgroundColor !== 'transparent'
+          return (
+            hijoConFondo &&
+            (parseFloat(ch.borderRadius) > 0 || parseFloat(ch.borderTopWidth) > 0)
+          )
+        })
+
+        if (conFondo && encerrado && texto && texto.length < 34 && !contieneOtraCaja)
           encontrados.push(texto)
       })
     )
@@ -77,6 +92,9 @@ async function resaltadosDeLaTabla(page: import('@playwright/test').Page) {
  * mesas, zonas-- donde este test no puede concluir nada: esas se revisaron
  * leyendo el codigo. Si alguna vez hay datos de prueba, van aca.
  */
+/** Las pestañas de Stock, que no se ven hasta que se las abre. */
+const PESTANAS_DE_STOCK = ['Stock Actual', 'Alertas', 'Movimientos', 'Consumo Histórico']
+
 for (const [ruta, nombre] of [
   ['/admin/ingredients', 'insumos'],
   ['/admin/stock', 'stock'],
@@ -89,7 +107,22 @@ for (const [ruta, nombre] of [
     await page.goto(ruta)
     await page.waitForTimeout(1200)
 
-    const resaltados = await resaltadosDeLaTabla(page)
+    // Stock esconde cuatro tablas detras de pestañas. Mirar solo la primera
+    // fue exactamente el agujero que dejo pasar el tipo de movimiento.
+    const resaltados: string[] = []
+    if (nombre === 'stock') {
+      for (const pestana of PESTANAS_DE_STOCK) {
+        const boton = page.getByRole('button', { name: pestana, exact: false }).first()
+        if (await boton.count()) {
+          await boton.click()
+          await page.waitForTimeout(1300)
+        }
+        resaltados.push(...(await resaltadosDeLaTabla(page)))
+      }
+    } else {
+      resaltados.push(...(await resaltadosDeLaTabla(page)))
+    }
+
     const queNoSonEstado = resaltados.filter(
       (t) => !ESTADOS.some((e) => t.toLowerCase().includes(e.toLowerCase()))
     )

@@ -5,7 +5,7 @@ import { getAuthUser } from '@/lib/server/auth'
 import { revalidateStock, revalidateStorefront } from '@/lib/server/revalidate'
 import { convertToBaseUnit, convertFromBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
 import { escalarComponente } from '@/lib/server/sub-recipes'
-import { devError } from '@/lib/server/error-messages'
+import { devError, friendlyError } from '@/lib/server/error-messages'
 import { recalculateProductsForIngredient } from './recipes'
 import { syncAvailability, calcularStockTeorico, syncReventaProduct, insumosQueFaltan, detalleDeInsumos, cargarRecetasEnMemoria, stockTeoricoEnMemoria } from '@/lib/server/stock-deduction'
 import type {
@@ -444,6 +444,61 @@ export async function toggleStockTracking(
 /**
  * Set the minimum stock threshold for alerts.
  */
+/**
+ * De a cuanto se compra este item, para poder decir si un minimo es absurdo.
+ *
+ * Existe por los dos quesos: `Queso muzzarela` tenia un minimo de **1000 kg**
+ * cargado --mil kilos-- y `Queso Tybo` de **1000 unidades**. Los dos avisaban
+ * "stock bajo" todos los dias, y una alerta que siempre esta encendida deja de
+ * ser una alerta: se aprende a ignorarla, y con ella se ignoran las de verdad.
+ *
+ * La referencia tiene que ser **la compra**, no el stock actual. Tybo tenia 138
+ * en stock contra un minimo de 1000: siete veces, que no llama la atencion.
+ * Pero se compra de a 73, y contra eso el minimo es catorce veces lo que entra
+ * de una vez, que ya no se explica.
+ *
+ * Devuelve `null` si nunca se compro: sin referencia no se opina.
+ */
+export async function getCompraHabitual(
+  type: 'ingredient' | 'product',
+  id: string
+): Promise<{ data: number | null; error: string | null }> {
+  const supabase = await createAdminClient()
+  const user = await getAuthUser(supabase)
+  if (!user) return { data: null, error: 'No autorizado' }
+  if (!id) return { data: null, error: 'ID es requerido' }
+
+  const columna = type === 'ingredient' ? 'ingredient_id' : 'product_id'
+
+  const { data, error } = await supabase
+    .from('stock_movements')
+    .select('quantity')
+    .eq(columna, id)
+    .eq('movement_type', 'purchase')
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  if (error) return { data: null, error: friendlyError(error) }
+  if (!data || data.length === 0) return { data: null, error: null }
+
+  // La mediana y no el promedio: una compra grande aislada no tiene que correr
+  // la referencia y volver aceptable un minimo que no lo es.
+  const cantidades = data
+    .map((m) => Math.abs(Number(m.quantity) || 0))
+    .filter((q) => q > 0)
+    .sort((a, b) => a - b)
+
+  if (cantidades.length === 0) return { data: null, error: null }
+
+  const medio = Math.floor(cantidades.length / 2)
+  const mediana =
+    cantidades.length % 2 === 0
+      ? (cantidades[medio - 1] + cantidades[medio]) / 2
+      : cantidades[medio]
+
+  return { data: mediana, error: null }
+}
+
 export async function updateMinStock(
   type: 'ingredient' | 'product',
   id: string,

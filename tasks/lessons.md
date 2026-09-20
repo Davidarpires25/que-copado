@@ -754,3 +754,34 @@ buscando la frase repetida textualmente: en combos, los dos párrafos compartía
 **Corolario.** Una lista que se despliega sin que la pidan tampoco informa: el
 selector de componentes mostraba el catálogo entero en orden alfabético —250px—
 antes de que nadie escribiera nada.
+
+---
+
+## 32. Un test solo encuentra lo que fue a buscar
+
+**Qué pasó (2026-09-20).** David, sobre las tablas de Stock: *"sigue habiendo
+píldoras, ¿eso fue intencional o no las revisaste?"*. Las dos cosas, y esa es la
+parte incómoda: las había clasificado, pero **mi test no las habría visto igual**,
+así que no podía decir que estaban vigiladas.
+
+Dos agujeros, los dos míos:
+
+1. **El filtro `el.children.length === 0`.** Lo puse para quedarme con la caja y
+   no con el contenedor que la envuelve. Pero un badge con un ícono adentro
+   tiene hijos, así que el tipo de movimiento del historial se escapaba. La
+   condición correcta no es "sin hijos", es "que no contenga otra caja".
+2. **Stock esconde cuatro tablas detrás de pestañas** y yo medía solo la que
+   abre por defecto.
+
+**Regla.** Cuando una comprobación pasa, preguntarse qué no pudo haber visto.
+Un test verde prueba que no encontró nada donde miró, y eso no es lo mismo que
+que no haya nada. Vale la pena enumerar explícitamente qué queda fuera del
+alcance —pestañas cerradas, estados que no se dan con los datos de prueba,
+formas que el selector no matchea— y anotarlo en el test.
+
+**Y la decisión que destapó.** El tipo de movimiento era una píldora de seis
+colores. Por la regla del panel es atributo —un movimiento no cambia de tipo—
+así que va como texto. Pero la **flecha** se queda con su color: en un historial
+de cientos de filas lo que se busca es si entró o salió, no cuál de los seis
+nombres es. La regla dice qué se resalta; cuál es el eje por el que se recorre
+una lista lo dice el uso.

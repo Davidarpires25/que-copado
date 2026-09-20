@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { ArrowUp, ArrowDown, RefreshCw, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { getStockMovements } from '@/app/actions/stock'
@@ -24,14 +23,6 @@ const MOVEMENT_ICON: Record<StockMovementType, React.ReactNode> = {
   sale_reversal: <ArrowUp className="h-3.5 w-3.5 text-cyan-700 dark:text-cyan-400" />,
 }
 
-const MOVEMENT_BADGE_CLASS: Record<StockMovementType, string> = {
-  purchase: 'bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/30',
-  initial: 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30',
-  adjustment: 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-500/30',
-  waste: 'bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/30',
-  sale: 'bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30',
-  sale_reversal: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400 border-cyan-500/30',
-}
 
 export function MovementsTab({ initialMovements }: MovementsTabProps) {
   const [movements, setMovements] = useState(initialMovements)
@@ -207,12 +198,21 @@ export function MovementsTab({ initialMovements }: MovementsTabProps) {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge
-                        className={`border font-medium text-xs gap-1.5 hover:opacity-90 ${MOVEMENT_BADGE_CLASS[mov.movement_type]}`}
-                      >
+                      {/* El tipo va como texto, con la flecha en color.
+                        *
+                        * Era una pildora de seis colores distintos --verde,
+                        * azul, amarillo, rojo, naranja, cian-- una por tipo.
+                        * Pero un movimiento no cambia de tipo: es un atributo,
+                        * y por la regla del panel eso va como texto.
+                        *
+                        * La flecha se queda, y con su color: en un historial de
+                        * cientos de filas lo que se busca es si entro o salio,
+                        * no cual de los seis nombres es. Ese si es el eje por
+                        * el que se recorre la lista. */}
+                      <span className="inline-flex items-center gap-1.5 text-sm text-[var(--admin-text)] whitespace-nowrap">
                         {MOVEMENT_ICON[mov.movement_type]}
                         {STOCK_MOVEMENT_TYPE_LABELS[mov.movement_type]}
-                      </Badge>
+                      </span>
                     </td>
                     <td className="px-4 py-3 hidden lg:table-cell text-[var(--admin-text-muted)] truncate">
                       {mov.reason ?? '—'}

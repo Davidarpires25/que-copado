@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { adjustStock, updateMinStock } from '@/app/actions/stock'
+import { adjustStock, updateMinStock, getCompraHabitual } from '@/app/actions/stock'
 import { toast } from 'sonner'
 
 interface AdjustItem {
@@ -62,10 +62,47 @@ export function StockAdjustDialog({
   )
   const [loading, setLoading] = useState(false)
 
+  /**
+   * De a cuanto se compra esto, para poder avisar si el minimo es absurdo.
+   *
+   * Se pide al abrir el dialogo y no mientras se escribe: es un viaje solo, y
+   * asi el aviso esta listo antes de que alguien termine de tipear.
+   */
+  const [compraHabitual, setCompraHabitual] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+    let vigente = true
+    getCompraHabitual(targetType, item.id).then((r) => {
+      if (vigente) setCompraHabitual(r.data)
+    })
+    return () => {
+      vigente = false
+    }
+  }, [open, targetType, item.id])
+
   // --- Modo corregir ---------------------------------------------------------
   const realStock = parseFloat(realStockStr)
   const hasRealStock = realStockStr !== '' && !isNaN(realStock)
   const delta = hasRealStock ? round3(realStock - item.current_stock) : 0
+
+  /**
+   * Un minimo desproporcionado respecto de lo que entra en una compra.
+   *
+   * Diez veces es el corte, elegido mirando los dos casos reales: muzzarella
+   * tenia un minimo 156 veces su compra habitual y Tybo catorce. Un minimo
+   * legitimo de tres o cuatro compras --querer tener el deposito lleno-- no
+   * dispara nada.
+   */
+  const minStock = parseFloat(minStockStr)
+  const minStockPedido = minStockStr === '' ? null : isNaN(minStock) ? item.min_stock : minStock
+  const cambioElMinimo = mode === 'correct' && minStockPedido !== item.min_stock
+  const minimoAbsurdo =
+    minStockStr !== '' &&
+    !isNaN(minStock) &&
+    compraHabitual !== null &&
+    compraHabitual > 0 &&
+    minStock > compraHabitual * 10
 
   // --- Modo merma ------------------------------------------------------------
   const wasteQty = parseFloat(wasteQtyStr)
@@ -74,9 +111,19 @@ export function StockAdjustDialog({
     ? round3(item.current_stock - Math.abs(wasteQty))
     : item.current_stock
 
+  /**
+   * Alcanza con haber cambiado algo: el stock **o** el minimo.
+   *
+   * Antes pedia `delta !== 0`, asi que para tocar solo el minimo habia que
+   * inventar un cambio de stock. David: *"intente cambiar el minimo desde la
+   * tabla pero no me dejaba, me obliga a cambiar el stock"*. El minimo no es
+   * stock: es la regla que decide cuando avisar, y cambiarla no deberia dejar
+   * un movimiento en el historial --que es justo el historial con el que se
+   * reconstruyen los faltantes--.
+   */
   const canSubmit =
     mode === 'correct'
-      ? hasRealStock && realStock >= 0 && delta !== 0
+      ? hasRealStock && realStock >= 0 && (delta !== 0 || cambioElMinimo)
       : hasWasteQty && reason.trim() !== ''
 
   const handleSubmit = async () => {
@@ -85,8 +132,8 @@ export function StockAdjustDialog({
         toast.error('Ingresá el stock real (0 o más)')
         return
       }
-      if (delta === 0) {
-        toast.error('El stock ya es ese valor')
+      if (delta === 0 && !cambioElMinimo) {
+        toast.error('No cambiaste nada')
         return
       }
     } else {
@@ -102,21 +149,25 @@ export function StockAdjustDialog({
 
     setLoading(true)
 
-    const parsedMinStock = minStockStr === '' ? null : parseFloat(minStockStr)
-    const newMinStock = parsedMinStock !== null && isNaN(parsedMinStock) ? item.min_stock : parsedMinStock
-    // El stock mínimo sólo se edita desde el modo corregir.
-    const minStockChanged = mode === 'correct' && newMinStock !== item.min_stock
+    const newMinStock = minStockPedido
+    const minStockChanged = cambioElMinimo
 
     const newStock = mode === 'correct' ? realStock : wastePreview
 
+    // Sin cambio de stock no se toca el stock: un ajuste de cero seria una
+    // fila de ruido en el historial de movimientos.
+    const hayAjuste = mode === 'waste' || delta !== 0
+
     const [adjustResult, minStockResult] = await Promise.all([
-      adjustStock({
-        type: targetType,
-        id: item.id,
-        quantity: mode === 'correct' ? delta : -Math.abs(wasteQty),
-        movement_type: mode === 'correct' ? 'adjustment' : 'waste',
-        reason: reason.trim() || DEFAULT_ADJUSTMENT_REASON,
-      }),
+      hayAjuste
+        ? adjustStock({
+            type: targetType,
+            id: item.id,
+            quantity: mode === 'correct' ? delta : -Math.abs(wasteQty),
+            movement_type: mode === 'correct' ? 'adjustment' : 'waste',
+            reason: reason.trim() || DEFAULT_ADJUSTMENT_REASON,
+          })
+        : Promise.resolve({ data: null, error: null }),
       minStockChanged ? updateMinStock(targetType, item.id, newMinStock) : Promise.resolve({ data: true, error: null }),
     ])
 
@@ -131,7 +182,15 @@ export function StockAdjustDialog({
       return
     }
 
-    toast.success(mode === 'correct' ? 'Stock corregido' : 'Merma registrada')
+    toast.success(
+      mode === 'waste'
+        ? 'Merma registrada'
+        : hayAjuste
+          ? minStockChanged
+            ? 'Stock y mínimo actualizados'
+            : 'Stock corregido'
+          : 'Mínimo actualizado'
+    )
     onAdjusted(newStock, minStockChanged ? newMinStock : item.min_stock)
     onOpenChange(false)
     setWasteQtyStr('')
@@ -219,8 +278,11 @@ export function StockAdjustDialog({
 
               {/* Min stock */}
               <div className="space-y-1.5">
-                <Label className="text-[var(--admin-text-muted)] text-sm">Stock mínimo (opcional)</Label>
+                <Label htmlFor="stock-minimo" className="text-[var(--admin-text-muted)] text-sm">
+                  Stock mínimo (opcional)
+                </Label>
                 <Input
+                  id="stock-minimo"
                   type="number"
                   min="0"
                   step="0.01"
@@ -229,9 +291,23 @@ export function StockAdjustDialog({
                   placeholder="Sin mínimo"
                   className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
                 />
-                <p className="text-xs text-[var(--admin-text-muted)]">
-                  Se mostrará una alerta cuando el stock caiga por debajo de este valor.
-                </p>
+                {minimoAbsurdo ? (
+                  /* El error que motivo esto: `Queso muzzarela` tenia un minimo
+                     de 1000 kg --mil kilos-- y avisaba "stock bajo" todos los
+                     dias. Una alerta siempre encendida deja de ser una alerta.
+                     Se muestra lo que el numero implica, no un reto: la cuenta
+                     la hace quien la esta cargando. */
+                  <p className="text-xs text-amber-700 dark:text-amber-400">
+                    Son{' '}
+                    <strong>{formatQty(Math.round(minStock / compraHabitual!))} veces</strong>{' '}
+                    lo que solés comprar de una vez ({formatQty(compraHabitual!)} {item.unit}).
+                    Con este mínimo va a avisar siempre.
+                  </p>
+                ) : (
+                  <p className="text-xs text-[var(--admin-text-muted)]">
+                    Se mostrará una alerta cuando el stock caiga por debajo de este valor.
+                  </p>
+                )}
               </div>
 
               {/* Reason — opcional */}
