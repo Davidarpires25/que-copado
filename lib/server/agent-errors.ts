@@ -9,6 +9,11 @@
 export const AGENT_ERROR_CODES = [
   'unauthorized',
   'invalid_request',
+  // Lo pedido no existe. Se distingue de `invalid_request` --que es "lo que
+  // mandaste esta mal formado"-- porque el agente hace cosas distintas: con
+  // uno corrige el pedido, con el otro le dice al cliente que ese numero no
+  // es de hoy.
+  'not_found',
   'business_closed',
   'business_paused',
   'out_of_coverage',
@@ -25,6 +30,7 @@ export type AgentErrorCode = (typeof AGENT_ERROR_CODES)[number]
 const STATUS_BY_CODE: Record<AgentErrorCode, number> = {
   unauthorized: 401,
   invalid_request: 400,
+  not_found: 404,
   business_closed: 422,
   business_paused: 422,
   out_of_coverage: 422,

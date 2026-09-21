@@ -2,6 +2,7 @@ import { requireAgentSecret } from '@/lib/server/agent-auth'
 import { agentError, agentInternalError } from '@/lib/server/agent-errors'
 import { createServiceRoleClient } from '@/lib/supabase/admin'
 import { devError } from '@/lib/server/logger'
+import { diaDelLocal } from '@/lib/server/dia-del-local'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,8 +45,9 @@ export async function POST(
     const supabase = createServiceRoleClient()
 
     // El numero se reinicia cada dia, asi que sin acotar por fecha el pedido 7
-    // de hoy podria resolverse contra el 7 de la semana pasada.
-    const hoy = new Date().toISOString().slice(0, 10)
+    // de hoy podria resolverse contra el 7 de la semana pasada. Y el dia es el
+    // del local, no el de UTC: ver `diaDelLocal`.
+    const hoy = diaDelLocal()
 
     const { data: pedido, error: errorLectura } = await supabase
       .from('orders')
@@ -60,7 +62,9 @@ export async function POST(
     }
 
     if (!pedido) {
-      return agentError('invalid_request', 'No encontramos ese pedido.')
+      // `not_found` y no `invalid_request`, igual que la consulta del pedido:
+      // el numero esta bien formado, lo que no existe es el pedido.
+      return agentError('not_found', 'No encontramos ese pedido de hoy.')
     }
 
     if (pedido.payment_method !== 'transfer') {

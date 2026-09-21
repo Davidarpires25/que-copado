@@ -849,3 +849,44 @@ necesita estado ni JavaScript, y se abre con el teclado solo.
 **Y el corolario del día.** Las dos tandas de trabajo de hoy —las píldoras y el
 texto de más— salieron de la misma pregunta: *¿esto se gana el lugar que ocupa,
 cada vez que alguien abre esta pantalla?*. Casi nada la resiste dos veces.
+
+---
+
+## 35. La fecha del local no es la fecha UTC
+
+**Qué pasó (2026-09-20).** Implementando `GET /api/agent/orders/{numero}`,
+filtré por el día así:
+
+```ts
+const hoy = new Date().toISOString().slice(0, 10)   // UTC
+```
+
+Pero el trigger que asigna el correlativo escribe el día **en horario del
+local**:
+
+```sql
+d := (coalesce(new.created_at, now()) at time zone 'America/Argentina/Buenos_Aires')::date;
+```
+
+Entre las 21:00 y la medianoche de Argentina, UTC ya está en el día siguiente.
+El endpoint habría buscado los pedidos de mañana y no habría encontrado
+ninguno: el local en plena cena, y el agente diciéndole al cliente que su
+pedido no existe. Lo mismo en el endpoint de comprobante, que había escrito
+media hora antes con el mismo `toISOString()`.
+
+Apareció porque el test sembraba un pedido "de ayer" y no se comportaba como
+esperaba. Tirar del hilo llevó al trigger.
+
+**Regla.** Cuando una fecha decide qué fila se ve, hay que preguntarse **quién
+la escribió y en qué zona**. Si la base la calcula en una zona, el código que
+la consulta tiene que usar la misma. `toISOString()` es UTC siempre, y en
+Argentina eso son tres horas de desfase que caen justo en el horario de mayor
+actividad de una hamburguesería.
+
+**Corolario.** Quedó en `lib/server/dia-del-local.ts`, con el SQL del trigger
+citado en el comentario: la próxima vez que alguien necesite "hoy" para
+comparar contra `order_day`, el lugar correcto está a la vista y dice por qué.
+
+**Y algo del seeding.** El trigger **pisa siempre** `order_day`. Sembrar un
+pedido de ayer mandando `order_day` no hace nada; hay que mandarle el
+`created_at`, que es de donde lo deriva.

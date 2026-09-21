@@ -25,13 +25,12 @@ const limpiar = () =>
 
 test.beforeAll(async () => {
   await limpiar()
-  const hoy = new Date().toISOString().slice(0, 10)
   await rest('orders', {
     method: 'POST',
     body: JSON.stringify([
-      { order_number: NUM_TRANSFER, order_day: hoy, payment_method: 'transfer',
+      { order_number: NUM_TRANSFER, payment_method: 'transfer',
         status: 'recibido', total: 5000, items: [], order_source: 'whatsapp' },
-      { order_number: NUM_EFECTIVO, order_day: hoy, payment_method: 'cash',
+      { order_number: NUM_EFECTIVO, payment_method: 'cash',
         status: 'recibido', total: 5000, items: [], order_source: 'whatsapp' },
     ]),
   })
@@ -78,6 +77,8 @@ test('un pedido que no es por transferencia es invalid_request', async ({ reques
 
 test('un numero que no existe tampoco se marca', async ({ request }) => {
   const res = await request.post(ruta(99999), { headers: cabecera })
-  expect(res.status()).toBe(400)
-  expect((await res.json()).error.code).toBe('invalid_request')
+  // `not_found` y no `invalid_request`: el numero esta bien formado, lo que no
+  // existe es el pedido. Mismo criterio que la consulta.
+  expect(res.status()).toBe(404)
+  expect((await res.json()).error.code).toBe('not_found')
 })
