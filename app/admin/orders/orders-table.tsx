@@ -400,6 +400,18 @@ export function OrdersTable({ initialOrders, initialDateFilter }: OrdersTablePro
                           : paymentMethod === 'transfer' || paymentMethod === 'mercadopago' ? 'Transferencia'
                           : '—'}
                       </span>
+                      {/* El cliente aviso que transfirio y todavia nadie lo
+                          verifico. Es una senal para que alguien mire el
+                          banco, no un cobro: el estado del pedido no cambia.
+                          Se muestra aca --pegado al medio de pago-- porque es
+                          sobre el pago que hay que decidir algo.
+
+                          Una vez cobrado deja de mostrarse: ya se verifico. */}
+                      {order.transfer_claimed_at && order.status !== 'pagado' && (
+                        <span className="block text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                          dice que transfirió
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="text-center">
                       <OrderStatusBadge status={order.status} size="sm" />

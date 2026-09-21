@@ -827,6 +827,12 @@ export interface Order {
   order_number: number | null
   /** Comensales de la mesa. Existen aunque todavia no hayan pedido nada. */
   sale_tags: string[]
+  /**
+   * Cuando el cliente dijo haber transferido. **No es un cobro**: el pedido
+   * sigue en su estado hasta que alguien del local verifique que la plata
+   * entro. Lo marca el agente de WhatsApp.
+   */
+  transfer_claimed_at: string | null
   created_at: string
   total: number
   items: Json
