@@ -923,3 +923,25 @@ defenderla, y a veces la medición dice que el que la tomó estaba equivocado.
 superpone: el contenido no se mueve"*. No se borra: se invierte y se le escribe
 adentro por qué cambió, con los números. Un test es la decisión escrita en
 código, y cuando la decisión cambia el test cuenta las dos.
+
+---
+
+## 37. En una pantalla nueva, el test se prueba rompiendo el código
+
+**Qué pasó (2026-09-24).** La regla de la casa es correr cada test nuevo contra
+el código viejo: si pasa en los dos, está probando otra cosa. Con el reporte de
+costos no servía —es una pantalla que no existía, así que contra el código
+viejo todo da 404 y cualquier test "falla"—.
+
+Lo que sí sirvió: **romper a propósito** las reglas que el test dice cuidar y
+ver si se entera.
+
+- El margen calculado **sobre el costo** en vez de sobre el precio —el error
+  clásico: 8000 de precio y 2000 de costo dan 300% en vez de 75%—. El test del
+  margen falló.
+- Sacar el filtro de productos activos. El test de "un inactivo no aparece"
+  falló.
+
+**Regla.** Cuando no hay versión vieja contra la cual comparar, la comparación
+se fabrica: se elige qué regla cuida cada test, se rompe esa regla y se
+confirma que falla. Un test que sigue verde con su regla rota no cuida nada.

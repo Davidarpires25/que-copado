@@ -5,6 +5,7 @@
    el host no esta en images.remotePatterns, asi que <img> es lo correcto. */
 
 import { useState, useMemo } from 'react'
+import { ReporteCostosDialog } from '@/components/admin/products/reporte-costos-dialog'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Pencil, Trash2, Check, X, Package, Search, Eye, EyeOff } from 'lucide-react'
@@ -308,7 +309,8 @@ export function ProductsDashboard({
                 <span className="text-[var(--admin-text-muted)]/60"> de {products.length}</span>
               )}
             </p>
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
+              <ReporteCostosDialog />
               <Button
                 onClick={() => router.push('/admin/products/new')}
                 className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold shadow-lg shadow-[var(--admin-accent)]/20 transition-all duration-200 hover:scale-105 active:scale-95"
