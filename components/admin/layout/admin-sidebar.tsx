@@ -14,6 +14,7 @@ import {
   ClipboardList,
   Settings,
   BarChart3,
+  Receipt,
   ScanLine,
   Table2,
   Wheat,
@@ -80,6 +81,7 @@ const navGroups: NavGroup[] = [
     title: 'Reportes',
     items: [
       { href: '/admin/analytics', label: 'Analytics', icon: BarChart3, permission: 'analytics.view' },
+      { href: '/admin/reportes/costos', label: 'Costos', icon: Receipt, permission: 'analytics.view' },
     ],
   },
   {

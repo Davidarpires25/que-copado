@@ -42,3 +42,21 @@
       código viejo" es trivial —da 404—. Se rompieron a propósito dos reglas:
       el margen calculado sobre el costo en vez del precio (daba 300% en vez de
       75%) y el filtro de activos. Los dos tests correspondientes fallaron.
+
+## 6. Se muda a Reportes, y se elige por categoría
+
+- [x] 6.1 **Reportes → Costos**, con permiso `analytics.view`. Se sacó de
+      Productos: al sumar insumos, el argumento "se revisa donde se corrige" se
+      rompió, porque un insumo se corrige en Ingredientes.
+- [x] 6.2 **Por categoría dentro de cada grupo.** Página en vez de diálogo:
+      cuatro grupos con sus categorías no entran cómodos en una ventanita.
+- [x] 6.3 La selección viaja por la URL (`?insumo=<id>,<id>`), para guardar
+      "solo las carnes" como favorito. Si un grupo está entero viaja `*`, y la
+      URL sigue valiendo si mañana se crea una categoría nueva.
+- [x] 6.4 Test por mutación del filtro por categoría: con el filtro roto, el
+      test de "una sola categoría" falla.
+- [x] 6.5 Los tipos y constantes compartidos se sacaron del archivo
+      `'use server'` a `lib/constants/reporte-costos.ts`: exportar una
+      constante desde ahí pasa `tsc` y rompe el build (lección 16). Se notó
+      antes de compilar.
+

@@ -3,6 +3,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { friendlyError } from '@/lib/server/error-messages'
+import { requirePermission } from '@/lib/server/profile'
 
 /**
  * El reporte de costos: que cuesta cada cosa, y cuanto deja lo que se vende.
@@ -17,7 +18,13 @@ import { friendlyError } from '@/lib/server/error-messages'
  * tabla dejaria dos columnas vacias en cien renglones.
  */
 
-export type GrupoDeCosto = 'elaborado' | 'combo' | 'reventa' | 'insumo'
+import {
+  GRUPOS_DE_COSTO,
+  SIN_CATEGORIA_ID,
+  SIN_CATEGORIA_NOMBRE,
+  type GrupoDeCosto,
+  type SeleccionDeCostos,
+} from '@/lib/constants/reporte-costos'
 
 export interface FilaDeProducto {
   id: string
@@ -61,8 +68,6 @@ export interface ResumenDeCostos {
   insumosSinCosto: number
 }
 
-const TODOS: GrupoDeCosto[] = ['elaborado', 'combo', 'reventa', 'insumo']
-const SIN_CATEGORIA = 'Sin categoría'
 
 /** El margen sobre el precio de venta, en porcentaje con un decimal. */
 function margenDe(costo: number | null, precio: number): number | null {
@@ -85,15 +90,15 @@ function agrupar<F extends { nombre: string }>(
 ): CategoriaDeCostos<F>[] {
   const porCategoria = new Map<string, F[]>()
   for (const { categoria, ...fila } of filas) {
-    const clave = categoria ?? SIN_CATEGORIA
+    const clave = categoria ?? SIN_CATEGORIA_NOMBRE
     const lista = porCategoria.get(clave) ?? []
     lista.push(fila as unknown as F)
     porCategoria.set(clave, lista)
   }
 
   const claves = [...porCategoria.keys()].sort((a, b) => {
-    if (a === SIN_CATEGORIA) return 1
-    if (b === SIN_CATEGORIA) return -1
+    if (a === SIN_CATEGORIA_NOMBRE) return 1
+    if (b === SIN_CATEGORIA_NOMBRE) return -1
     const ia = orden.indexOf(a)
     const ib = orden.indexOf(b)
     if (ia !== -1 && ib !== -1) return ia - ib
@@ -106,59 +111,123 @@ function agrupar<F extends { nombre: string }>(
   }))
 }
 
+/** Una categoria elegible, con cuantos renglones aporta. */
+export interface OpcionDeCategoria {
+  id: string
+  nombre: string
+  cantidad: number
+}
+
+/** El nombre y el id de una relacion anidada, venga como objeto o como arreglo. */
+function relacion(rel: unknown): { id: string; nombre: string } | null {
+  const fila = Array.isArray(rel) ? rel[0] : rel
+  const r = fila as { id?: unknown; name?: unknown } | null
+  if (!r || typeof r.id !== 'string' || typeof r.name !== 'string') return null
+  return { id: r.id, nombre: r.name }
+}
+
+/** Si esta fila entra, segun lo elegido para su grupo. */
+function entra(sel: SeleccionDeCostos, grupo: GrupoDeCosto, categoriaId: string): boolean {
+  const v = sel[grupo]
+  if (!v) return false
+  return v === '*' || v.includes(categoriaId)
+}
+
+/** Lo que el reporte cuenta como producto de cada grupo. */
+const ES_PRODUCTO: GrupoDeCosto[] = ['elaborado', 'combo', 'reventa']
+
 /**
- * Cuantos renglones trae cada grupo, para el dialogo de eleccion.
+ * Las opciones para armar el reporte: cada grupo con sus categorias, y cuantos
+ * renglones aporta cada una.
  *
- * Se muestra antes de imprimir para no llevarse cuatro paginas sin querer: los
- * insumos solos son mas de cien.
+ * Se muestra antes de imprimir para no llevarse cuatro paginas sin querer.
+ * Una categoria que no tiene nada activo en ese grupo no se ofrece: elegirla
+ * daria una seccion vacia.
  */
-export async function getGruposDelReporte(): Promise<{
-  data: Record<GrupoDeCosto, number> | null
+export async function getOpcionesDelReporte(): Promise<{
+  data: Record<GrupoDeCosto, OpcionDeCategoria[]> | null
   error: string | null
 }> {
+  const denied = await requirePermission('analytics.view')
+  if (denied) return { data: null, error: denied.error }
+
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { data: null, error: 'No autorizado' }
 
   const [productos, insumos] = await Promise.all([
-    supabase.from('products').select('product_type').eq('is_active', true),
-    supabase.from('ingredients').select('id', { count: 'exact', head: true }).eq('is_active', true),
+    supabase.from('products').select('product_type, categories(id, name)').eq('is_active', true),
+    supabase.from('ingredients').select('ingredient_categories(id, name)').eq('is_active', true),
   ])
 
   const error = productos.error || insumos.error
   if (error) return { data: null, error: friendlyError(error) }
 
-  const cuenta: Record<GrupoDeCosto, number> = { elaborado: 0, combo: 0, reventa: 0, insumo: insumos.count ?? 0 }
-  for (const p of productos.data ?? []) {
-    const tipo = p.product_type as GrupoDeCosto
-    if (tipo in cuenta && tipo !== 'insumo') cuenta[tipo]++
+  const conteo: Record<GrupoDeCosto, Map<string, OpcionDeCategoria>> = {
+    elaborado: new Map(), combo: new Map(), reventa: new Map(), insumo: new Map(),
   }
-  return { data: cuenta, error: null }
+
+  const sumar = (grupo: GrupoDeCosto, cat: { id: string; nombre: string } | null) => {
+    const id = cat?.id ?? SIN_CATEGORIA_ID
+    const actual = conteo[grupo].get(id)
+    if (actual) actual.cantidad++
+    else conteo[grupo].set(id, { id, nombre: cat?.nombre ?? SIN_CATEGORIA_NOMBRE, cantidad: 1 })
+  }
+
+  for (const p of productos.data ?? []) {
+    const grupo = p.product_type as GrupoDeCosto
+    if (ES_PRODUCTO.includes(grupo)) sumar(grupo, relacion(p.categories))
+  }
+  for (const i of insumos.data ?? []) sumar('insumo', relacion(i.ingredient_categories))
+
+  const ordenar = (m: Map<string, OpcionDeCategoria>) =>
+    [...m.values()].sort((a, b) => {
+      if (a.id === SIN_CATEGORIA_ID) return 1
+      if (b.id === SIN_CATEGORIA_ID) return -1
+      return a.nombre.localeCompare(b.nombre, 'es')
+    })
+
+  return {
+    data: {
+      elaborado: ordenar(conteo.elaborado),
+      combo: ordenar(conteo.combo),
+      reventa: ordenar(conteo.reventa),
+      insumo: ordenar(conteo.insumo),
+    },
+    error: null,
+  }
 }
 
 /**
- * El reporte para los grupos elegidos. Sin elegir ninguno, trae todos.
+ * El reporte para lo elegido. Una seleccion vacia trae todo.
  *
  * Solo lo activo: el margen de un producto que no se vende no decide nada, y
  * mezclarlo esconde los que importan.
  */
-export async function getReporteDeCostos(grupos: GrupoDeCosto[]): Promise<{
+export async function getReporteDeCostos(seleccion: SeleccionDeCostos): Promise<{
   data: { secciones: SeccionDeCostos[]; resumen: ResumenDeCostos } | null
   error: string | null
 }> {
+  const denied = await requirePermission('analytics.view')
+  if (denied) return { data: null, error: denied.error }
+
   const supabase = await createAdminClient()
   const user = await getAuthUser(supabase)
   if (!user) return { data: null, error: 'No autorizado' }
 
-  const elegidos = grupos.length > 0 ? grupos.filter((g) => TODOS.includes(g)) : TODOS
-  const quiereProductos = elegidos.some((g) => g !== 'insumo')
-  const quiereInsumos = elegidos.includes('insumo')
+  const vacia = GRUPOS_DE_COSTO.every((g) => !seleccion[g])
+  const sel: SeleccionDeCostos = vacia
+    ? { elaborado: '*', combo: '*', reventa: '*', insumo: '*' }
+    : seleccion
+
+  const quiereProductos = ES_PRODUCTO.some((g) => sel[g])
+  const quiereInsumos = Boolean(sel.insumo)
 
   const [productos, categorias, insumos] = await Promise.all([
     quiereProductos
       ? supabase
           .from('products')
-          .select('id, name, cost, price, product_type, categories(name)')
+          .select('id, name, cost, price, product_type, categories(id, name)')
           .eq('is_active', true)
       : Promise.resolve({ data: [], error: null }),
     quiereProductos
@@ -167,7 +236,7 @@ export async function getReporteDeCostos(grupos: GrupoDeCosto[]): Promise<{
     quiereInsumos
       ? supabase
           .from('ingredients')
-          .select('id, name, unit, cost_per_unit, ingredient_categories(name)')
+          .select('id, name, unit, cost_per_unit, ingredient_categories(id, name)')
           .eq('is_active', true)
       : Promise.resolve({ data: [], error: null }),
   ])
@@ -177,24 +246,22 @@ export async function getReporteDeCostos(grupos: GrupoDeCosto[]): Promise<{
 
   const ordenDeCategorias = (categorias.data ?? []).map((c: { name: string }) => c.name)
 
-  /** El nombre de una relacion anidada, venga como objeto o como arreglo. */
-  const nombreDe = (rel: unknown): string | null => {
-    const fila = Array.isArray(rel) ? rel[0] : rel
-    const n = (fila as { name?: unknown } | null)?.name
-    return typeof n === 'string' ? n : null
-  }
-
   const secciones: SeccionDeCostos[] = []
   const margenes: number[] = []
   let productosContados = 0
   let productosSinCosto = 0
 
   for (const grupo of ['elaborado', 'combo', 'reventa'] as const) {
-    if (!elegidos.includes(grupo)) continue
+    if (!sel[grupo]) continue
 
     const filas = (productos.data ?? [])
       .filter((p: { product_type: string }) => p.product_type === grupo)
-      .map((p: { id: string; name: string; cost: number | null; price: number; categories: unknown }) => {
+      .map((p: { id: string; name: string; cost: number | null; price: number; categories: unknown }) => ({
+        p,
+        cat: relacion(p.categories),
+      }))
+      .filter(({ cat }) => entra(sel, grupo, cat?.id ?? SIN_CATEGORIA_ID))
+      .map(({ p, cat }) => {
         const costo = p.cost !== null && Number(p.cost) > 0 ? Number(p.cost) : null
         const precio = Number(p.price) || 0
         const margen = margenDe(costo, precio)
@@ -203,7 +270,7 @@ export async function getReporteDeCostos(grupos: GrupoDeCosto[]): Promise<{
         if (costo === null) productosSinCosto++
         if (margen !== null) margenes.push(margen)
 
-        return { id: p.id, nombre: p.name, costo, precio, margen, categoria: nombreDe(p.categories) }
+        return { id: p.id, nombre: p.name, costo, precio, margen, categoria: cat?.nombre ?? null }
       })
 
     if (filas.length > 0) {
@@ -215,8 +282,15 @@ export async function getReporteDeCostos(grupos: GrupoDeCosto[]): Promise<{
   let insumosSinCosto = 0
 
   if (quiereInsumos) {
-    const filas = (insumos.data ?? []).map(
-      (i: { id: string; name: string; unit: string; cost_per_unit: number | null; ingredient_categories: unknown }) => {
+    const filas = (insumos.data ?? [])
+      .map(
+        (i: { id: string; name: string; unit: string; cost_per_unit: number | null; ingredient_categories: unknown }) => ({
+          i,
+          cat: relacion(i.ingredient_categories),
+        })
+      )
+      .filter(({ cat }) => entra(sel, 'insumo', cat?.id ?? SIN_CATEGORIA_ID))
+      .map(({ i, cat }) => {
         const costo = i.cost_per_unit !== null && Number(i.cost_per_unit) > 0 ? Number(i.cost_per_unit) : null
         insumosContados++
         if (costo === null) insumosSinCosto++
@@ -226,10 +300,9 @@ export async function getReporteDeCostos(grupos: GrupoDeCosto[]): Promise<{
           unidad: i.unit,
           costo,
           equivalente: equivalenteDe(costo, i.unit),
-          categoria: nombreDe(i.ingredient_categories),
+          categoria: cat?.nombre ?? null,
         }
-      }
-    )
+      })
 
     if (filas.length > 0) {
       secciones.push({ grupo: 'insumo', categorias: agrupar<FilaDeInsumo>(filas, []) })

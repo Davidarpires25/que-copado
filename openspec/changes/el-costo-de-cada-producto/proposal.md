@@ -43,10 +43,9 @@ arma con cosas cuyo costo el sistema ya conoce.
   como "no aplica"; `sin costo` se lee como "falta cargarlo", que es lo que es.
 - **Un resumen al pie**: cuántos productos, cuántos sin costo, y el margen
   promedio de los que sí lo tienen.
-- **Vive en Productos**, que es la pantalla donde se cambian los precios: si el
-  papel sale de un lado y la corrección se hace en otro, se parte una sola
-  operación en dos lugares. Mismo criterio que la planilla de conteo, que vive
-  en Stock.
+- **Vive en Reportes → Costos**, con permiso `analytics.view`, como Analytics.
+- **Se elige por categoría dentro de cada grupo**: solo las carnes, solo las
+  bebidas. Tocar el grupo lo marca entero.
 
 ## Lo que se decidió con David
 
@@ -66,6 +65,16 @@ dejaría un tipo de producto sin reporte.
 producto con sus ingredientes, o una lista con costo y margen. Eligió la
 segunda, que es la que sirve para revisar precios; la primera ya existe, de a
 un producto, en la ficha técnica.
+
+**Reportes y no Productos.** La primera versión lo puso en Productos, con el
+argumento de la planilla de conteo: se revisa donde se corrige. David lo
+cuestionó, y tenía razón por una razón concreta: al sumar insumos el argumento
+se rompió, porque el costo de un insumo se corrige en Ingredientes. Un reporte
+que cruza las dos cosas no tiene un lugar natural de corrección.
+
+**Elegir por categoría, no solo por grupo.** David: *"poder dentro de insumos
+elegir la categoría carnes por ejemplo"*. Eso volvió la elección demasiado
+grande para un diálogo, y pasó a ser una página.
 
 **Los 20 sin costo entran igual.** Sacarlos daría un reporte más prolijo y
 menos útil: la lista de lo que falta es la mitad del valor que tiene hoy.

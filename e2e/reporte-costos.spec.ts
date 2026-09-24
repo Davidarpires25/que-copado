@@ -14,9 +14,12 @@ import { rest, asegurarUsuario, USUARIO } from './local'
 
 const P = 'ZZ Costo'
 
+let carnesId = ''
+
 const limpiar = async () => {
   await rest(`products?name=like.${encodeURIComponent(P + '%')}`, { method: 'DELETE' })
   await rest(`ingredients?name=like.${encodeURIComponent(P + '%')}`, { method: 'DELETE' })
+  await rest(`ingredient_categories?name=like.${encodeURIComponent(P + '%')}`, { method: 'DELETE' })
 }
 
 test.beforeAll(async () => {
@@ -37,11 +40,20 @@ test.beforeAll(async () => {
     ]),
   })
 
+  const [carnes, descartables] = await rest('ingredient_categories', {
+    method: 'POST',
+    body: JSON.stringify([{ name: `${P} Carnes` }, { name: `${P} Descartables` }]),
+  })
+  carnesId = carnes.id
+
   await rest('ingredients', {
     method: 'POST',
     body: JSON.stringify([
       // $22 el gramo son $22.000 el kilo.
-      { name: `${P} Insumo en gramos`, unit: 'g', cost_per_unit: 22, is_active: true },
+      { name: `${P} Insumo en gramos`, unit: 'g', cost_per_unit: 22, is_active: true,
+        category_id: carnes.id },
+      { name: `${P} Bandeja`, unit: 'unidad', cost_per_unit: 150, is_active: true,
+        category_id: descartables.id },
     ]),
   })
 })
@@ -65,7 +77,7 @@ const fila = (page: import('@playwright/test').Page, nombre: string) =>
   page.locator('tr', { hasText: nombre }).first()
 
 test('trae costo, precio y margen, y el margen cierra', async ({ page }) => {
-  await page.goto('/admin/products/costos/print')
+  await page.goto('/admin/reportes/costos/print')
   await page.waitForTimeout(1200)
 
   const f = fila(page, `${P} Elaborado`)
@@ -76,7 +88,7 @@ test('trae costo, precio y margen, y el margen cierra', async ({ page }) => {
 })
 
 test('lo que no tiene costo sale marcado, no en blanco', async ({ page }) => {
-  await page.goto('/admin/products/costos/print')
+  await page.goto('/admin/reportes/costos/print')
   await page.waitForTimeout(1200)
 
   const f = fila(page, `${P} Reventa sin costo`)
@@ -84,13 +96,13 @@ test('lo que no tiene costo sale marcado, no en blanco', async ({ page }) => {
 })
 
 test('un producto inactivo no aparece', async ({ page }) => {
-  await page.goto('/admin/products/costos/print')
+  await page.goto('/admin/reportes/costos/print')
   await page.waitForTimeout(1200)
   await expect(page.getByText(`${P} Inactivo`)).toHaveCount(0)
 })
 
 test('un insumo en gramos muestra tambien lo que sale el kilo', async ({ page }) => {
-  await page.goto('/admin/products/costos/print?grupos=insumo')
+  await page.goto('/admin/reportes/costos/print?insumo=*')
   await page.waitForTimeout(1200)
 
   const f = fila(page, `${P} Insumo en gramos`)
@@ -100,7 +112,7 @@ test('un insumo en gramos muestra tambien lo que sale el kilo', async ({ page })
 })
 
 test('elegir un grupo trae solo ese grupo', async ({ page }) => {
-  await page.goto('/admin/products/costos/print?grupos=reventa')
+  await page.goto('/admin/reportes/costos/print?reventa=*')
   await page.waitForTimeout(1200)
 
   await expect(fila(page, `${P} Reventa sin costo`)).toBeVisible()
@@ -108,17 +120,34 @@ test('elegir un grupo trae solo ese grupo', async ({ page }) => {
   await expect(page.getByText(`${P} Insumo en gramos`)).toHaveCount(0)
 })
 
-test('se llega desde Productos eligiendo los grupos', async ({ page, context }) => {
-  await page.goto('/admin/products')
+test('dentro de insumos se puede elegir una sola categoria', async ({ page }) => {
+  // David: "poder dentro de insumos elegir la categoria carnes por ejemplo".
+  await page.goto(`/admin/reportes/costos/print?insumo=${carnesId}`)
   await page.waitForTimeout(1200)
 
-  await page.getByRole('button', { name: /Reporte de costos/ }).click()
-  await page.getByRole('button', { name: /Insumos/ }).click()
+  await expect(fila(page, `${P} Insumo en gramos`)).toBeVisible()
+  await expect(page.getByText(`${P} Bandeja`)).toHaveCount(0)
+  // Y ningun producto: solo se pidieron insumos.
+  await expect(page.getByText(`${P} Elaborado`)).toHaveCount(0)
+})
+
+test('se arma desde Reportes, eligiendo una categoria', async ({ page, context }) => {
+  await page.goto('/admin/reportes/costos')
+  await page.waitForTimeout(1400)
+
+  await page.getByRole('button', { name: new RegExp(`${P} Carnes`) }).click()
+  await expect(page.getByText(/Van a salir/)).toBeVisible()
 
   const [hoja] = await Promise.all([
     context.waitForEvent('page'),
     page.getByRole('button', { name: 'Imprimir' }).click(),
   ])
   await hoja.waitForLoadState()
-  expect(hoja.url()).toContain('/admin/products/costos/print?grupos=insumo')
+  expect(hoja.url()).toContain(`/admin/reportes/costos/print?insumo=${carnesId}`)
+})
+
+test('ya no vive en Productos', async ({ page }) => {
+  await page.goto('/admin/products')
+  await page.waitForTimeout(1200)
+  await expect(page.getByRole('button', { name: /Reporte de costos/ })).toHaveCount(0)
 })

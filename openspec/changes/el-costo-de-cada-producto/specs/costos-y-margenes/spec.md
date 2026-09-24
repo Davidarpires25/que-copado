@@ -46,7 +46,8 @@ mezclarlos esconde los que importan.
 ### Requirement: Se elige qué entra antes de imprimir
 
 SHALL poder elegirse cualquier combinación de estos grupos: elaborados, combos,
-reventa e insumos. Sin elegir ninguno, SHALL imprimirse todo.
+reventa e insumos, y dentro de cada grupo, sus categorías. Sin elegir nada,
+SHALL imprimirse todo.
 
 Existe porque cada grupo se revisa por una razón distinta: la reventa contra la
 factura del proveedor, los elaborados contra su receta, los insumos contra lo
@@ -56,6 +57,12 @@ que se pagó. Imprimir los 155 renglones para mirar las bebidas es tirar papel.
 
 - **WHEN** se elige únicamente reventa
 - **THEN** la hoja trae solo productos de reventa
+
+#### Scenario: Una sola categoría de insumos
+
+- **WHEN** se elige únicamente la categoría Carnes dentro de insumos
+- **THEN** la hoja trae solo los insumos de esa categoría
+- **AND** ningún producto
 
 #### Scenario: Sin elegir nada
 
