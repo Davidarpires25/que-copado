@@ -105,7 +105,7 @@ function AdminLayoutStandalone({ children, title, description, hidePageHeader, c
       {/* Main Content */}
       {/* Clavado en los 72px de la barra angosta: el menu abierto se
           superpone en vez de correr la pagina. */}
-      <div className="lg:ml-[72px]">
+      <div className="admin-contenido">
         {/* Mobile Header */}
         <header className="sticky top-0 z-30 h-16 bg-[var(--admin-bg)]/95 backdrop-blur-xl border-b border-[var(--admin-border)] flex items-center px-4 lg:hidden">
           <Button

@@ -45,7 +45,7 @@ test('se abre con el puntero y se cierra al salir', async ({ page }) => {
   await expect.poll(() => anchoDelMenu(page)).toBe(72)
 })
 
-test('abierto se superpone: el contenido no se mueve', async ({ page }) => {
+test('abierto corre el contenido, no lo tapa', async ({ page }) => {
   const izquierda = () =>
     page.locator('main').evaluate((m) => Math.round(m.getBoundingClientRect().left))
 
@@ -53,7 +53,18 @@ test('abierto se superpone: el contenido no se mueve', async ({ page }) => {
   await page.locator('aside').hover()
   await expect.poll(() => anchoDelMenu(page)).toBe(256)
 
-  expect(await izquierda()).toBe(antes)
+  // Este test decia lo contrario hasta el 2026-09-24.
+  //
+  // Cuando se hizo el menu desplegable se eligio que se superpusiera, para que
+  // la pagina no se reacomodara en cada pasada del mouse. Medido despues, el
+  // costo de esa eleccion era peor que el problema que evitaba: el menu tapaba
+  // media columna de nombres --se leia "osa 500ml", "burguesa simple"-- que es
+  // justo con la que se busca una fila.
+  //
+  // Correr el contenido no trajo el desborde horizontal que se temia: las
+  // tablas se achican de 1228 a 1044px y no aparece scroll. Y el roce
+  // accidental se resolvio con una demora al abrir, no superponiendo.
+  await expect.poll(izquierda).toBeGreaterThan(antes)
 })
 
 test('el pie del menu entra en pantalla en una netbook', async ({ page }) => {

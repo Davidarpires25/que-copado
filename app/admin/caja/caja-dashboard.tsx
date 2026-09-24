@@ -92,7 +92,7 @@ export function CajaDashboard({
       {/* Main content — shifted right by sidebar width */}
       {/* Clavado en los 72px de la barra angosta: el menu abierto se
           superpone en vez de correr la pagina. */}
-      <div className="h-full flex flex-col lg:ml-[72px]">
+      <div className="h-full flex flex-col admin-contenido admin-contenido--caja">
         {/* La info del turno se mudo a ShiftBar, dentro del POS. Lo unico
             que queda aca es el acceso al menu en mobile, asi que en desktop la
             banda desaparece entera. */}

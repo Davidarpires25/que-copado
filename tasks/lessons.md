@@ -890,3 +890,36 @@ comparar contra `order_day`, el lugar correcto está a la vista y dice por qué.
 **Y algo del seeding.** El trigger **pisa siempre** `order_day`. Sembrar un
 pedido de ayer mandando `order_day` no hace nada; hay que mandarle el
 `created_at`, que es de donde lo deriva.
+
+---
+
+## 36. Una decisión de diseño se sostiene con la medición, no con el argumento
+
+**Qué pasó (2026-09-24).** Cuando hicimos el menú desplegable elegí que se
+**superpusiera** al contenido en vez de correrlo, y lo defendí así: *"si
+empujara, cada pasada del mouse reacomodaría la página entera"*. David lo
+aprobó. Tres días después: *"necesito que hagas responsive todas las pantallas
+cuando se agrande el navbar, no queda bien que se queden estáticas"*.
+
+Mi primer impulso fue repetir el argumento de entonces. En cambio lo medí, y
+**dos de mis tres razones eran falsas**:
+
+- *"Va a desbordar a lo ancho"* — no: las tablas se achican de 1228 a 1044px y
+  el desborde es 0.
+- *"Va a quedar mal"* — no: con el reflow los nombres se leen enteros. Con la
+  superposición se leía "osa 500ml" y "burguesa simple": el menú tapaba media
+  columna de nombres, que es con la que se busca una fila.
+- *"Se va a reacomodar en cada roce"* — **esta sí era cierta**: 0,768 de
+  corrimiento acumulado en cinco pasadas del mouse.
+
+Y la única cierta tenía un arreglo que no era volver atrás: **180ms de demora
+al abrir**. Filtra el roce accidental y no se siente al ir a propósito.
+
+**Regla.** Un argumento que convenció una vez no queda probado para siempre.
+Cuando alguien cuestiona una decisión vieja, medirla de nuevo cuesta menos que
+defenderla, y a veces la medición dice que el que la tomó estaba equivocado.
+
+**Y el test tenía que darse vuelta.** Había uno que afirmaba *"abierto se
+superpone: el contenido no se mueve"*. No se borra: se invierte y se le escribe
+adentro por qué cambió, con los números. Un test es la decisión escrita en
+código, y cuando la decisión cambia el test cuenta las dos.

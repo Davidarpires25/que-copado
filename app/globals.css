@@ -509,3 +509,54 @@ html.admin-dark {
 
    Poniendolo en el <html> —que ya lo hace el script bloqueante del layout— el
    tema esta resuelto antes del primer pintado y no depende de ningun render. */
+
+/* ─────────────────────────────────────────────────────────────────────────
+   El contenido se corre cuando el menu se abre.
+
+   David: *"no queda bien que se queden estaticas"*. Tenia razon, y se puede
+   medir: con el menu superpuesto, en la tabla de productos se leia "osa
+   500ml" y "burguesa simple" --tapaba la mitad de la columna de nombres, que
+   es justo con la que se busca la fila--.
+
+   **Va en CSS y no en estado de React a proposito.** El ancho del menu lo
+   gobierna `:hover`, que cambia decenas de veces por minuto; atarlo a un
+   `useState` que envuelva la pagina haria re-renderizar el arbol entero en
+   cada pasada del mouse. Asi el navegador recalcula un margen y nada mas.
+
+   `focus-within` ademas del hover: quien navega con el teclado tambien abre el
+   menu, y el contenido tiene que correrse igual.
+
+   Solo de `lg` para arriba: abajo de eso el menu es un cajon que se superpone
+   sobre todo, y ahi correr el contenido no tiene sentido.
+   ───────────────────────────────────────────────────────────────────────── */
+@media (min-width: 1024px) {
+  .admin-contenido {
+    margin-left: 72px;
+    transition: margin-left 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .admin-layout:has(aside:hover) .admin-contenido,
+  .admin-layout:has(aside:focus-within) .admin-contenido {
+    margin-left: 256px;
+  }
+
+  /* La caja ocupa la pantalla entera y usa padding en vez de margen. */
+  .admin-contenido--caja {
+    margin-left: 0;
+    padding-left: 72px;
+    transition: padding-left 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .admin-layout:has(aside:hover) .admin-contenido--caja,
+  .admin-layout:has(aside:focus-within) .admin-contenido--caja {
+    margin-left: 0;
+    padding-left: 256px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-contenido,
+  .admin-contenido--caja {
+    transition: none;
+  }
+}

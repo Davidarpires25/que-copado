@@ -256,8 +256,43 @@ export function AdminSidebar({ stockAlertCount = 0, userName = 'Admin', userRole
   const [expandido, setExpandido] = useState(false)
   const collapsed = !expandido
 
-  const abrir = useCallback(() => setExpandido(true), [])
-  const cerrar = useCallback(() => setExpandido(false), [])
+  /**
+   * Se abre con una demora corta; se cierra al instante.
+   *
+   * El menu vive contra el borde izquierdo, asi que el mouse lo cruza sin
+   * querer todo el tiempo --yendo a la primera columna de una tabla, volviendo
+   * de la barra lateral del navegador--. Ahora que el contenido se corre, cada
+   * roce accidental reacomodaba la pagina entera: medido, cinco pasadas del
+   * mouse daban 0,768 de corrimiento acumulado.
+   *
+   * 180ms es el numero: por debajo no filtra nada, por encima se siente que el
+   * menu tarda. Quien va al menu a proposito deja el mouse ahi mas que eso sin
+   * notarlo; quien solo pasa, no.
+   *
+   * Cerrar no espera. Una demora al salir deja el menu abierto tapando lo que
+   * la persona ya esta mirando, que es el problema que vinimos a resolver.
+   */
+  const demora = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const cancelarDemora = () => {
+    if (demora.current) {
+      clearTimeout(demora.current)
+      demora.current = null
+    }
+  }
+
+  const abrir = useCallback(() => {
+    cancelarDemora()
+    demora.current = setTimeout(() => setExpandido(true), 180)
+  }, [])
+
+  const cerrar = useCallback(() => {
+    cancelarDemora()
+    setExpandido(false)
+  }, [])
+
+  // Si el componente se va con la demora corriendo, el timeout queda vivo.
+  useEffect(() => cancelarDemora, [])
 
   /**
    * Con el teclado, pasar de un item al siguiente dispara un blur y despues un
@@ -266,6 +301,7 @@ export function AdminSidebar({ stockAlertCount = 0, userName = 'Admin', userRole
    */
   const alSalirElFoco = useCallback((e: React.FocusEvent<HTMLElement>) => {
     if (e.currentTarget.contains(e.relatedTarget as Node | null)) return
+    cancelarDemora()
     setExpandido(false)
   }, [])
 
@@ -292,7 +328,10 @@ export function AdminSidebar({ stockAlertCount = 0, userName = 'Admin', userRole
        <aside
       onMouseEnter={abrir}
       onMouseLeave={cerrar}
-      onFocus={abrir}
+      onFocus={() => {
+        cancelarDemora()
+        setExpandido(true)
+      }}
       onBlur={alSalirElFoco}
       className={cn(
         // Solo el ancho se anima, y con una curva que arranca rapido y frena
