@@ -76,6 +76,18 @@ que cruza las dos cosas no tiene un lugar natural de corrección.
 elegir la categoría carnes por ejemplo"*. Eso volvió la elección demasiado
 grande para un diálogo, y pasó a ser una página.
 
+**Ver antes de imprimir.** La segunda versión elegía categorías y recién en el
+papel se veían los números. David: *"¿no deberíamos poder ver las tablas
+antes?"*. Ahora es una tabla en pantalla con dos pestañas —productos e
+insumos—, filtro por categoría, buscador y orden por columna, y el botón de
+imprimir saca **lo que se está viendo**. Una hoja es de productos o de
+insumos, nunca de los dos: *"sería un producto o ingrediente para una hoja"*.
+
+**El tipo pasa a columna.** Se filtra por la categoría —como el local piensa
+su carta— y el tipo (elaborado, combo, reventa) queda como columna, porque
+explica márgenes que de otro modo parecen errores: una Coca-Cola con 25% es
+reventa, y eso es normal.
+
 **Los 20 sin costo entran igual.** Sacarlos daría un reporte más prolijo y
 menos útil: la lista de lo que falta es la mitad del valor que tiene hoy.
 

@@ -2,54 +2,46 @@
 
 import { useEffect } from 'react'
 import { Printer } from 'lucide-react'
-import type {
-  SeccionDeCostos,
-  ResumenDeCostos,
-  FilaDeProducto,
-  FilaDeInsumo,
-} from '@/app/actions/reporte-costos'
+import {
+  ABREVIATURA_DE_UNIDAD,
+  NOMBRE_DEL_TIPO,
+  formatearMargen,
+  formatearPesos,
+  resumirInsumos,
+  resumirProductos,
+  type FilaDeInsumo,
+  type FilaDeProducto,
+  type VistaDeCostos,
+} from '@/lib/constants/reporte-costos'
 
 interface Props {
-  secciones: SeccionDeCostos[]
-  resumen: ResumenDeCostos
+  vista: VistaDeCostos
+  /** "Insumos · Carnes", para saber de que es la hoja una vez impresa. */
+  descripcion: string
+  productos: FilaDeProducto[]
+  insumos: FilaDeInsumo[]
   fecha: string
 }
 
-const TITULO: Record<SeccionDeCostos['grupo'], string> = {
-  elaborado: 'Elaborados',
-  combo: 'Combos',
-  reventa: 'Reventa',
-  insumo: 'Insumos',
-}
-
-const UNIDAD: Record<string, string> = {
-  kg: 'kg', g: 'g', litro: 'l', ml: 'ml', unidad: 'u',
-}
-
-/** Pesos sin decimales de mas: $9.000 se lee, $9.000,00 no agrega nada. */
-function pesos(n: number): string {
-  return '$ ' + n.toLocaleString('es-AR', { maximumFractionDigits: n < 100 ? 2 : 0 })
-}
-
 /**
- * El reporte de costos, para imprimir.
+ * El reporte de costos en papel: lo que se estaba viendo en pantalla.
  *
- * Pedido por el cliente para sentarse a revisar precios. Mismo patron que la
- * planilla de conteo: A4, la barra de arriba no sale impresa.
+ * Las filas llegan ya filtradas y ordenadas por la misma funcion que usa la
+ * tabla, asi que esta pagina no decide nada: solo dibuja. Mismas columnas que
+ * la pantalla, incluida la de categoria cuando se miran todas.
  *
- * Lo que no tiene costo dice `sin costo` y no queda en blanco: un renglon
- * vacio se lee como "no aplica", y esto es "falta cargarlo".
+ * Mismo patron que la planilla de conteo: A4, la barra de arriba no sale
+ * impresa.
  */
-export function ReporteCostosPrintLayout({ secciones, resumen, fecha }: Props) {
+export function ReporteCostosPrintLayout({ vista, descripcion, productos, insumos, fecha }: Props) {
   useEffect(() => {
     const t = setTimeout(() => window.print(), 600)
     return () => clearTimeout(t)
   }, [])
 
-  const renglones = secciones.reduce(
-    (s, sec) => s + sec.categorias.reduce((c, cat) => c + cat.filas.length, 0),
-    0
-  )
+  const esProductos = vista.pestana === 'productos'
+  const conCategoria = vista.categoria === null
+  const renglones = esProductos ? productos.length : insumos.length
 
   return (
     <>
@@ -80,19 +72,6 @@ export function ReporteCostosPrintLayout({ secciones, resumen, fecha }: Props) {
         .doc-title { font-size: 12pt; font-weight: 700; text-align: right; }
         .doc-meta { font-size: 8pt; color: #666; text-align: right; margin-top: 2pt; }
 
-        .seccion { margin-bottom: 14pt; }
-        .seccion-titulo {
-          font-size: 11pt; font-weight: 700; text-transform: uppercase;
-          letter-spacing: .6pt; border-bottom: 1.5px solid #333;
-          padding-bottom: 3pt; margin-bottom: 6pt;
-        }
-
-        .grupo { margin-bottom: 9pt; }
-        .grupo-nombre {
-          font-size: 9pt; font-weight: 700; background: #eef2f7;
-          padding: 3pt 6pt; border-left: 3px solid #333;
-        }
-
         table { width: 100%; border-collapse: collapse; }
         th {
           font-size: 7.5pt; text-transform: uppercase; letter-spacing: .4pt;
@@ -101,7 +80,7 @@ export function ReporteCostosPrintLayout({ secciones, resumen, fecha }: Props) {
         }
         td { padding: 4pt 6pt; border-bottom: 1px solid #e3e8ee; font-size: 9.5pt; }
         .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-        .col-num { width: 24mm; }
+        .suave { color: #666; }
         .falta { color: #888; font-style: italic; }
         .equivalente { display: block; font-size: 7.5pt; color: #777; }
         .perdida { font-weight: 700; }
@@ -118,16 +97,14 @@ export function ReporteCostosPrintLayout({ secciones, resumen, fecha }: Props) {
           html, body { background: #fff !important; }
           .screen-bar { display: none !important; }
           .a4-page { margin: 0; padding: 0; box-shadow: none; width: 100%; min-height: unset; }
-          .grupo-nombre { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           tr { page-break-inside: avoid; }
-          .grupo { page-break-inside: avoid; }
+          thead { display: table-header-group; }
         }
       `}</style>
 
       <div className="screen-bar">
         <span>
-          Vista previa — Reporte de costos: <strong>{renglones}</strong>{' '}
-          {renglones === 1 ? 'renglón' : 'renglones'}
+          Vista previa — {descripcion}: <strong>{renglones}</strong> {renglones === 1 ? 'renglón' : 'renglones'}
         </span>
         <button onClick={() => window.print()}>
           <Printer className="h-4 w-4" />
@@ -143,93 +120,52 @@ export function ReporteCostosPrintLayout({ secciones, resumen, fecha }: Props) {
           </div>
           <div>
             <div className="doc-title">Reporte de costos</div>
-            <div className="doc-meta">Impreso el {fecha}</div>
+            <div className="doc-meta">
+              {descripcion} · Impreso el {fecha}
+            </div>
           </div>
         </div>
 
-        {secciones.length === 0 && (
-          <p style={{ color: '#777' }}>No hay nada activo en los grupos elegidos.</p>
+        {renglones === 0 ? (
+          <p className="suave">No hay nada con este filtro.</p>
+        ) : esProductos ? (
+          <TablaDeProductos filas={productos} conCategoria={conCategoria} />
+        ) : (
+          <TablaDeInsumos filas={insumos} conCategoria={conCategoria} />
         )}
 
-        {secciones.map((sec) => (
-          <div className="seccion" key={sec.grupo}>
-            <div className="seccion-titulo">{TITULO[sec.grupo]}</div>
-
-            {sec.grupo === 'insumo'
-              ? sec.categorias.map((cat) => (
-                  <div className="grupo" key={cat.nombre}>
-                    <div className="grupo-nombre">{cat.nombre}</div>
-                    <TablaDeInsumos filas={cat.filas} />
-                  </div>
-                ))
-              : sec.categorias.map((cat) => (
-                  <div className="grupo" key={cat.nombre}>
-                    <div className="grupo-nombre">{cat.nombre}</div>
-                    <TablaDeProductos filas={cat.filas} />
-                  </div>
-                ))}
-          </div>
-        ))}
-
-        <div className="resumen">
-          {resumen.productos > 0 && (
-            <>
-              <div>
-                <strong>{resumen.productos}</strong>
-                <span>productos</span>
-              </div>
-              <div>
-                <strong>{resumen.productosSinCosto}</strong>
-                <span>sin costo cargado</span>
-              </div>
-              <div>
-                <strong>
-                  {resumen.margenPromedio === null ? '—' : `${resumen.margenPromedio.toLocaleString('es-AR')} %`}
-                </strong>
-                <span>margen promedio</span>
-              </div>
-            </>
-          )}
-          {resumen.insumos > 0 && (
-            <>
-              <div>
-                <strong>{resumen.insumos}</strong>
-                <span>insumos</span>
-              </div>
-              <div>
-                <strong>{resumen.insumosSinCosto}</strong>
-                <span>insumos sin costo</span>
-              </div>
-            </>
-          )}
-        </div>
+        {esProductos ? <ResumenDeProductos filas={productos} /> : <ResumenDeInsumos filas={insumos} />}
       </div>
     </>
   )
 }
 
-function TablaDeProductos({ filas }: { filas: FilaDeProducto[] }) {
+function TablaDeProductos({ filas, conCategoria }: { filas: FilaDeProducto[]; conCategoria: boolean }) {
   return (
     <table>
       <thead>
         <tr>
           <th>Producto</th>
-          <th className="num col-num">Costo</th>
-          <th className="num col-num">Precio</th>
-          <th className="num col-num">Margen</th>
+          {conCategoria && <th>Categoría</th>}
+          <th>Tipo</th>
+          <th className="num">Costo</th>
+          <th className="num">Precio</th>
+          <th className="num">Margen</th>
         </tr>
       </thead>
       <tbody>
         {filas.map((f) => (
           <tr key={f.id}>
             <td>{f.nombre}</td>
+            {conCategoria && <td className="suave">{f.categoria}</td>}
+            <td className="suave">{NOMBRE_DEL_TIPO[f.tipo]}</td>
             <td className="num">
-              {f.costo === null ? <span className="falta">sin costo</span> : pesos(f.costo)}
+              {f.costo === null ? <span className="falta">sin costo</span> : formatearPesos(f.costo)}
             </td>
-            <td className="num">{pesos(f.precio)}</td>
+            <td className="num">{formatearPesos(f.precio)}</td>
             {/* Un margen negativo es el unico que se marca: se vende a perdida. */}
             <td className={`num ${f.margen !== null && f.margen < 0 ? 'perdida' : ''}`}>
-              {f.margen === null ? '—' : `${f.margen.toLocaleString('es-AR')} %`}
+              {f.margen === null ? '—' : formatearMargen(f.margen)}
             </td>
           </tr>
         ))}
@@ -238,30 +174,31 @@ function TablaDeProductos({ filas }: { filas: FilaDeProducto[] }) {
   )
 }
 
-function TablaDeInsumos({ filas }: { filas: FilaDeInsumo[] }) {
+function TablaDeInsumos({ filas, conCategoria }: { filas: FilaDeInsumo[]; conCategoria: boolean }) {
   return (
     <table>
       <thead>
         <tr>
           <th>Insumo</th>
-          {/* Sin columna de unidad: el costo ya dice "/ kg", y repetirla al
-              lado era decir lo mismo dos veces en cada renglon. */}
-          <th className="num col-num">Costo</th>
+          {conCategoria && <th>Categoría</th>}
+          <th className="num">Costo / Unidad</th>
         </tr>
       </thead>
       <tbody>
         {filas.map((f) => (
           <tr key={f.id}>
             <td>{f.nombre}</td>
+            {conCategoria && <td className="suave">{f.categoria}</td>}
             <td className="num">
               {f.costo === null ? (
                 <span className="falta">sin costo</span>
               ) : (
                 <>
-                  {pesos(f.costo)} / {UNIDAD[f.unidad] ?? f.unidad}
+                  {formatearPesos(f.costo)} / {ABREVIATURA_DE_UNIDAD[f.unidad] ?? f.unidad}
                   {f.equivalente && (
                     <span className="equivalente">
-                      = {pesos(f.equivalente.valor)} / {UNIDAD[f.equivalente.unidad] ?? f.equivalente.unidad}
+                      = {formatearPesos(f.equivalente.valor)} /{' '}
+                      {ABREVIATURA_DE_UNIDAD[f.equivalente.unidad] ?? f.equivalente.unidad}
                     </span>
                   )}
                 </>
@@ -271,5 +208,41 @@ function TablaDeInsumos({ filas }: { filas: FilaDeInsumo[] }) {
         ))}
       </tbody>
     </table>
+  )
+}
+
+function ResumenDeProductos({ filas }: { filas: FilaDeProducto[] }) {
+  const r = resumirProductos(filas)
+  return (
+    <div className="resumen">
+      <div>
+        <strong>{r.cantidad}</strong>
+        <span>productos</span>
+      </div>
+      <div>
+        <strong>{r.sinCosto}</strong>
+        <span>sin costo cargado</span>
+      </div>
+      <div>
+        <strong>{r.margenPromedio === null ? '—' : formatearMargen(r.margenPromedio)}</strong>
+        <span>margen promedio</span>
+      </div>
+    </div>
+  )
+}
+
+function ResumenDeInsumos({ filas }: { filas: FilaDeInsumo[] }) {
+  const r = resumirInsumos(filas)
+  return (
+    <div className="resumen">
+      <div>
+        <strong>{r.cantidad}</strong>
+        <span>insumos</span>
+      </div>
+      <div>
+        <strong>{r.sinCosto}</strong>
+        <span>sin costo cargado</span>
+      </div>
+    </div>
   )
 }

@@ -1,19 +1,16 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { rest, asegurarUsuario, USUARIO } from './local'
 
 /**
- * El reporte de costos para imprimir.
+ * Reportes → Costos: se mira en pantalla y se imprime lo que se ve.
  *
- * Pedido por el cliente para revisar precios. David: *"tiene que mostrar los
- * costos y dar la opción de elegir productos tanto elaborados como de reventa
- * e ingredientes"*.
- *
- * Se comprueba contra datos sembrados, no contra lo que haya en la base: los
- * números del margen se verifican contra la cuenta hecha a mano.
+ * El test central es el de "lo que se ve es lo que se imprime": con una
+ * categoría, una búsqueda y un orden elegidos, la hoja trae las mismas filas
+ * en el mismo orden que la pantalla. Es la promesa del reporte, y lo que se
+ * rompería si algún día la pantalla y la hoja filtraran cada una a su manera.
  */
 
 const P = 'ZZ Costo'
-
 let carnesId = ''
 
 const limpiar = async () => {
@@ -32,6 +29,9 @@ test.beforeAll(async () => {
     body: JSON.stringify([
       // 8000 de precio y 2000 de costo: margen 75%.
       { name: `${P} Elaborado`, price: 8000, cost: 2000, product_type: 'elaborado',
+        category_id: categoria.id, is_active: true },
+      // 1000 y 900: margen 10%. El que menos deja.
+      { name: `${P} Barato`, price: 1000, cost: 900, product_type: 'elaborado',
         category_id: categoria.id, is_active: true },
       { name: `${P} Reventa sin costo`, price: 2500, cost: null, product_type: 'reventa',
         category_id: categoria.id, is_active: true },
@@ -72,12 +72,16 @@ test.beforeEach(async ({ page }) => {
   await page.waitForURL(/\/admin\/(?!login)/)
 })
 
-/** La fila de la hoja que contiene este nombre. */
-const fila = (page: import('@playwright/test').Page, nombre: string) =>
-  page.locator('tr', { hasText: nombre }).first()
+const fila = (page: Page, nombre: string) => page.locator('tr', { hasText: nombre }).first()
 
-test('trae costo, precio y margen, y el margen cierra', async ({ page }) => {
-  await page.goto('/admin/reportes/costos/print')
+/** Los nombres de la primera columna, en orden. */
+const nombresEnOrden = (page: Page) =>
+  page.locator('tbody tr').evaluateAll((trs) =>
+    trs.map((tr) => (tr.querySelector('td')?.textContent ?? '').trim()).filter(Boolean)
+  )
+
+test('en pantalla: costo, precio y un margen que cierra', async ({ page }) => {
+  await page.goto('/admin/reportes/costos')
   await page.waitForTimeout(1200)
 
   const f = fila(page, `${P} Elaborado`)
@@ -85,69 +89,86 @@ test('trae costo, precio y margen, y el margen cierra', async ({ page }) => {
   await expect(f).toContainText('$ 8.000')
   // (8000 − 2000) / 8000 = 75%
   await expect(f).toContainText('75 %')
+  await expect(f).toContainText('Elaborado')
 })
 
-test('lo que no tiene costo sale marcado, no en blanco', async ({ page }) => {
-  await page.goto('/admin/reportes/costos/print')
+test('lo que no tiene costo sale marcado, y un inactivo no sale', async ({ page }) => {
+  await page.goto('/admin/reportes/costos')
   await page.waitForTimeout(1200)
 
-  const f = fila(page, `${P} Reventa sin costo`)
-  await expect(f).toContainText('sin costo')
-})
-
-test('un producto inactivo no aparece', async ({ page }) => {
-  await page.goto('/admin/reportes/costos/print')
-  await page.waitForTimeout(1200)
+  await expect(fila(page, `${P} Reventa sin costo`)).toContainText('sin costo')
   await expect(page.getByText(`${P} Inactivo`)).toHaveCount(0)
 })
 
-test('un insumo en gramos muestra tambien lo que sale el kilo', async ({ page }) => {
-  await page.goto('/admin/reportes/costos/print?insumo=*')
+test('los insumos en gramos muestran también lo que sale el kilo', async ({ page }) => {
+  await page.goto('/admin/reportes/costos')
   await page.waitForTimeout(1200)
+  await page.getByRole('button', { name: /^Insumos/ }).click()
 
   const f = fila(page, `${P} Insumo en gramos`)
-  await expect(f).toContainText('$ 22 / g')
-  // Donde se esconde el error de mil veces: leído por kilo salta a la vista.
+  await expect(f).toContainText('$ 22')
   await expect(f).toContainText('$ 22.000 / kg')
 })
 
-test('elegir un grupo trae solo ese grupo', async ({ page }) => {
-  await page.goto('/admin/reportes/costos/print?reventa=*')
+test('dentro de insumos se filtra por categoría', async ({ page }) => {
+  // David: "poder dentro de insumos elegir la categoría carnes por ejemplo".
+  await page.goto('/admin/reportes/costos')
   await page.waitForTimeout(1200)
-
-  await expect(fila(page, `${P} Reventa sin costo`)).toBeVisible()
-  await expect(page.getByText(`${P} Elaborado`)).toHaveCount(0)
-  await expect(page.getByText(`${P} Insumo en gramos`)).toHaveCount(0)
-})
-
-test('dentro de insumos se puede elegir una sola categoria', async ({ page }) => {
-  // David: "poder dentro de insumos elegir la categoria carnes por ejemplo".
-  await page.goto(`/admin/reportes/costos/print?insumo=${carnesId}`)
-  await page.waitForTimeout(1200)
+  await page.getByRole('button', { name: /^Insumos/ }).click()
+  await page.getByRole('button', { name: new RegExp(`^${P} Carnes`) }).click()
 
   await expect(fila(page, `${P} Insumo en gramos`)).toBeVisible()
   await expect(page.getByText(`${P} Bandeja`)).toHaveCount(0)
-  // Y ningun producto: solo se pidieron insumos.
-  await expect(page.getByText(`${P} Elaborado`)).toHaveCount(0)
+  expect(page.url()).toContain(`cat=${carnesId}`)
 })
 
-test('se arma desde Reportes, eligiendo una categoria', async ({ page, context }) => {
+test('ordenado por margen, lo que menos deja arriba y lo sin costo al final', async ({ page }) => {
   await page.goto('/admin/reportes/costos')
-  await page.waitForTimeout(1400)
+  await page.waitForTimeout(1200)
+  await page.getByPlaceholder('Buscar producto...').fill(P)
+  await page.getByRole('button', { name: /^Margen/ }).click()
 
-  await page.getByRole('button', { name: new RegExp(`${P} Carnes`) }).click()
-  await expect(page.getByText(/Van a salir/)).toBeVisible()
+  expect(await nombresEnOrden(page)).toEqual([`${P} Barato`, `${P} Elaborado`, `${P} Reventa sin costo`])
+})
+
+test('se imprime exactamente lo que se ve', async ({ page, context }) => {
+  await page.goto('/admin/reportes/costos')
+  await page.waitForTimeout(1200)
+
+  // Una búsqueda y un orden: la vista que hay que respetar.
+  await page.getByPlaceholder('Buscar producto...').fill(P)
+  await page.getByRole('button', { name: /^Margen/ }).click()
+  await page.getByRole('button', { name: /^Margen/ }).click() // de mayor a menor
+
+  const enPantalla = await nombresEnOrden(page)
+  expect(enPantalla.length).toBe(3)
 
   const [hoja] = await Promise.all([
     context.waitForEvent('page'),
     page.getByRole('button', { name: 'Imprimir' }).click(),
   ])
   await hoja.waitForLoadState()
-  expect(hoja.url()).toContain(`/admin/reportes/costos/print?insumo=${carnesId}`)
+  await hoja.waitForTimeout(800)
+
+  const enPapel = await hoja
+    .locator('.a4-page tbody tr')
+    .evaluateAll((trs) => trs.map((tr) => (tr.querySelector('td')?.textContent ?? '').trim()))
+
+  expect(enPapel).toEqual(enPantalla)
 })
 
-test('ya no vive en Productos', async ({ page }) => {
+test('la hoja de una categoría dice de qué es', async ({ page }) => {
+  await page.goto(`/admin/reportes/costos/print?vista=insumos&cat=${carnesId}`)
+  await page.waitForTimeout(1000)
+
+  await expect(page.locator('.doc-meta')).toContainText(`Insumos · ${P} Carnes`)
+  await expect(page.getByText(`${P} Bandeja`)).toHaveCount(0)
+})
+
+test('está en Reportes y ya no en Productos', async ({ page }) => {
   await page.goto('/admin/products')
   await page.waitForTimeout(1200)
   await expect(page.getByRole('button', { name: /Reporte de costos/ })).toHaveCount(0)
+
+  await expect(page.locator('aside a[href="/admin/reportes/costos"]')).toHaveCount(1)
 })

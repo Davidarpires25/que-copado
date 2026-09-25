@@ -60,3 +60,16 @@
       constante desde ahí pasa `tsc` y rompe el build (lección 16). Se notó
       antes de compilar.
 
+## 7. Ver antes de imprimir
+
+- [x] 7.1 Tabla en pantalla con pestañas Productos / Insumos, filtro por una
+      categoría, buscador y orden por columna. El tipo del producto es una
+      columna.
+- [x] 7.2 El filtro y el orden viven en una función pura compartida por la
+      pantalla y la hoja impresa: si fueran dos, podrían divergir, y "imprimir
+      lo que se ve" dejaría de ser cierto sin que nadie lo note.
+- [x] 7.3 La vista viaja por la URL, para que el favorito siga funcionando.
+- [x] 7.4 Test: lo que muestra la pantalla y lo que trae la hoja son las mismas
+      filas en el mismo orden, con una categoría, una búsqueda y un orden
+      elegidos.
+

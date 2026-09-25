@@ -43,31 +43,29 @@ mezclarlos esconde los que importan.
 - **WHEN** un producto está inactivo
 - **THEN** no aparece en el reporte
 
-### Requirement: Se elige qué entra antes de imprimir
+### Requirement: Se ve en pantalla y se imprime lo que se ve
 
-SHALL poder elegirse cualquier combinación de estos grupos: elaborados, combos,
-reventa e insumos, y dentro de cada grupo, sus categorías. Sin elegir nada,
-SHALL imprimirse todo.
+Los costos SHALL mostrarse en pantalla en dos pestañas, productos e insumos,
+cada una filtrable por una categoría, con buscador y ordenable por columna.
 
-Existe porque cada grupo se revisa por una razón distinta: la reventa contra la
-factura del proveedor, los elaborados contra su receta, los insumos contra lo
-que se pagó. Imprimir los 155 renglones para mirar las bebidas es tirar papel.
+Imprimir SHALL sacar exactamente lo que la pantalla muestra en ese momento:
+la misma pestaña, la misma categoría, la misma búsqueda y el mismo orden.
 
-#### Scenario: Solo la reventa
+Existe porque elegir a ciegas y recién ver los números en el papel obligaba a
+imprimir para mirar; muchas veces alcanza con mirar.
 
-- **WHEN** se elige únicamente reventa
-- **THEN** la hoja trae solo productos de reventa
+#### Scenario: Una categoría de insumos
 
-#### Scenario: Una sola categoría de insumos
+- **WHEN** se abre la pestaña de insumos y se elige Carnes
+- **THEN** la tabla muestra solo los insumos de esa categoría
+- **AND** al imprimir, la hoja trae esos mismos insumos y ninguno más
 
-- **WHEN** se elige únicamente la categoría Carnes dentro de insumos
-- **THEN** la hoja trae solo los insumos de esa categoría
-- **AND** ningún producto
+#### Scenario: Ordenado por margen
 
-#### Scenario: Sin elegir nada
-
-- **WHEN** no se marca ningún grupo
-- **THEN** la hoja trae todos
+- **WHEN** se ordena la tabla de productos por margen
+- **THEN** los que menos dejan quedan arriba
+- **AND** los que no tienen costo quedan al final, en cualquier sentido
+- **AND** la hoja impresa respeta ese orden
 
 ### Requirement: Los insumos muestran su costo por unidad
 
