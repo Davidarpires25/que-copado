@@ -92,3 +92,23 @@ test('la caja tambien acompaña, con padding', async ({ page }) => {
   await page.locator('aside').hover()
   await expect.poll(padding).toBe(ANCHO)
 })
+
+test('despues de elegir una seccion, el contenido vuelve con el menu', async ({ page }) => {
+  // David: "expando el sidebar, elijo otra tabla, pongo el puntero en el
+  // centro: el sidebar se reduce pero la tabla actúa como si siguiera
+  // expandido, y solo cuando doy click se acomoda". El click deja el foco en
+  // el link del menu, y el margen seguia al foco mientras el ancho seguia al
+  // mouse: dos fuentes de verdad para una misma cosa.
+  await page.goto('/admin/products')
+  await page.waitForTimeout(1400)
+
+  await page.locator('aside').hover()
+  await expect.poll(() => margen(page)).toBe(ANCHO)
+  await page.locator('aside a[href="/admin/categories"]').click()
+  await page.waitForURL(/\/admin\/categories/)
+
+  await page.mouse.move(900, 400)
+  const ancho = () => page.locator('aside').evaluate((a) => Math.round(a.getBoundingClientRect().width))
+  await expect.poll(ancho).toBe(ANGOSTO)
+  await expect.poll(() => margen(page)).toBe(ANGOSTO)
+})

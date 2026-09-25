@@ -328,6 +328,7 @@ export function AdminSidebar({ stockAlertCount = 0, userName = 'Admin', userRole
     <>
     {!shouldHide && (
        <aside
+      data-expandido={expandido}
       onMouseEnter={abrir}
       onMouseLeave={cerrar}
       onFocus={() => {

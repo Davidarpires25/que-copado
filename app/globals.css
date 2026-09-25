@@ -518,13 +518,18 @@ html.admin-dark {
    500ml" y "burguesa simple" --tapaba la mitad de la columna de nombres, que
    es justo con la que se busca la fila--.
 
-   **Va en CSS y no en estado de React a proposito.** El ancho del menu lo
-   gobierna `:hover`, que cambia decenas de veces por minuto; atarlo a un
-   `useState` que envuelva la pagina haria re-renderizar el arbol entero en
-   cada pasada del mouse. Asi el navegador recalcula un margen y nada mas.
+   **El margen sigue al mismo estado que el ancho del menu**: el atributo
+   `data-expandido` del <aside>. Antes lo seguia por su cuenta con `:hover` y
+   `:focus-within`, y eso eran dos fuentes de verdad: al elegir una seccion el
+   foco quedaba en el link, el mouse se iba, el menu se cerraba... y el
+   contenido seguia corrido hasta el proximo click. Tampoco respetaba la
+   demora de apertura: `:hover` corria la pagina al instante y el menu recien
+   se abria despues.
 
-   `focus-within` ademas del hover: quien navega con el teclado tambien abre el
-   menu, y el contenido tiene que correrse igual.
+   Sigue siendo CSS y no un `useState` que envuelva la pagina: el atributo lo
+   cambia solo el menu, y el navegador recalcula un margen sin re-renderizar
+   el arbol. El teclado tambien abre el menu (`onFocus`), asi que queda
+   cubierto por el mismo atributo.
 
    Solo de `lg` para arriba: abajo de eso el menu es un cajon que se superpone
    sobre todo, y ahi correr el contenido no tiene sentido.
@@ -535,8 +540,7 @@ html.admin-dark {
     transition: margin-left 300ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .admin-layout:has(aside:hover) .admin-contenido,
-  .admin-layout:has(aside:focus-within) .admin-contenido {
+  .admin-layout:has(aside[data-expandido="true"]) .admin-contenido {
     margin-left: 256px;
   }
 
@@ -547,8 +551,7 @@ html.admin-dark {
     transition: padding-left 300ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .admin-layout:has(aside:hover) .admin-contenido--caja,
-  .admin-layout:has(aside:focus-within) .admin-contenido--caja {
+  .admin-layout:has(aside[data-expandido="true"]) .admin-contenido--caja {
     margin-left: 0;
     padding-left: 256px;
   }

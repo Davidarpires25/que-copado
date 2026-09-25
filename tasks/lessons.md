@@ -945,3 +945,17 @@ ver si se entera.
 **Regla.** Cuando no hay versión vieja contra la cual comparar, la comparación
 se fabrica: se elige qué regla cuida cada test, se rompe esa regla y se
 confirma que falla. Un test que sigue verde con su regla rota no cuida nada.
+
+## 38. Dos cosas que se mueven juntas, un solo estado que las gobierne
+
+El menú se abría con un `useState` (con demora de 180 ms) y el contenido se
+corría con CSS propio (`:has(aside:hover)`, `:has(aside:focus-within)`). En los
+tests pasaba todo, porque cada test movía el mouse y nada más. David lo
+encontró usándolo: eligió una sección, el foco quedó en el link, el mouse se
+fue, el menú se cerró… y la tabla siguió corrida hasta el siguiente click.
+
+**Regla.** Si dos elementos tienen que moverse juntos, los dos leen la misma
+fuente —acá, `data-expandido` en el `<aside>`—. Dos condiciones "equivalentes"
+escritas por separado (el hover del mouse y el estado de React) divergen en el
+caso que no se probó. Y el test de una interacción tiene que incluir el click,
+no solo el paso del mouse: es lo que el usuario hace después de abrir el menú.
