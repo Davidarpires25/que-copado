@@ -59,6 +59,9 @@ export function BottomSheet({
           <motion.div
             key="sheet"
             ref={sheetRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={typeof title === 'string' ? title : undefined}
             drag="y"
             dragControls={dragControls}
             dragListener={false}
@@ -94,7 +97,7 @@ export function BottomSheet({
                 <h2 className="text-base font-bold text-[var(--admin-text)]">{title}</h2>
                 <button
                   onClick={onClose}
-                  className="h-8 w-8 flex items-center justify-center rounded-lg text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors"
+                  className="h-8 w-8 tactil:size-11 flex items-center justify-center rounded-lg text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors"
                   aria-label="Cerrar"
                 >
                   <X className="h-4 w-4" />

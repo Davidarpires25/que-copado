@@ -1,13 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Menu } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SessionOpenScreen } from '@/components/admin/caja/session-open-screen'
 import { PosInterface } from '@/components/admin/caja/pos-interface'
 import { SessionCloseScreen } from '@/components/admin/caja/session-close-screen'
 import { AdminSidebar, MobileSidebar } from '@/components/admin/layout/admin-sidebar'
+import { MobileTopBar } from '@/components/admin/layout/mobile-top-bar'
 import type { Category, ProductWithHalfConfig, Order, DeliveryZone } from '@/lib/types/database'
 import type { CashRegisterSession, SessionSummary } from '@/lib/types/cash-register'
 import type { TableWithOrder } from '@/lib/types/tables'
@@ -93,21 +92,17 @@ export function CajaDashboard({
       {/* Clavado en los 72px de la barra angosta: el menu abierto se
           superpone en vez de correr la pagina. */}
       <div className="h-full flex flex-col admin-contenido admin-contenido--caja">
-        {/* La info del turno se mudo a ShiftBar, dentro del POS. Lo unico
-            que queda aca es el acceso al menu en mobile, asi que en desktop la
-            banda desaparece entera. */}
-        {screen !== 'close' && (
-          <div className="lg:hidden shrink-0 flex items-center gap-3 px-4 h-12 bg-[var(--admin-sidebar-bg)] border-b border-[var(--admin-border)]">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileMenuOpen(true)}
-              aria-label="Abrir menú"
-              className="h-8 w-8 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)]"
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
-            <span className="text-[13px] font-semibold text-[var(--admin-text)]">Caja</span>
+        {/* Con turno abierto el menu lo pone ShiftBar; si esta banda tambien
+            aparecia, el celular mostraba dos barras con dos botones de menu.
+            Queda solo para abrir turno, y es la misma barra que el resto del
+            panel. En escritorio no aparece (MobileTopBar es lg:hidden). */}
+        {screen === 'open' && (
+          <div className="shrink-0">
+            <MobileTopBar
+              onOpenMenu={() => setMobileMenuOpen(true)}
+              stockAlertCount={stockAlertCount}
+              permissions={currentUser?.permissions ?? null}
+            />
           </div>
         )}
 

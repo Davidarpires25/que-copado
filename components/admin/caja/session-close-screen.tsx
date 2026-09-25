@@ -88,7 +88,7 @@ export function SessionCloseScreen({
         {/* Right: back */}
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 text-[var(--admin-accent-text)] hover:opacity-80 transition-opacity cursor-pointer"
+          className="flex items-center gap-1.5 tactil:min-h-11 text-[var(--admin-accent-text)] hover:opacity-80 transition-opacity cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
           <span className="text-[13px] font-medium">Volver al POS</span>

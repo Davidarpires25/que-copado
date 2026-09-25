@@ -1,13 +1,10 @@
 'use client'
 
-import { createContext, useState, useEffect } from 'react'
-import { Menu, ChefHat } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useState, useEffect } from 'react'
 import { AdminSidebar, MobileSidebar } from './admin-sidebar'
+import { MobileTopBar } from './mobile-top-bar'
 import { getStockAlerts } from '@/app/actions/stock'
 import { getCurrentUserInfo, type CurrentUserInfo } from '@/app/actions/profile'
-
-export const AdminShellContext = createContext(false)
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -32,57 +29,38 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const meProps = me ? { userName: me.name, userRole: me.roleLabel, permissions: me.permissions } : {}
 
   return (
-    <AdminShellContext.Provider value={true}>
-      <div className="min-h-screen bg-[var(--admin-bg)] admin-layout">
-        {/* Skip link for keyboard navigation */}
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[var(--admin-accent)] focus:text-black focus:font-bold focus:rounded-lg focus:shadow-lg focus:outline-none"
-        >
-          Saltar al contenido
-        </a>
+    <div className="min-h-screen bg-[var(--admin-bg)] admin-layout">
+      {/* Skip link for keyboard navigation */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[var(--admin-accent)] focus:text-black focus:font-bold focus:rounded-lg focus:shadow-lg focus:outline-none"
+      >
+        Saltar al contenido
+      </a>
 
-        {/* Desktop Sidebar */}
-        <div className="hidden lg:block">
-          <AdminSidebar stockAlertCount={stockAlertCount} {...meProps} />
-        </div>
-
-        {/* Mobile Sidebar */}
-        <MobileSidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} stockAlertCount={stockAlertCount} permissions={me?.permissions ?? null} />
-
-        {/* Main Content */}
-        {/* El margen lo maneja `.admin-contenido` en globals.css: crece
-            cuando el menu se abre, sin re-renderizar nada. */}
-        <div className="admin-contenido">
-          {/* Mobile Header */}
-          <header className="sticky top-0 z-30 h-16 bg-[var(--admin-bg)]/95 backdrop-blur-xl border-b border-[var(--admin-border)] flex items-center px-4 lg:hidden">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileMenuOpen(true)}
-              className="mr-3 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)]"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-[var(--admin-accent)] rounded-lg flex items-center justify-center">
-                <ChefHat className="h-5 w-5 text-black" />
-              </div>
-              <div>
-                <span className="text-base font-bold text-[var(--admin-text)]">
-                  Que <span className="text-[var(--admin-accent-text)]">Copado</span>
-                </span>
-              </div>
-            </div>
-          </header>
-
-          {/* Page Content */}
-          <main id="main-content" className="p-4 md:p-6 lg:p-8">
-            {children}
-          </main>
-        </div>
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block">
+        <AdminSidebar stockAlertCount={stockAlertCount} {...meProps} />
       </div>
-    </AdminShellContext.Provider>
+
+      {/* Mobile Sidebar */}
+      <MobileSidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} stockAlertCount={stockAlertCount} permissions={me?.permissions ?? null} />
+
+      {/* Main Content */}
+      {/* El margen lo maneja `.admin-contenido` en globals.css: crece
+          cuando el menu se abre, sin re-renderizar nada. */}
+      <div className="admin-contenido">
+        <MobileTopBar
+          onOpenMenu={() => setMobileMenuOpen(true)}
+          stockAlertCount={stockAlertCount}
+          permissions={me?.permissions ?? null}
+        />
+
+        {/* Page Content */}
+        <main id="main-content" className="p-4 md:p-6 lg:p-8">
+          {children}
+        </main>
+      </div>
+    </div>
   )
 }

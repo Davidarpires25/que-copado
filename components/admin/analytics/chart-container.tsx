@@ -25,7 +25,10 @@ export function ChartContainer({
 }: ChartContainerProps) {
   return (
     <div className={cn('bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-[var(--admin-accent)]/30 transition-all duration-200', className)}>
-      <div className="flex items-start justify-between mb-6 gap-4">
+      {/* En el celular el selector de periodo baja debajo del titulo: al lado le
+          dejaba tan poco ancho que "Rentabilidad por Producto" iba una palabra
+          por renglon. */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-4">
         <div className="min-w-0">
           <h3 className="text-lg font-semibold text-[var(--admin-text)]">{title}</h3>
           {subtitle && (
@@ -33,7 +36,7 @@ export function ChartContainer({
           )}
         </div>
         {period && onPeriodChange && (
-          <div className="shrink-0">
+          <div className="shrink-0 self-start">
             <PeriodSelector
               value={period}
               onChange={onPeriodChange}

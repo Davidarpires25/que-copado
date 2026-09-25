@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import { deleteRole } from '@/app/actions/roles'
 import type { RoleWithPermissions } from '@/lib/types/database'
 
-const BTN = 'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed'
+const BTN = 'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 tactil:min-h-11 text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed'
 
 interface Props {
   roles: RoleWithPermissions[]

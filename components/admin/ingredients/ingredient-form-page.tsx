@@ -109,7 +109,7 @@ export function IngredientFormPage({ mode, ingredient, categories }: IngredientF
       <div className="flex items-center gap-2 text-sm text-[var(--admin-text-muted)] mb-6">
         <button
           onClick={() => router.push('/admin/ingredients')}
-          className="hover:text-[var(--admin-text)] transition-colors flex items-center gap-1.5"
+          className="hover:text-[var(--admin-text)] transition-colors flex items-center gap-1.5 tactil:min-h-11"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Ingredientes
@@ -119,7 +119,7 @@ export function IngredientFormPage({ mode, ingredient, categories }: IngredientF
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[var(--admin-text)]">
             {isEditing ? `Editar: ${ingredient?.name}` : 'Nuevo Ingrediente'}
@@ -197,7 +197,7 @@ export function IngredientFormPage({ mode, ingredient, categories }: IngredientF
               Costo / Unidad <span className="text-red-700 dark:text-red-400 ml-0.5">*</span>
             </Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold pointer-events-none">$</span>
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold pointer-events-none">$</span>
               <Input
                 id="ing-cost"
                 type="number"

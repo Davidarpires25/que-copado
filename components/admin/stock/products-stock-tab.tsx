@@ -171,7 +171,7 @@ export function ProductsStockTab({
       {/* Search Bar */}
       <div className="flex items-center gap-3 mb-4">
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -210,7 +210,7 @@ export function ProductsStockTab({
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold hidden lg:table-cell">En mesas</TableHead>
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center">Estado</TableHead>
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center hidden sm:table-cell">Tracking</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center">Acciones</TableHead>
+                  <TableHead className="acciones-fijas text-[var(--admin-text-muted)] font-semibold text-center">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -322,7 +322,7 @@ export function ProductsStockTab({
                           </Tooltip>
                         </TooltipProvider>
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="acciones-fijas text-center">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>

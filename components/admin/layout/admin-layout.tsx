@@ -1,13 +1,4 @@
-'use client'
-
-import { useContext, useState, useEffect } from 'react'
-import { Menu, ChefHat } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { AdminSidebar, MobileSidebar } from './admin-sidebar'
 import { cn } from '@/lib/utils'
-import { getStockAlerts } from '@/app/actions/stock'
-import { getCurrentUserInfo, type CurrentUserInfo } from '@/app/actions/profile'
-import { AdminShellContext } from './admin-shell'
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -30,123 +21,25 @@ export function AdminLayout({
   hidePageHeader,
   contentWidth,
 }: AdminLayoutProps) {
-  const shellMounted = useContext(AdminShellContext)
-
-  if (shellMounted) {
-    // Persistent shell already rendered by app/admin/layout.tsx — just render the page header
-    return (
-      <div className={contentWidth ? cn('mx-auto', contentWidth) : undefined}>
-        {!hidePageHeader && (
-          <div className="mb-6 md:mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-[var(--admin-text)]">{title}</h1>
-            {description && (
-              <p className="text-[var(--admin-text-muted)] text-sm mt-1">{description}</p>
-            )}
-          </div>
-        )}
-        {children}
-      </div>
-    )
-  }
-
-  // Fallback: render full standalone layout (e.g. login, caja POS, or outside admin routes)
+  // El menu, la barra de arriba y el fondo los pone AdminShell, desde el
+  // layout de /admin. Esto es solo el titulo de la pagina.
+  //
+  // Hubo un modo "standalone" que dibujaba su propio menu y su propia barra
+  // si la pagina se montaba fuera del shell. Ninguna lo hacia —las pantallas
+  // sin shell (login, caja, impresion) no usan AdminLayout— y esa segunda
+  // barra tenia su propia copia del logo falso. Dos barras son dos lugares
+  // donde divergir.
   return (
-    <AdminLayoutStandalone
-      title={title}
-      description={description}
-      hidePageHeader={hidePageHeader}
-      contentWidth={contentWidth}
-    >
+    <div className={contentWidth ? cn('mx-auto', contentWidth) : undefined}>
+      {!hidePageHeader && (
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-[var(--admin-text)]">{title}</h1>
+          {description && (
+            <p className="text-[var(--admin-text-muted)] text-sm mt-1">{description}</p>
+          )}
+        </div>
+      )}
       {children}
-    </AdminLayoutStandalone>
-  )
-}
-
-function AdminLayoutStandalone({ children, title, description, hidePageHeader, contentWidth }: AdminLayoutProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [stockAlertCount, setStockAlertCount] = useState(0)
-  const [me, setMe] = useState<CurrentUserInfo | null>(null)
-
-  // Fetch stock alert count for sidebar badge
-  useEffect(() => {
-    getStockAlerts().then(({ data }) => {
-      if (data) setStockAlertCount(data.length)
-    })
-  
-  }, [])
-
-  // Quien esta trabajando. Null mientras no exista la tabla profiles.
-  useEffect(() => {
-    getCurrentUserInfo().then(setMe).catch(() => { /* el sidebar usa su default */ })
-  }, [])
-
-
-  // Sin perfil (p. ej. antes de la migracion 016) el sidebar usa sus defaults.
-  const meProps = me ? { userName: me.name, userRole: me.roleLabel, permissions: me.permissions } : {}
-
-  return (
-    <div className="min-h-screen bg-[var(--admin-bg)] admin-layout">
-      {/* Skip link for keyboard navigation */}
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[var(--admin-accent)] focus:text-black focus:font-bold focus:rounded-lg focus:shadow-lg focus:outline-none"
-      >
-        Saltar al contenido
-      </a>
-
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:block">
-        <AdminSidebar stockAlertCount={stockAlertCount} {...meProps} />
-      </div>
-
-      {/* Mobile Sidebar */}
-      <MobileSidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} stockAlertCount={stockAlertCount} permissions={me?.permissions ?? null} />
-
-      {/* Main Content */}
-      {/* Clavado en los 72px de la barra angosta: el menu abierto se
-          superpone en vez de correr la pagina. */}
-      <div className="admin-contenido">
-        {/* Mobile Header */}
-        <header className="sticky top-0 z-30 h-16 bg-[var(--admin-bg)]/95 backdrop-blur-xl border-b border-[var(--admin-border)] flex items-center px-4 lg:hidden">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileMenuOpen(true)}
-            className="mr-3 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)]"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-[var(--admin-accent)] rounded-lg flex items-center justify-center">
-              <ChefHat className="h-5 w-5 text-black" />
-            </div>
-            <div>
-              <span className="text-base font-bold text-[var(--admin-text)]">
-                Que <span className="text-[var(--admin-accent-text)]">Copado</span>
-              </span>
-            </div>
-          </div>
-        </header>
-
-        {/* Page Content */}
-        <main id="main-content" className="p-4 md:p-6 lg:p-8">
-          <div className={contentWidth ? cn('mx-auto', contentWidth) : undefined}>
-            {/* Page Header */}
-            {!hidePageHeader && (
-              <div className="mb-6 md:mb-8">
-                <h1 className="text-2xl md:text-3xl font-bold text-[var(--admin-text)]">{title}</h1>
-                {description && (
-                  <p className="text-[var(--admin-text-muted)] text-sm mt-1">{description}</p>
-                )}
-              </div>
-            )}
-
-            {/* Page Content */}
-            {children}
-          </div>
-        </main>
-      </div>
     </div>
   )
 }

@@ -104,12 +104,12 @@ export function StockDashboard({
       {(activeTab === 'ingredientes') && (
         <div className="flex items-center gap-3 mb-4">
           <div className="relative flex-1 max-w-xs">
-            <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
+            <Package className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
             <input
               value={ingredientSearch}
               onChange={(e) => setIngredientSearch(e.target.value)}
               placeholder="Buscar ingrediente..."
-              className="w-full bg-[var(--admin-bg)] border border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-9 pl-9 pr-3 rounded-md placeholder:text-[var(--admin-text-muted)] focus:outline-none focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
+              className="w-full bg-[var(--admin-bg)] border border-[var(--admin-border)] text-[var(--admin-text)] text-sm tactil:text-base h-9 tactil:h-11 pl-9 pr-3 rounded-md placeholder:text-[var(--admin-text-muted)] focus:outline-none focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
             />
           </div>
           <div className="ml-auto flex items-center gap-2">
@@ -215,7 +215,7 @@ export function StockDashboard({
             key={key}
             onClick={() => setActiveTab(key)}
             className={cn(
-              'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors flex items-center gap-1.5',
+              'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors flex items-center gap-1.5',
               activeTab === key
                 ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
                 : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'

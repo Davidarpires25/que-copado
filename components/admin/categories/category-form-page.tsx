@@ -86,7 +86,7 @@ export function CategoryFormPage({ mode, category }: CategoryFormPageProps) {
         <nav className="flex items-center gap-2 text-sm">
           <Link
             href="/admin/categories"
-            className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors"
+            className="inline-flex items-center tactil:min-h-11 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors"
           >
             Categorías
           </Link>
@@ -97,7 +97,7 @@ export function CategoryFormPage({ mode, category }: CategoryFormPageProps) {
         </nav>
 
         {/* Header row */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-bold text-[var(--admin-text)]">
             {mode === 'edit' ? 'Editar Categoría' : 'Nueva Categoría'}
           </h1>
@@ -219,7 +219,7 @@ export function CategoryFormPage({ mode, category }: CategoryFormPageProps) {
                   key={c}
                   type="button"
                   onClick={() => setColor(c)}
-                  className="relative w-9 h-9 rounded-lg transition-transform hover:scale-110 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--admin-surface)] focus:ring-white/30"
+                  className="relative w-9 h-9 tactil:size-11 rounded-lg transition-transform hover:scale-110 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--admin-surface)] focus:ring-white/30"
                   style={{ backgroundColor: c }}
                   aria-label={c}
                 >

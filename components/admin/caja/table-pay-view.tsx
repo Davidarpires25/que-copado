@@ -197,7 +197,8 @@ export function TablePayView({
   const totalItemCount = activeItems.reduce((s, i) => s + i.quantity, 0)
 
   return (
-    <div className="flex-1 h-full flex flex-col bg-[var(--admin-bg)] min-w-0">
+    // Con el dedo, todo boton del cobro mide 44 (ver TableOrderPanel).
+    <div className="flex-1 h-full flex flex-col bg-[var(--admin-bg)] min-w-0 tactil:[&_button]:min-h-11 tactil:[&_button]:min-w-11">
       <div className="flex-1 flex flex-row min-h-0">
         {/* ── Left Column ─────────────────────────────────────── */}
         <div className="flex-1 flex flex-col p-6 gap-5 bg-[var(--admin-bg)] min-h-0">

@@ -202,7 +202,7 @@ function ZoneFormContent({ zone, drawnGeometry, onZoneUpdated, onZoneCreated, on
       <div className="space-y-2">
         <Label className="text-[var(--admin-text-muted)] font-medium">Costo de envío (ARS)</Label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] font-semibold">$</span>
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] font-semibold">$</span>
           <Input
             type="number"
             value={shippingCost}
@@ -223,7 +223,7 @@ function ZoneFormContent({ zone, drawnGeometry, onZoneUpdated, onZoneCreated, on
       <div className="space-y-2">
         <Label className="text-[var(--admin-text-muted)] font-medium">Umbral de envío gratis (opcional)</Label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] font-semibold">$</span>
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] font-semibold">$</span>
           <Input
             type="number"
             value={freeShippingThreshold}
@@ -249,7 +249,7 @@ function ZoneFormContent({ zone, drawnGeometry, onZoneUpdated, onZoneCreated, on
               key={presetColor}
               type="button"
               onClick={() => setColor(presetColor)}
-              className={`w-10 h-10 rounded-lg border-2 transition-all duration-200 hover:scale-110 ${
+              className={`w-10 h-10 tactil:size-11 rounded-lg border-2 transition-all duration-200 hover:scale-110 ${
                 color === presetColor
                   ? 'border-white scale-110 shadow-lg'
                   : 'border-[var(--admin-border)] hover:border-[var(--admin-text-muted)]'

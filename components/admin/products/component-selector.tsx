@@ -136,7 +136,7 @@ export function ComponentSelector({ candidates, selected, onChange }: ComponentS
       <div className="rounded-lg border border-[var(--admin-border)] overflow-hidden">
         <div className="p-2.5 border-b border-[var(--admin-border)]">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
             <Input
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}

@@ -145,7 +145,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
           {/* Header toolbar */}
           <div className="flex items-center gap-2 mb-4">
             <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
               <Input
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setPage(0) }}
@@ -164,6 +164,8 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                       variant="outline"
                       size="sm"
                       onClick={() => setIsCategoryManagerOpen(true)}
+                      // En el celular el texto no se ve: sin esto el boton no tiene nombre.
+                      aria-label="Gestionar categorias"
                       className="h-9 border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] hover:border-[var(--admin-accent)]/40 gap-1.5"
                     >
                       <Tag className="h-3.5 w-3.5" />
@@ -180,6 +182,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                       variant="outline"
                       size="sm"
                       onClick={() => setIsBulkPriceOpen(true)}
+                      aria-label="Actualizar precios"
                       className="h-9 border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] hover:border-[var(--admin-accent)]/40 gap-1.5"
                     >
                       <TrendingUp className="h-3.5 w-3.5" />
@@ -206,7 +209,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
               <button
                 onClick={() => { setFilterCategory(''); setPage(0) }}
                 className={cn(
-                  'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
+                  'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors',
                   !filterCategory || filterCategory === ALL_CATEGORIES_VALUE
                     ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
                     : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
@@ -230,7 +233,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                     key={cat.id}
                     onClick={() => { setFilterCategory(cat.id); setPage(0) }}
                     className={cn(
-                      'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
+                      'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors',
                       isActive
                         ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
                         : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
@@ -266,7 +269,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                   <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Unidad</TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Costo / Unidad</TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center hidden sm:table-cell">Activo</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center w-32">Acciones</TableHead>
+                  <TableHead className="acciones-fijas text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center w-32">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -317,7 +320,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                         </Tooltip>
                       </TooltipProvider>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="acciones-fijas text-right">
                       <div className="flex items-center justify-center gap-2">
                         {ingredient.is_active && (
                           <TooltipProvider>

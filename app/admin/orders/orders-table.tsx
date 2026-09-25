@@ -218,7 +218,7 @@ export function OrdersTable({ initialOrders, initialDateFilter }: OrdersTablePro
       {/* Top bar: search + refresh */}
       <div className="flex items-center gap-3 mb-4">
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
           <Input
             placeholder="Buscar pedido..."
             value={searchQuery}
@@ -288,7 +288,7 @@ export function OrdersTable({ initialOrders, initialDateFilter }: OrdersTablePro
             key={tab.key}
             onClick={() => setStatusFilter(tab.key)}
             className={cn(
-              'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
+              'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors',
               statusFilter === tab.key
                 ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
                 : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
@@ -367,7 +367,7 @@ export function OrdersTable({ initialOrders, initialDateFilter }: OrdersTablePro
                 return (
                   <tr
                     key={order.id}
-                    className="hover:bg-[var(--admin-surface-2)] transition-colors group cursor-pointer"
+                    className="tactil:h-11 hover:bg-[var(--admin-surface-2)] transition-colors group cursor-pointer"
                     onClick={() => handleViewOrder(order)}
                   >
                     <TableCell>

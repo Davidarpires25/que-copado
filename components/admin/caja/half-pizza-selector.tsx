@@ -181,7 +181,11 @@ export function HalfPizzaSelector({ product, pizzaProducts, onConfirm, onClose }
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent className="flex flex-col p-0 gap-0 w-full max-w-xl bg-[var(--admin-surface)] border-[var(--admin-border)] overflow-hidden max-h-[90vh]">
+      <DialogContent
+        // Tiene su propio "Cerrar" en el encabezado: la X automatica del
+        // dialogo quedaba dibujada encima de el, en la misma esquina.
+        showCloseButton={false}
+        className="flex flex-col p-0 gap-0 tactil:[&_button]:min-h-11 tactil:[&_button]:min-w-11 w-full max-w-xl bg-[var(--admin-surface)] border-[var(--admin-border)] overflow-hidden max-h-[90vh]">
         <div className="flex items-center justify-between px-4 py-3.5 border-b border-[var(--admin-border)] shrink-0">
           <div>
             <DialogTitle className="text-[15px] font-bold text-[var(--admin-text)]">

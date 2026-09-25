@@ -53,13 +53,13 @@ export function PaymentMethods({
                   if (e.key === 'Escape') onCancel()
                 }}
                 onBlur={() => onCommit(value)}
-                className="h-8 w-28 rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 text-right text-[14px] font-bold tabular-nums text-[var(--admin-price)] outline-none focus:border-[var(--admin-accent)]/60"
+                className="h-8 tactil:h-11 w-28 rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 text-right text-[14px] tactil:text-base font-bold tabular-nums text-[var(--admin-price)] outline-none focus:border-[var(--admin-accent)]/60"
               />
             ) : entry ? (
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onEdit(value) }}
-                className="h-8 min-w-[76px] rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 text-[14px] font-bold tabular-nums text-[var(--admin-price)] hover:border-[var(--admin-accent)]/40 transition-colors cursor-pointer"
+                className="h-8 tactil:h-11 min-w-[76px] rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 text-[14px] font-bold tabular-nums text-[var(--admin-price)] hover:border-[var(--admin-accent)]/40 transition-colors cursor-pointer"
               >
                 {formatPrice(entry.amount)}
               </button>
@@ -131,7 +131,7 @@ function Row({
     <div
       onClick={onClick}
       className={cn(
-        'flex h-10 cursor-pointer select-none items-center justify-between rounded-xl px-3 transition-colors',
+        'flex h-10 tactil:h-12 cursor-pointer select-none items-center justify-between rounded-xl px-3 transition-colors',
         on
           ? 'bg-[var(--admin-accent)]/15 border border-[var(--admin-accent)]'
           : 'bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)]'
@@ -139,7 +139,8 @@ function Row({
     >
       {/* El control del monto va en h-8, no en h-10: la fila mide 40px y con su
           borde deja 38px adentro, asi que un hijo de 40px sobresale por arriba
-          y por abajo y el pill blanco queda pegado al borde ambar. */}
+          y por abajo y el pill blanco queda pegado al borde ambar. Con el dedo,
+          la misma cuenta un escalon mas arriba: fila de 48 y monto de 44. */}
       <div className="flex items-center gap-2">
         <span className={cn(
           'grid h-4 w-4 shrink-0 place-items-center transition-colors',

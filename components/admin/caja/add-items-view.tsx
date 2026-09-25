@@ -137,10 +137,12 @@ export function AddItemsView({
   }
 
   return (
-    <div className="flex-1 flex min-h-0 overflow-hidden relative">
+    // Debajo de md, menu arriba y carrito abajo. En fila, el carrito de 380px
+    // fijos le dejaba al menu 10px en un celular: no se podia elegir nada.
+    <div className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden relative">
 
       {/* Left — product grid */}
-      <div className="flex-1 min-w-0 overflow-hidden">
+      <div className="flex-1 min-w-0 min-h-0 overflow-hidden">
         <PosProductGrid
           products={products}
           categories={categories}
@@ -151,14 +153,15 @@ export function AddItemsView({
       </div>
 
       {/* Right — new items panel (same design as OrderBuilder) */}
-      <div className="w-[380px] shrink-0 border-l border-[var(--admin-border)] flex flex-col bg-[var(--admin-surface)]">
+      <div className="w-full h-[45%] md:h-auto md:w-[380px] shrink-0 border-t md:border-t-0 md:border-l border-[var(--admin-border)] flex flex-col bg-[var(--admin-surface)]">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 shrink-0 h-[52px] border-b border-[var(--admin-border)]">
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="flex items-center gap-1.5 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer"
+              aria-label="Volver a la mesa"
+              className="flex items-center gap-1.5 tactil:size-11 tactil:justify-center text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
             </button>

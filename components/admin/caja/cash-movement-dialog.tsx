@@ -81,7 +81,7 @@ export function CashMovementDialog({
             <button
               onClick={() => setType('withdrawal')}
               className={cn(
-                'py-2.5 rounded-xl text-sm font-medium transition-all border',
+                'py-2.5 tactil:min-h-11 rounded-xl text-sm font-medium transition-all border',
                 type === 'withdrawal'
                   ? 'bg-red-500/10 border-red-500 text-red-700 dark:text-red-400'
                   : 'bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:border-[var(--admin-text-placeholder)]'
@@ -92,7 +92,7 @@ export function CashMovementDialog({
             <button
               onClick={() => setType('deposit')}
               className={cn(
-                'py-2.5 rounded-xl text-sm font-medium transition-all border',
+                'py-2.5 tactil:min-h-11 rounded-xl text-sm font-medium transition-all border',
                 type === 'deposit'
                   ? 'bg-green-500/10 border-green-500 text-green-700 dark:text-green-400'
                   : 'bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:border-[var(--admin-text-placeholder)]'
@@ -111,7 +111,7 @@ export function CashMovementDialog({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0"
-              className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] text-lg h-10 text-center font-bold placeholder:text-[var(--admin-text-placeholder)] focus:border-[var(--admin-accent)]/50"
+              className="bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text)] text-lg tactil:text-lg h-10 text-center font-bold placeholder:text-[var(--admin-text-placeholder)] focus:border-[var(--admin-accent)]/50"
               autoFocus
             />
           </div>

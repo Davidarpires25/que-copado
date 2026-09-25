@@ -413,7 +413,7 @@ export function PosHistorialTab({
             key={value}
             onClick={() => setStatusFilter(value)}
             className={cn(
-              'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors cursor-pointer',
+              'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors cursor-pointer',
               statusFilter === value
                 ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
                 : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
@@ -443,7 +443,7 @@ export function PosHistorialTab({
             key={value}
             onClick={() => setPaymentFilter(value)}
             className={cn(
-              'px-3 py-2 text-xs font-medium whitespace-nowrap border-b-2 transition-colors cursor-pointer',
+              'px-3 py-2 text-xs font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors cursor-pointer',
               paymentFilter === value
                 ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
                 : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'

@@ -167,7 +167,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
             onClick={() => setTab(key)}
             aria-current={tab === key ? 'page' : undefined}
             className={cn(
-              'pb-2 -mb-px text-sm whitespace-nowrap border-b-2 transition-colors',
+              'pb-2 -mb-px text-sm whitespace-nowrap border-b-2 tactil:min-h-11 tactil:min-w-11 transition-colors',
               tab === key
                 ? 'border-[var(--admin-accent)] text-[var(--admin-text)] font-semibold'
                 : 'border-transparent text-[var(--admin-text-muted)] font-medium hover:text-[var(--admin-text)]'
@@ -355,7 +355,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
                   type="button"
                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                   className={cn(
-                    'ml-auto shrink-0 relative inline-flex h-8 w-[3.75rem] items-center rounded-full transition-colors',
+                    'ml-auto shrink-0 relative tactil:area-toque inline-flex h-8 w-[3.75rem] items-center rounded-full transition-colors',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)]',
                     theme === 'dark' ? 'bg-[var(--admin-accent)]' : 'bg-[var(--admin-border)]'
                   )}

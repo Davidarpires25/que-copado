@@ -293,7 +293,7 @@ export function ProductsDashboard({
           {/* Header with search, count and add button */}
           <div className="flex items-center gap-3 mb-4">
             <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -325,7 +325,7 @@ export function ProductsDashboard({
               <button
                 onClick={() => setSelectedCategory(null)}
                 className={cn(
-                  'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
+                  'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors',
                   selectedCategory === null
                     ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
                     : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
@@ -346,7 +346,7 @@ export function ProductsDashboard({
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={cn(
-                    'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
+                    'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors',
                     selectedCategory === cat.id
                       ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
                       : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
@@ -385,7 +385,7 @@ export function ProductsDashboard({
                 <Table>
                   <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
                     <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
-                      <TableHead className="w-10 text-center">
+                      <TableHead className="w-10 tactil:px-3.5 text-center">
                         <Checkbox
                           checked={filteredProducts.length > 0 && selectedIds.size === filteredProducts.length}
                           onCheckedChange={toggleSelectAll}
@@ -410,7 +410,7 @@ export function ProductsDashboard({
                       <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center hidden sm:table-cell">
                         Visible
                       </TableHead>
-                      <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center w-32">
+                      <TableHead className="acciones-fijas text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center w-32">
                         Acciones
                       </TableHead>
                     </TableRow>
@@ -422,7 +422,7 @@ export function ProductsDashboard({
                           key={product.id}
                           className="border-[var(--admin-border)] transition-colors duration-200 group hover:bg-[var(--admin-surface-2)]"
                         >
-                          <TableCell className="w-10 text-center">
+                          <TableCell className="w-10 tactil:px-3.5 text-center">
                             <Checkbox
                               checked={selectedIds.has(product.id)}
                               onCheckedChange={() => toggleSelectId(product.id)}
@@ -506,7 +506,7 @@ export function ProductsDashboard({
                               <div>
                                 <button
                                   onClick={() => handlePriceEdit(product)}
-                                  className="flex items-center gap-1 text-[var(--admin-price)] hover:text-[var(--admin-accent-text)] hover:underline underline-offset-2 transition-all duration-200 font-semibold group/price px-1.5 py-1 rounded-lg hover:bg-[var(--admin-accent)]/10 text-sm lg:text-base"
+                                  className="flex items-center gap-1 text-[var(--admin-price)] hover:text-[var(--admin-accent-text)] hover:underline underline-offset-2 transition-all duration-200 font-semibold group/price px-1.5 py-1 tactil:min-h-11 rounded-lg hover:bg-[var(--admin-accent)]/10 text-sm lg:text-base"
                                 >
                                   {formatPrice(product.price)}
                                 </button>
@@ -552,7 +552,7 @@ export function ProductsDashboard({
                               </TooltipContent>
                             </Tooltip>
                           </TableCell>
-                          <TableCell className="text-center">
+                          <TableCell className="acciones-fijas text-center">
                             <div className="flex items-center justify-center gap-2">
                               <Tooltip>
                                 <TooltipTrigger asChild>

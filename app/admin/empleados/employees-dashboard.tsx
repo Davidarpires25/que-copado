@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { UserPlus, KeyRound, Copy, Check, ShieldAlert, Mail } from 'lucide-react'
+import { UserPlus, KeyRound, Copy, Check, ShieldAlert, Mail, UserX, UserCheck } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/layout/admin-layout'
 import { Button } from '@/components/ui/button'
 import {
@@ -151,7 +151,7 @@ export function EmployeesDashboard({
             key={t.key} type="button"
             onClick={() => setTab(t.key)}
             className={cn(
-              'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors cursor-pointer',
+              'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors cursor-pointer',
               tab === t.key
                 ? 'border-[var(--admin-accent)] text-[var(--admin-text)] font-semibold'
                 : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
@@ -177,7 +177,7 @@ export function EmployeesDashboard({
         </p>
         <Link
           href="/admin/empleados/nuevo"
-          className="inline-flex items-center gap-2 rounded-md bg-[var(--admin-accent)] px-3 py-2 text-sm font-semibold text-black hover:bg-[var(--admin-accent)] hover:brightness-95 transition-all"
+          className="inline-flex items-center gap-2 rounded-md bg-[var(--admin-accent)] px-3 py-2 tactil:min-h-11 text-sm font-semibold text-black hover:bg-[var(--admin-accent)] hover:brightness-95 transition-all"
         >
           <UserPlus className="h-4 w-4" />
           Agregar empleado
@@ -191,7 +191,9 @@ export function EmployeesDashboard({
               <TableHead className="text-[var(--admin-text-muted)]">Nombre</TableHead>
               <TableHead className="text-[var(--admin-text-muted)]">Email</TableHead>
               <TableHead className="text-[var(--admin-text-muted)]">Rol</TableHead>
-              <TableHead className="text-[var(--admin-text-muted)]">
+              {/* Con el dedo, aire a la derecha: la columna de acciones fija
+                  queda pegada y tapaba parte del area de toque de la ayuda. */}
+              <TableHead className="text-[var(--admin-text-muted)] tactil:pr-5">
                 <span className="inline-flex items-center gap-1.5">
                   Estado
                   <AyudaCampo>
@@ -200,14 +202,18 @@ export function EmployeesDashboard({
                   </AyudaCampo>
                 </span>
               </TableHead>
-              <TableHead />
+              <TableHead className="acciones-fijas [--acciones-head:var(--admin-surface)]" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {employees.map((emp) => {
               const isMe = emp.id === currentUserId
               return (
-                <TableRow key={emp.id} className={cn('border-[var(--admin-border)]', !emp.is_active && 'opacity-55')}>
+                <TableRow
+                  key={emp.id}
+                  // La celda de acciones fija repite el hover de la fila (bg-muted/50 de TableRow).
+                  className={cn('border-[var(--admin-border)] [--acciones-hover:color-mix(in_oklab,var(--muted)_50%,var(--admin-surface))]', !emp.is_active && 'opacity-55')}
+                >
                   <TableCell className="font-medium text-[var(--admin-text)]">
                     {emp.full_name || '—'}
                     {isMe && <span className="ml-2 text-xs text-[var(--admin-text-muted)]">(vos)</span>}
@@ -219,7 +225,7 @@ export function EmployeesDashboard({
                       disabled={pending}
                       onChange={(e) => handleRole(emp.id, e.target.value)}
                       className={cn(
-                        'text-xs font-semibold rounded-md border px-2 py-1 outline-none cursor-pointer',
+                        'text-xs tactil:text-base font-semibold rounded-md border px-2 py-1 tactil:min-h-11 outline-none cursor-pointer',
                         estiloDeRol(emp.role)
                       )}
                     >
@@ -233,42 +239,49 @@ export function EmployeesDashboard({
                       ? <span className="text-emerald-700 dark:text-emerald-400">Activo</span>
                       : <span className="text-[var(--admin-text-faint)]">De baja</span>}
                   </TableCell>
-                  <TableCell className="text-right whitespace-nowrap">
+                  <TableCell className="acciones-fijas text-right whitespace-nowrap">
                     <button
                       type="button" disabled={pending}
                       onClick={() => handleEmail(emp)}
                       title="Cambiar el email con el que inicia sesión"
+                      aria-label="Cambiar email"
                       className={cn(
-                        'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ',
+                        'inline-flex items-center justify-center gap-1.5 rounded-md px-2.5 py-1.5 tactil:min-h-11 tactil:min-w-11 text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ',
                         'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)]'
                       )}
                     >
                       <Mail className="h-3.5 w-3.5" />
-                      Email
+                      {/* En el celular la columna de acciones queda fija a la
+                          derecha: con los tres textos ocupaba 270 de 390px. */}
+                      <span className="hidden sm:inline">Email</span>
                     </button>
                     <button
                       type="button" disabled={pending}
                       onClick={() => handleReset(emp)}
+                      aria-label="Nueva clave"
                       className={cn(
-                        'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ',
+                        'inline-flex items-center justify-center gap-1.5 rounded-md px-2.5 py-1.5 tactil:min-h-11 tactil:min-w-11 text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ',
                         'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)]'
                       )}
                     >
                       <KeyRound className="h-3.5 w-3.5" />
-                      Nueva clave
+                      <span className="hidden sm:inline">Nueva clave</span>
                     </button>
                     <button
                       type="button" disabled={pending || isMe}
                       onClick={() => handleActive(emp.id, !emp.is_active)}
+                      aria-label={emp.is_active ? 'Dar de baja' : 'Reactivar'}
                       title={isMe ? 'No podés darte de baja a vos mismo' : undefined}
                       className={cn(
-                        'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ',
+                        'inline-flex items-center justify-center gap-1.5 rounded-md px-2.5 py-1.5 tactil:min-h-11 tactil:min-w-11 text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ',
                         emp.is_active
                           ? 'text-rose-700 dark:text-rose-400 hover:bg-rose-500/10'
                           : 'text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10'
                       )}
                     >
-                      {emp.is_active ? 'Dar de baja' : 'Reactivar'}
+                      {/* El icono reemplaza al texto en el celular; en escritorio sigue siendo solo texto. */}
+                      {emp.is_active ? <UserX className="h-3.5 w-3.5 sm:hidden" /> : <UserCheck className="h-3.5 w-3.5 sm:hidden" />}
+                      <span className="hidden sm:inline">{emp.is_active ? 'Dar de baja' : 'Reactivar'}</span>
                     </button>
                   </TableCell>
                 </TableRow>
@@ -317,7 +330,7 @@ function CredentialBox({ password }: { password: string }) {
       <code className="flex-1 font-mono text-lg tracking-wider select-all">{password}</code>
       <button
         type="button" onClick={copy}
-        className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)]"
+        className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 tactil:min-h-11 text-xs font-medium transition-colors cursor-pointer text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)]"
       >
         {copied ? <Check className="h-4 w-4 text-emerald-700 dark:text-emerald-400" /> : <Copy className="h-4 w-4" />}
         {copied ? 'Copiado' : 'Copiar'}

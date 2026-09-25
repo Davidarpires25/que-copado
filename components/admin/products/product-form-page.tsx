@@ -231,7 +231,7 @@ export function ProductFormPage({
           <nav className="flex items-center gap-2 text-sm">
             <Link
               href="/admin/products"
-              className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors"
+              className="inline-flex items-center tactil:min-h-11 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors"
             >
               Productos
             </Link>
@@ -241,8 +241,8 @@ export function ProductFormPage({
             </span>
           </nav>
 
-          {/* Header row */}
-          <div className="flex items-center justify-between">
+          {/* Header row: si titulo y botones no entran, los botones bajan. */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <h1 className="text-2xl font-bold text-[var(--admin-text)]">
               {mode === 'edit' ? 'Editar Producto' : 'Nuevo Producto'}
             </h1>
@@ -280,11 +280,14 @@ export function ProductFormPage({
             </div>
           </div>
 
-          {/* Two-column layout — single unified card */}
-          <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-8 flex gap-8 items-start">
+          {/* Two-column layout — single unified card.
+              Debajo de lg se apilan: la columna derecha mide 420px fijos y a
+              390 de pantalla aplastaba a la izquierda hasta dejar el campo
+              "Nombre" de 26px. En md tampoco alcanza (quedarian 250px). */}
+          <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-4 sm:p-8 flex flex-col lg:flex-row gap-8 lg:items-start">
 
             {/* ── Left column ── */}
-            <div className="flex-1 min-w-0 space-y-5">
+            <div className="w-full lg:flex-1 min-w-0 space-y-5">
 
                 {/* Section: Información */}
                 <div className="space-y-0.5">
@@ -330,7 +333,7 @@ export function ProductFormPage({
                     defaultValue={product?.description ?? ''}
                     placeholder="Descripción del producto..."
                     rows={3}
-                    className="w-full rounded-md border border-[var(--admin-border)] bg-[var(--admin-bg)] text-[var(--admin-text)] text-sm px-3 py-2.5 placeholder:text-[var(--admin-text-muted)] focus:outline-none focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 resize-none transition-all"
+                    className="w-full rounded-md border border-[var(--admin-border)] bg-[var(--admin-bg)] text-[var(--admin-text)] text-sm tactil:text-base px-3 py-2.5 placeholder:text-[var(--admin-text-muted)] focus:outline-none focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 resize-none transition-all"
                   />
                 </div>
 
@@ -347,7 +350,7 @@ export function ProductFormPage({
                   <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
                     Tipo de producto
                   </Label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {(['elaborado', 'reventa', 'mitad', 'combo'] as ProductType[]).map((type) => (
                       <button
                         key={type}
@@ -489,7 +492,7 @@ export function ProductFormPage({
             </div>
 
             {/* ── Right column ── */}
-            <div className="w-[420px] shrink-0 space-y-5">
+            <div className="w-full lg:w-[420px] shrink-0 space-y-5">
 
                 {/* Section: Configuración */}
                 <div className="space-y-0.5">
@@ -519,7 +522,7 @@ export function ProductFormPage({
                       Precio de venta <span className="text-red-700 dark:text-red-400">*</span>
                     </Label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold">$</span>
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold">$</span>
                       <Input
                         name="price"
                         type="number"
@@ -553,7 +556,7 @@ export function ProductFormPage({
                       </div>
                     ) : (
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold">$</span>
+                        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold">$</span>
                         <Input
                           name="cost"
                           type="number"
@@ -569,8 +572,9 @@ export function ProductFormPage({
 
                 <div className="h-px bg-[var(--admin-border)]" />
 
-                {/* Toggles */}
-                <div className="space-y-4">
+                {/* Toggles. Con el dedo cada fila mide 44: a 40px de distancia
+                    las areas de toque de los dos interruptores se pisaban. */}
+                <div className="space-y-4 tactil:[&>div]:min-h-11">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-[var(--admin-text)]">Visible en el menú</p>

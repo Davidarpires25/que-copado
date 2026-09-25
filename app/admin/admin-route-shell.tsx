@@ -31,6 +31,16 @@ export function AdminRouteShell({ children }: { children: React.ReactNode }) {
     return () => { document.documentElement.classList.remove('admin-dark') }
   }, [theme])
 
+  // `admin-panel` marca que estamos en el panel, para lo que no depende del
+  // tema: los tamaños tactiles (variante `tactil:` en globals.css). Va en
+  // <html> por la misma razon que `admin-dark`: los dialogos y selects salen
+  // por portal a <body>, fuera de este arbol. Y se va al salir, para que la
+  // tienda —que comparte los componentes base— no la herede.
+  useEffect(() => {
+    document.documentElement.classList.add('admin-panel')
+    return () => { document.documentElement.classList.remove('admin-panel') }
+  }, [])
+
   // Rutas full-screen sin sidebar — cada una gestiona su propio layout.
   //
   // Toda pagina de impresion entra por la regla y no por la lista: lo que sale

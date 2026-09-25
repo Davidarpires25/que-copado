@@ -180,11 +180,11 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
                     }`}
                   >
                     {/* Reorder */}
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1 tactil:gap-0">
                       <button
                         onClick={() => handleReorder(table.id, 'up')}
                         disabled={globalIndex === 0 || movingId === table.id}
-                        className="p-1 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="p-1 tactil:grid tactil:size-11 tactil:place-items-center text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
                         title="Mover arriba"
                       >
                         <ChevronUp className="w-4 h-4" />
@@ -192,26 +192,34 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
                       <button
                         onClick={() => handleReorder(table.id, 'down')}
                         disabled={globalIndex === tables.length - 1 || movingId === table.id}
-                        className="p-1 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="p-1 tactil:grid tactil:size-11 tactil:place-items-center text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
                         title="Mover abajo"
                       >
                         <ChevronDown className="w-4 h-4" />
                       </button>
                     </div>
 
-                    {/* Table Number */}
-                    <div className="w-10 h-10 rounded-lg bg-[var(--admin-border)] flex items-center justify-center text-sm font-bold text-[var(--admin-text)]">
+                    {/* Table Number. En el celular no va: repite el "Mesa N" del
+                        titulo y le quitaba al nombre el ancho que necesita. */}
+                    <div className="hidden sm:flex shrink-0 w-10 h-10 rounded-lg bg-[var(--admin-border)] items-center justify-center text-sm font-bold text-[var(--admin-text)]">
                       {table.number}
                     </div>
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-[var(--admin-text)] truncate">
-                        Mesa {table.number}
+                      <h4 className="font-semibold text-[var(--admin-text)] line-clamp-2 sm:truncate">
+                        {/* Ni "Mesa N" ni la etiqueta se parten: si no entran juntas, la
+                            etiqueta baja entera al segundo renglon. */}
+                        <span className="whitespace-nowrap">Mesa {table.number}</span>
                         {table.label && (
-                          <span className="text-[var(--admin-text-muted)] font-normal ml-2">
-                            ({table.label})
-                          </span>
+                          <>
+                            {/* En el celular el espacio es texto y no margen: si la
+                                etiqueta baja de renglon, arranca sin sangria. */}
+                            <span className="sm:hidden"> </span>
+                            <span className="inline-block max-w-full truncate align-bottom whitespace-nowrap text-[var(--admin-text-muted)] font-normal sm:inline sm:ml-2">
+                              ({table.label})
+                            </span>
+                          </>
                         )}
                       </h4>
                       <div className="flex items-center gap-3 text-sm text-[var(--admin-text-muted)]">
