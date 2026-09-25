@@ -92,9 +92,14 @@ export interface StockAdjustmentData {
   reason: string
 }
 
-export interface StockPurchaseItem {
-  ingredient_id: string
-  target_type?: 'ingredient' | 'product'
+/**
+ * Una linea de la compra: un insumo o un producto de reventa, uno de los dos.
+ * Los mismos nombres que las columnas de `stock_movements`.
+ */
+export type StockPurchaseItem = (
+  | { ingredient_id: string; product_id?: never }
+  | { product_id: string; ingredient_id?: never }
+) & {
   quantity: number
   cost_per_unit?: number
 }

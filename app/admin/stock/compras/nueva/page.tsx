@@ -12,9 +12,8 @@ import { PurchaseFormPage } from '@/components/admin/stock/purchase-form-page'
  * eso es justamente lo que se gana al sacarla del dialogo.
  *
  * Reusa `getFullStockData()` —la misma lectura que alimenta la vista de stock—
- * en lugar de una consulta propia. Trae tambien los productos de reventa, que
- * esta pantalla no usa, pero van en la misma ola: no cuesta un viaje mas y evita
- * un segundo camino que mantener.
+ * en lugar de una consulta propia. Trae los insumos y los productos de reventa,
+ * que son justo lo que se compra.
  */
 export default async function NuevaCompraPage() {
   const user = await getAuthUser()
@@ -25,10 +24,10 @@ export default async function NuevaCompraPage() {
   return (
     <AdminLayout
       title="Registrar compra"
-      description="Cargá los ingredientes que entraron para sumarlos al stock"
+      description="Cargá lo que entró para sumarlo al stock"
       hidePageHeader
     >
-      <PurchaseFormPage ingredients={data?.ingredients ?? []} />
+      <PurchaseFormPage ingredients={data?.ingredients ?? []} products={data?.products ?? []} />
     </AdminLayout>
   )
 }

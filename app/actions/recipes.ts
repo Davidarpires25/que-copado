@@ -427,7 +427,7 @@ async function _costoDeRecetasDe(supabase: SupabaseClient, productId: string): P
 }
 
 /** Actualiza el costo de los combos que incluyen un producto dado. */
-async function recalcularCombosQueUsan(supabase: SupabaseClient, productId: string) {
+export async function recalcularCombosQueUsan(supabase: SupabaseClient, productId: string) {
   const { data: enCombos } = await supabase
     .from('product_components')
     .select('parent_id')

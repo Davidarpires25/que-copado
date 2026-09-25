@@ -13,15 +13,35 @@ import { registerPurchase } from '@/app/actions/stock'
 import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import { INGREDIENT_UNIT_ABBR, type IngredientUnit } from '@/lib/types/database'
-import type { IngredientWithStock } from '@/lib/types/stock'
+import type { IngredientWithStock, ProductWithStock } from '@/lib/types/stock'
 
 interface PurchaseFormPageProps {
   ingredients: IngredientWithStock[]
+  /** Solo reventa: un elaborado o un combo se produce, no se compra. */
+  products: ProductWithStock[]
 }
 
-/** Una linea de la compra. El ingrediente ya esta elegido: se agrego buscandolo. */
+/**
+ * Lo que se puede comprar: un insumo o un producto de reventa.
+ *
+ * Un solo catalogo para los dos, porque en la factura vienen mezclados --la
+ * carne y las gaseosas en la misma entrega-- y quien la carga busca por nombre,
+ * no por tipo.
+ */
+interface Articulo {
+  /** `i:<id>` o `p:<id>`: un insumo y un producto podrian compartir nombre. */
+  clave: string
+  tipo: 'insumo' | 'reventa'
+  id: string
+  nombre: string
+  /** `null` es una reventa sin seguimiento: no se sabe cuanto hay. */
+  stock: number | null
+  unidad: string
+}
+
+/** Una linea de la compra. El articulo ya esta elegido: se agrego buscandolo. */
 interface PurchaseLine {
-  ingredient_id: string
+  clave: string
   quantity: string
   cost_per_unit: string
 }
@@ -35,7 +55,7 @@ const inputBase =
 const normalizar = (texto: string) =>
   texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
-export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
+export function PurchaseFormPage({ ingredients, products }: PurchaseFormPageProps) {
   const router = useRouter()
   const [lines, setLines] = useState<PurchaseLine[]>([])
   const [busqueda, setBusqueda] = useState('')
@@ -44,38 +64,58 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
   const [loading, setLoading] = useState(false)
   const cantidadRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
-  const porId = useMemo(
-    () => new Map(ingredients.map((i) => [i.id, i])),
-    [ingredients]
+  const catalogo = useMemo<Articulo[]>(
+    () =>
+      [
+        ...ingredients.map((i) => ({
+          clave: `i:${i.id}`,
+          tipo: 'insumo' as const,
+          id: i.id,
+          nombre: i.name,
+          stock: Number(i.current_stock),
+          unidad: INGREDIENT_UNIT_ABBR[i.unit as IngredientUnit] ?? i.unit,
+        })),
+        ...products.map((p) => ({
+          clave: `p:${p.id}`,
+          tipo: 'reventa' as const,
+          id: p.id,
+          nombre: p.name,
+          stock: p.stock_tracking_enabled ? Number(p.current_stock ?? 0) : null,
+          unidad: 'u',
+        })),
+      ].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')),
+    [ingredients, products]
   )
+
+  const porClave = useMemo(() => new Map(catalogo.map((a) => [a.clave, a])), [catalogo])
 
   const coincidencias = useMemo(() => {
     const q = normalizar(busqueda.trim())
-    if (!q) return ingredients
-    return ingredients.filter((i) => normalizar(i.name).includes(q))
-  }, [ingredients, busqueda])
+    if (!q) return catalogo
+    return catalogo.filter((a) => normalizar(a.nombre).includes(q))
+  }, [catalogo, busqueda])
 
   const volver = () => router.push('/admin/stock')
 
-  const agregar = (ingredientId: string) => {
-    const yaEsta = lines.some((l) => l.ingredient_id === ingredientId)
+  const agregar = (clave: string) => {
+    const yaEsta = lines.some((l) => l.clave === clave)
 
-    // Dos lineas del mismo ingrediente son una sola compra de la suma. En vez de
+    // Dos lineas del mismo articulo son una sola compra de la suma. En vez de
     // duplicar, se señala la que ya existe y se lleva el foco a su cantidad.
     if (yaEsta) {
-      setResaltado(ingredientId)
+      setResaltado(clave)
       setTimeout(() => setResaltado(null), 1200)
-      cantidadRefs.current[ingredientId]?.focus()
+      cantidadRefs.current[clave]?.focus()
       return
     }
 
-    setLines((prev) => [...prev, { ingredient_id: ingredientId, quantity: '', cost_per_unit: '' }])
+    setLines((prev) => [...prev, { clave, quantity: '', cost_per_unit: '' }])
     setBusqueda('')
-    setTimeout(() => cantidadRefs.current[ingredientId]?.focus(), 0)
+    setTimeout(() => cantidadRefs.current[clave]?.focus(), 0)
   }
 
-  const quitar = (ingredientId: string) =>
-    setLines((prev) => prev.filter((l) => l.ingredient_id !== ingredientId))
+  const quitar = (clave: string) =>
+    setLines((prev) => prev.filter((l) => l.clave !== clave))
 
   /**
    * Lo que sale cada linea, y lo que sale la compra.
@@ -95,33 +135,32 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
   const totalDeLaCompra = lines.reduce((suma, l) => suma + (totalDeLinea(l) ?? 0), 0)
   const lineasConCosto = lines.filter((l) => totalDeLinea(l) !== null).length
 
-  const actualizar = (ingredientId: string, campo: 'quantity' | 'cost_per_unit', valor: string) =>
+  const actualizar = (clave: string, campo: 'quantity' | 'cost_per_unit', valor: string) =>
     setLines((prev) =>
-      prev.map((l) => (l.ingredient_id === ingredientId ? { ...l, [campo]: valor } : l))
+      prev.map((l) => (l.clave === clave ? { ...l, [campo]: valor } : l))
     )
 
   const isValid = () =>
     lines.length > 0 && lines.every((l) => l.quantity && parseFloat(l.quantity) > 0)
 
-  const unidadDe = (ingredientId: string) => {
-    const ing = porId.get(ingredientId)
-    if (!ing) return ''
-    return INGREDIENT_UNIT_ABBR[ing.unit as IngredientUnit] ?? ing.unit
-  }
-
   const handleSubmit = async () => {
     if (!isValid()) {
-      toast.error('Completá la cantidad de cada ingrediente')
+      toast.error('Completá la cantidad de cada línea')
       return
     }
 
     setLoading(true)
     const result = await registerPurchase({
-      items: lines.map((l) => ({
-        ingredient_id: l.ingredient_id,
-        quantity: parseFloat(l.quantity),
-        cost_per_unit: l.cost_per_unit ? parseFloat(l.cost_per_unit) : undefined,
-      })),
+      items: lines.map((l) => {
+        const art = porClave.get(l.clave)!
+        const cantidadYCosto = {
+          quantity: parseFloat(l.quantity),
+          cost_per_unit: l.cost_per_unit ? parseFloat(l.cost_per_unit) : undefined,
+        }
+        return art.tipo === 'reventa'
+          ? { product_id: art.id, ...cantidadYCosto }
+          : { ingredient_id: art.id, ...cantidadYCosto }
+      }),
       reason: reason.trim() || 'Compra de mercadería',
     })
     setLoading(false)
@@ -153,9 +192,9 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
     </div>
   )
 
-  // Sin ingredientes no hay compra posible: el dialogo se abria igual con un
-  // selector vacio, se podian agregar lineas y no se podia elegir nada.
-  if (ingredients.length === 0) {
+  // Sin nada que comprar no hay compra posible: el dialogo se abria igual con
+  // un selector vacio, se podian agregar lineas y no se podia elegir nada.
+  if (catalogo.length === 0) {
     return (
       <div className="max-w-[1200px] mx-auto">
         {breadcrumb}
@@ -165,7 +204,7 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
             Todavía no hay ingredientes cargados
           </h1>
           <p className="mt-1.5 text-sm text-[var(--admin-text-muted)]">
-            Una compra suma stock a un ingrediente, así que primero hay que tener al menos uno.
+            Una compra suma stock a un ingrediente o a un producto de reventa, así que primero hay que tener al menos uno.
           </p>
           <Link href="/admin/ingredients/new" className="inline-block mt-6">
             <Button className="bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold gap-2">
@@ -223,10 +262,10 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
                   // cantidad, y de vuelta a buscar sin tocar el mouse.
                   if (e.key === 'Enter' && coincidencias.length > 0) {
                     e.preventDefault()
-                    agregar(coincidencias[0].id)
+                    agregar(coincidencias[0].clave)
                   }
                 }}
-                placeholder="Buscar ingrediente..."
+                placeholder="Buscar ingrediente o producto..."
                 className={`${inputBase} pl-9`}
                 autoFocus
               />
@@ -236,16 +275,16 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
           <div className="max-h-[420px] overflow-y-auto divide-y divide-[var(--admin-border)]">
             {coincidencias.length === 0 ? (
               <p className="p-5 text-sm text-[var(--admin-text-muted)] text-center">
-                Ningún ingrediente coincide con &quot;{busqueda}&quot;.
+                Nada coincide con &quot;{busqueda}&quot;.
               </p>
             ) : (
-              coincidencias.map((ing) => {
-                const agregado = lines.some((l) => l.ingredient_id === ing.id)
+              coincidencias.map((art) => {
+                const agregado = lines.some((l) => l.clave === art.clave)
                 return (
                   <button
-                    key={ing.id}
+                    key={art.clave}
                     type="button"
-                    onClick={() => agregar(ing.id)}
+                    onClick={() => agregar(art.clave)}
                     className={cn(
                       'w-full text-left px-4 py-2.5 flex items-center justify-between gap-3 transition-colors',
                       'hover:bg-[var(--admin-surface-2)]',
@@ -253,9 +292,11 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
                     )}
                   >
                     <span className="min-w-0">
-                      <span className="block text-sm text-[var(--admin-text)] truncate">{ing.name}</span>
+                      <span className="block text-sm text-[var(--admin-text)] truncate">{art.nombre}</span>
                       <span className="block text-xs text-[var(--admin-text-muted)] tabular-nums">
-                        {Number(ing.current_stock)} {INGREDIENT_UNIT_ABBR[ing.unit as IngredientUnit] ?? ing.unit} en stock
+                        {/* Solo la reventa se marca: la mayoria son insumos. */}
+                        {art.tipo === 'reventa' && 'Reventa · '}
+                        {art.stock === null ? 'sin seguimiento' : `${art.stock} ${art.unidad} en stock`}
                       </span>
                     </span>
                     {agregado ? (
@@ -279,13 +320,13 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
                 La compra está vacía
               </p>
               <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
-                Buscá un ingrediente y agregalo para empezar a cargarla.
+                Buscá un ingrediente o un producto de reventa y agregalo para empezar a cargarla.
               </p>
             </div>
           ) : (
             <>
               <div className="hidden md:grid grid-cols-[1fr_9rem_9rem_7rem_2.5rem] gap-3 px-5 py-3 border-b border-[var(--admin-border)] text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]">
-                <span>Ingrediente</span>
+                <span>Artículo</span>
                 <span>Cantidad</span>
                 <span>Costo por unidad</span>
                 <span className="text-right">Total</span>
@@ -294,34 +335,37 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
 
               <div className="divide-y divide-[var(--admin-border)]">
                 {lines.map((line) => {
-                  const ing = porId.get(line.ingredient_id)
+                  const art = porClave.get(line.clave)
                   return (
                     <div
-                      key={line.ingredient_id}
+                      key={line.clave}
                       className={cn(
                         'grid grid-cols-1 md:grid-cols-[1fr_9rem_9rem_7rem_2.5rem] gap-3 px-5 py-4 items-center transition-colors',
-                        resaltado === line.ingredient_id && 'bg-[var(--admin-accent)]/15'
+                        resaltado === line.clave && 'bg-[var(--admin-accent)]/15'
                       )}
                     >
                       <span className="text-sm font-medium text-[var(--admin-text)]">
-                        {ing?.name ?? 'Ingrediente'}
+                        {art?.nombre}
+                        {art?.tipo === 'reventa' && (
+                          <span className="ml-2 text-xs font-normal text-[var(--admin-text-muted)]">Reventa</span>
+                        )}
                       </span>
 
                       <div>
                         <Label className="md:hidden text-[var(--admin-text-muted)] text-xs">Cantidad</Label>
                         <div className="relative">
                           <Input
-                            ref={(el) => { cantidadRefs.current[line.ingredient_id] = el }}
+                            ref={(el) => { cantidadRefs.current[line.clave] = el }}
                             type="number"
                             min="0"
                             step="0.01"
                             value={line.quantity}
-                            onChange={(e) => actualizar(line.ingredient_id, 'quantity', e.target.value)}
+                            onChange={(e) => actualizar(line.clave, 'quantity', e.target.value)}
                             placeholder="Cantidad"
                             className={`${inputBase} pr-10`}
                           />
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--admin-text-muted)]">
-                            {unidadDe(line.ingredient_id)}
+                            {art?.unidad}
                           </span>
                         </div>
                       </div>
@@ -339,7 +383,7 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
                             min="0"
                             step="0.01"
                             value={line.cost_per_unit}
-                            onChange={(e) => actualizar(line.ingredient_id, 'cost_per_unit', e.target.value)}
+                            onChange={(e) => actualizar(line.clave, 'cost_per_unit', e.target.value)}
                             placeholder="Opcional"
                             className={`${inputBase} pl-6`}
                           />
@@ -360,8 +404,8 @@ export function PurchaseFormPage({ ingredients }: PurchaseFormPageProps) {
                       <div className="flex md:justify-center">
                         <button
                           type="button"
-                          onClick={() => quitar(line.ingredient_id)}
-                          title={`Quitar ${ing?.name ?? 'ingrediente'}`}
+                          onClick={() => quitar(line.clave)}
+                          title={`Quitar ${art?.nombre ?? ''}`}
                           className="p-2 text-[var(--admin-text-muted)] hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
                         >
                           <Trash2 className="h-4 w-4" />

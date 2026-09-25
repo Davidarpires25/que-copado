@@ -6,7 +6,7 @@ import { revalidateStock, revalidateStorefront } from '@/lib/server/revalidate'
 import { convertToBaseUnit, convertFromBaseUnit, getBaseUnit } from '@/lib/server/unit-conversion'
 import { escalarComponente } from '@/lib/server/sub-recipes'
 import { devError, friendlyError } from '@/lib/server/error-messages'
-import { recalculateProductsForIngredient } from './recipes'
+import { recalculateProductsForIngredient, recalcularCombosQueUsan } from './recipes'
 import { syncAvailability, calcularStockTeorico, syncReventaProduct, insumosQueFaltan, detalleDeInsumos, cargarRecetasEnMemoria, stockTeoricoEnMemoria } from '@/lib/server/stock-deduction'
 import type {
   StockMovementFilters,
@@ -672,16 +672,21 @@ export async function registerPurchase(
   if (!data.items?.length) return { data: null, error: 'Debe incluir al menos un item' }
 
   for (const item of data.items) {
-    if (!item.ingredient_id) return { data: null, error: 'ID de ingrediente requerido' }
+    if (!item.ingredient_id === !item.product_id) {
+      return { data: null, error: 'Cada línea lleva un ingrediente o un producto' }
+    }
     if (!item.quantity || item.quantity <= 0) return { data: null, error: 'La cantidad debe ser mayor a 0' }
     if (item.cost_per_unit !== undefined && item.cost_per_unit < 0) {
       return { data: null, error: 'El costo por unidad debe ser >= 0' }
     }
   }
 
+  // La funcion rechaza un producto que no sea de reventa: un elaborado o un
+  // combo se produce, no se compra. Y si una linea falla, no entra ninguna.
   const { data: resultado, error } = await supabase.rpc('registrar_compra_de_stock', {
     p_items: data.items.map((item) => ({
-      id: item.ingredient_id,
+      tipo: item.product_id ? 'producto' : 'insumo',
+      id: item.product_id ?? item.ingredient_id,
       cantidad: item.quantity,
       costo: item.cost_per_unit ?? null,
     })),
@@ -699,7 +704,22 @@ export async function registerPurchase(
     } catch { /* best effort: el costo se puede recalcular despues, la compra ya entro */ }
   }
 
-  // Entro stock: puede haber productos que vuelvan a estar disponibles.
+  // Una reventa con costo nuevo cambia el costo de los combos que la incluyen.
+  const productosConCostoNuevo = [...new Set((resultado?.productos_cambiaron_costo ?? []) as string[])]
+  for (const productId of productosConCostoNuevo) {
+    try {
+      await recalcularCombosQueUsan(supabase, productId)
+    } catch { /* best effort */ }
+  }
+
+  // Entro stock: puede haber productos que vuelvan a estar disponibles. La
+  // reventa se mira una por una, con su stock nuevo; los elaborados, por sus
+  // insumos.
+  for (const p of (resultado?.productos ?? []) as { id: string; stock: number }[]) {
+    try {
+      await syncReventaProduct(supabase, p.id, Number(p.stock))
+    } catch { /* best effort */ }
+  }
   try {
     await syncAvailability(supabase)
   } catch { /* best effort */ }
