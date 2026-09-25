@@ -25,4 +25,4 @@
       costo. Suman stock los dos, quedan dos movimientos `purchase`, la
       gaseosa queda con costo, y un elaborado no aparece en el buscador.
 - [x] 4.2 `npm run lint`, `npm run build` y la suite en verde.
-- [ ] 4.3 `supabase db push` lo corre David.
+- [x] 4.3 `supabase db push` lo corre David.
