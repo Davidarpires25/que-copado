@@ -164,9 +164,9 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
         {/* Tables grouped by section */}
         {Object.entries(groupedTables).map(([section, sectionTables]) => (
           <div key={section} className="mb-6">
-            <h3 className="text-sm font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider mb-3">
+            <h2 className="text-sm font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider mb-3">
               {TABLE_SECTION_LABELS[section] || section}
-            </h3>
+            </h2>
             <div className="space-y-2">
               {sectionTables.map((table, _index) => {
                 const globalIndex = tables.findIndex((t) => t.id === table.id)
@@ -207,7 +207,7 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-[var(--admin-text)] line-clamp-2 sm:truncate">
+                      <h3 className="font-semibold text-[var(--admin-text)] line-clamp-2 sm:truncate">
                         {/* Ni "Mesa N" ni la etiqueta se parten: si no entran juntas, la
                             etiqueta baja entera al segundo renglon. */}
                         <span className="whitespace-nowrap">Mesa {table.number}</span>
@@ -221,7 +221,7 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
                             </span>
                           </>
                         )}
-                      </h4>
+                      </h3>
                       <div className="flex items-center gap-3 text-sm text-[var(--admin-text-muted)]">
                         <span className="flex items-center gap-1">
                           <Users className="w-3 h-3" />
@@ -262,6 +262,7 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
+                              aria-label={`Editar Mesa ${table.number}`}
                               variant="ghost"
                               size="icon"
                               onClick={() => handleEdit(table)}
@@ -277,6 +278,7 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
+                              aria-label={`Eliminar Mesa ${table.number}`}
                               variant="ghost"
                               size="icon"
                               onClick={() => setDeleteTarget(table)}
@@ -307,9 +309,9 @@ export function TablesDashboard({ initialTables }: TablesDashboardProps) {
             <div className="w-20 h-20 mx-auto rounded-full bg-[var(--admin-border)] flex items-center justify-center mb-4">
               <Table2 className="h-10 w-10 text-[var(--admin-text-muted)]" />
             </div>
-            <h3 className="text-lg font-semibold text-[var(--admin-text)] mb-2">
+            <h2 className="text-lg font-semibold text-[var(--admin-text)] mb-2">
               No hay mesas
-            </h3>
+            </h2>
             <p className="text-[var(--admin-text-muted)] mb-6">
               Agrega tu primera mesa para empezar
             </p>

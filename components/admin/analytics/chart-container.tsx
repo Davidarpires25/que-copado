@@ -30,7 +30,7 @@ export function ChartContainer({
           por renglon. */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-4">
         <div className="min-w-0">
-          <h3 className="text-lg font-semibold text-[var(--admin-text)]">{title}</h3>
+          <h2 className="text-lg font-semibold text-[var(--admin-text)]">{title}</h2>
           {subtitle && (
             <p className="text-sm text-[var(--admin-text-muted)] mt-0.5">{subtitle}</p>
           )}

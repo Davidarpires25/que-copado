@@ -153,6 +153,7 @@ export function ZoneList({
 
                 <div className="flex items-center gap-1">
                   <Switch
+                    aria-label={`${zone.name} activa`}
                     checked={zone.is_active}
                     onCheckedChange={() => handleToggleActive(zone)}
                     disabled={loadingIds.has(zone.id)}
@@ -173,6 +174,7 @@ export function ZoneList({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
+                              aria-label={`Editar ${zone.name}`}
                         size="icon"
                         variant="ghost"
                         className="h-8 w-8 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)] transition-all duration-200"
@@ -192,6 +194,7 @@ export function ZoneList({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
+                              aria-label={`Eliminar ${zone.name}`}
                         size="icon"
                         variant="ghost"
                         className="h-8 w-8 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all duration-200"

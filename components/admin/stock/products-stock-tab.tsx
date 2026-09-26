@@ -327,6 +327,7 @@ export function ProductsStockTab({
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
+                              aria-label={`Ajustar stock de ${product.name}`}
                                 size="icon"
                                 variant="ghost"
                                 className="h-9 w-9 lg:h-10 lg:w-10 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)] transition-all"

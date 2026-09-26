@@ -217,9 +217,9 @@ export function StockAdjustDialog({
 
           {/* Movement type */}
           <div className="space-y-1.5">
-            <Label className="text-[var(--admin-text-muted)] text-sm">Tipo de movimiento</Label>
+            <Label htmlFor="tipo-de-movimiento" className="text-[var(--admin-text-muted)] text-sm">Tipo de movimiento</Label>
             <Select value={mode} onValueChange={(v) => setMode(v as Mode)}>
-              <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)]/50">
+              <SelectTrigger id="tipo-de-movimiento" className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)]/50">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)]">

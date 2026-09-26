@@ -1001,3 +1001,30 @@ ruta es el estado inicial. Se lista qué se abre desde cada una y se recorre
 también, haciendo lo que hace el usuario —tocar, enviar, volver—, no solo
 mirando. Y lo que un test cambia en la base se devuelve en un `finally`: la
 limpieza no puede depender de que todo lo anterior haya salido bien.
+
+## 41. Un dialogo de Radix sin Trigger no sabe adonde devolver el foco
+
+**Que paso (2026-09-26).** El menu del celular y los detalles de pedido y de
+arqueo pasaron a `Sheet` (Dialog de Radix) para que atraparan el foco y se
+cerraran con Escape. Se abrian desde botones propios, no desde un
+`SheetTrigger`, y al cerrarse el foco caia en `<body>`: quien usa teclado
+quedaba al principio de la pagina. Radix devuelve el foco a su Trigger, no al
+elemento que lo tenia antes.
+
+**Regla.** Un dialogo abierto desde afuera tiene que devolver el foco a mano.
+`SheetContent` lo hace ahora para todos: guarda `document.activeElement` en
+`onOpenAutoFocus` y lo enfoca en `onCloseAutoFocus`. El test de teclado de un
+panel siempre termina con "el foco vuelve a X", no solo con "se cerro".
+
+## 42. Una captura depende de donde quedo el mouse
+
+**Que paso (2026-09-26).** Comparando capturas contra `main`, Dashboard y
+Analytics daban 13.000 pixeles de diferencia por un cambio que no tocaba nada
+visible. El script dejaba el mouse en el borde izquierdo, encima del menu, que
+se abre al pasar el puntero y corre el contenido: cada captura salia en otro
+momento de la animacion.
+
+**Regla.** Antes de sacar una captura para comparar, el mouse va a un lugar
+neutro (el borde derecho) y se espera. Una diferencia que no se explica con
+el cambio se mira antes de aceptarla o de arreglar algo: esta era del
+instrumento, no del codigo.

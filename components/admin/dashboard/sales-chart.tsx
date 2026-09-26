@@ -46,9 +46,9 @@ export function SalesChart({ data }: SalesChartProps) {
     <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 shadow-[var(--shadow-card)] w-full h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-[var(--admin-text)]">
+          <h2 className="text-lg font-semibold text-[var(--admin-text)]">
             Ventas - Últimos 7 días
-          </h3>
+          </h2>
           <p className="text-sm text-[var(--admin-text-muted)] mt-0.5">
             {totalOrders} pedidos • {formatPrice(totalRevenue)}
           </p>

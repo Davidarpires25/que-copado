@@ -19,9 +19,9 @@ export function TopProductsTable({ products }: TopProductsTableProps) {
   if (products.length === 0) {
     return (
       <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 shadow-[var(--shadow-card)] w-full h-full flex flex-col">
-        <h3 className="text-lg font-semibold text-[var(--admin-text)] mb-4">
+        <h2 className="text-lg font-semibold text-[var(--admin-text)] mb-4">
           Productos Más Vendidos
-        </h3>
+        </h2>
         <p className="text-[var(--admin-text-muted)] text-center py-8 flex-1 flex items-center justify-center">
           No hay datos de ventas este mes
         </p>
@@ -33,9 +33,9 @@ export function TopProductsTable({ products }: TopProductsTableProps) {
     <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 shadow-[var(--shadow-card)] w-full h-full flex flex-col">
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="h-5 w-5 text-[var(--admin-accent-text)]" />
-        <h3 className="text-lg font-semibold text-[var(--admin-text)]">
+        <h2 className="text-lg font-semibold text-[var(--admin-text)]">
           Productos Más Vendidos
-        </h3>
+        </h2>
       </div>
 
       <div className="space-y-4 flex-1">

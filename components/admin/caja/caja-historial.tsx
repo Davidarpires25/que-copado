@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search, SearchX, History, TrendingUp, TrendingDown, Minus,
   Banknote, CreditCard, Wallet, Clock,
@@ -10,6 +9,7 @@ import {
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import {
   Table,
   TableBody,
@@ -93,149 +93,140 @@ function ArqueoDrawer({
     session.total_deposits -
     session.total_withdrawals
 
+  // Sheet (Dialog de Radix): se anuncia, atrapa el foco, Escape lo cierra y
+  // el foco vuelve a la fila del arqueo. Ver OrderDetailsDrawer.
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+    <Sheet open={open} onOpenChange={(v) => { if (!v) onClose() }}>
+      <SheetContent
+        side="right"
+        showCloseButton={false}
+        aria-describedby={undefined}
+        overlayClassName="bg-black/60 backdrop-blur-sm"
+        className="w-full sm:max-w-md gap-0 p-0 bg-[var(--admin-surface)] border-l border-[var(--admin-border)]"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-[var(--admin-border)]">
+          <div>
+            <SheetTitle className="text-lg font-bold text-[var(--admin-text)]">
+              Arqueo — {formatDateShort(closedAt)}
+            </SheetTitle>
+            <p className="text-sm text-[var(--admin-text-muted)] flex items-center gap-1 mt-0.5">
+              <Clock className="h-3.5 w-3.5" />
+              {formatTimeShort(session.opened_at)} – {formatTimeShort(closedAt)}
+              <span className="ml-2 text-[var(--admin-text-faint)]">
+                ({formatDuration(session.opened_at, closedAt)})
+              </span>
+            </p>
+            {(session.opened_by_name || session.closed_by_name) && (
+              <p className="text-xs text-[var(--admin-text-faint)] mt-1">
+                {session.opened_by_name && <>Abrió <span className="text-[var(--admin-text-muted)]">{session.opened_by_name}</span></>}
+                {session.opened_by_name && session.closed_by_name && ' · '}
+                {session.closed_by_name && <>Cerró <span className="text-[var(--admin-text-muted)]">{session.closed_by_name}</span></>}
+              </p>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
-          />
-
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed right-0 top-0 z-50 h-screen w-full max-w-md bg-[var(--admin-surface)] border-l border-[var(--admin-border)] flex flex-col"
+            aria-label="Cerrar"
+            className="h-9 w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)]"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-[var(--admin-border)]">
-              <div>
-                <h2 className="text-lg font-bold text-[var(--admin-text)]">
-                  Arqueo — {formatDateShort(closedAt)}
-                </h2>
-                <p className="text-sm text-[var(--admin-text-muted)] flex items-center gap-1 mt-0.5">
-                  <Clock className="h-3.5 w-3.5" />
-                  {formatTimeShort(session.opened_at)} – {formatTimeShort(closedAt)}
-                  <span className="ml-2 text-[var(--admin-text-faint)]">
-                    ({formatDuration(session.opened_at, closedAt)})
-                  </span>
-                </p>
-                {(session.opened_by_name || session.closed_by_name) && (
-                  <p className="text-xs text-[var(--admin-text-faint)] mt-1">
-                    {session.opened_by_name && <>Abrió <span className="text-[var(--admin-text-muted)]">{session.opened_by_name}</span></>}
-                    {session.opened_by_name && session.closed_by_name && ' · '}
-                    {session.closed_by_name && <>Cerró <span className="text-[var(--admin-text-muted)]">{session.closed_by_name}</span></>}
-                  </p>
-                )}
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="h-9 w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)]"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
 
-              {/* Reconciliación de efectivo */}
-              <div className="bg-[var(--admin-bg)] rounded-xl p-4">
-                <h3 className="font-semibold text-[var(--admin-text)] mb-3 text-sm">Reconciliación de efectivo</h3>
-                <div className="space-y-2.5">
-                  {[
-                    { label: 'Saldo de apertura', value: formatPrice(session.opening_balance), color: 'text-[var(--admin-text-muted)]' },
-                    { label: 'Ventas en efectivo', value: `+${formatPrice(session.total_cash_sales)}`, color: 'text-green-700 dark:text-green-400' },
-                    { label: 'Ingresos (depósitos)', value: `+${formatPrice(session.total_deposits)}`, color: 'text-green-700 dark:text-green-400' },
-                    { label: 'Retiros', value: `-${formatPrice(session.total_withdrawals)}`, color: 'text-red-700 dark:text-red-400' },
-                  ].map(({ label, value, color }) => (
-                    <div key={label} className="flex items-center justify-between">
-                      <span className="text-sm text-[var(--admin-text-muted)]">{label}</span>
-                      <span className={cn('text-sm font-semibold tabular-nums', color)}>{value}</span>
-                    </div>
-                  ))}
-                  <div className="border-t border-[var(--admin-border)] pt-2.5 flex items-center justify-between">
-                    <span className="text-sm font-semibold text-[var(--admin-text)]">Efectivo esperado</span>
-                    <span className="text-sm font-bold text-blue-700 dark:text-blue-400 tabular-nums">{formatPrice(expectedCash)}</span>
-                  </div>
-                  {session.actual_cash !== null && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-[var(--admin-text)]">Efectivo contado</span>
-                      <span className="text-sm font-bold text-[var(--admin-price)] tabular-nums">{formatPrice(session.actual_cash)}</span>
-                    </div>
-                  )}
-                  {session.cash_difference !== null && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-[var(--admin-text)]">Diferencia</span>
-                      <DiffBadge diff={session.cash_difference} />
-                    </div>
-                  )}
+          {/* Reconciliación de efectivo */}
+          <div className="bg-[var(--admin-bg)] rounded-xl p-4">
+            <h3 className="font-semibold text-[var(--admin-text)] mb-3 text-sm">Reconciliación de efectivo</h3>
+            <div className="space-y-2.5">
+              {[
+                { label: 'Saldo de apertura', value: formatPrice(session.opening_balance), color: 'text-[var(--admin-text-muted)]' },
+                { label: 'Ventas en efectivo', value: `+${formatPrice(session.total_cash_sales)}`, color: 'text-green-700 dark:text-green-400' },
+                { label: 'Ingresos (depósitos)', value: `+${formatPrice(session.total_deposits)}`, color: 'text-green-700 dark:text-green-400' },
+                { label: 'Retiros', value: `-${formatPrice(session.total_withdrawals)}`, color: 'text-red-700 dark:text-red-400' },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="flex items-center justify-between">
+                  <span className="text-sm text-[var(--admin-text-muted)]">{label}</span>
+                  <span className={cn('text-sm font-semibold tabular-nums', color)}>{value}</span>
                 </div>
+              ))}
+              <div className="border-t border-[var(--admin-border)] pt-2.5 flex items-center justify-between">
+                <span className="text-sm font-semibold text-[var(--admin-text)]">Efectivo esperado</span>
+                <span className="text-sm font-bold text-blue-700 dark:text-blue-400 tabular-nums">{formatPrice(expectedCash)}</span>
               </div>
-
-              {/* Ventas por método */}
-              <div className="bg-[var(--admin-bg)] rounded-xl p-4">
-                <h3 className="font-semibold text-[var(--admin-text)] mb-3 text-sm">Ventas por método de pago</h3>
-                <div className="space-y-2.5">
-                  {[
-                    { label: 'Efectivo', value: session.total_cash_sales, icon: Banknote },
-                    { label: 'Tarjeta', value: session.total_card_sales, icon: CreditCard },
-                    { label: 'Transferencia', value: session.total_transfer_sales, icon: Wallet },
-                  ].map(({ label, value, icon: Icon }) => (
-                    <div key={label} className="flex items-center justify-between">
-                      <span className="text-sm text-[var(--admin-text-muted)] flex items-center gap-2">
-                        <Icon className="h-3.5 w-3.5" />{label}
-                      </span>
-                      <span className="text-sm font-semibold text-[var(--admin-text)] tabular-nums">{formatPrice(value)}</span>
-                    </div>
-                  ))}
-                  <div className="border-t border-[var(--admin-border)] pt-2.5 flex items-center justify-between">
-                    <span className="text-sm font-bold text-[var(--admin-text)]">Total ventas</span>
-                    <span className="text-sm font-bold text-[var(--admin-price)] tabular-nums">{formatPrice(session.total_sales)}</span>
-                  </div>
+              {session.actual_cash !== null && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-[var(--admin-text)]">Efectivo contado</span>
+                  <span className="text-sm font-bold text-[var(--admin-price)] tabular-nums">{formatPrice(session.actual_cash)}</span>
                 </div>
-                <p className="text-xs text-[var(--admin-text-faint)] mt-3">
-                  {session.total_orders} {session.total_orders === 1 ? 'orden' : 'órdenes'} procesadas
-                </p>
-              </div>
-
-              {/* Notas */}
-              {session.notes && (
-                <div className="bg-[var(--admin-bg)] rounded-xl p-4">
-                  <h3 className="font-semibold text-[var(--admin-text)] mb-2 text-sm">Notas</h3>
-                  <p className="text-sm text-[var(--admin-text-muted)] italic">{session.notes}</p>
+              )}
+              {session.cash_difference !== null && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-[var(--admin-text)]">Diferencia</span>
+                  <DiffBadge diff={session.cash_difference} />
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Footer */}
-            <div className="p-4 border-t border-[var(--admin-border)] flex flex-col gap-2">
-              <Button
-                onClick={() => { onClose(); onViewMovements(session.id) }}
-                variant="outline"
-                className="w-full border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-accent-text)] hover:border-[var(--admin-accent)]/40 hover:bg-[var(--admin-accent)]/5 gap-2"
-              >
-                <ArrowLeftRight className="h-4 w-4" />
-                Ver movimientos de este turno
-              </Button>
-              <Button
-                onClick={onClose}
-                className="w-full bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold"
-              >
-                Cerrar
-              </Button>
+          {/* Ventas por método */}
+          <div className="bg-[var(--admin-bg)] rounded-xl p-4">
+            <h3 className="font-semibold text-[var(--admin-text)] mb-3 text-sm">Ventas por método de pago</h3>
+            <div className="space-y-2.5">
+              {[
+                { label: 'Efectivo', value: session.total_cash_sales, icon: Banknote },
+                { label: 'Tarjeta', value: session.total_card_sales, icon: CreditCard },
+                { label: 'Transferencia', value: session.total_transfer_sales, icon: Wallet },
+              ].map(({ label, value, icon: Icon }) => (
+                <div key={label} className="flex items-center justify-between">
+                  <span className="text-sm text-[var(--admin-text-muted)] flex items-center gap-2">
+                    <Icon className="h-3.5 w-3.5" />{label}
+                  </span>
+                  <span className="text-sm font-semibold text-[var(--admin-text)] tabular-nums">{formatPrice(value)}</span>
+                </div>
+              ))}
+              <div className="border-t border-[var(--admin-border)] pt-2.5 flex items-center justify-between">
+                <span className="text-sm font-bold text-[var(--admin-text)]">Total ventas</span>
+                <span className="text-sm font-bold text-[var(--admin-price)] tabular-nums">{formatPrice(session.total_sales)}</span>
+              </div>
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+            <p className="text-xs text-[var(--admin-text-faint)] mt-3">
+              {session.total_orders} {session.total_orders === 1 ? 'orden' : 'órdenes'} procesadas
+            </p>
+          </div>
+
+          {/* Notas */}
+          {session.notes && (
+            <div className="bg-[var(--admin-bg)] rounded-xl p-4">
+              <h3 className="font-semibold text-[var(--admin-text)] mb-2 text-sm">Notas</h3>
+              <p className="text-sm text-[var(--admin-text-muted)] italic">{session.notes}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-[var(--admin-border)] flex flex-col gap-2">
+          <Button
+            onClick={() => { onClose(); onViewMovements(session.id) }}
+            variant="outline"
+            className="w-full border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-accent-text)] hover:border-[var(--admin-accent)]/40 hover:bg-[var(--admin-accent)]/5 gap-2"
+          >
+            <ArrowLeftRight className="h-4 w-4" />
+            Ver movimientos de este turno
+          </Button>
+          <Button
+            onClick={onClose}
+            className="w-full bg-[var(--admin-accent)] hover:bg-[#E5B001] text-black font-semibold"
+          >
+            Cerrar
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
   )
 }
 

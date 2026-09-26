@@ -54,7 +54,7 @@ export function RolesTab({ roles, canManage, onChanged }: Props) {
             <div className="flex items-start justify-between gap-3 flex-wrap">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-[var(--admin-text)]">{role.name}</h3>
+                  <h2 className="font-semibold text-[var(--admin-text)]">{role.name}</h2>
                   {role.is_system && (
                     <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wide text-[var(--admin-text-faint)] border border-[var(--admin-border)] rounded px-1.5 py-0.5">
                       <Lock className="h-2.5 w-2.5" />

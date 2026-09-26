@@ -327,6 +327,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
+                              aria-label={`Gestionar sub-receta de ${ingredient.name}`}
                                   size="icon"
                                   variant="ghost"
                                   className="h-9 w-9 lg:h-10 lg:w-10 text-[var(--admin-text-muted)] hover:text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 transition-all"
@@ -343,6 +344,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
+                              aria-label={`Editar ${ingredient.name}`}
                                 size="icon"
                                 variant="ghost"
                                 className="h-9 w-9 lg:h-10 lg:w-10 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-all"

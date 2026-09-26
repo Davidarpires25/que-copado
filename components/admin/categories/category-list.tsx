@@ -128,7 +128,7 @@ export function CategoryList({ categories, onEdit, onDeleted,onReorder, isSearch
                         onClick={() => handleMoveUp(index)}
                         aria-label="Subir en el orden"
                         disabled={index === 0 || movingId === category.id || isSearching}
-                        className="p-0.5 tactil:grid tactil:size-11 tactil:place-items-center text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="grid size-6 place-items-center tactil:size-11 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         <ChevronUp className="w-3.5 h-3.5" />
                       </button>
@@ -136,7 +136,7 @@ export function CategoryList({ categories, onEdit, onDeleted,onReorder, isSearch
                         onClick={() => handleMoveDown(index)}
                         aria-label="Bajar en el orden"
                         disabled={index === categories.length - 1 || movingId === category.id || isSearching}
-                        className="p-0.5 tactil:grid tactil:size-11 tactil:place-items-center text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="grid size-6 place-items-center tactil:size-11 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         <ChevronDown className="w-3.5 h-3.5" />
                       </button>
@@ -175,6 +175,7 @@ export function CategoryList({ categories, onEdit, onDeleted,onReorder, isSearch
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
+                              aria-label={`Editar ${category.name}`}
                             variant="ghost"
                             size="icon"
                             onClick={() => onEdit(category)}
@@ -190,6 +191,7 @@ export function CategoryList({ categories, onEdit, onDeleted,onReorder, isSearch
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
+                              aria-label={`Eliminar ${category.name}`}
                             variant="ghost"
                             size="icon"
                             onClick={() => setDeleteTarget(category)}
