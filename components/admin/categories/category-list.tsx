@@ -105,11 +105,11 @@ export function CategoryList({ categories, onEdit, onDeleted,onReorder, isSearch
       <table className="w-full">
         <thead className="sticky top-0 z-10 bg-[var(--admin-bg)]">
           <tr className="border-b border-[var(--admin-border)]">
-            <th className="text-left text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold px-4 py-3 w-24">Orden</th>
-            <th className="text-left text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold px-4 py-3">Nombre</th>
-            <th className="text-left text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold px-4 py-3 hidden md:table-cell">Slug</th>
-            <th className="text-left text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold px-4 py-3 hidden sm:table-cell">Productos</th>
-            <th className="text-center text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold px-4 py-3 w-28">Acciones</th>
+            <th className="text-left text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold px-4 py-3 w-24">Orden</th>
+            <th className="text-left text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold px-4 py-3">Nombre</th>
+            <th className="text-left text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold px-4 py-3 hidden md:table-cell">Slug</th>
+            <th className="text-left text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold px-4 py-3 hidden sm:table-cell">Productos</th>
+            <th className="text-center text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold px-4 py-3 w-28">Acciones</th>
           </tr>
         </thead>
         <tbody>

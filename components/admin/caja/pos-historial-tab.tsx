@@ -58,7 +58,7 @@ function formatTime(dateStr: string): string {
 
 
 const TABLE_HEAD_CLASS =
-  'text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold'
+  'text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold'
 
 // ─── Fila de orden (expandible) ───────────────────────────────────────────────
 

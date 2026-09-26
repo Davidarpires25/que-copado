@@ -348,13 +348,13 @@ export function OrdersTable({ initialOrders, initialDateFilter }: OrdersTablePro
           <Table>
             <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
               <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
-                <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">ID</TableHead>
-                <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Cliente</TableHead>
-                <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold hidden sm:table-cell text-center">Fecha</TableHead>
-                <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold hidden md:table-cell text-center">Items</TableHead>
-                <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center">Total</TableHead>
-                <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold hidden lg:table-cell text-center">Método Pago</TableHead>
-                <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center">Estado</TableHead>
+                <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">ID</TableHead>
+                <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">Cliente</TableHead>
+                <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold hidden sm:table-cell text-center">Fecha</TableHead>
+                <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold hidden md:table-cell text-center">Items</TableHead>
+                <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold text-center">Total</TableHead>
+                <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold hidden lg:table-cell text-center">Método Pago</TableHead>
+                <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold text-center">Estado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

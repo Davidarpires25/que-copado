@@ -265,19 +265,19 @@ export function ArqueosTable({ sessions }: ArqueosTableProps) {
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
                 <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Fecha</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold hidden sm:table-cell">Duración</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Ventas</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold hidden md:table-cell">
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">Fecha</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold hidden sm:table-cell">Duración</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">Ventas</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold hidden md:table-cell">
                     <span className="flex items-center gap-1"><Banknote className="h-3 w-3" />Efectivo</span>
                   </TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold hidden lg:table-cell">
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold hidden lg:table-cell">
                     <span className="flex items-center gap-1"><CreditCard className="h-3 w-3" />Tarjeta</span>
                   </TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold hidden lg:table-cell">
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold hidden lg:table-cell">
                     <span className="flex items-center gap-1"><Wallet className="h-3 w-3" />Transfer.</span>
                   </TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Diferencia</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">Diferencia</TableHead>
                   <TableHead className="w-10" />
                 </TableRow>
               </TableHeader>

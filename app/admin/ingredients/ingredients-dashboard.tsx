@@ -264,12 +264,12 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
                 <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Nombre</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold hidden md:table-cell">Categoría</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Unidad</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Costo / Unidad</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center hidden sm:table-cell">Activo</TableHead>
-                  <TableHead className="acciones-fijas text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center w-32">Acciones</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">Nombre</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold hidden md:table-cell">Categoría</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">Unidad</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">Costo / Unidad</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold text-center hidden sm:table-cell">Activo</TableHead>
+                  <TableHead className="acciones-fijas text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold text-center w-32">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -121,11 +121,11 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
                 <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Receta</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold hidden sm:table-cell">Ingredientes</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Costo</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center hidden sm:table-cell">Activa</TableHead>
-                  <TableHead className="acciones-fijas text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center">Acciones</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">Receta</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold hidden sm:table-cell">Ingredientes</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">Costo</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold text-center hidden sm:table-cell">Activa</TableHead>
+                  <TableHead className="acciones-fijas text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold text-center">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

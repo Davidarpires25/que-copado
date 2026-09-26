@@ -152,7 +152,7 @@ export function RecipeBuilder({ ingredients, recipeItems, onChange }: RecipeBuil
       )}
 
       {recipeItems.length === 0 && (
-        <p className="text-xs text-[var(--admin-text-muted)]/60 text-center py-1">
+        <p className="text-xs text-[var(--admin-text-faint)] text-center py-1">
           Sin receta. El costo se ingresa manualmente.
         </p>
       )}

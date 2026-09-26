@@ -1060,3 +1060,23 @@ uno la suya.
 muestra solo en el navegador, con `useHydrated()` (`lib/hooks/`). Y el test de
 hidratacion corre el navegador en una zona lejana (UTC+14): un error que en
 desarrollo aparece una vez por minuto, ahi aparece siempre.
+
+## 45. "Se lee igual deslizando" no vale si lo que queda afuera es el dato
+
+**Que paso (2026-09-26).** En el primer cambio del celular dejé el reporte de
+Costos fuera de alcance: "no tiene acciones por fila y se lee igual
+deslizando". David lo miro en su telefono y vio lo que yo no: a 390px se veian
+los nombres y la categoria, y costo, precio y margen —lo unico que el reporte
+existe para mostrar— quedaban afuera, sin nada que avisara que habia mas.
+
+En la misma pasada, las pestañas de Configuracion aparecieron pegadas. Les
+habia puesto `tactil:min-w-11` para llegar a 44px; en un item flex eso
+reemplaza el piso de `min-width: auto` (el ancho de su texto), y en una fila
+que no entra "Apariencia" se comprimia hasta tocar a "Datos". El recorrido de
+44×44 pasaba: el area de toque estaba bien, lo roto era el texto.
+
+**Regla.** Para decidir si una tabla puede deslizarse, preguntar que columna
+viene a buscar la gente y comprobar que esa se vea sin deslizar; si no, las
+secundarias bajan a una segunda linea, como en Productos. Y un `min-w-*` en un
+item flex de una fila que puede apretarse va con `shrink-0`: el test
+"ningun texto se sale de su boton o pestaña" lo vigila.
