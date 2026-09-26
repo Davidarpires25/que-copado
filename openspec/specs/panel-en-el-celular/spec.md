@@ -88,8 +88,10 @@ interruptor—, el área de toque SHALL agrandarse sin cambiar cómo se ve. Las
 Quedan fuera, como permite el mismo criterio, los links dentro de un texto
 corrido. Quedan fuera también los controles del mapa de zonas de envío.
 
-Con mouse, el panel SHALL verse como hoy. La tienda pública SHALL no cambiar,
-aunque comparta componentes con el panel.
+Con mouse, los 44px no rigen: los controles SHALL verse como antes de este
+requisito, salvo donde medían menos de 24×24px, que es el mínimo con mouse de
+`panel-accesible`. La tienda pública SHALL no cambiar, aunque comparta
+componentes con el panel.
 
 Existe porque en modo táctil había 298 controles por debajo de 44px en 29
 pantallas, y los peores —las flechas para reordenar categorías, de 18×18px—
