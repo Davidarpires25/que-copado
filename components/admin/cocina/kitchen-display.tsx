@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import { RefreshCw, ChefHat } from 'lucide-react'
 import { useRealtimeChannel } from '@/lib/hooks/use-realtime-channel'
+import { useHydrated } from '@/lib/hooks/use-hydrated'
 import { getActiveComandas } from '@/app/actions/comandas'
 import { ComandaCard } from './comanda-card'
 import { cn } from '@/lib/utils'
@@ -16,7 +17,12 @@ interface KitchenDisplayProps {
 
 export function KitchenDisplay({ initialComandas }: KitchenDisplayProps) {
   const [comandas, setComandas] = useState<ComandaWithOrder[]>(initialComandas)
-  const [lastUpdated, setLastUpdated] = useState(new Date())
+  const [lastUpdated, setLastUpdated] = useState(() => new Date())
+  // La hora se muestra solo en el navegador. Renderizada en el servidor salia
+  // en su zona horaria —UTC en produccion— y en el navegador en la de
+  // Argentina: el texto no coincidia al hidratar y React descartaba la
+  // pantalla entera para rearmarla en el cliente.
+  const enElNavegador = useHydrated()
   const [refreshing, setRefreshing] = useState(false)
 
   const refresh = useCallback(async () => {
@@ -80,8 +86,8 @@ export function KitchenDisplay({ initialComandas }: KitchenDisplayProps) {
             Actualizar
           </button>
 
-          <span className="text-xs text-[var(--admin-text-muted)]">
-            {lastUpdated.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+          <span className="text-xs text-[var(--admin-text-muted)] tabular-nums">
+            {enElNavegador && lastUpdated.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
       </div>

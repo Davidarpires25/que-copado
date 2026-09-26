@@ -79,6 +79,25 @@ const cacheHeaders = [
 ]
 
 const nextConfig: NextConfig = {
+  /**
+   * Direcciones viejas que siguen llegando por favoritos o links guardados.
+   *
+   * Van aca y no en un `redirect()` dentro de la pagina: `app/admin/caja` tiene
+   * un `loading.tsx`, y con su Suspense la respuesta ya salia con 200 cuando el
+   * redirect se ejecutaba. Next lo mandaba dentro del stream, el Router lo
+   * procesaba durante la hidratacion y tiraba "Rendered more hooks than during
+   * the previous render". Desde aca es un 307 antes de renderizar nada. Los
+   * parametros de la URL original (`?session=`) pasan solos al destino.
+   */
+  async redirects() {
+    return [
+      {
+        source: '/admin/caja/movimientos',
+        destination: '/admin/caja/arqueos?tab=movimientos',
+        permanent: false,
+      },
+    ]
+  },
   async headers() {
     return [
       {

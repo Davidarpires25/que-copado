@@ -1028,3 +1028,35 @@ momento de la animacion.
 neutro (el borde derecho) y se espera. Una diferencia que no se explica con
 el cambio se mira antes de aceptarla o de arreglar algo: esta era del
 instrumento, no del codigo.
+
+## 43. Un `redirect()` debajo de un `loading.tsx` no es un 307
+
+**Que paso (2026-09-26).** `/admin/caja/movimientos` era una pagina que solo
+hacia `redirect()` a Arqueos. Funcionaba —el usuario llegaba—, pero el
+navegador tiraba "Rendered more hooks than during the previous render" desde
+el Router de Next. `app/admin/caja/loading.tsx` envolvia la pagina en un
+Suspense: cuando el redirect se ejecutaba, la respuesta ya habia salido con
+200, y Next lo mandaba dentro del stream para que el cliente lo procesara en
+plena hidratacion.
+
+**Regla.** Una direccion que siempre redirige no es una pagina: va en
+`redirects()` de `next.config.ts`, que responde 307 antes de renderizar (y
+que leen Vercel y Netlify por igual). `redirect()` en una pagina queda para
+lo condicional —sin sesion, sin permiso—. Y "llega a destino" no prueba que
+este bien: el test mira el codigo HTTP y los errores del navegador.
+
+## 44. Lo que depende de la hora no se renderiza en el servidor
+
+**Que paso (2026-09-26).** Cocina mostraba "11:29 a. m." con
+`useState(new Date())` y `toLocaleTimeString`. En produccion el servidor
+imprime en UTC y el navegador en Argentina: no coincidian al hidratar y React
+descartaba la pantalla para rearmarla. En la maquina de desarrollo compartian
+zona y el error aparecia solo si el minuto cambiaba en el medio —por eso
+parecia intermitente—. Es la leccion 11 del otro lado: aquella era el servidor
+imprimiendo la fecha equivocada; esta, servidor y navegador imprimiendo cada
+uno la suya.
+
+**Regla.** La hora local, "hace cuanto", lo que lee `localStorage`: se
+muestra solo en el navegador, con `useHydrated()` (`lib/hooks/`). Y el test de
+hidratacion corre el navegador en una zona lejana (UTC+14): un error que en
+desarrollo aparece una vez por minuto, ahi aparece siempre.
