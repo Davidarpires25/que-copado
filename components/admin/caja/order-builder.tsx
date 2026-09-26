@@ -101,7 +101,7 @@ export function OrderBuilder({
         {items.length > 0 && (
           <button
             onClick={handleClearCart}
-            className={`text-[14px] flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+            className={`text-[14px] flex items-center gap-1.5 h-9 tactil:h-11 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               confirmClear
                 ? 'bg-red-500/10 text-red-700 dark:text-red-400'
                 : 'text-[var(--admin-text-faint)] hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/10'
@@ -151,7 +151,7 @@ export function OrderBuilder({
                     <>
                       <button
                         onClick={() => toggleItemNote(item.id)}
-                        className="flex items-center gap-1 mt-0.5 text-[11px] text-[var(--admin-text-faint)] hover:text-[var(--admin-accent-text)] transition-colors cursor-pointer"
+                        className="flex items-center gap-1 mt-0.5 tactil:min-h-11 text-[11px] text-[var(--admin-text-faint)] hover:text-[var(--admin-accent-text)] transition-colors cursor-pointer"
                       >
                         <MessageSquare className="h-4 w-4" />
                         <span className=" text-[14px] truncate max-w-[200px]">{item.notes ? item.notes : 'nota'}</span>
@@ -174,7 +174,7 @@ export function OrderBuilder({
                 <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     onClick={() => onUpdateQuantity(item.id, -1)}
-                    className="flex items-center justify-center rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-accent)]/40 transition-all active:scale-90 cursor-pointer"
+                    className="flex items-center justify-center tactil:min-h-11 tactil:min-w-11 rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-accent)]/40 transition-all active:scale-90 cursor-pointer"
                     style={{ width: 36, height: 36 }}
                     aria-label="Disminuir"
                   >
@@ -192,7 +192,7 @@ export function OrderBuilder({
                   </motion.span>
                   <button
                     onClick={() => onUpdateQuantity(item.id, 1)}
-                    className="flex items-center justify-center rounded-md bg-[var(--admin-accent)] hover:opacity-90 active:scale-90 transition-all cursor-pointer"
+                    className="flex items-center justify-center tactil:min-h-11 tactil:min-w-11 rounded-md bg-[var(--admin-accent)] hover:opacity-90 active:scale-90 transition-all cursor-pointer"
                     style={{ width: 36, height: 36 }}
                     aria-label="Aumentar"
                   >
@@ -209,7 +209,7 @@ export function OrderBuilder({
                 {/* Remove item */}
                 <button
                   onClick={() => onRemoveItem(item.id)}
-                  className="ml-2 text-[var(--admin-text-faint)] hover:text-red-700 dark:hover:text-red-400 transition-colors cursor-pointer shrink-0"
+                  className="ml-2 tactil:ml-0 tactil:grid tactil:size-11 tactil:place-items-center text-[var(--admin-text-faint)] hover:text-red-700 dark:hover:text-red-400 transition-colors cursor-pointer shrink-0"
                   aria-label="Eliminar producto"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -235,7 +235,7 @@ export function OrderBuilder({
           ) : (
             <button
               onClick={() => setShowNotes(true)}
-              className="text-[13px] cursor-pointer transition-colors text-[var(--admin-text-faint)] hover:text-[var(--admin-text-muted)]"
+              className="text-[13px] tactil:min-h-11 cursor-pointer transition-colors text-[var(--admin-text-faint)] hover:text-[var(--admin-text-muted)]"
             >
               + Agregar nota
             </button>

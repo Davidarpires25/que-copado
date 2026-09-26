@@ -199,8 +199,10 @@ export function TableOrderPanel({
   const canPrintPerTag = orderStatus === 'cuenta_pedida' || order.status === 'pagado'
 
   return (
+    // Con el dedo, todo boton de la mesa mide 44: son mas de diez controles
+    // chicos (imprimir, comensales, cantidades, quitar) con alturas en linea.
     <div className={cn(
-      'bg-[var(--admin-surface)] flex flex-col',
+      'bg-[var(--admin-surface)] flex flex-col tactil:[&_button]:min-h-11 tactil:[&_button]:min-w-11',
       asSheet ? 'min-h-0' : 'w-[520px] border-l border-[var(--admin-border)] h-full'
     )}>
 

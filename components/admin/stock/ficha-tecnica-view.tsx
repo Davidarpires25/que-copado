@@ -242,10 +242,11 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
       <div className="space-y-5">
 
         {/* ── Breadcrumb + actions row ──────────────────────────── */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-1 text-sm text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer"
+            aria-label="Volver"
+            className="flex items-center justify-center gap-1 tactil:size-11 text-sm text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
@@ -258,14 +259,14 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
           <div className="ml-auto flex items-center gap-2">
             <button
               onClick={() => window.open(`/admin/stock/ficha/${sheet.product_id}/print?qty=${quantity}`, '_blank')}
-              className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] text-xs font-medium text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 h-9 tactil:h-11 px-3 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] text-xs font-medium text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer"
             >
               <Printer className="h-3.5 w-3.5" />
               Imprimir
             </button>
             <button
               onClick={() => window.open(`/admin/stock/ficha/${sheet.product_id}/print?qty=${quantity}`, '_blank')}
-              className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] text-xs font-medium text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 h-9 tactil:h-11 px-3 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] text-xs font-medium text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors cursor-pointer"
             >
               <Download className="h-3.5 w-3.5" />
               Exportar PDF
@@ -280,7 +281,9 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
 
         {/* ── Product card ─────────────────────────────────────── */}
         <div className="border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--shadow-card)] p-5">
-          <div className="flex items-center gap-4">
+          {/* Debajo de md los tres bloques van uno debajo del otro: en fila no
+              entraban y el costo total quedaba cortado 131px afuera. */}
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
 
             {/* Left: icon + name */}
             <div className="flex items-center gap-4 shrink-0">
@@ -298,7 +301,7 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
             </div>
 
             {/* Middle: slider + input */}
-            <div className="flex-1 min-w-0 px-4">
+            <div className="md:flex-1 min-w-0 md:px-4">
               <p className="text-xs text-[var(--admin-text-muted)] mb-2">Producción simulada</p>
               <div className="flex items-center gap-3">
                 <input
@@ -309,6 +312,14 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
                   onChange={(e) => handleSliderChange(Number(e.target.value))}
                   className="flex-1 h-1.5 rounded-full appearance-none cursor-pointer
                     bg-[var(--admin-border)]
+                    tactil:h-11 tactil:bg-transparent
+                    tactil:[&::-webkit-slider-runnable-track]:h-1.5
+                    tactil:[&::-webkit-slider-runnable-track]:rounded-full
+                    tactil:[&::-webkit-slider-runnable-track]:bg-[var(--admin-border)]
+                    tactil:[&::-webkit-slider-thumb]:-mt-[5px]
+                    tactil:[&::-moz-range-track]:h-1.5
+                    tactil:[&::-moz-range-track]:rounded-full
+                    tactil:[&::-moz-range-track]:bg-[var(--admin-border)]
                     [&::-webkit-slider-thumb]:appearance-none
                     [&::-webkit-slider-thumb]:w-4
                     [&::-webkit-slider-thumb]:h-4
@@ -331,7 +342,7 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
                     value={inputStr}
                     onChange={(e) => handleInputChange(e.target.value)}
                     onBlur={handleInputBlur}
-                    className="w-16 h-10 text-center text-sm font-bold tabular-nums rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] text-[var(--admin-text)] outline-none focus:border-[var(--admin-accent)]/60 focus:ring-1 focus:ring-[var(--admin-accent)]/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-16 h-10 tactil:h-11 text-center text-sm tactil:text-base font-bold tabular-nums rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] text-[var(--admin-text)] outline-none focus:border-[var(--admin-accent)]/60 focus:ring-1 focus:ring-[var(--admin-accent)]/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                   <span className="text-[12px] text-[var(--admin-text-muted)]">ud</span>
                 </div>
@@ -339,7 +350,7 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
             </div>
 
             {/* Right: costs */}
-            <div className="flex items-center gap-5 shrink-0 pl-4 border-l border-[var(--admin-border)]">
+            <div className="flex items-center gap-5 shrink-0 pt-4 border-t md:pt-0 md:pl-4 md:border-t-0 md:border-l border-[var(--admin-border)]">
               <div className="text-right">
                 <p className="text-xs text-[var(--admin-text-muted)] mb-0.5">Costo total</p>
                 <p className="text-[17px] font-bold text-[var(--admin-text)] tabular-nums">{formatPrice(totalCost)}</p>
@@ -364,7 +375,7 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
                 key={t}
                 onClick={() => setTab(t)}
                 className={cn(
-                  'flex items-center gap-1.5 px-1 py-3 mr-6 text-sm font-semibold transition-colors cursor-pointer border-b-2 -mb-px',
+                  'flex items-center gap-1.5 px-1 py-3 mr-6 text-sm font-semibold transition-colors cursor-pointer border-b-2 tactil:min-h-11 -mb-px',
                   tab === t
                     ? 'text-[var(--admin-accent-text)] border-[var(--admin-accent)]'
                     : 'text-[var(--admin-text-muted)] border-transparent hover:text-[var(--admin-text)]'
@@ -378,6 +389,12 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
             ))}
           </div>
 
+          {/* Las columnas numericas tienen ancho fijo (320px en el desglose,
+              470 en la lista de compras) y el nombre toma lo que sobra: en el
+              celular no sobraba nada y los ingredientes aparecian sin nombre.
+              Con un ancho minimo la tabla se desliza, como las otras. */}
+          <div className="overflow-x-auto">
+          <div className={tab === 'desglose' ? 'min-w-[34rem]' : 'min-w-[44rem]'}>
           {/* Table header */}
           <div
             className="flex items-center bg-[var(--admin-bg)] border-b border-[var(--admin-border)] px-4"
@@ -475,6 +492,8 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
+          </div>
         </div>
 
       </div>

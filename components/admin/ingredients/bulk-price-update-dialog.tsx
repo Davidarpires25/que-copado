@@ -187,7 +187,7 @@ export function BulkPriceUpdateDialog({
               {updateType === 'percentage' ? 'Porcentaje de Aumento' : 'Monto a Sumar'}
             </Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm font-semibold">
                 {updateType === 'percentage' ? '%' : '$'}
               </span>
               <Input

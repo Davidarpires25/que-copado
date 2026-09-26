@@ -65,7 +65,7 @@ export function IngredientCombobox({
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'w-full flex items-center gap-2 h-9 px-3 rounded-md border border-dashed text-sm transition-colors',
+          'w-full flex items-center gap-2 h-9 tactil:h-11 px-3 rounded-md border border-dashed text-sm transition-colors',
           'bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text-muted)]',
           'hover:border-[var(--admin-accent)]/50 hover:text-[var(--admin-text)]',
           'focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50',
@@ -79,21 +79,21 @@ export function IngredientCombobox({
       </button>
 
       {open && (
-        <div className="absolute z-50 left-0 right-0 top-full mt-1 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] shadow-xl overflow-hidden">
-          <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--admin-border)]">
+        <div data-slot="ingredient-combobox-popup" className="absolute z-50 left-0 right-0 top-full mt-1 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] shadow-xl overflow-hidden">
+          <div className="flex items-center gap-2 px-3 py-2 tactil:py-0 border-b border-[var(--admin-border)]">
             <Search className="h-3.5 w-3.5 text-[var(--admin-text-muted)] shrink-0" />
             <input
               ref={inputRef}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar ingrediente..."
-              className="flex-1 bg-transparent text-sm text-[var(--admin-text)] placeholder:text-[var(--admin-text-muted)] outline-none"
+              className="flex-1 tactil:min-h-11 bg-transparent text-sm tactil:text-base text-[var(--admin-text)] placeholder:text-[var(--admin-text-muted)] outline-none"
             />
             {search && (
               <button
                 type="button"
                 onClick={() => setSearch('')}
-                className="p-0.5 rounded hover:bg-[var(--admin-border)] text-[var(--admin-text-muted)] transition-colors"
+                className="p-0.5 tactil:relative tactil:area-toque rounded hover:bg-[var(--admin-border)] text-[var(--admin-text-muted)] transition-colors"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -111,7 +111,7 @@ export function IngredientCombobox({
                 <button
                   type="button"
                   onClick={() => { onSelect(ing.id); closePopover() }}
-                  className="w-full flex items-center justify-between px-3 py-2 text-sm text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors text-left"
+                  className="w-full flex items-center justify-between px-3 py-2 tactil:min-h-11 text-sm text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors text-left"
                 >
                   <span className="truncate">{ing.name}</span>
                   <span className="text-xs text-[var(--admin-text-muted)] shrink-0 ml-2">
@@ -126,7 +126,7 @@ export function IngredientCombobox({
                 <button
                   type="button"
                   onClick={() => { const name = search.trim(); closePopover(); onCreateRequest(name) }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 transition-colors text-left"
+                  className="w-full flex items-center gap-2 px-3 py-2 tactil:min-h-11 text-sm text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 transition-colors text-left"
                 >
                   <Plus className="h-3.5 w-3.5 shrink-0" />
                   <span>

@@ -116,7 +116,7 @@ export function ComandaCard({ comanda }: ComandaCardProps) {
       <div className="flex gap-2 px-3 py-2.5 border-t border-white/10">
         <button
           onClick={() => window.open(`/admin/cocina/comanda/${comanda.id}/print`, '_blank')}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] bg-[var(--admin-surface-2)] hover:bg-[var(--admin-border)] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 tactil:min-h-11 rounded-lg text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] bg-[var(--admin-surface-2)] hover:bg-[var(--admin-border)] transition-colors"
         >
           <Printer className="h-3.5 w-3.5" />
           Imprimir
@@ -127,7 +127,7 @@ export function ComandaCard({ comanda }: ComandaCardProps) {
             onClick={handleAdvance}
             disabled={loading}
             className={cn(
-              'flex-1 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95',
+              'flex-1 py-1.5 tactil:min-h-11 rounded-lg text-xs font-bold transition-all active:scale-95',
               status === 'pendiente'
                 ? 'bg-blue-600 hover:bg-blue-500 text-white'
                 : 'bg-green-600 hover:bg-green-500 text-white',

@@ -10,6 +10,39 @@
    dentro de un dialog: las variables CSS resuelven pero las utilidades no. */
 @custom-variant dark (&:is(.dark *, .admin-dark *));
 
+/* Con el dedo y dentro del panel: WCAG 2.2, criterio 2.5.5 (Target Size,
+   Enhanced), 44x44px de area de toque. Solo con puntero tactil —con mouse el
+   panel se ve como siempre— y solo bajo html.admin-panel, que pone
+   AdminRouteShell: la tienda usa los mismos componentes base y no cambia. */
+@custom-variant tactil {
+  @media (pointer: coarse) {
+    &:is(.admin-panel *) {
+      @slot;
+    }
+  }
+}
+
+/* El area de toque de un control que se dibuja chico —una casilla, un
+   interruptor, un icono de ayuda— crece sin que cambie lo que se ve: un
+   pseudo-elemento invisible, centrado, de al menos 44x44. Se usa como
+   `tactil:area-toque`. Si dos vecinos quedan a menos de 44px, sus areas se
+   pisan: ahi se separan con gap, no se achica el area.
+
+   No fija `position`: el pseudo-elemento necesita un control posicionado, y
+   uno que ya es `absolute` —la X de un dialogo— no puede pasar a `relative`.
+   Los que no lo estan llevan `tactil:relative` al lado. */
+@utility area-toque {
+  &::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -260,6 +293,38 @@ html.admin-dark {
   /* Trust badge estilo */
   .trust-badge {
     @apply inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-sm font-medium;
+  }
+}
+
+/* La columna de acciones de las tablas del panel no se va con el scroll.
+ *
+ * En el celular las tablas desbordan y lo que quedaba afuera era justo el
+ * lapiz para editar, sin nada que avisara que habia que deslizar: la fila
+ * parecia no tener acciones. Fija a la derecha, lo que se desliza son los
+ * datos y pasan por debajo.
+ *
+ * El fondo copia el de la tabla —si no, se verian los datos a traves— y el
+ * de la fila al pasar el mouse. Donde el encabezado o el hover son otros, la
+ * tabla lo dice con --acciones-head / --acciones-hover. En escritorio la tabla
+ * entra entera, `sticky` no hace nada y la celda se ve como siempre; la linea
+ * que la separa de los datos aparece solo por debajo de lg.
+ */
+@layer components {
+  .acciones-fijas {
+    position: sticky;
+    right: 0;
+    background-color: var(--admin-surface);
+  }
+  thead .acciones-fijas {
+    background-color: var(--acciones-head, var(--admin-bg));
+  }
+  tr:hover > .acciones-fijas {
+    background-color: var(--acciones-hover, var(--admin-surface-2));
+  }
+  @media (width < 64rem) {
+    .acciones-fijas {
+      box-shadow: inset 1px 0 0 var(--admin-border);
+    }
   }
 }
 

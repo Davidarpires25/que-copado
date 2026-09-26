@@ -93,7 +93,7 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
           {/* Header */}
           <div className="flex items-center gap-3 mb-4">
             <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -125,7 +125,7 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
                   <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold hidden sm:table-cell">Ingredientes</TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">Costo</TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center hidden sm:table-cell">Activa</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center">Acciones</TableHead>
+                  <TableHead className="acciones-fijas text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -142,7 +142,7 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
                         <div>
                           <button
                             onClick={() => setExpandedId(isExpanded ? null : recipe.id)}
-                            className="flex items-center gap-1.5 text-left"
+                            className="flex items-center gap-1.5 tactil:min-h-11 text-left"
                           >
                             <p className="font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors text-sm lg:text-base">
                               {recipe.name}
@@ -211,7 +211,7 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
                         </TooltipProvider>
                       </TableCell>
 
-                      <TableCell className="text-right">
+                      <TableCell className="acciones-fijas text-right">
                         <div className="flex items-center justify-center gap-2">
                           <TooltipProvider>
                             <Tooltip>

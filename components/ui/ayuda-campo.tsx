@@ -32,7 +32,7 @@ export function AyudaCampo({ children }: { children: React.ReactNode }) {
           <button
             type="button"
             aria-label="Ver ayuda de este campo"
-            className="inline-flex align-middle text-[var(--admin-text-faint)] hover:text-[var(--admin-text-muted)] focus-visible:outline-none focus-visible:text-[var(--admin-text-muted)] transition-colors"
+            className="inline-flex align-middle tactil:relative tactil:area-toque text-[var(--admin-text-faint)] hover:text-[var(--admin-text-muted)] focus-visible:outline-none focus-visible:text-[var(--admin-text-muted)] transition-colors"
           >
             <HelpCircle className="h-3.5 w-3.5" />
           </button>

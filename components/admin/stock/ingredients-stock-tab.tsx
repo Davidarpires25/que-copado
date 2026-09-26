@@ -160,7 +160,9 @@ export function IngredientsStockTab({
         </div>
       ) : (
         <div className="overflow-x-auto">
-            <Table className="table-fixed">
+            {/* Anchos fijos solo desde sm: a 390 los porcentajes dejaban "Stock Actual"
+                y "Estado" montados uno sobre otro. Debajo, la tabla pide su ancho y se desliza. */}
+            <Table className="sm:table-fixed">
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
                 <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold w-[36%]">Nombre</TableHead>
@@ -169,7 +171,7 @@ export function IngredientsStockTab({
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold hidden md:table-cell w-[12%] text-center">Stock Minimo</TableHead>
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center w-[12%]">Estado</TableHead>
                   <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center hidden sm:table-cell w-[10%]">Tracking</TableHead>
-                  <TableHead className="text-[var(--admin-text-muted)] font-semibold text-center w-[8%]">Acciones</TableHead>
+                  <TableHead className="acciones-fijas text-[var(--admin-text-muted)] font-semibold text-center w-[8%]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -273,7 +275,7 @@ export function IngredientsStockTab({
                           </Tooltip>
                         </TooltipProvider>
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="acciones-fijas text-center">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>

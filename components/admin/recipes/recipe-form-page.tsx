@@ -124,7 +124,7 @@ function CreateIngredientDialog({
               Costo por unidad <span className="text-[var(--admin-text-faint)] font-normal">(opcional)</span>
             </Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--admin-text-muted)]">$</span>
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--admin-text-muted)]">$</span>
               <Input
                 type="number" min="0" step="any"
                 value={costRaw} onChange={(e) => setCostRaw(e.target.value)}
@@ -305,7 +305,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm">
-          <Link href="/admin/recipes" className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors">
+          <Link href="/admin/recipes" className="inline-flex items-center tactil:min-h-11 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors">
             Recetas
           </Link>
           <ChevronRight className="h-4 w-4 text-[var(--admin-text-muted)]/50" />
@@ -374,7 +374,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Breve descripción de la receta..."
                   rows={3}
-                  className="w-full rounded-md border border-[var(--admin-border)] bg-[var(--admin-bg)] text-[var(--admin-text)] text-sm px-3 py-2.5 placeholder:text-[var(--admin-text-muted)] focus:outline-none focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 resize-none transition-all"
+                  className="w-full rounded-md border border-[var(--admin-border)] bg-[var(--admin-bg)] text-[var(--admin-text)] text-sm tactil:text-base px-3 py-2.5 placeholder:text-[var(--admin-text-muted)] focus:outline-none focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 resize-none transition-all"
                 />
               </div>
 

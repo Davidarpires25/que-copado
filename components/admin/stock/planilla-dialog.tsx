@@ -121,7 +121,7 @@ export function PlanillaDialog() {
                           type="button"
                           onClick={() => alternar(c.id)}
                           className={cn(
-                            'w-full flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors',
+                            'w-full flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 tactil:min-h-11 text-left transition-colors',
                             marcada
                               ? 'border-[var(--admin-accent)] bg-[var(--admin-accent)]/10'
                               : 'border-[var(--admin-border)] hover:bg-[var(--admin-surface-2)]'

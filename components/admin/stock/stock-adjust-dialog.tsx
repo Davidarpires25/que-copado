@@ -330,7 +330,7 @@ export function StockAdjustDialog({
                   Cantidad perdida ({item.unit})
                 </Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-[var(--admin-text-muted)]">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-[var(--admin-text-muted)]">
                     −
                   </span>
                   <Input

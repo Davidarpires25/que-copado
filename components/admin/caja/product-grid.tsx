@@ -76,7 +76,7 @@ export function PosProductGrid({
       {/* Search */}
       <div className="px-4 pt-4 pb-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -101,7 +101,7 @@ export function PosProductGrid({
               <button
                 onClick={() => setSelectedCategory(null)}
                 className={cn(
-                  'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
+                  'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors',
                   selectedCategory === null
                     ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
                     : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
@@ -115,7 +115,7 @@ export function PosProductGrid({
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={cn(
-                    'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
+                    'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors',
                     selectedCategory === cat.id
                       ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
                       : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'

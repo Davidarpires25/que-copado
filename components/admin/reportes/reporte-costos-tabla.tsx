@@ -32,7 +32,7 @@ interface Props {
 
 // Las mismas clases que las tablas de Ingredientes, Stock y Productos: el
 // reporte tiene que sentirse parte del panel, no una pantalla aparte.
-const TAB = 'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors'
+const TAB = 'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors'
 const TAB_ACTIVA = 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
 const TAB_INACTIVA = 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
 const CONTADOR = 'ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-medium'
@@ -128,7 +128,7 @@ export function ReporteCostosTabla({ datos, error, vistaInicial }: Props) {
           type="button"
           onClick={() => ordenarPor(columna)}
           className={cn(
-            'inline-flex items-center gap-1 uppercase tracking-wide hover:text-[var(--admin-text)] transition-colors',
+            'inline-flex items-center gap-1 tactil:min-h-11 tactil:min-w-11 uppercase tracking-wide hover:text-[var(--admin-text)] transition-colors',
             activa && 'text-[var(--admin-text)]'
           )}
         >
@@ -160,7 +160,7 @@ export function ReporteCostosTabla({ datos, error, vistaInicial }: Props) {
       {/* Buscador e imprimir */}
       <div className="flex items-center gap-2 mb-4">
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
           <Input
             value={vista.busqueda}
             onChange={(e) => cambiar({ busqueda: e.target.value })}

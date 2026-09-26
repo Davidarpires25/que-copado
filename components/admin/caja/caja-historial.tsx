@@ -271,7 +271,7 @@ function ArqueosTab({
       {/* Search */}
       <div className="flex items-center gap-3 mb-4">
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
           <Input
             placeholder="Buscar por fecha o nota..."
             value={searchQuery}
@@ -458,7 +458,7 @@ function MovimientosTab({
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
           <Input
             placeholder="Buscar por motivo o fecha..."
             value={search}
@@ -472,7 +472,7 @@ function MovimientosTab({
               key={type}
               onClick={() => setFilterType(type)}
               className={cn(
-                'px-3 h-7 rounded-md text-xs font-medium transition-all cursor-pointer',
+                'px-3 h-7 tactil:h-11 rounded-md text-xs font-medium transition-all cursor-pointer',
                 filterType === type
                   ? type === 'deposit' ? 'bg-green-500/20 text-green-700 dark:text-green-400'
                     : type === 'withdrawal' ? 'bg-red-500/20 text-red-700 dark:text-red-400'
@@ -679,7 +679,7 @@ export function CajaHistorial({ sessions, movements }: CajaHistorialProps) {
             key={tab.key}
             onClick={() => navigate(tab.key)}
             className={cn(
-              'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors cursor-pointer',
+              'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors cursor-pointer',
               activeTab === tab.key
                 ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
                 : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'

@@ -91,7 +91,7 @@ export function PendingOrderPayView({
             onClick={() => printKitchenTicketAction(order.id)
               .then((r) => { if (r.error) toast.error(r.error) })
               .catch(() => toast.error('Error al imprimir'))}
-            className="cursor-pointer p-1 text-[var(--admin-text-muted)] transition-colors hover:text-orange-700 dark:hover:text-orange-400"
+            className="cursor-pointer p-1 tactil:grid tactil:size-11 tactil:place-items-center text-[var(--admin-text-muted)] transition-colors hover:text-orange-700 dark:hover:text-orange-400"
             aria-label="Imprimir comanda cocina"
             title="Comanda cocina"
           >
@@ -99,7 +99,7 @@ export function PendingOrderPayView({
           </button>
           <button
             onClick={onPrint}
-            className="cursor-pointer p-1 text-[var(--admin-text-muted)] transition-colors hover:text-[var(--admin-text)]"
+            className="cursor-pointer p-1 tactil:grid tactil:size-11 tactil:place-items-center text-[var(--admin-text-muted)] transition-colors hover:text-[var(--admin-text)]"
             aria-label="Imprimir ticket"
             title="Imprimir ticket"
           >
@@ -213,7 +213,7 @@ export function PendingOrderPayView({
           type="button"
           onClick={onCancel}
           disabled={loading}
-          className="flex h-7 w-full cursor-pointer items-center justify-center gap-1.5 text-[11px] text-red-700/60 transition-colors hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400/50 dark:hover:text-red-400"
+          className="flex h-7 tactil:h-11 w-full cursor-pointer items-center justify-center gap-1.5 text-[11px] text-red-700/60 transition-colors hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400/50 dark:hover:text-red-400"
         >
           <AlertTriangle className="h-3 w-3" />
           Cancelar pedido

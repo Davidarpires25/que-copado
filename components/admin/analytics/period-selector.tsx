@@ -29,7 +29,7 @@ export function PeriodSelector({
           aria-label={`Seleccionar período de ${PERIOD_LABELS[period]}`}
           aria-pressed={value === period}
           className={cn(
-            'px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 min-w-[60px] touch-manipulation',
+            'px-3 py-1.5 tactil:min-h-11 rounded-md text-sm font-medium transition-all duration-200 min-w-[60px] touch-manipulation',
             value === period
               ? 'bg-[var(--admin-accent)] text-[var(--admin-surface)] shadow-md'
               : 'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)] active:scale-95'

@@ -87,7 +87,7 @@ export function RoleFormPage({ mode, role }: Props) {
         <nav className="flex items-center gap-2 text-sm">
           <Link
             href={VOLVER}
-            className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors"
+            className="inline-flex items-center tactil:min-h-11 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors"
           >
             Equipo
           </Link>
@@ -97,7 +97,7 @@ export function RoleFormPage({ mode, role }: Props) {
           </span>
         </nav>
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-bold text-[var(--admin-text)]">
             {mode === 'edit' ? 'Editar Rol' : 'Nuevo Rol'}
           </h1>
@@ -186,7 +186,7 @@ export function RoleFormPage({ mode, role }: Props) {
                       <button
                         type="button"
                         onClick={() => toggleGrupo(group)}
-                        className="text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer"
+                        className="text-xs tactil:min-h-11 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer"
                       >
                         {puestos === claves.length ? 'Quitar todos' : 'Marcar todos'}
                       </button>
@@ -200,7 +200,7 @@ export function RoleFormPage({ mode, role }: Props) {
                         return (
                           <label
                             key={p.key}
-                            className="flex items-start gap-3 px-4 py-2.5 cursor-pointer hover:bg-[var(--admin-hover)] transition-colors border-b border-[var(--admin-border)] last:border-b-0 sm:[&:nth-last-child(2):nth-child(odd)]:border-b-0"
+                            className="flex items-start gap-3 px-4 py-2.5 tactil:min-h-11 cursor-pointer hover:bg-[var(--admin-hover)] transition-colors border-b border-[var(--admin-border)] last:border-b-0 sm:[&:nth-last-child(2):nth-child(odd)]:border-b-0"
                           >
                             <span
                               className={cn(

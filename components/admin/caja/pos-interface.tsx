@@ -557,6 +557,8 @@ export function PosInterface({
   const handleTableItemsAdded = (resultado: { items: OrderItemRow[]; total: number }) => {
     setShowAddItems(false)
     setAddItemsSaleTag(null)
+    // En el celular se vuelve a la hoja de la mesa, con lo recien agregado.
+    setShowMobileTablePanel(true)
 
     // Los items se muestran con lo que devolvio la base, que son las filas
     // reales con sus ids. Antes esto esperaba un refreshTables() —todas las
@@ -639,7 +641,7 @@ export function PosInterface({
         <button
           onClick={handleSwitchToMostrador}
           className={cn(
-            'flex items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 cursor-pointer',
+            'flex items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 tactil:min-h-11 cursor-pointer',
             mode === 'mostrador'
               ? 'text-[var(--admin-accent-text)] border-[var(--admin-accent)]'
               : 'text-[var(--admin-text-muted)] border-transparent hover:text-[var(--admin-text)]'
@@ -656,7 +658,7 @@ export function PosInterface({
         <button
           onClick={() => setMode('mesas')}
           className={cn(
-            'flex items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 cursor-pointer',
+            'flex items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 tactil:min-h-11 cursor-pointer',
             mode === 'mesas'
               ? 'text-[var(--admin-accent-text)] border-[var(--admin-accent)]'
               : 'text-[var(--admin-text-muted)] border-transparent hover:text-[var(--admin-text)]'
@@ -673,7 +675,7 @@ export function PosInterface({
         <button
           onClick={handleSwitchToHistorial}
           className={cn(
-            'flex items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 cursor-pointer',
+            'flex items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 tactil:min-h-11 cursor-pointer',
             mode === 'historial'
               ? 'text-[var(--admin-accent-text)] border-[var(--admin-accent)]'
               : 'text-[var(--admin-text-muted)] border-transparent hover:text-[var(--admin-text)]'
@@ -709,7 +711,7 @@ export function PosInterface({
               {/* Solo cuando hay algo pendiente: antes ocupaba una banda fija
                   para mostrar un guion. */}
               {(pendingLoading || pendingOrders.length > 0) && (
-              <div className="shrink-0 border-t border-[var(--admin-border)] flex items-center gap-2.5 px-4 overflow-x-auto scrollbar-hide" style={{ height: 52, paddingTop: 10, paddingBottom: 10 }}>
+              <div className="shrink-0 h-[52px] py-2.5 tactil:h-16 border-t border-[var(--admin-border)] flex items-center gap-2.5 px-4 overflow-x-auto scrollbar-hide">
                 <span className="text-[12px] font-medium text-[var(--admin-text-muted)] shrink-0">
                   Pendientes:
                 </span>
@@ -729,7 +731,7 @@ export function PosInterface({
                           setShowMobileCart(true)
                         }}
                         className={cn(
-                          'shrink-0 flex items-center px-4 text-[13px] font-semibold transition-all cursor-pointer tabular-nums',
+                          'shrink-0 flex items-center px-4 tactil:min-h-11 text-[13px] font-semibold transition-all cursor-pointer tabular-nums',
                           isSelected
                             ? 'bg-[var(--admin-accent)]/20 border border-[var(--admin-accent)]/60 text-[var(--admin-accent-text)]'
                             : 'bg-amber-400 border border-amber-400 text-black hover:bg-amber-300'
@@ -754,7 +756,7 @@ export function PosInterface({
                 {payingOrder && (
                   <button
                     onClick={() => setPayingOrder(null)}
-                    className="shrink-0 flex items-center px-4 text-[13px] font-semibold text-black bg-[var(--admin-accent)] border border-[var(--admin-accent)] hover:bg-amber-300 transition-colors cursor-pointer"
+                    className="shrink-0 flex items-center px-4 tactil:min-h-11 text-[13px] font-semibold text-black bg-[var(--admin-accent)] border border-[var(--admin-accent)] hover:bg-amber-300 transition-colors cursor-pointer"
                     style={{ height: 32, borderRadius: 8 }}
                   >
                     + Nuevo pedido
@@ -829,7 +831,9 @@ export function PosInterface({
               orderId={selectedTable.orders.id}
               saleTag={addItemsSaleTag}
               getHalfOptions={getHalfOptions}
-              onClose={() => { setShowAddItems(false); setAddItemsSaleTag(null) }}
+              // Al volver, la hoja de la mesa se abre de nuevo en el celular (en
+              // escritorio el panel lateral ya esta a la vista y la hoja no existe).
+              onClose={() => { setShowAddItems(false); setAddItemsSaleTag(null); setShowMobileTablePanel(true) }}
               onItemsAdded={handleTableItemsAdded}
             />
           ) : (
@@ -929,10 +933,12 @@ export function PosInterface({
             onRemoveItem={handleRemoveItem}
             onSetNotes={setNotes}
             onSetItemNotes={handleSetItemNotes}
-            onCheckout={async () => {
-              await handleConfirmOrder()
-              setShowMobileCart(false)
-            }}
+            // La hoja no se cierra: handleConfirmOrder deja el pedido en
+            // payingOrder y la hoja pasa a "Cobrar #N", como el panel de
+            // escritorio. Antes se cerraba, el pedido quedaba seleccionado en
+            // Pendientes y el primer toque en el chip lo deseleccionaba: habia
+            // que tocarlo dos veces para cobrar.
+            onCheckout={handleConfirmOrder}
           />
         )}
       </BottomSheet>
@@ -976,7 +982,11 @@ export function PosInterface({
             table={selectedTable}
             session={session}
             asSheet
+            // Como cobrar y cancelar, agregar cierra la hoja: la pantalla de
+            // agregar se abre detras, y con la hoja encima no se veia. Desde el
+            // celular no se podia cargar nada a una mesa.
             onAddItems={(tag) => {
+              setShowMobileTablePanel(false)
               setAddItemsSaleTag(tag ?? null)
               setShowAddItems(true)
             }}

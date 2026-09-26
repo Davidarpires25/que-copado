@@ -959,3 +959,45 @@ fuente —acá, `data-expandido` en el `<aside>`—. Dos condiciones "equivalent
 escritas por separado (el hover del mouse y el estado de React) divergen en el
 caso que no se probó. Y el test de una interacción tiene que incluir el click,
 no solo el paso del mouse: es lo que el usuario hace después de abrir el menú.
+
+## 39. Después de un `git stash`, el servidor de desarrollo puede seguir sirviendo lo viejo
+
+**Qué pasó (2026-09-25).** Para probar que el escritorio no había cambiado,
+guardé los cambios con `git stash`, saqué capturas de `main` en el mismo
+`next dev` y los recuperé con `git stash pop`. Las capturas "después" que saqué
+a continuación mostraban la columna de acciones sin fijar y las flechas de
+reordenar chicas, como si el cambio no existiera. Los tests, corridos antes del
+stash, decían lo contrario.
+
+Turbopack había vuelto a leer los `.tsx`, pero no `globals.css`: servía la
+versión de `main`, sin la variante `tactil` ni `.acciones-fijas`. Ni reiniciar
+el servidor ni un `touch` al archivo lo arreglaron; hizo falta borrar
+`.next/dev`. Y una recaptura de equipo hecha en ese estado había dado "igual a
+main" por la razón equivocada.
+
+**Regla.** Después de un stash, un checkout o cualquier cosa que cambie
+archivos por fuera del editor, antes de medir se confirma que el servidor sirve
+lo que está en disco: se busca en el CSS servido una clase que solo existe en
+la versión nueva. Si no está, se borra `.next/dev` y se reinicia. Y toda
+medición hecha en el intervalo se descarta y se repite, aunque haya dado bien.
+Para comparar contra `main`, lo más limpio es otro checkout en otra carpeta, no
+el mismo servidor.
+
+## 40. Un recorrido que solo carga pantallas no ve lo que se abre desde ellas
+
+**Qué pasó (2026-09-25).** El test del celular recorría las 29 rutas del panel
+y daba cero fallas. David preguntó si faltaba alguna sección. Abriendo lo que
+el recorrido no abría —pestañas, diálogos, la caja con un pedido— aparecieron
+treinta controles chicos más y un error de flujo que existía antes del cambio:
+en el celular, después de "Enviar a cocina", había que tocar dos veces el chip
+del pedido para poder cobrarlo.
+
+Y en esa misma ronda, un `afterAll` que falló a mitad de camino dejó borrada la
+sesión de caja de la base local: la restauración estaba después de un paso que
+tiró error.
+
+**Regla.** "Recorrí todas las rutas" no es "revisé todas las pantallas": una
+ruta es el estado inicial. Se lista qué se abre desde cada una y se recorre
+también, haciendo lo que hace el usuario —tocar, enviar, volver—, no solo
+mirando. Y lo que un test cambia en la base se devuelve en un `finally`: la
+limpieza no puede depender de que todo lo anterior haya salido bien.

@@ -58,14 +58,14 @@ export function SessionOpenScreen({ onSessionOpened }: SessionOpenScreenProps) {
               Monto inicial en caja
             </label>
             <div className="relative">
-              <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--admin-text-muted)]" />
+              <Banknote className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--admin-text-muted)]" />
               <Input
                 type="text"
                 inputMode="decimal"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0"
-                className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-2xl h-16 pl-10 text-center font-bold placeholder:text-[var(--admin-text-placeholder)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
+                className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-2xl tactil:text-2xl h-16 pl-10 text-center font-bold placeholder:text-[var(--admin-text-placeholder)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20"
                 autoFocus
                 onKeyDown={(e) => e.key === 'Enter' && handleOpen()}
               />

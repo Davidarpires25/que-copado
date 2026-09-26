@@ -182,7 +182,7 @@ export function PurchaseFormPage({ ingredients, products }: PurchaseFormPageProp
     <div className="flex items-center gap-2 text-sm text-[var(--admin-text-muted)] mb-6">
       <button
         onClick={volver}
-        className="hover:text-[var(--admin-text)] transition-colors flex items-center gap-1.5"
+        className="hover:text-[var(--admin-text)] transition-colors flex items-center gap-1.5 tactil:min-h-11"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         Stock
@@ -253,7 +253,7 @@ export function PurchaseFormPage({ ingredients, products }: PurchaseFormPageProp
         <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl shadow-[var(--shadow-card)] overflow-hidden">
           <div className="p-4 border-b border-[var(--admin-border)]">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--admin-text-muted)]" />
               <Input
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
@@ -375,7 +375,7 @@ export function PurchaseFormPage({ ingredients, products }: PurchaseFormPageProp
                           Costo por unidad (opcional)
                         </Label>
                         <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[var(--admin-text-muted)]">
+                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[var(--admin-text-muted)]">
                             $
                           </span>
                           <Input
@@ -406,7 +406,7 @@ export function PurchaseFormPage({ ingredients, products }: PurchaseFormPageProp
                           type="button"
                           onClick={() => quitar(line.clave)}
                           title={`Quitar ${art?.nombre ?? ''}`}
-                          className="p-2 text-[var(--admin-text-muted)] hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                          className="p-2 tactil:grid tactil:size-11 tactil:place-items-center text-[var(--admin-text-muted)] hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
