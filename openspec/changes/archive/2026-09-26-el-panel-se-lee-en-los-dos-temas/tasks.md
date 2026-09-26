@@ -36,7 +36,7 @@ Todo contra el stack local; el tema se fija con
       respuesta.
 - [x] 4.2 `npm run lint`, `npm run build` y la suite completa. Verifica: salida
       de los tres.
-- [ ] 4.3 Después de archivar: el propósito de `openspec/specs/panel-accesible`
+- [x] 4.3 Después de archivar: el propósito de `openspec/specs/panel-accesible`
       deja de decir que el contraste queda fuera; actualizar la memoria
       `light-theme-contrast-debt` (el acento en claro ya estaba corregido).
       Verifica: los dos textos.
