@@ -60,16 +60,19 @@ export function ReporteCostosTabla({ datos, error, vistaInicial }: Props) {
   const [vista, setVista] = useState<VistaDeCostos>(vistaInicial)
 
   // La vista queda en la URL --sin recargar-- para que el favorito funcione.
+  //
+  // La URL se escribe en el manejador, fuera de setState. Adentro del updater,
+  // replaceState (que Next intercepta para sincronizar su Router) actualizaba
+  // el Router mientras React renderizaba esta tabla: "Cannot update a
+  // component while rendering a different component".
   const cambiar = (parcial: Partial<VistaDeCostos>) => {
-    setVista((prev) => {
-      const siguiente = { ...prev, ...parcial }
-      try {
-        window.history.replaceState(null, '', `/admin/reportes/costos${vistaAQuery(siguiente)}`)
-      } catch {
-        // Sin historial no se pierde nada: solo el favorito.
-      }
-      return siguiente
-    })
+    const siguiente = { ...vista, ...parcial }
+    setVista(siguiente)
+    try {
+      window.history.replaceState(null, '', `/admin/reportes/costos${vistaAQuery(siguiente)}`)
+    } catch {
+      // Sin historial no se pierde nada: solo el favorito.
+    }
   }
 
   const cambiarPestana = (pestana: Pestana) =>

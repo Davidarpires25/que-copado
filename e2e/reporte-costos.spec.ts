@@ -74,10 +74,14 @@ test.beforeEach(async ({ page }) => {
 
 const fila = (page: Page, nombre: string) => page.locator('tr', { hasText: nombre }).first()
 
-/** Los nombres de la primera columna, en orden. */
+/**
+ * Los nombres de la primera columna, en orden. El nombre es el primer <p> de
+ * la celda: debajo va una segunda linea (categoria y tipo) que en escritorio
+ * esta oculta por CSS pero igual esta en el texto.
+ */
 const nombresEnOrden = (page: Page) =>
   page.locator('tbody tr').evaluateAll((trs) =>
-    trs.map((tr) => (tr.querySelector('td')?.textContent ?? '').trim()).filter(Boolean)
+    trs.map((tr) => (tr.querySelector('td p')?.textContent ?? '').trim()).filter(Boolean)
   )
 
 test('en pantalla: costo, precio y un margen que cierra', async ({ page }) => {
@@ -171,4 +175,23 @@ test('está en Reportes y ya no en Productos', async ({ page }) => {
   await expect(page.getByRole('button', { name: /Reporte de costos/ })).toHaveCount(0)
 
   await expect(page.locator('aside a[href="/admin/reportes/costos"]')).toHaveCount(1)
+})
+
+test('cambiar de pestaña y de orden no rompe el render', async ({ page }) => {
+  // cambiar() escribia la URL con history.replaceState DENTRO del updater de
+  // setState. Next intercepta replaceState para sincronizar su Router, asi que
+  // actualizaba el Router mientras React renderizaba la tabla: "Cannot update
+  // a component while rendering a different component".
+  const errores: string[] = []
+  page.on('console', (m) => { if (m.type() === 'error') errores.push(m.text().slice(0, 160)) })
+  page.on('pageerror', (e) => errores.push(e.message.slice(0, 160)))
+
+  await page.goto('/admin/reportes/costos')
+  await page.waitForTimeout(1200)
+  await page.getByRole('button', { name: /^Insumos/ }).click()
+  await expect(page).toHaveURL(/vista=insumos/)
+  await page.locator('thead').getByRole('button', { name: /^Insumo/ }).click()
+  await expect(page).toHaveURL(/orden=nombre/)
+  await page.waitForTimeout(500)
+  expect(errores.filter((e) => /Cannot update a component/.test(e))).toEqual([])
 })
