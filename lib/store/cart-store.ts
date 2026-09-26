@@ -1,19 +1,12 @@
 'use client'
 
-import { useSyncExternalStore } from 'react'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Product } from '@/lib/types/database'
 
-// Hook to check if component is hydrated (client-side)
-const emptySubscribe = () => () => {}
-export function useHydrated() {
-  return useSyncExternalStore(
-    emptySubscribe,
-    () => true,
-    () => false
-  )
-}
+// Vive en lib/hooks: tambien lo usa el panel. Se re-exporta para los que ya
+// lo importaban desde aca.
+export { useHydrated } from '@/lib/hooks/use-hydrated'
 
 export interface CartItem {
   product: Product
