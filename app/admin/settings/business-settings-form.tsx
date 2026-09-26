@@ -167,7 +167,10 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
             onClick={() => setTab(key)}
             aria-current={tab === key ? 'page' : undefined}
             className={cn(
-              'pb-2 -mb-px text-sm whitespace-nowrap border-b-2 tactil:min-h-11 tactil:min-w-11 transition-colors',
+              // shrink-0: la fila se desliza, las pestañas no se achican. Con
+              // tactil:min-w-11 el piso de un item flex deja de ser el ancho de
+              // su texto, y "Apariencia" se comprimia hasta tocar a "Datos".
+              'shrink-0 pb-2 -mb-px text-sm whitespace-nowrap border-b-2 tactil:min-h-11 tactil:min-w-11 transition-colors',
               tab === key
                 ? 'border-[var(--admin-accent)] text-[var(--admin-text)] font-semibold'
                 : 'border-transparent text-[var(--admin-text-muted)] font-medium hover:text-[var(--admin-text)]'

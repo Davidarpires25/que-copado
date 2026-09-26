@@ -116,12 +116,12 @@ export function ReporteCostosTabla({ datos, error, vistaInicial }: Props) {
    * tipo nuevo en cada render, y React desmontaria y volveria a montar los
    * encabezados en cada tecla del buscador.
    */
-  const orden = (columna: string, children: string, alinear?: 'right') => {
+  const orden = (columna: string, children: string, alinear?: 'right', soloDesdeSm?: boolean) => {
     const activa = vista.orden === columna
     return (
       <TableHead
         key={columna}
-        className={cn(ENCABEZADO, alinear === 'right' && 'text-right')}
+        className={cn(ENCABEZADO, alinear === 'right' && 'text-right', soloDesdeSm && 'hidden sm:table-cell')}
         aria-sort={activa ? (vista.asc ? 'ascending' : 'descending') : 'none'}
       >
         <button
@@ -220,9 +220,12 @@ export function ReporteCostosTabla({ datos, error, vistaInicial }: Props) {
             <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
               {esProductos ? (
                 <>
+                  {/* En el celular, categoria y tipo van debajo del nombre (como en
+                      Productos): como columnas empujaban costo, precio y margen
+                      —lo que el reporte existe para mostrar— fuera de la pantalla. */}
                   {orden('nombre', 'Producto')}
-                  {conCategoria && orden('categoria', 'Categoría')}
-                  {orden('tipo', 'Tipo')}
+                  {conCategoria && orden('categoria', 'Categoría', undefined, true)}
+                  {orden('tipo', 'Tipo', undefined, true)}
                   {orden('costo', 'Costo', 'right')}
                   {orden('precio', 'Precio', 'right')}
                   {orden('margen', 'Margen', 'right')}
@@ -230,7 +233,7 @@ export function ReporteCostosTabla({ datos, error, vistaInicial }: Props) {
               ) : (
                 <>
                   {orden('nombre', 'Insumo')}
-                  {conCategoria && orden('categoria', 'Categoría')}
+                  {conCategoria && orden('categoria', 'Categoría', undefined, true)}
                   <TableHead className={cn(ENCABEZADO, 'text-right')}>Costo / Unidad</TableHead>
                 </>
               )}
@@ -248,17 +251,20 @@ export function ReporteCostosTabla({ datos, error, vistaInicial }: Props) {
             {esProductos
               ? productos.map((f) => (
                   <tr key={f.id} className="border-[var(--admin-border)] hover:bg-[var(--admin-surface-2)] transition-colors group">
-                    <TableCell>
+                    <TableCell className="whitespace-normal sm:whitespace-nowrap">
                       <p className="font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors text-sm lg:text-base">
                         {f.nombre}
                       </p>
+                      <p className="sm:hidden text-xs text-[var(--admin-text-muted)]">
+                        {conCategoria ? `${f.categoria} · ` : ''}{NOMBRE_DEL_TIPO[f.tipo]}
+                      </p>
                     </TableCell>
                     {conCategoria && (
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <span className="text-[var(--admin-text-muted)] text-sm">{f.categoria}</span>
                       </TableCell>
                     )}
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <span className="text-[var(--admin-text-muted)] text-sm">{NOMBRE_DEL_TIPO[f.tipo]}</span>
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
@@ -292,13 +298,16 @@ export function ReporteCostosTabla({ datos, error, vistaInicial }: Props) {
                 ))
               : insumos.map((f) => (
                   <tr key={f.id} className="border-[var(--admin-border)] hover:bg-[var(--admin-surface-2)] transition-colors group">
-                    <TableCell>
+                    <TableCell className="whitespace-normal sm:whitespace-nowrap">
                       <p className="font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors text-sm lg:text-base">
                         {f.nombre}
                       </p>
+                      {conCategoria && (
+                        <p className="sm:hidden text-xs text-[var(--admin-text-muted)]">{f.categoria}</p>
+                      )}
                     </TableCell>
                     {conCategoria && (
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <span className="text-[var(--admin-text-muted)] text-sm">{f.categoria}</span>
                       </TableCell>
                     )}

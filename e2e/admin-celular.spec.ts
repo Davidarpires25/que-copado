@@ -217,6 +217,43 @@ test('ningun campo del panel hace zoom en iPhone', async ({ browser }) => {
   expect(zoom, `${zoom.length} campos con letra de menos de 16px`).toEqual([])
 })
 
+/**
+ * Controles cuyo texto es mas ancho que su propia caja: se sale y se monta
+ * sobre el vecino.
+ *
+ * Paso con las pestañas de Configuracion: `tactil:min-w-11` le cambia a un
+ * item flex el piso de `min-width: auto` (el ancho de su texto) por 44px, y en
+ * una fila que no entra "Apariencia" se comprimia hasta tocar a "Datos". Lo
+ * que se recorta a proposito —con puntos suspensivos u overflow oculto— no
+ * cuenta.
+ */
+function textoFueraDelControl(page: Page) {
+  return page.evaluate(() => Array.from(document.querySelectorAll('button, a[href], [role=tab]'))
+    .filter((el) => {
+      const s = getComputedStyle(el)
+      const b = el.getBoundingClientRect()
+      return s.display !== 'none' && s.visibility !== 'hidden' && b.width > 1
+        && s.textOverflow !== 'ellipsis' && s.overflowX === 'visible'
+        && el.scrollWidth > el.clientWidth + 1 && (el as HTMLElement).innerText.trim() !== ''
+    })
+    .map((el) => `"${(el as HTMLElement).innerText.trim().replace(/\s+/g, ' ').slice(0, 30)}" caja ${el.clientWidth}px, texto ${el.scrollWidth}px`))
+}
+
+for (const ancho of ANCHOS) {
+  test(`ningun texto se sale de su boton o pestaña a ${ancho}px`, async ({ browser }) => {
+    const { rutas } = await resolverRutas()
+    const { ctx, page } = await paginaTactil(browser, ancho)
+    await entrar(page)
+    const fuera: string[] = []
+    for (const ruta of rutas) {
+      await abrir(page, ruta)
+      for (const f of await medir(page, () => textoFueraDelControl(page))) fuera.push(`${ruta}: ${f}`)
+    }
+    await ctx.close()
+    expect(fuera).toEqual([])
+  })
+}
+
 // ─── Formularios ────────────────────────────────────────────────────────────
 
 test('un producto se crea desde el celular', async ({ page }) => {
@@ -264,6 +301,19 @@ for (const ruta of ['/admin/products', '/admin/recipes', '/admin/ingredients', '
     expect(pisados).toEqual([])
   })
 }
+
+test('en el reporte de costos, los numeros se ven sin deslizar', async ({ page }) => {
+  // Es lo que el reporte existe para mostrar. Con categoria y tipo como
+  // columnas, en el celular solo se veian los nombres: costo, precio y margen
+  // quedaban afuera, sin nada que avisara que habia que deslizar.
+  await page.setViewportSize(CELULAR)
+  await entrar(page)
+  await abrir(page, '/admin/reportes/costos')
+  for (const col of ['Costo', 'Precio', 'Margen']) {
+    const th = page.locator('table thead th').filter({ hasText: new RegExp(`^${col}`, 'i') })
+    expect(await dentroDeLaVentana(page, th), `${col} a la vista`).toBe(true)
+  }
+})
 
 // ─── Barra superior ─────────────────────────────────────────────────────────
 
