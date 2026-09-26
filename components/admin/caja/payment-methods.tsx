@@ -30,7 +30,7 @@ export function PaymentMethods({
   onDraftChange, onToggle, onEdit, onCommit, onCancel,
 }: PaymentMethodsProps) {
   return (
-    <div className="flex flex-col gap-2">
+    <div role="group" aria-label="Medios de pago" className="flex flex-col gap-2">
       {PAYMENT_METHODS.map(({ value, label }) => {
         const entry = payments.find((p) => p.method === value)
         const isEditing = editing === value
@@ -93,7 +93,7 @@ export function PaymentMethodPicker({
   onSelect: (method: PaymentMethod) => void
 }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div role="radiogroup" aria-label="Medio de pago" className="flex flex-col gap-2">
       {PAYMENT_METHODS.map(({ value, label }) => {
         const on = selected === value
         return (
@@ -141,7 +141,16 @@ function Row({
           borde deja 38px adentro, asi que un hijo de 40px sobresale por arriba
           y por abajo y el pill blanco queda pegado al borde ambar. Con el dedo,
           la misma cuenta un escalon mas arriba: fila de 48 y monto de 44. */}
-      <div className="flex items-center gap-2">
+      {/* El control es este boton: la fila responde entera al mouse, pero un
+          <div> con click no se alcanza con Tab ni dice si esta marcado. No
+          puede ser la fila misma: adentro va el boton del monto, y los botones
+          no se anidan. */}
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onClick() }}
+        {...(multi ? { 'aria-pressed': on } : { role: 'radio', 'aria-checked': on })}
+        className="flex flex-1 items-center gap-2 self-stretch rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)]"
+      >
         <span className={cn(
           'grid h-4 w-4 shrink-0 place-items-center transition-colors',
           multi ? 'rounded' : 'rounded-full',
@@ -158,7 +167,7 @@ function Row({
         )}>
           {label}
         </span>
-      </div>
+      </button>
       {children}
     </div>
   )

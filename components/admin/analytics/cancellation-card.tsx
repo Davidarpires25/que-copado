@@ -32,9 +32,9 @@ export function CancellationCard({ data, loading, period, onPeriodChange }: Canc
       )}
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 className="text-base font-semibold text-[var(--admin-text)]">
+          <h2 className="text-base font-semibold text-[var(--admin-text)]">
             Tasa de Cancelación
-          </h3>
+          </h2>
           {data && (
             <p className="text-xs text-[var(--admin-text-muted)] mt-0.5">
               {data.totalOrders} pedidos totales

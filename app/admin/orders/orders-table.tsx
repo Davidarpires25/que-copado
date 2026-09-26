@@ -233,7 +233,7 @@ export function OrdersTable({ initialOrders, initialDateFilter }: OrdersTablePro
             elegirPreset(v as DateFilter)
           }}
         >
-          <SelectTrigger className="w-36 h-9 text-sm bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)]/50">
+          <SelectTrigger aria-label="Período" className="w-36 h-9 text-sm bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)]/50">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)]">
@@ -269,6 +269,7 @@ export function OrdersTable({ initialOrders, initialDateFilter }: OrdersTablePro
                   variant="outline"
                   size="sm"
                   onClick={handleRefresh}
+                  aria-label="Actualizar"
                   className="border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] h-9 gap-2"
                 >
                   <Filter className="h-4 w-4" />
@@ -371,9 +372,17 @@ export function OrdersTable({ initialOrders, initialDateFilter }: OrdersTablePro
                     onClick={() => handleViewOrder(order)}
                   >
                     <TableCell>
-                      <span className="font-mono text-sm lg:text-base font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors">
+                      {/* La fila se abre con click; con el teclado, desde este
+                          boton. Una <tr role="button"> romperia la tabla para
+                          un lector de pantalla. */}
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleViewOrder(order) }}
+                        aria-label={`Ver pedido ${orderLabel(order)}`}
+                        className="inline-flex items-center min-h-6 min-w-6 tactil:min-h-11 tactil:min-w-11 font-mono text-sm lg:text-base font-semibold text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors rounded outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)] cursor-pointer"
+                      >
                         {orderLabel(order)}
-                      </span>
+                      </button>
                     </TableCell>
                     <TableCell>
                       <span className="font-semibold text-sm lg:text-base text-[var(--admin-text)] group-hover:text-[var(--admin-accent-text)] transition-colors">

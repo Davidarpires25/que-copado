@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   Package,
   Tag,
@@ -26,6 +26,7 @@ import {
   UserCog,
   } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import { signOut } from '@/app/actions/auth'
 import type { PermissionKey } from '@/lib/constants/permissions'
@@ -390,6 +391,7 @@ export function AdminSidebar({ stockAlertCount = 0, userName = 'Admin', userRole
         scrollear la pagina de atras.
       */}
       <nav
+        aria-label="Menú principal"
         ref={menuRef}
         className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain py-3 px-3"
       >
@@ -453,6 +455,8 @@ export function AdminSidebar({ stockAlertCount = 0, userName = 'Admin', userRole
             <Button
               type="submit"
               variant="ghost"
+              // Colapsado solo queda el icono: el nombre no puede depender del texto.
+              aria-label="Cerrar sesión"
               className={cn(
                 'w-full text-[var(--admin-text-muted)] hover:text-red-700 dark:hover:text-red-500 hover:bg-red-500/10 h-9',
                 collapsed ? 'justify-center px-0' : 'justify-start gap-3'
@@ -499,90 +503,84 @@ export function MobileSidebar({ open, onClose, stockAlertCount = 0, permissions 
   const groups = visibleNavGroups(permissions)
   const pathname = usePathname()
 
+  // Es un Sheet (Dialog de Radix) y no un aside animado a mano: se anuncia como
+  // dialogo, el foco entra y no se escapa a la pagina de atras, Escape lo
+  // cierra y el foco vuelve a "Abrir menú". El aside de antes no hacia nada
+  // de eso.
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+    <Sheet open={open} onOpenChange={(v) => { if (!v) onClose() }}>
+      <SheetContent
+        side="left"
+        showCloseButton={false}
+        aria-describedby={undefined}
+        overlayClassName="bg-black/60 backdrop-blur-sm"
+        className="w-72 sm:max-w-none gap-0 p-0 bg-[var(--admin-sidebar-bg)] border-r border-[var(--admin-sidebar-border)] lg:hidden"
+      >
+        <SheetTitle className="sr-only">Menú</SheetTitle>
+        <div className="h-20 flex items-center justify-between px-4 border-b border-[var(--admin-sidebar-border)]">
+          <Link href="/admin/dashboard" className="flex items-center gap-3" onClick={onClose}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- Logo SVG vectorial: next/image no lo optimiza sin dangerouslyAllowSVG. */}
+            <img
+                src="/logo.svg"
+                alt="Que Copado"
+                className="w-14 h-14 shrink-0 rounded-xl object-contain"
+              />
+            <div>
+              <span className="text-lg font-bold text-[var(--admin-text)]">
+                Que <span className="text-[var(--admin-accent-text)]">Copado</span>
+              </span>
+              <span className="block text-xs text-[var(--admin-text-muted)] font-medium">Panel Admin</span>
+            </div>
+          </Link>
+
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
-          />
-
-          <motion.aside
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed left-0 top-0 z-50 h-screen w-72 bg-[var(--admin-sidebar-bg)] border-r border-[var(--admin-sidebar-border)] flex flex-col lg:hidden"
+            aria-label="Cerrar menú"
+            className="h-9 w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)]"
           >
-            <div className="h-20 flex items-center justify-between px-4 border-b border-[var(--admin-sidebar-border)]">
-              <Link href="/admin/dashboard" className="flex items-center gap-3" onClick={onClose}>
-                {/* eslint-disable-next-line @next/next/no-img-element -- Logo SVG vectorial: next/image no lo optimiza sin dangerouslyAllowSVG. */}
-                <img
-                    src="/logo.svg"
-                    alt="Que Copado"
-                    className="w-14 h-14 shrink-0 rounded-xl object-contain"
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <nav aria-label="Menú principal" className="flex-1 py-3 px-3 overflow-y-auto">
+          {groups.map((group, groupIndex) => (
+            <div key={group.title ?? groupIndex} className={cn(groupIndex > 0 && 'mt-2')}>
+              {groupIndex > 0 && <div className="h-px bg-[var(--admin-sidebar-border)] mx-2 mb-2" />}
+              {group.title && (
+                <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-widest text-[var(--admin-text-muted)]">
+                  {group.title}
+                </p>
+              )}
+              <div className="space-y-0.5">
+                {group.items.map((item) => (
+                  <NavItemLink
+                    key={item.href}
+                    item={item.href === '/admin/stock' ? { ...item, badgeCount: stockAlertCount } : item}
+                    isActive={isActiveRoute(pathname, item.href)}
+                    onClick={onClose}
+                    pyClass="py-3"
                   />
-                <div>
-                  <span className="text-lg font-bold text-[var(--admin-text)]">
-                    Que <span className="text-[var(--admin-accent-text)]">Copado</span>
-                  </span>
-                  <span className="block text-xs text-[var(--admin-text-muted)] font-medium">Panel Admin</span>
-                </div>
-              </Link>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="h-9 w-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)]"
-              >
-                <X className="h-5 w-5" />
-              </Button>
+                ))}
+              </div>
             </div>
+          ))}
+        </nav>
 
-            <nav className="flex-1 py-3 px-3 overflow-y-auto">
-              {groups.map((group, groupIndex) => (
-                <div key={group.title ?? groupIndex} className={cn(groupIndex > 0 && 'mt-2')}>
-                  {groupIndex > 0 && <div className="h-px bg-[var(--admin-sidebar-border)] mx-2 mb-2" />}
-                  {group.title && (
-                    <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-widest text-[var(--admin-text-muted)]">
-                      {group.title}
-                    </p>
-                  )}
-                  <div className="space-y-0.5">
-                    {group.items.map((item) => (
-                      <NavItemLink
-                        key={item.href}
-                        item={item.href === '/admin/stock' ? { ...item, badgeCount: stockAlertCount } : item}
-                        isActive={isActiveRoute(pathname, item.href)}
-                        onClick={onClose}
-                        pyClass="py-3"
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </nav>
-
-            <div className="p-3 border-t border-[var(--admin-sidebar-border)]">
-              <form action={signOut}>
-                <Button
-                  type="submit"
-                  variant="ghost"
-                  className="w-full justify-start gap-3 text-[var(--admin-text-muted)] hover:text-red-700 dark:hover:text-red-500 hover:bg-red-500/10 h-10"
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span className="font-medium">Cerrar Sesion</span>
-                </Button>
-              </form>
-            </div>
-          </motion.aside>
-        </>
-      )}
-    </AnimatePresence>
+        <div className="p-3 border-t border-[var(--admin-sidebar-border)]">
+          <form action={signOut}>
+            <Button
+              type="submit"
+              variant="ghost"
+              className="w-full justify-start gap-3 text-[var(--admin-text-muted)] hover:text-red-700 dark:hover:text-red-500 hover:bg-red-500/10 h-10"
+            >
+              <LogOut className="h-5 w-5" />
+              <span className="font-medium">Cerrar Sesion</span>
+            </Button>
+          </form>
+        </div>
+      </SheetContent>
+    </Sheet>
   )
 }

@@ -1,7 +1,6 @@
-import { test, expect, type Page, type Browser } from '@playwright/test'
-import fs from 'fs'
-import path from 'path'
-import { asegurarUsuario, rest, SUPABASE, SERVICE, USUARIO } from './local'
+import { test, expect, type Page } from '@playwright/test'
+import { asegurarUsuario, rest, SUPABASE, SERVICE } from './local'
+import { CELULAR, resolverRutas, entrar, abrir, medir, paginaTactil } from './panel'
 
 /**
  * El panel en un celular: 390x844, el ancho de un telefono comun.
@@ -16,7 +15,6 @@ import { asegurarUsuario, rest, SUPABASE, SERVICE, USUARIO } from './local'
  * `endsWith('/print')` y no una lista.
  */
 
-const CELULAR = { width: 390, height: 844 }
 /**
  * Los recorridos corren en dos anchos. 390 es un iPhone comun; 360, el Android
  * mas comun, y el que mas aprieta: lo que entra justo a 390 se sale a 360.
@@ -26,95 +24,6 @@ const ESCRITORIO = { width: 1280, height: 800 }
 
 test.setTimeout(240_000)
 test.beforeAll(asegurarUsuario)
-
-// ─── Rutas ──────────────────────────────────────────────────────────────────
-
-function rutasDelPanel(): string[] {
-  const raiz = path.join(__dirname, '..', 'app', 'admin')
-  const rutas: string[] = []
-  const recorrer = (dir: string) => {
-    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-      const p = path.join(dir, e.name)
-      if (e.isDirectory()) recorrer(p)
-      else if (e.name === 'page.tsx') {
-        rutas.push('/admin' + path.relative(raiz, dir).split(path.sep).map((s) => (s ? '/' + s : '')).join(''))
-      }
-    }
-  }
-  recorrer(raiz)
-  return rutas
-    .map((r) => r.replace(/\/$/, ''))
-    .filter((r) => !r.endsWith('/print') && r !== '/admin/login')
-    .sort()
-}
-
-/** Con que registro se completa cada segmento dinamico. */
-const PARAMETROS: Record<string, { tabla: string; columna: string }> = {
-  '/admin/products/[id]': { tabla: 'products', columna: 'id' },
-  '/admin/categories/[id]': { tabla: 'categories', columna: 'id' },
-  '/admin/ingredients/[id]': { tabla: 'ingredients', columna: 'id' },
-  '/admin/recipes/[id]': { tabla: 'recipes', columna: 'id' },
-  '/admin/stock/ficha/[productId]': { tabla: 'products', columna: 'id' },
-  '/admin/empleados/roles/[key]': { tabla: 'roles', columna: 'key' },
-}
-
-async function resolverRutas(): Promise<{ rutas: string[]; sinDatos: string[] }> {
-  const rutas: string[] = []
-  const sinDatos: string[] = []
-  for (const ruta of rutasDelPanel()) {
-    const m = ruta.match(/^(.*?\/\[[^\]]+\])/)
-    if (!m) { rutas.push(ruta); continue }
-    const p = PARAMETROS[m[1]]
-    if (!p) { sinDatos.push(`${ruta} (segmento sin registro asignado en PARAMETROS)`); continue }
-    const [fila] = await rest(`${p.tabla}?select=${p.columna}&limit=1`)
-    if (!fila) { sinDatos.push(`${ruta} (no hay ${p.tabla} en la base local)`); continue }
-    rutas.push(ruta.replace(/\[[^\]]+\]/, String(fila[p.columna])))
-  }
-  return { rutas, sinDatos }
-}
-
-// ─── Sesion ─────────────────────────────────────────────────────────────────
-
-async function entrar(page: Page, usuario = USUARIO) {
-  await page.goto('/admin/login')
-  const boton = page.getByRole('button', { name: /Iniciar Sesion/i })
-  await boton.waitFor()
-  await page.waitForLoadState('networkidle')
-  await page.fill('input[type="email"]', usuario.email)
-  await page.fill('input[type="password"]', usuario.password)
-  await boton.click()
-  await page.waitForURL(/\/admin\/(?!login)/)
-}
-
-/** `networkidle` no llega nunca en las pantallas con realtime: se espera acotado. */
-async function abrir(page: Page, ruta: string) {
-  await page.goto(ruta, { waitUntil: 'domcontentloaded' })
-  await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {})
-  await page.waitForTimeout(400)
-}
-
-/**
- * Mide despues de que la pantalla dejo de navegar. Algunas rutas redirigen del
- * lado del cliente (movimientos de caja va a arqueos con su pestaña) y una
- * medicion a mitad del salto pierde el contexto.
- */
-async function medir<T>(page: Page, fn: () => Promise<T>): Promise<T> {
-  for (let intento = 0; ; intento++) {
-    try {
-      return await fn()
-    } catch (e) {
-      if (intento >= 3 || !String(e).includes('Execution context was destroyed')) throw e
-      await page.waitForLoadState('domcontentloaded')
-      await page.waitForTimeout(600)
-    }
-  }
-}
-
-async function paginaTactil(browser: Browser, ancho = CELULAR.width) {
-  // isMobile + hasTouch es lo que hace que Chromium reporte `pointer: coarse`.
-  const ctx = await browser.newContext({ viewport: { width: ancho, height: CELULAR.height }, hasTouch: true, isMobile: true })
-  return { ctx, page: await ctx.newPage() }
-}
 
 // ─── Mediciones ─────────────────────────────────────────────────────────────
 
@@ -360,8 +269,8 @@ for (const ruta of ['/admin/products', '/admin/recipes', '/admin/ingredients', '
 
 const barra = (page: Page) => page.locator('header').first()
 
-/** El menu lateral del celular: el <aside> que esta a la vista (el de escritorio va oculto). */
-const menuAbierto = (page: Page) => page.locator('aside:visible')
+/** El menu lateral del celular, abierto: un dialogo que se llama "Menú". */
+const menuAbierto = (page: Page) => page.getByRole('dialog', { name: 'Menú' })
 
 /** Abre el menu desde la barra; si el boton no existe falla en segundos, no al timeout del test. */
 async function abrirMenu(page: Page) {
@@ -585,7 +494,7 @@ test('el menu lateral abierto se usa con el dedo', async ({ browser }) => {
   await entrar(page)
   await abrir(page, '/admin/dashboard')
   await abrirMenu(page)
-  await revisar(page, 'menu lateral', fallas, 'aside')
+  await revisar(page, 'menu lateral', fallas, DIALOGO)
   await ctx.close()
   expect(fallas).toEqual([])
 })

@@ -387,6 +387,7 @@ export function ProductsDashboard({
                     <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
                       <TableHead className="w-10 tactil:px-3.5 text-center">
                         <Checkbox
+                          aria-label="Seleccionar todos"
                           checked={filteredProducts.length > 0 && selectedIds.size === filteredProducts.length}
                           onCheckedChange={toggleSelectAll}
                           className="border-[#3a4150] data-[state=checked]:bg-[var(--admin-accent)] data-[state=checked]:border-[var(--admin-accent)] data-[state=checked]:text-black"
@@ -424,6 +425,7 @@ export function ProductsDashboard({
                         >
                           <TableCell className="w-10 tactil:px-3.5 text-center">
                             <Checkbox
+                              aria-label={`Seleccionar ${product.name}`}
                               checked={selectedIds.has(product.id)}
                               onCheckedChange={() => toggleSelectId(product.id)}
                               className="border-[#3a4150] data-[state=checked]:bg-[var(--admin-accent)] data-[state=checked]:border-[var(--admin-accent)] data-[state=checked]:text-black"
@@ -557,6 +559,7 @@ export function ProductsDashboard({
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Button
+                              aria-label={`Editar ${product.name}`}
                                     size="icon"
                                     variant="ghost"
                                     className="h-9 w-9 lg:h-10 lg:w-10 transition-all duration-200 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-border)]"
@@ -570,6 +573,7 @@ export function ProductsDashboard({
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Button
+                              aria-label={`Eliminar ${product.name}`}
                                     size="icon"
                                     variant="ghost"
                                     className="h-9 w-9 lg:h-10 lg:w-10 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all duration-200"

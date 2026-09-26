@@ -91,7 +91,9 @@ export function CajaDashboard({
       {/* Main content — shifted right by sidebar width */}
       {/* Clavado en los 72px de la barra angosta: el menu abierto se
           superpone en vez de correr la pagina. */}
-      <div className="h-full flex flex-col admin-contenido admin-contenido--caja">
+      {/* <main>: la caja no pasa por AdminShell, que es quien lo pone en el
+          resto del panel. Sin el, un lector no encuentra el contenido. */}
+      <main className="h-full flex flex-col admin-contenido admin-contenido--caja">
         {/* Con turno abierto el menu lo pone ShiftBar; si esta banda tambien
             aparecia, el celular mostraba dos barras con dos botones de menu.
             Queda solo para abrir turno, y es la misma barra que el resto del
@@ -165,7 +167,7 @@ export function CajaDashboard({
             )}
           </AnimatePresence>
         </div>
-      </div>
+      </main>
     </motion.div>
   )
 }

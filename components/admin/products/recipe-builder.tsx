@@ -113,6 +113,7 @@ export function RecipeBuilder({ ingredients, recipeItems, onChange }: RecipeBuil
                   variant="ghost"
                   className="h-7 w-7 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 shrink-0"
                   onClick={() => handleRemove(item.ingredient_id)}
+                  aria-label={`Quitar ${ing.name}`}
                 >
                   <X className="h-3.5 w-3.5" />
                 </Button>
@@ -125,7 +126,7 @@ export function RecipeBuilder({ ingredients, recipeItems, onChange }: RecipeBuil
       {/* Add ingredient selector */}
       {availableIngredients.length > 0 && (
         <Select onValueChange={handleAdd}>
-          <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] border-dashed text-[var(--admin-text-muted)] text-sm h-9 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 [&_svg]:text-[var(--admin-text-muted)] [&_svg]:opacity-100">
+          <SelectTrigger aria-label="Agregar ingrediente" className="bg-[var(--admin-bg)] border-[var(--admin-border)] border-dashed text-[var(--admin-text-muted)] text-sm h-9 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 [&_svg]:text-[var(--admin-text-muted)] [&_svg]:opacity-100">
             <div className="flex items-center gap-2">
               <Plus className="h-3.5 w-3.5" />
               <span>Agregar ingrediente</span>

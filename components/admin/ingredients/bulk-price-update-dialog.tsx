@@ -120,11 +120,11 @@ export function BulkPriceUpdateDialog({
         <div className="space-y-4 mt-4">
           {/* Category selector */}
           <div className="space-y-1.5">
-            <Label className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
+            <Label htmlFor="categoria" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
               Categoria
             </Label>
             <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
-              <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-10 text-sm focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 data-[placeholder]:text-[var(--admin-text-muted)] [&_svg]:text-[var(--admin-text-muted)] [&_svg]:opacity-100">
+              <SelectTrigger id="categoria" className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-10 text-sm focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 data-[placeholder]:text-[var(--admin-text-muted)] [&_svg]:text-[var(--admin-text-muted)] [&_svg]:opacity-100">
                 <SelectValue placeholder="Seleccionar categoria..." />
               </SelectTrigger>
               <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">

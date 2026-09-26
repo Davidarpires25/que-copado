@@ -24,7 +24,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#12151a] via-[#1a1d24] to-[#12151a] flex items-center justify-center p-4 relative overflow-hidden">
+    <main className="min-h-screen bg-gradient-to-br from-[#12151a] via-[#1a1d24] to-[#12151a] flex items-center justify-center p-4 relative overflow-hidden">
       {/* Decoración de fondo */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#FEC501] rounded-full blur-[120px]" />
@@ -57,7 +57,7 @@ export default function LoginPage() {
                 </Label>
                 <div className="relative group">
                   <Mail
-                    className={`absolute left-3.5 top-3.5 h-4 w-4 transition-colors duration-200 ${
+                    className={`pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 transition-colors duration-200 ${
                       focusedInput === 'email' ? 'text-[#FEC501]' : 'text-[#a8b5c9]'
                     }`}
                   />
@@ -79,7 +79,7 @@ export default function LoginPage() {
                 </Label>
                 <div className="relative group">
                   <Lock
-                    className={`absolute left-3.5 top-3.5 h-4 w-4 transition-colors duration-200 ${
+                    className={`pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 transition-colors duration-200 ${
                       focusedInput === 'password' ? 'text-[#FEC501]' : 'text-[#a8b5c9]'
                     }`}
                   />
@@ -126,6 +126,6 @@ export default function LoginPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </main>
   )
 }

@@ -103,11 +103,11 @@ function CreateIngredientDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
+            <Label htmlFor="unidad-base" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
               Unidad base <span className="text-red-700 dark:text-red-400 ml-0.5">*</span>
             </Label>
             <Select value={unit} onValueChange={(v) => setUnit(v as IngredientUnit)} disabled={isLoading}>
-              <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-9 text-sm focus:ring-1 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50">
+              <SelectTrigger id="unidad-base" className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] h-9 text-sm focus:ring-1 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">
@@ -391,6 +391,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                 <Switch
                   checked={isActive}
                   onCheckedChange={setIsActive}
+                  aria-label="Receta activa"
                   className="data-[state=checked]:bg-[var(--admin-accent)] data-[state=unchecked]:bg-[var(--admin-border)]"
                 />
               </div>
@@ -495,7 +496,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                                 className="w-24 sm:w-full h-9 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm text-center focus:border-[var(--admin-accent)]/50 focus:ring-1 focus:ring-[var(--admin-accent)]/20"
                               />
                               <Select value={item.unit} onValueChange={(v) => handleUnitChange(item.ingredient_id, v)}>
-                                <SelectTrigger className="w-20 sm:w-full h-9 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-xs focus:ring-1 focus:ring-[var(--admin-accent)]/20 px-2">
+                                <SelectTrigger aria-label={`Unidad de ${ing.name}`} className="w-20 sm:w-full h-9 bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-xs focus:ring-1 focus:ring-[var(--admin-accent)]/20 px-2">
                                   <SelectValue>{selectedUnitAbbr}</SelectValue>
                                 </SelectTrigger>
                                 <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">
@@ -513,6 +514,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                                 type="button" size="icon" variant="ghost"
                                 className="h-8 w-8 justify-self-end text-red-700 dark:text-red-500 hover:text-red-600 hover:bg-red-500/10"
                                 onClick={() => handleRemoveIngredient(item.ingredient_id)}
+                                aria-label={`Quitar ${ing.name}`}
                               >
                                 <X className="h-3.5 w-3.5" />
                               </Button>

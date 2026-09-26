@@ -49,16 +49,38 @@ function SheetContent({
   children,
   side = "right",
   showCloseButton = true,
+  onOpenAutoFocus,
+  onCloseAutoFocus,
+  overlayClassName,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
+  /** El fondo detras del panel, si tiene que verse distinto del de siempre. */
+  overlayClassName?: string
 }) {
+  // Al cerrar, Radix devuelve el foco a su SheetTrigger. Los paneles del admin
+  // se abren desde botones propios, sin Trigger, y el foco caia en <body>:
+  // quien usa teclado perdia el lugar. Se guarda lo que tenia el foco al abrir
+  // —en este momento Radix todavia no lo movio— y se le devuelve al cerrar.
+  // Con un Trigger es el mismo elemento, asi que para esos no cambia nada.
+  const previo = React.useRef<HTMLElement | null>(null)
+
   return (
     <SheetPortal>
-      <SheetOverlay />
+      <SheetOverlay className={overlayClassName} />
       <SheetPrimitive.Content
         data-slot="sheet-content"
+        onOpenAutoFocus={(e) => {
+          previo.current = document.activeElement as HTMLElement | null
+          onOpenAutoFocus?.(e)
+        }}
+        onCloseAutoFocus={(e) => {
+          onCloseAutoFocus?.(e)
+          if (e.defaultPrevented || !previo.current?.isConnected) return
+          e.preventDefault()
+          previo.current.focus()
+        }}
         className={cn(
           "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
           side === "right" &&

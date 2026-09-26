@@ -171,11 +171,11 @@ export function IngredientFormPage({ mode, ingredient, categories }: IngredientF
         {/* Unidad + Costo */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
+            <Label htmlFor="unidad" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
               Unidad
             </Label>
             <Select value={unit} onValueChange={(v) => setUnit(v as IngredientUnit)} disabled={isPending}>
-              <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 [&_svg]:text-[var(--admin-text-muted)] [&_svg]:opacity-100 transition-all">
+              <SelectTrigger id="unidad" className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 [&_svg]:text-[var(--admin-text-muted)] [&_svg]:opacity-100 transition-all">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">
@@ -243,7 +243,7 @@ export function IngredientFormPage({ mode, ingredient, categories }: IngredientF
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
+            <Label htmlFor="categoria-opcional" className="text-[var(--admin-text-muted)] text-xs font-semibold uppercase tracking-wide">
               Categoría <span className="text-[var(--admin-text-faint)] font-normal normal-case">(opcional)</span>
             </Label>
             <Select
@@ -251,7 +251,7 @@ export function IngredientFormPage({ mode, ingredient, categories }: IngredientF
               onValueChange={(v) => setCategoryId(v === NO_CATEGORY_VALUE ? '' : v)}
               disabled={isPending}
             >
-              <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 [&_svg]:text-[var(--admin-text-muted)] [&_svg]:opacity-100 transition-all">
+              <SelectTrigger id="categoria-opcional" className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 [&_svg]:text-[var(--admin-text-muted)] [&_svg]:opacity-100 transition-all">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">

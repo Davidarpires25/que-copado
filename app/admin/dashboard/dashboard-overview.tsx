@@ -208,9 +208,9 @@ export function DashboardOverview({
         className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl shadow-[var(--shadow-card)] overflow-hidden"
       >
         <div className="flex items-center justify-between p-6 pb-4">
-          <h3 className="text-base font-semibold text-[var(--admin-text)]">
+          <h2 className="text-base font-semibold text-[var(--admin-text)]">
             Últimos Pedidos
-          </h3>
+          </h2>
           <Link href="/admin/orders">
             <Button variant="ghost" size="sm" className="text-[var(--admin-accent-text)] dark:hover:text-[#E5B001] hover:bg-[var(--admin-accent)]/10 h-8 text-xs">
               Ver todos

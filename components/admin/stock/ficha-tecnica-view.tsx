@@ -306,6 +306,7 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
               <div className="flex items-center gap-3">
                 <input
                   type="range"
+                  aria-label="Producción simulada"
                   min={1}
                   max={100}
                   value={Math.min(quantity, 100)}
@@ -337,6 +338,7 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
                 <div className="flex items-center gap-1.5 shrink-0">
                   <input
                     type="number"
+                    aria-label="Unidades a producir"
                     min={1}
                     max={9999}
                     value={inputStr}
@@ -393,7 +395,14 @@ export function FichaTecnicaView({ sheet }: { sheet: ProductionSheetResult }) {
               470 en la lista de compras) y el nombre toma lo que sobra: en el
               celular no sobraba nada y los ingredientes aparecian sin nombre.
               Con un ancho minimo la tabla se desliza, como las otras. */}
-          <div className="overflow-x-auto">
+          {/* Recibe el foco para poder deslizarla con el teclado: sin nada
+              enfocable adentro, la parte que no entra quedaba inalcanzable. */}
+          <div
+            className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--admin-accent)]"
+            tabIndex={0}
+            role="region"
+            aria-label={tab === 'desglose' ? 'Desglose de ingredientes' : 'Lista de compras'}
+          >
           <div className={tab === 'desglose' ? 'min-w-[34rem]' : 'min-w-[44rem]'}>
           {/* Table header */}
           <div

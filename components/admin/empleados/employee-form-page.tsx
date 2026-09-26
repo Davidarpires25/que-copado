@@ -183,7 +183,7 @@ export function EmployeeFormPage({ roles }: Props) {
               <h2 className="font-semibold text-[var(--admin-text)]">Rol</h2>
               <p className="text-sm text-[var(--admin-text-muted)]">
                 Define qué secciones ve y qué puede hacer.{' '}
-                <Link href="/admin/empleados/roles/nuevo" className="text-[var(--admin-accent-text)] hover:underline">
+                <Link href="/admin/empleados/roles/nuevo" className="text-[var(--admin-accent-text)] underline underline-offset-2">
                   Crear un rol nuevo
                 </Link>
               </p>

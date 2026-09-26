@@ -202,7 +202,9 @@ export function EmployeesDashboard({
                   </AyudaCampo>
                 </span>
               </TableHead>
-              <TableHead className="acciones-fijas [--acciones-head:var(--admin-surface)]" />
+              <TableHead className="acciones-fijas [--acciones-head:var(--admin-surface)]">
+                <span className="sr-only">Acciones</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -221,6 +223,7 @@ export function EmployeesDashboard({
                   <TableCell className="text-[var(--admin-text-muted)] text-sm">{emp.email}</TableCell>
                   <TableCell>
                     <select
+                      aria-label={`Rol de ${emp.full_name || emp.email}`}
                       value={emp.role}
                       disabled={pending}
                       onChange={(e) => handleRole(emp.id, e.target.value)}

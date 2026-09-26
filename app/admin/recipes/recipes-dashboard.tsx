@@ -217,6 +217,7 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
+                              aria-label={`Editar ${recipe.name}`}
                                   size="icon" variant="ghost"
                                   className="h-9 w-9 lg:h-10 lg:w-10 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-all"
                                   onClick={() => router.push(`/admin/recipes/${recipe.id}/edit`)}
@@ -231,6 +232,7 @@ export function RecipesDashboard({ initialRecipes }: RecipesDashboardProps) {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
+                              aria-label={`Eliminar ${recipe.name}`}
                                   size="icon" variant="ghost"
                                   className="h-9 w-9 lg:h-10 lg:w-10 text-red-700 dark:text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all"
                                   onClick={() => setDeleteTarget(recipe.id)}

@@ -468,7 +468,12 @@ export function ProductFormPage({
                     </div>
 
                     {/* Markup % (only for cost_markup) — con transición suave */}
-                    <div className={`space-y-2 transition-all duration-200 overflow-hidden ${halfPricingMethod === 'cost_markup' ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
+                    {/* Plegado se ve vacio pero seguia en el orden de Tab: `inert` lo saca
+                        del teclado y de los lectores mientras no se usa. */}
+                    <div
+                      inert={halfPricingMethod !== 'cost_markup'}
+                      className={`space-y-2 transition-all duration-200 overflow-hidden ${halfPricingMethod === 'cost_markup' ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}
+                    >
                       <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
                         Tu ganancia %
                       </Label>
@@ -582,6 +587,7 @@ export function ProductFormPage({
                     <Switch
                       checked={isActive}
                       onCheckedChange={setIsActive}
+                      aria-label="Visible en el menú"
                       className="data-[state=checked]:bg-[var(--admin-accent)] data-[state=unchecked]:bg-[var(--admin-border)]"
                     />
                   </div>
@@ -593,6 +599,7 @@ export function ProductFormPage({
                     <Switch
                       checked={isOutOfStock}
                       onCheckedChange={setIsOutOfStock}
+                      aria-label="Agotado"
                       className="data-[state=checked]:bg-red-500 data-[state=unchecked]:bg-[var(--admin-border)]"
                     />
                   </div>
@@ -605,7 +612,7 @@ export function ProductFormPage({
                     empareja el alto de las dos columnas. */}
                 {/* Categoría */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
+                  <Label htmlFor="categoria" className="text-sm font-medium text-[var(--admin-text-muted)]">
                     Categoría <span className="text-red-700 dark:text-red-400">*</span>
                   </Label>
                   <Select
@@ -617,7 +624,7 @@ export function ProductFormPage({
                       setPreviewCategory(cat?.name ?? '')
                     }}
                   >
-                    <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 data-[placeholder]:text-[var(--admin-text-muted)] [&_svg]:text-[var(--admin-text-muted)]">
+                    <SelectTrigger id="categoria" className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 data-[placeholder]:text-[var(--admin-text-muted)] [&_svg]:text-[var(--admin-text-muted)]">
                       <SelectValue placeholder="Seleccionar categoría..." />
                     </SelectTrigger>
                     <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">
@@ -636,14 +643,14 @@ export function ProductFormPage({
 
                 {/* Estación */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-[var(--admin-text-muted)]">
+                  <Label htmlFor="estacion-de-cocina" className="text-sm font-medium text-[var(--admin-text-muted)]">
                     Estación de cocina
                   </Label>
                   <Select
                     name="station"
                     defaultValue={product?.station ?? 'none'}
                   >
-                    <SelectTrigger className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 [&_svg]:text-[var(--admin-text-muted)]">
+                    <SelectTrigger id="estacion-de-cocina" className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 [&_svg]:text-[var(--admin-text-muted)]">
                       <SelectValue placeholder="Sin estación..." />
                     </SelectTrigger>
                     <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">
