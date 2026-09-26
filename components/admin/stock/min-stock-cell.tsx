@@ -88,7 +88,8 @@ export function MinStockCell({ type, id, value, unitLabel, disabled, onSaved }: 
         className={cn(
           'text-sm rounded px-1.5 py-0.5 -mx-1.5 transition-colors',
           'hover:bg-[var(--admin-surface-2)] hover:text-[var(--admin-text)]',
-          value !== null ? 'text-[var(--admin-text-muted)]' : 'text-[var(--admin-text-placeholder)]',
+          // Sin minimo muestra un dato ("no hay"), no un placeholder: va en terciario.
+          value !== null ? 'text-[var(--admin-text-muted)]' : 'text-[var(--admin-text-faint)]',
           guardando && 'opacity-50'
         )}
       >

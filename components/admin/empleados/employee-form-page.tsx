@@ -204,7 +204,9 @@ export function EmployeeFormPage({ roles }: Props) {
                   )}
                 >
                   <span className="block font-semibold text-sm text-[var(--admin-text)]">{r.name}</span>
-                  <span className="block text-xs font-mono text-[var(--admin-text-faint)] mt-0.5">
+                  {/* Sobre el tinte amarillo del elegido el terciario no llega a
+                      4,5:1 en oscuro: ahi va en secundario. */}
+                  <span className={cn('block text-xs font-mono mt-0.5', role === r.key ? 'text-[var(--admin-text-muted)]' : 'text-[var(--admin-text-faint)]')}>
                     {r.permissions.length} permisos
                   </span>
                   {r.description && (

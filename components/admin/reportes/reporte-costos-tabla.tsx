@@ -38,7 +38,7 @@ const TAB_INACTIVA = 'border-transparent text-[var(--admin-text-muted)] hover:te
 const CONTADOR = 'ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-medium'
 const CONTADOR_ACTIVO = 'bg-[var(--admin-accent)]/20 text-[var(--admin-accent-text)]'
 const CONTADOR_INACTIVO = 'bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)]'
-const ENCABEZADO = 'text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold'
+const ENCABEZADO = 'text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold'
 
 /**
  * Reportes → Costos: que cuesta cada cosa, y cuanto deja lo que se vende.

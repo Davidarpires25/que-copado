@@ -152,7 +152,7 @@ export function ImageUploader({ initialUrl, onChange }: ImageUploaderProps) {
             <p className="text-sm font-medium text-[var(--admin-text-muted)]">
               {uploading ? 'Subiendo...' : 'Arrastrá o hacé click para subir'}
             </p>
-            <p className="text-xs text-[var(--admin-text-muted)]/60 mt-0.5">
+            <p className="text-xs text-[var(--admin-text-faint)] mt-0.5">
               JPG, PNG, WEBP — máx 2MB
             </p>
           </div>

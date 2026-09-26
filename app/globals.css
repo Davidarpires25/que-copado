@@ -477,7 +477,9 @@ html.admin-dark {
   --admin-sidebar-border:   #ECEDF2;
   --admin-text:             #0F172A;
   --admin-text-muted:       #475569;
-  --admin-text-faint:       #94A3B8;
+  /* Terciario: 4,52:1 sobre el peor fondo claro (#F3F4F8). Era #94A3B8, 2,33:1:
+     se perdia con luz de dia. Sigue mas tenue que muted (#475569, 6,89:1). */
+  --admin-text-faint:       #637185;
   --admin-text-placeholder: #CBD5E1;
   --admin-accent:           #FEC501;
   /* Como TEXTO el ambar no sirve sobre blanco: #FEC501 da 1.59:1 y oscurecerlo
@@ -534,7 +536,9 @@ html.admin-dark {
   --admin-sidebar-border:   #2D3448;
   --admin-text:             #F1F3F8;
   --admin-text-muted:       #8B9BB4;
-  --admin-text-faint:       #5A677D;
+  /* Terciario: 4,54:1 sobre el peor fondo oscuro (#1C2333). Era #5A677D, 2,74:1.
+     Sigue mas tenue que muted (#8B9BB4, 5,57:1). */
+  --admin-text-faint:       #7C8BA3;
   --admin-text-placeholder: #3A3F4A;
   --admin-accent:           #FEC501;
   --admin-accent-text:      #FEC501;

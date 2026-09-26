@@ -147,7 +147,7 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange, ayuda }: Re
           <SelectTrigger aria-label="Agregar receta" className="bg-[var(--admin-bg)] border-[var(--admin-border)] border-dashed text-[var(--admin-text-muted)] text-sm h-9 focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)]/50 [&_svg]:text-[var(--admin-text-muted)] [&_svg]:opacity-100">
             <div className="flex items-center gap-2">
               <Plus className="text-[var(--admin-text)] h-3.5 w-3.5" />
-              <span className="text-[var(--admin-text-muted)]q">Agregar receta</span>
+              <span className="text-[var(--admin-text-muted)]">Agregar receta</span>
             </div>
           </SelectTrigger>
           <SelectContent className="bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)]">

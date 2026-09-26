@@ -399,7 +399,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
               {mode === 'edit' && (
                 <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-2.5">
                   <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-500 shrink-0 mt-0.5" />
-                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                  <p className="text-xs text-amber-700 dark:text-amber-400">
                     Al modificar la receta se recalcularán los costos de todos los productos que la usen.
                   </p>
                 </div>
@@ -441,10 +441,10 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                     <div className="space-y-2">
                       {/* Table header */}
                       <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_110px_96px_110px_36px] gap-3 items-center px-2.5 pb-1.5 border-b border-[var(--admin-border)]">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]/70">Ingrediente</span>
-                        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]/70 text-center">Cantidad</span>
-                        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]/70 text-center">Unidad</span>
-                        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]/70 text-right">Subtotal</span>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-faint)]">Ingrediente</span>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-faint)] text-center">Cantidad</span>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-faint)] text-center">Unidad</span>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-text-faint)] text-right">Subtotal</span>
                         <span className="sr-only">Quitar</span>
                       </div>
 

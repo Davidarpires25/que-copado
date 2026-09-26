@@ -240,19 +240,19 @@ export function MovimientosTable({ movements, sessionFilter }: MovimientosTableP
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-[var(--admin-bg)]">
                 <TableRow className="border-[var(--admin-border)] hover:bg-[var(--admin-bg)]">
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">
                     Fecha
                   </TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">
                     Tipo
                   </TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">
                     Monto
                   </TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">
                     Motivo
                   </TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold hidden md:table-cell">
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold hidden md:table-cell">
                     Sesión
                   </TableHead>
                 </TableRow>

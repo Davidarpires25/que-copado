@@ -305,7 +305,7 @@ export function ProductsDashboard({
               {filteredProducts.length}{' '}
               {filteredProducts.length === 1 ? 'producto' : 'productos'}
               {(selectedCategory || searchQuery) && products.length !== filteredProducts.length && (
-                <span className="text-[var(--admin-text-muted)]/60"> de {products.length}</span>
+                <span className="text-[var(--admin-text-faint)]"> de {products.length}</span>
               )}
             </p>
             <div className="ml-auto">
@@ -393,25 +393,25 @@ export function ProductsDashboard({
                           className="border-[#3a4150] data-[state=checked]:bg-[var(--admin-accent)] data-[state=checked]:border-[var(--admin-accent)] data-[state=checked]:text-black"
                         />
                       </TableHead>
-                      <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">
+                      <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">
                         Producto
                       </TableHead>
-                      <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold hidden md:table-cell">
+                      <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold hidden md:table-cell">
                         Categoría
                       </TableHead>
-                      <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold hidden lg:table-cell">
+                      <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold hidden lg:table-cell">
                         Tipo
                       </TableHead>
-                      <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold">
+                      <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">
                         Precio
                       </TableHead>
-                      <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center hidden sm:table-cell">
+                      <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold text-center hidden sm:table-cell">
                         Stock
                       </TableHead>
-                      <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center hidden sm:table-cell">
+                      <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold text-center hidden sm:table-cell">
                         Visible
                       </TableHead>
-                      <TableHead className="acciones-fijas text-xs uppercase tracking-wide text-[var(--admin-text-muted)]/70 font-semibold text-center w-32">
+                      <TableHead className="acciones-fijas text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold text-center w-32">
                         Acciones
                       </TableHead>
                     </TableRow>
@@ -513,7 +513,7 @@ export function ProductsDashboard({
                                   {formatPrice(product.price)}
                                 </button>
                                 {product.cost != null && (
-                                  <p className="text-xs text-[var(--admin-text-muted)]/60 px-1.5">
+                                  <p className="text-xs text-[var(--admin-text-faint)] px-1.5">
                                     Costo: {formatPrice(product.cost)}
                                   </p>
                                 )}

@@ -10,8 +10,9 @@ import { CELULAR, resolverRutas, entrar, abrir, medir } from './panel'
  * llegaba con Tab. axe-core mide lo primero; lo segundo, lo que solo se nota
  * usando el teclado, se prueba aparte, abajo.
  *
- * El contraste de colores tambien es WCAG AA, pero va en otro cambio: aca la
- * regla se apaga.
+ * El contraste se mide en los dos temas: el panel tiene claro y oscuro, y un
+ * gris que se lee en uno puede no leerse en el otro (el terciario daba 2,33:1
+ * en claro y 2,74:1 en oscuro).
  */
 
 test.setTimeout(300_000)
@@ -26,9 +27,15 @@ type Violacion = { id: string; nodos: string[] }
  * La app tiene una CSP que no deja inyectar scripts. El contexto la saltea
  * (`bypassCSP`): es el navegador de la prueba, la app no cambia.
  */
-async function contexto(browser: Browser, tactil: boolean) {
+type Tema = 'light' | 'dark'
+
+async function contexto(browser: Browser, tactil: boolean, tema: Tema = 'light') {
   const viewport = tactil ? CELULAR : ESCRITORIO
   const ctx = await browser.newContext({ viewport, hasTouch: tactil, isMobile: tactil, bypassCSP: true })
+  // El tema se fija antes de cargar, igual que lo recuerda el panel.
+  await ctx.addInitScript((t) => {
+    try { localStorage.setItem('admin-theme', JSON.stringify({ state: { theme: t }, version: 0 })) } catch { /* sin storage */ }
+  }, tema)
   return { ctx, page: await ctx.newPage() }
 }
 
@@ -40,7 +47,6 @@ async function axe(page: Page): Promise<Violacion[]> {
       { exclude: [['.leaflet-container']] },
       {
         runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] },
-        rules: { 'color-contrast': { enabled: false } },
       }
     )
     return r.violations.map((v: { id: string; nodes: { target: string[] }[] }) => ({
@@ -52,11 +58,11 @@ async function axe(page: Page): Promise<Violacion[]> {
 
 // ─── Recorrido con axe ──────────────────────────────────────────────────────
 
-for (const tactil of [true, false]) {
+for (const tactil of [true, false]) for (const tema of ['light', 'dark'] as const) {
   const ancho = tactil ? CELULAR.width : ESCRITORIO.width
-  test(`axe no encuentra violaciones en el panel a ${ancho}px`, async ({ browser }) => {
+  test(`axe no encuentra violaciones en el panel a ${ancho}px, tema ${tema === 'light' ? 'claro' : 'oscuro'}`, async ({ browser }) => {
     const { rutas } = await resolverRutas()
-    const { ctx, page } = await contexto(browser, tactil)
+    const { ctx, page } = await contexto(browser, tactil, tema)
     const fallas: string[] = []
     const anotar = (donde: string, vs: Violacion[]) => {
       for (const v of vs) fallas.push(`${donde}: ${v.id} — ${v.nodos.join(' | ')}`)

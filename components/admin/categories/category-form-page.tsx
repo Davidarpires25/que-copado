@@ -168,7 +168,7 @@ export function CategoryFormPage({ mode, category }: CategoryFormPageProps) {
               }
               readOnly={mode === 'create'}
               placeholder="se-genera-automaticamente"
-              className={`bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 ${mode === 'create' ? 'opacity-60 cursor-not-allowed' : ''}`}
+              className={`bg-[var(--admin-bg)] border-[var(--admin-border)] text-[var(--admin-text)] text-sm h-10 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]/50 focus:ring-2 focus:ring-[var(--admin-accent)]/20 ${mode === 'create' ? 'cursor-not-allowed' : ''}`}
             />
             {/* En "crear" el chip Auto y el placeholder ya dicen que se genera
                 solo; la caja repetia el mismo mensaje por tercera vez. En
