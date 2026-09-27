@@ -1080,3 +1080,47 @@ viene a buscar la gente y comprobar que esa se vea sin deslizar; si no, las
 secundarias bajan a una segunda linea, como en Productos. Y un `min-w-*` en un
 item flex de una fila que puede apretarse va con `shrink-0`: el test
 "ningun texto se sale de su boton o pestaña" lo vigila.
+
+## 46. Un valor por defecto de la base no es un hecho
+
+**Que paso (2026-09-27).** Todo pedido nace con `payment_method = 'cash'`
+porque la columna no admite nulos. El Historial de la caja lo leia como si
+alguien hubiera pagado: listaba "Pagado · Efectivo" pedidos sin cobrar y
+sumaba "Total sesion $152.900" con la barra diciendo "Vendido $0". Es la
+segunda vez con la misma columna: la primera fue el ticket, que imprimia
+"Efectivo" en la cuenta que se llevaba a la mesa para que eligieran como
+pagar (spec `caja`).
+
+**Regla.** Antes de mostrar un dato, preguntar si registra algo que paso o si
+es el valor con que nacio la fila. "Se cobro" lo dice el estado que escribe el
+cobro (`estaCobrado()` en `lib/types/database.ts`), no la columna del medio.
+
+## 47. La base local puede tener datos de alguien: el test estaciona, no borra
+
+**Que paso (2026-09-27).** Deje el servidor local andando para David y se
+puso a probar la caja: abrio una mesa y cargo pedidos. Mientras, corri un test
+nuevo que, como los viejos, borraba la sesion abierta y liberaba todas las
+mesas. El borrado fallo por la clave foranea —sus pedidos la protegieron—,
+pero la limpieza del final libero la Mesa 1 con su pedido. La restaure a mano.
+
+**Regla.** Un test que necesita la caja vacia estaciona lo que encuentra: la
+sesion abierta pasa a cerrada, las mesas ocupadas a libres, todo respaldado en
+disco antes de tocarlo, y al final vuelve con sus valores exactos (si al
+arrancar hay un respaldo, es de una corrida cortada y se restaura primero). La
+limpieza toca solo lo que el test creo, y no hace nada si no llego a crear su
+sesion. Modelo: `e2e/caja-dice-lo-que-paso.spec.ts`. Para la suite entera, lo
+mismo desde afuera antes y despues de correrla.
+
+## 48. Chromium deja pasar en silencio lo que en Firefox rompe la pantalla
+
+**Que paso (2026-09-27).** La CSP de `next.config.ts` tenia el host de
+Supabase de produccion escrito a mano. Contra el stack local, el WebSocket de
+realtime quedaba bloqueado: Chromium —el de los tests— lo dejaba caido y la
+caja seguia; en el Firefox de David, construir el WebSocket lanzaba y la caja
+entera caia en "Algo salio mal". En mis corridas se veia `realtime: CLOSED`
+en bucle y lo pase por alto.
+
+**Regla.** Un mensaje que se repite en la consola durante un test es un bug
+hasta que se demuestre lo contrario. Y lo que depende de la configuracion del
+entorno (hosts, URLs) sale de la misma variable que usa la app, no de un valor
+copiado.

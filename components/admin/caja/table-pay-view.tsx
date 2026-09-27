@@ -158,9 +158,10 @@ export function TablePayView({
       const primaryMethod = splits.reduce((a, b) => (a.amount >= b.amount ? a : b)).method
       result = await payTableOrder(order.id, table.id, primaryMethod, session.id, splits)
     } else {
-      if (!isComplete || activePayments.length === 0) { setLoading(false); return }
-      const primaryMethod = activePayments.reduce((a, b) => a.amount >= b.amount ? a : b).method
-      const splits = activePayments.length > 1 ? activePayments : undefined
+      const pagos = pago.aCobrar
+      if (!isComplete || pagos.length === 0) { setLoading(false); return }
+      const primaryMethod = pagos.reduce((a, b) => a.amount >= b.amount ? a : b).method
+      const splits = pagos.length > 1 ? pagos : undefined
       result = await payTableOrder(order.id, table.id, primaryMethod, session.id, splits)
     }
 

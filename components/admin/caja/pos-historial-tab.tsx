@@ -26,6 +26,7 @@ import {
 import { OrderStatusBadge } from '@/components/admin/orders'
 import { formatPrice, cn } from '@/lib/utils'
 import { PAYMENT_METHOD_CONFIG, paymentMethodLabel } from '@/lib/constants/payments'
+import { estaCobrado } from '@/lib/types/database'
 import type { PaymentMethod, Json } from '@/lib/types/database'
 import type { OrderItem } from '@/lib/types/orders'
 import type { OrderWithSplits } from '@/lib/types/cash-register'
@@ -33,7 +34,7 @@ import type { OrderWithSplits } from '@/lib/types/cash-register'
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type PaymentFilter = 'all' | PaymentMethod
-type StatusFilter = 'all' | 'activa' | 'anulada'
+type StatusFilter = 'all' | 'activa' | 'sin_cobrar' | 'anulada'
 
 interface PosHistorialTabProps {
   orders: OrderWithSplits[]
@@ -71,6 +72,7 @@ function OrderRow({
 }) {
   const [expanded, setExpanded] = useState(false)
   const isCancelled = order.status === 'cancelado'
+  const sinCobrar = !isCancelled && !estaCobrado(order)
   const items = parseItems(order.items)
 
   const itemsSummary = items
@@ -141,7 +143,10 @@ function OrderRow({
 
         <TableCell className="hidden sm:table-cell">
           <div className="flex flex-col gap-0.5">
-            {paymentMethods.map((method, i) => (
+            {/* Sin cobrar no hay medio: el que trae el pedido es el de arranque. */}
+            {sinCobrar ? (
+              <span className="text-sm text-[var(--admin-text-faint)]">—</span>
+            ) : paymentMethods.map((method, i) => (
               <span
                 key={i}
                 className="text-sm text-[var(--admin-text-muted)] capitalize"
@@ -158,7 +163,9 @@ function OrderRow({
               'text-sm font-semibold tabular-nums',
               isCancelled
                 ? 'line-through text-[var(--admin-text-faint)]'
-                : 'text-[var(--admin-price)]'
+                : sinCobrar
+                  ? 'text-[var(--admin-text-muted)]'
+                  : 'text-[var(--admin-price)]'
             )}
           >
             {formatPrice(order.total)}
@@ -166,10 +173,14 @@ function OrderRow({
         </TableCell>
 
         <TableCell>
-          <OrderStatusBadge
-            status={isCancelled ? 'cancelado' : 'pagado'}
-            size="sm"
-          />
+          {sinCobrar ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400 whitespace-nowrap">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              Sin cobrar
+            </span>
+          ) : (
+            <OrderStatusBadge status={isCancelled ? 'cancelado' : 'pagado'} size="sm" />
+          )}
         </TableCell>
       </TableRow>
 
@@ -299,9 +310,12 @@ export function PosHistorialTab({
       const matchesStatus =
         statusFilter === 'all' ||
         (statusFilter === 'anulada' && isCancelled) ||
-        (statusFilter === 'activa' && !isCancelled)
+        (statusFilter === 'sin_cobrar' && !isCancelled && !estaCobrado(order)) ||
+        (statusFilter === 'activa' && estaCobrado(order))
       if (!matchesStatus) return false
       if (paymentFilter === 'all') return true
+      // Un pedido sin cobrar no aparece bajo ningun medio.
+      if (!estaCobrado(order)) return false
       if (order.payment_splits && order.payment_splits.length > 1) {
         return order.payment_splits.some((s) => s.method === paymentFilter)
       }
@@ -310,7 +324,8 @@ export function PosHistorialTab({
   }, [orders, paymentFilter, statusFilter])
 
   const paymentTotals = useMemo(() => {
-    const active = filteredOrders.filter((o) => o.status !== 'cancelado')
+    // Solo lo cobrado suma: el mismo numero que el "Vendido" de la barra.
+    const active = filteredOrders.filter(estaCobrado)
     const totals: Record<string, { total: number; count: number }> = {}
     for (const order of active) {
       if (order.payment_splits && order.payment_splits.length > 1) {
@@ -334,14 +349,15 @@ export function PosHistorialTab({
   const grandTotal = useMemo(
     () =>
       filteredOrders
-        .filter((o) => o.status !== 'cancelado')
+        .filter(estaCobrado)
         .reduce((sum, o) => sum + o.total, 0),
     [filteredOrders]
   )
 
   const statusCounts = useMemo(() => ({
     all: orders.length,
-    activa: orders.filter((o) => o.status !== 'cancelado').length,
+    activa: orders.filter(estaCobrado).length,
+    sin_cobrar: orders.filter((o) => o.status !== 'cancelado' && !estaCobrado(o)).length,
     anulada: orders.filter((o) => o.status === 'cancelado').length,
   }), [orders])
 
@@ -353,7 +369,7 @@ export function PosHistorialTab({
       transfer: 0,
       mercadopago: 0,
     }
-    for (const order of orders) {
+    for (const order of orders.filter(estaCobrado)) {
       if (order.payment_splits && order.payment_splits.length > 1) {
         const methods = new Set(order.payment_splits.map((s) => s.method))
         methods.forEach((m) => {
@@ -376,6 +392,7 @@ export function PosHistorialTab({
   const statusTabs: { value: StatusFilter; label: string }[] = [
     { value: 'all', label: 'Todos' },
     { value: 'activa', label: 'Pagadas' },
+    { value: 'sin_cobrar', label: 'Sin cobrar' },
     { value: 'anulada', label: 'Anuladas' },
   ]
 

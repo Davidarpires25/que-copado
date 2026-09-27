@@ -9,6 +9,7 @@ import { AdminSidebar, MobileSidebar } from '@/components/admin/layout/admin-sid
 import { MobileTopBar } from '@/components/admin/layout/mobile-top-bar'
 import type { Category, ProductWithHalfConfig, Order, DeliveryZone } from '@/lib/types/database'
 import type { CashRegisterSession, SessionSummary } from '@/lib/types/cash-register'
+import type { LoQueQuedaAbierto } from '@/components/admin/caja/session-close-screen'
 import type { TableWithOrder } from '@/lib/types/tables'
 import type { OrderWithSplits } from '@/lib/types/cash-register'
 import type { CurrentUserInfo } from '@/app/actions/profile'
@@ -41,21 +42,20 @@ export function CajaDashboard({
   const [screen, setScreen] = useState<Screen>(initialSession ? 'pos' : 'open')
   const [session, setSession] = useState<CashRegisterSession | null>(initialSession)
   const [closeSummary, setCloseSummary] = useState<SessionSummary | null>(null)
+  const [quedaAbierto, setQuedaAbierto] = useState<LoQueQuedaAbierto>({ mesas: [], remotosSinCobrar: 0 })
   // Sin estado local: PosInterface llama a router.refresh() tras cada cambio de
-  // mesa, asi que la prop del server ya trae el dato fresco. Copiarla a
-  // useState congelaba `openTablesCount` hasta recargar la pagina.
+  // mesa, asi que la prop del server ya trae el dato fresco.
   const tables = initialTables
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-  const openTablesCount = tables.filter((t) => t.status !== 'libre').length
 
   const handleSessionOpened = (newSession: CashRegisterSession) => {
     setSession(newSession)
     setScreen('pos')
   }
 
-  const handleCloseSession = (summary: SessionSummary) => {
+  const handleCloseSession = (summary: SessionSummary, abierto: LoQueQuedaAbierto) => {
     setCloseSummary(summary)
+    setQuedaAbierto(abierto)
     setScreen('close')
   }
 
@@ -159,7 +159,7 @@ export function CajaDashboard({
               >
                 <SessionCloseScreen
                   summary={closeSummary}
-                  openTablesCount={openTablesCount}
+                  quedaAbierto={quedaAbierto}
                   onBack={() => setScreen('pos')}
                   onClosed={handleSessionClosed}
                 />
