@@ -1124,3 +1124,21 @@ en bucle y lo pase por alto.
 hasta que se demuestre lo contrario. Y lo que depende de la configuracion del
 entorno (hosts, URLs) sale de la misma variable que usa la app, no de un valor
 copiado.
+
+## 49. Antes de proponer un diseño, releer lo que David ya eligio
+
+**Que paso (2026-09-27).** En la maqueta de `la-caja-se-usa-de-memoria`
+parti el cierre de caja en dos tarjetas ("Cerrar caja" y "Resumen del
+turno"), y el resumen quedaba abajo, fuera de la vista. La memoria del
+proyecto ya decia "un panel con secciones por linea fina, no una card por
+tema". David: "no me gusta que se vean dos bloques, me gusta que todo se pueda
+ver a simple vista". En la misma maqueta subi los pendientes arriba de la
+grilla aplicando la leccion 19; tampoco lo quiso: los busca abajo, donde
+estan hoy.
+
+**Regla.** Antes de dibujar una pantalla, releer las memorias de diseño
+(`menos-tarjetas-en-formularios`, patrones repetidos deliberados) y
+contrastar la propuesta con ellas. Una pantalla que se usa de un vistazo —el
+cierre, la caja— tiene que entrar entera en la netbook (1366×768). Y mover
+algo que se usa todos los dias es una decision de David: se propone con
+captura, y si no lo quiere, se arregla en su lugar.

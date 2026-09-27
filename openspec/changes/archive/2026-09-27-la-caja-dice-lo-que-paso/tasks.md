@@ -78,9 +78,9 @@ se borran los pedidos que creó el test.
 
 ## 5. Cierre del cambio
 
-- [ ] 5.1 Capturas antes/después del Historial, el cobro tipeando y el
-      cierre con un bloqueo, mostradas a David. Verifica: las capturas y su
-      respuesta.
+- [x] 5.1 Capturas del Historial, el cobro tipeando y el cierre con un
+      bloqueo, mostradas a David. Verifica: su respuesta (2026-09-27, "me
+      gustan las capturas").
 - [x] 5.2 `npm run lint`, `npm run build`, `npm run check:pagos` y la suite
       e2e completa. Resultado: lint sin errores, build y `check:pagos` bien;
       la suite, 108 pasan y 9 fallan. Los 9 fallan igual con el código de
@@ -90,9 +90,9 @@ se borran los pedidos que creó el test.
       Dashboard y Pedidos, hidratación en Arqueos, Dashboard y Pedidos, un
       botón de 28px y un encabezado vacío en Arqueos, desborde en Analytics.
       Quedan para un cambio aparte.
-- [ ] 5.3 En el local: el primer cierre de turno después de desplegar se mira
-      con David (que el desglose cierre con la plata de verdad). Verifica: su
-      confirmación.
+- [x] 5.3 En el local: el primer cierre de turno después de desplegar se mira
+      con David. Verifica: su confirmación (2026-09-27, "el cierre de caja
+      funciona bien").
 - [x] 5.4 Lección en `tasks/lessons.md`: "Un valor por defecto de la base no
       es un hecho". Ya pasó dos veces con `payment_method`: en el ticket y en
       el Historial. Verifica: la entrada escrita.
