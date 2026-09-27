@@ -3,6 +3,18 @@ import { withSentryConfig } from '@sentry/nextjs'
 
 const SUPABASE_HOST = 'yyphmsxxzgjdvblfrfpv.supabase.co'
 
+/**
+ * El Supabase al que habla el navegador, tomado de la misma variable que usa el
+ * cliente. Estaba escrito a mano con el host de produccion, y contra el stack
+ * local (`http://127.0.0.1:54321`) la CSP bloqueaba el WebSocket de realtime:
+ * Firefox lanza al construirlo y la caja entera caia en "WebSocket not
+ * available". En produccion la variable es ese mismo host, asi que la cabecera
+ * no cambia.
+ */
+const supabase = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || `https://${SUPABASE_HOST}`)
+const SUPABASE_HTTP = supabase.origin
+const SUPABASE_WS = SUPABASE_HTTP.replace(/^http/, 'ws')
+
 const securityHeaders = [
   // Prevent clickjacking
   { key: 'X-Frame-Options', value: 'DENY' },
@@ -23,9 +35,9 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
       // Images: self, data URIs, and Supabase Storage
-      `img-src 'self' data: blob: https://${SUPABASE_HOST} https://tofuu.getjusto.com https://st.depositphotos.com https://www.yoquiero.com.ar https://encrypted-tbn0.gstatic.com https://static.wixstatic.com https://*.tile.openstreetmap.org`,
+      `img-src 'self' data: blob: ${SUPABASE_HTTP} https://tofuu.getjusto.com https://st.depositphotos.com https://www.yoquiero.com.ar https://encrypted-tbn0.gstatic.com https://static.wixstatic.com https://*.tile.openstreetmap.org`,
       // API calls: Supabase REST + realtime WebSocket + Sentry error reporting + Nominatim geocoding
-      `connect-src 'self' https://${SUPABASE_HOST} wss://${SUPABASE_HOST} https://*.ingest.us.sentry.io https://*.ingest.sentry.io https://nominatim.openstreetmap.org`,
+      `connect-src 'self' ${SUPABASE_HTTP} ${SUPABASE_WS} https://*.ingest.us.sentry.io https://*.ingest.sentry.io https://nominatim.openstreetmap.org`,
       "font-src 'self'",
       "frame-src 'none'",
       "object-src 'none'",
