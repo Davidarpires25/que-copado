@@ -63,10 +63,11 @@ export function PendingOrderPayView({
   }, [order.id])
 
   const handleConfirm = () => {
-    if (!pago.isComplete || loading || pago.payments.length === 0) return
+    const pagos = pago.aCobrar
+    if (!pago.isComplete || loading || pagos.length === 0) return
     if (pago.editing) pago.commit(pago.editing)
-    if (pago.payments.length === 1) onConfirm(pago.payments[0].method)
-    else onConfirm(pago.payments[0].method, pago.payments)
+    if (pagos.length === 1) onConfirm(pagos[0].method)
+    else onConfirm(pagos[0].method, pagos)
   }
 
   const etiqueta = orderLabel(order)

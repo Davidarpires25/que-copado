@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import {
-  Loader2, ArrowLeft, CheckCircle, AlertTriangle,
-  TrendingUp, TrendingDown,
+  Loader2, ArrowLeft, CheckCircle, AlertTriangle, Globe, Lock,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { closeSession } from '@/app/actions/cash-register'
@@ -11,30 +10,60 @@ import { toast } from 'sonner'
 import { cn, formatPrice } from '@/lib/utils'
 import type { SessionSummary } from '@/lib/types/cash-register'
 import { parseARS } from '@/lib/utils/currency'
+import { orderLabel } from '@/lib/utils/order-number'
+
+/**
+ * Lo que la caja sabe que sigue abierto al pedir el cierre. Los pedidos de
+ * mostrador sin cobrar no van aca: vienen en `summary.orders`.
+ */
+export interface LoQueQuedaAbierto {
+  mesas: { nombre: string; total: number }[]
+  /** Pedidos web o de WhatsApp recibidos y sin cobrar: avisan, no bloquean. */
+  remotosSinCobrar: number
+}
 
 interface SessionCloseScreenProps {
   summary: SessionSummary
-  openTablesCount?: number
+  quedaAbierto: LoQueQuedaAbierto
   onBack: () => void
   onClosed: () => void
 }
 
 export function SessionCloseScreen({
   summary,
-  openTablesCount = 0,
+  quedaAbierto,
   onBack,
   onClosed,
 }: SessionCloseScreenProps) {
-  const hasOpenTables = openTablesCount > 0
   const [actualCash, setActualCash] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
+  const [errorServidor, setErrorServidor] = useState<string | null>(null)
 
   const s = summary.session
   const expectedCash = summary.currentCash
   const enteredCash = parseARS(actualCash) ?? 0
   const difference = enteredCash - expectedCash
   const hasEntered = parseARS(actualCash) !== null
+
+  // Lo que impide cerrar: la misma regla que aplica `closeSession`.
+  const bloqueos = [
+    ...quedaAbierto.mesas,
+    ...summary.orders
+      .filter((o) => o.order_type === 'mostrador' && (o.status === 'abierto' || o.status === 'cuenta_pedida'))
+      .map((o) => ({ nombre: `Pedido ${orderLabel(o)}`, total: o.total })),
+  ]
+  // Una sola condicion para el boton y para el Enter del contado: el Enter
+  // tenia su propio camino y cerraba con mesas abiertas.
+  const puedeCerrar = hasEntered && bloqueos.length === 0 && !loading
+
+  // Las partes del esperado; ingresos y retiros solo si los hubo.
+  const desglose = [
+    { label: 'Apertura', valor: s.opening_balance, signo: '' },
+    { label: 'Ventas en efectivo', valor: s.total_cash_sales, signo: '+ ' },
+    ...(s.total_deposits > 0 ? [{ label: 'Ingresos', valor: s.total_deposits, signo: '+ ' }] : []),
+    ...(s.total_withdrawals > 0 ? [{ label: 'Retiros', valor: s.total_withdrawals, signo: '− ' }] : []),
+  ]
 
   // Session duration
   const openedAt = new Date(s.opened_at)
@@ -58,13 +87,17 @@ export function SessionCloseScreen({
 
   const handleClose = async () => {
     if (!hasEntered) { toast.error('Ingresa el efectivo contado'); return }
+    if (!puedeCerrar) return
     setLoading(true)
+    setErrorServidor(null)
     const { error } = await closeSession(s.id, {
       actual_cash: enteredCash,
       notes: notes || undefined,
     })
     setLoading(false)
-    if (error) { toast.error(error); return }
+    // Junto al boton y no en un toast: si el servidor rechaza es porque algo
+    // cambio desde que se abrio esta pantalla, y hay que leer que.
+    if (error) { setErrorServidor(error); return }
     toast.success('Caja cerrada correctamente')
     onClosed()
   }
@@ -107,14 +140,6 @@ export function SessionCloseScreen({
             {/* ── Card header ── */}
             <div className="flex items-center justify-between px-7 pt-6 pb-4">
               <h1 className="text-[22px] font-bold text-[var(--admin-text)]">Cierre de Sesión</h1>
-              {hasOpenTables && (
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30">
-                  <AlertTriangle className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" />
-                  <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">
-                    {openTablesCount} mesa{openTablesCount > 1 ? 's' : ''} abierta{openTablesCount > 1 ? 's' : ''}
-                  </span>
-                </div>
-              )}
             </div>
 
             <div className="h-px bg-[var(--admin-border)]" />
@@ -173,45 +198,30 @@ export function SessionCloseScreen({
 
             <div className="h-px bg-[var(--admin-border)]" />
 
-            {/* ── Movements ── */}
-            {(s.total_deposits > 0 || s.total_withdrawals > 0) && (
-              <>
-                <div className="px-7 py-5 space-y-3">
-                  <SectionLabel>Movimientos de caja</SectionLabel>
-                  <div className="space-y-2">
-                    {s.total_deposits > 0 && (
-                      <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[var(--admin-surface-2)] border border-[var(--admin-border)]">
-                        <div className="flex items-center gap-2.5">
-                          <TrendingUp className="h-4 w-4 text-green-700 dark:text-green-400 shrink-0" />
-                          <span className="text-[13px] text-[var(--admin-text)]">Ingresos</span>
-                        </div>
-                        <span className="text-[13px] font-semibold text-green-700 dark:text-green-400">+{formatPrice(s.total_deposits)}</span>
-                      </div>
-                    )}
-                    {s.total_withdrawals > 0 && (
-                      <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[var(--admin-surface-2)] border border-[var(--admin-border)]">
-                        <div className="flex items-center gap-2.5">
-                          <TrendingDown className="h-4 w-4 text-red-700 dark:text-red-400 shrink-0" />
-                          <span className="text-[13px] text-[var(--admin-text)]">Retiros</span>
-                        </div>
-                        <span className="text-[13px] font-semibold text-red-700 dark:text-red-400">-{formatPrice(s.total_withdrawals)}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="h-px bg-[var(--admin-border)]" />
-              </>
-            )}
-
             {/* ── Conciliación de efectivo ── */}
             <div className="px-7 py-5 space-y-3">
               <SectionLabel>Conciliación de efectivo</SectionLabel>
 
-              {/* Esperado */}
-              <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[var(--admin-surface-2)] border border-[var(--admin-border)]">
-                <span className="text-[13px] text-[var(--admin-text-muted)]">Efectivo esperado</span>
-                <span className="text-[16px] font-bold tabular-nums text-[var(--admin-text)]">{formatPrice(expectedCash)}</span>
-              </div>
+              {/* Esperado, con de donde sale: un numero solo no se puede chequear
+                  ante un faltante. Absorbe la seccion de movimientos, que era el
+                  mismo dato en otro lugar. */}
+              <section
+                aria-label="Efectivo esperado"
+                className="rounded-xl border border-[var(--admin-border)] divide-y divide-[var(--admin-border)] overflow-hidden"
+              >
+                {desglose.map((d) => (
+                  <div key={d.label} className="flex items-center justify-between px-3 py-2 text-[13px]">
+                    <span className="text-[var(--admin-text-muted)]">{d.label}</span>
+                    <span className="tabular-nums text-[var(--admin-text)]">
+                      {d.signo}{formatPrice(d.valor)}
+                    </span>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between px-3 py-2.5 bg-[var(--admin-surface-2)]">
+                  <span className="text-[13px] font-semibold text-[var(--admin-text)]">Efectivo esperado</span>
+                  <span className="text-[16px] font-bold tabular-nums text-[var(--admin-text)]">{formatPrice(expectedCash)}</span>
+                </div>
+              </section>
 
               {/* Contado — input */}
               <div className="relative flex items-center rounded-xl bg-[var(--admin-surface-2)] border border-[var(--admin-accent)]/40" style={{ height: 40 }}>
@@ -266,6 +276,44 @@ export function SessionCloseScreen({
               />
             </div>
 
+            {/* ── Lo que impide cerrar, junto al boton que deshabilita ── */}
+            {(bloqueos.length > 0 || errorServidor || quedaAbierto.remotosSinCobrar > 0) && (
+              <div className="px-7 pb-4 space-y-2">
+                {bloqueos.length > 0 && (
+                  <section
+                    aria-label="Lo que impide cerrar"
+                    className="rounded-xl border border-red-500/30 bg-red-500/5 px-3 py-2.5"
+                  >
+                    <p className="flex items-center gap-2 text-[13px] font-semibold text-red-700 dark:text-red-400">
+                      <Lock className="h-4 w-4 shrink-0" />
+                      No se puede cerrar: falta cobrar
+                    </p>
+                    <ul className="mt-1.5 space-y-0.5 pl-6">
+                      {bloqueos.map((b) => (
+                        <li key={b.nombre} className="flex justify-between gap-3 text-[13px] text-[var(--admin-text)]">
+                          <span>{b.nombre}</span>
+                          <span className="tabular-nums">{formatPrice(b.total)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+                {errorServidor && (
+                  <p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/5 px-3 py-2 text-[13px] text-red-700 dark:text-red-400">
+                    {errorServidor}
+                  </p>
+                )}
+                {quedaAbierto.remotosSinCobrar > 0 && (
+                  <p className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-[13px] text-amber-700 dark:text-amber-400">
+                    <Globe className="h-4 w-4 shrink-0 mt-px" />
+                    {quedaAbierto.remotosSinCobrar === 1
+                      ? 'Hay 1 pedido de WhatsApp o web sin cobrar. No es de este turno: no impide cerrar, se cobra en el próximo.'
+                      : `Hay ${quedaAbierto.remotosSinCobrar} pedidos de WhatsApp o web sin cobrar. No son de este turno: no impiden cerrar, se cobran en el próximo.`}
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* ── Buttons — Pencil: Cancelar outlined + Confirmar gold ── */}
             <div className="flex items-center justify-end gap-3 px-7 pb-7">
               <button
@@ -276,7 +324,7 @@ export function SessionCloseScreen({
               </button>
               <button
                 onClick={handleClose}
-                disabled={loading || !hasEntered || hasOpenTables}
+                disabled={!puedeCerrar}
                 className="h-11 px-6 rounded-xl bg-[var(--admin-accent)] text-black text-[14px] font-bold flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 active:brightness-95 transition-all cursor-pointer"
               >
                 {loading ? (

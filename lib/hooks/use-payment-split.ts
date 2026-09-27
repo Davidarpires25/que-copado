@@ -46,10 +46,17 @@ export function usePaymentSplit(total: number, resetKey: string) {
     return () => clearTimeout(id)
   }, [editing])
 
-  const covered = payments.reduce((s, p) => s + p.amount, 0)
+  // Mientras se escribe un monto, las cuentas se hacen con lo que se esta
+  // escribiendo, aplicado con la misma regla que `commit`: lo que se ve es lo
+  // que queda al confirmar. Antes se hacian solo con lo confirmado, y el vuelto
+  // aparecia recien al salir del campo.
+  const vista = editing
+    ? applyPaymentAmount(payments, editing, parseARS(draft) ?? 0, total)
+    : payments
+  const covered = vista.reduce((s, p) => s + p.amount, 0)
   const remaining = Math.max(0, total - covered)
   const isComplete = covered >= total - EPS
-  const cashReceived = payments.find((p) => p.method === 'cash')?.amount ?? 0
+  const cashReceived = vista.find((p) => p.method === 'cash')?.amount ?? 0
   const change = cashReceived > 0 && isComplete ? Math.max(0, covered - total) : 0
 
   const commit = useCallback((method: PaymentMethod) => {
@@ -95,6 +102,10 @@ export function usePaymentSplit(total: number, resetKey: string) {
 
   return {
     payments, editing, draft, inputRef,
+    // Lo que se cobra al confirmar: incluye el monto que se esta escribiendo.
+    // `commit` es asincrono, asi que leer `payments` justo despues de llamarlo
+    // podria mandar el monto anterior.
+    aCobrar: vista,
     covered, remaining, isComplete, change, cashReceived,
     setDraft, toggle, edit, commit, cancel, reset,
   }

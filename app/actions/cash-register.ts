@@ -14,6 +14,9 @@ import type {
   SessionSummary,
 } from '@/lib/types/cash-register'
 import type { Order } from '@/lib/types/database'
+import { etiquetaDeMesa } from '@/lib/utils/table-label'
+import { orderLabel } from '@/lib/utils/order-number'
+import { formatPrice } from '@/lib/utils'
 import type { OrderWithSplits } from '@/lib/types/cash-register'
 
 /**
@@ -103,16 +106,52 @@ export async function closeSession(
     const user = await getAuthUser(supabase)
     if (!user) return { data: null, error: 'No autenticado' }
 
-    // Get current session to compute expected cash
-    const { data: currentSession, error: fetchError } = await supabase
-      .from('cash_register_sessions')
-      .select('*')
-      .eq('id', sessionId)
-      .eq('status', 'open')
-      .single()
+    // La sesion y lo que impide cerrarla, en la misma ola. Esto es lo que
+    // decide: la pantalla deshabilita el boton, pero el Enter del contado
+    // cerraba igual, y nada impide que otra pantalla o una pestana vieja pida
+    // el cierre.
+    const [
+      { data: currentSession, error: fetchError },
+      { data: mesas, error: mesasError },
+      { data: pendientes, error: pendientesError },
+    ] = await Promise.all([
+      supabase
+        .from('cash_register_sessions')
+        .select('*')
+        .eq('id', sessionId)
+        .eq('status', 'open')
+        .single(),
+      supabase
+        .from('restaurant_tables')
+        .select('number, label, orders:current_order_id (total)')
+        .neq('status', 'libre')
+        .order('number'),
+      supabase
+        .from('orders')
+        .select('id, order_number, total')
+        .eq('cash_register_session_id', sessionId)
+        .eq('order_type', 'mostrador')
+        .in('status', ['abierto', 'cuenta_pedida'])
+        .order('order_number'),
+    ])
 
     if (fetchError || !currentSession) {
       return { data: null, error: 'Sesion no encontrada o ya cerrada' }
+    }
+    if (mesasError || pendientesError) {
+      devError('Error checking what blocks closing:', mesasError ?? pendientesError)
+      return { data: null, error: 'No se pudo verificar si queda algo sin cobrar' }
+    }
+
+    const faltan = [
+      ...(mesas ?? []).map((m) => {
+        const pedido = (Array.isArray(m.orders) ? m.orders[0] : m.orders) as { total: number } | null
+        return `${etiquetaDeMesa(m)} (${formatPrice(pedido?.total ?? 0)})`
+      }),
+      ...(pendientes ?? []).map((o) => `pedido ${orderLabel(o)} (${formatPrice(o.total)})`),
+    ]
+    if (faltan.length > 0) {
+      return { data: null, error: `No se puede cerrar: falta cobrar ${faltan.join(', ')}` }
     }
 
     const s = currentSession as CashRegisterSession

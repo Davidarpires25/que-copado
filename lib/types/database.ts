@@ -1027,6 +1027,18 @@ export type ProductComponentWithProduct = ProductComponent & {
 export const esPedidoRemoto = (source: string | null | undefined): boolean =>
   source != null && source !== 'pos'
 
+/**
+ * Si el pedido paso por el cobro. Lo marcan las funciones de cobro de la base
+ * (`status = 'pagado'`); `entregado` viene despues, sobre algo ya cobrado.
+ *
+ * No se mira `payment_method`: todo pedido nace con efectivo como valor de
+ * arranque porque la columna no admite nulos, y eso no dice que alguien haya
+ * pagado. El Historial lo leia asi y listaba como "Pagado · Efectivo" pedidos
+ * sin cobrar.
+ */
+export const estaCobrado = (order: { status: string }): boolean =>
+  order.status === 'pagado' || order.status === 'entregado'
+
 // Half-pizza config type
 export type HalfConfig = Database['public']['Tables']['product_half_configs']['Row']
 export type ProductWithHalfConfig = Product & { product_half_configs: HalfConfig[] }

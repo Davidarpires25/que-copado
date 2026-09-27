@@ -35,6 +35,7 @@ import { cn, formatPrice } from '@/lib/utils'
 import type { Category, ProductWithHalfConfig, PaymentMethod, Order, DeliveryZone } from '@/lib/types/database'
 import { sendsToKitchen, esPedidoRemoto } from '@/lib/types/database'
 import type { CashRegisterSession, SessionSummary, PaymentSplit, OrderWithSplits } from '@/lib/types/cash-register'
+import type { LoQueQuedaAbierto } from './session-close-screen'
 import type { TableWithOrder, OrderItemRow } from '@/lib/types/tables'
 
 type PosMode = 'mostrador' | 'mesas' | 'historial'
@@ -47,7 +48,7 @@ interface PosInterfaceProps {
   initialPendingOrders: Order[]
   initialDeliveryZones: DeliveryZone[]
   initialSessionOrders: OrderWithSplits[]
-  onCloseSession: (summary: SessionSummary) => void
+  onCloseSession: (summary: SessionSummary, abierto: LoQueQuedaAbierto) => void
   onSessionUpdate: (session: CashRegisterSession) => void
   /** Abre el menu lateral en mobile. */
   onOpenMenu?: () => void
@@ -451,7 +452,14 @@ export function PosInterface({
   const handleCloseSessionClick = async () => {
     const { data: summary } = await getSessionSummary(session.id)
     if (summary) {
-      onCloseSession(summary)
+      // Lo que la pantalla de cierre tiene que nombrar. Los pedidos de
+      // mostrador sin cobrar ya vienen en `summary.orders`.
+      onCloseSession(summary, {
+        mesas: tables
+          .filter((t) => t.status !== 'libre')
+          .map((t) => ({ nombre: etiquetaDeMesa(t), total: t.orders?.total ?? 0 })),
+        remotosSinCobrar: pendingOrders.filter((o) => esPedidoRemoto(o.order_source)).length,
+      })
     }
   }
 
