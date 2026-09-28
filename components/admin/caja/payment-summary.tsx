@@ -50,6 +50,8 @@ export function PaymentSummary({
       )}
 
       <div className="flex items-baseline justify-between">
+        {/* Fuera de la escala a proposito: el total y el vuelto son los numeros
+            que se dicen en voz alta, y tienen que ganarle a todo lo demas. */}
         <span className="text-[17px] font-bold text-[var(--admin-text)]">Total</span>
         <span className="text-[17px] font-bold tabular-nums text-[var(--admin-price)]">
           {formatPrice(total)}
@@ -70,11 +72,11 @@ export function PaymentSummary({
       )}
 
       {change > 0 && (
-        <div className="mt-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-center">
-          <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-400">
+        <div className="mt-2 rounded-xl border border-exito/30 bg-exito/10 px-3 py-2.5 text-center">
+          <span className="block text-panel-2xs font-semibold uppercase tracking-[0.18em] text-exito-texto">
             Vuelto
           </span>
-          <span className="block text-[26px] font-extrabold leading-tight tabular-nums text-emerald-700 dark:text-emerald-400">
+          <span className="block text-[26px] font-extrabold leading-tight tabular-nums text-exito-texto">
             {formatPrice(change)}
           </span>
         </div>
@@ -92,13 +94,13 @@ function Row({
   tone?: 'good' | 'warn'
 }) {
   const color =
-    tone === 'good' ? 'text-emerald-700 dark:text-emerald-400 font-semibold'
-    : tone === 'warn' ? 'text-amber-700 dark:text-amber-400 font-semibold'
+    tone === 'good' ? 'text-exito-texto font-semibold'
+    : tone === 'warn' ? 'text-aviso-texto font-semibold'
     : muted ? 'text-[var(--admin-text-faint)]'
     : 'text-[var(--admin-text-muted)]'
 
   return (
-    <div className={cn('flex items-baseline justify-between text-[13px]', color)}>
+    <div className={cn('flex items-baseline justify-between text-panel-sm', color)}>
       <span>{k}</span>
       <span className="tabular-nums">{v}</span>
     </div>

@@ -30,7 +30,7 @@ export function StockAlert({ checking, warnings }: StockAlertProps) {
     return (
       <div className={`${CAJA} border-[var(--admin-text-placeholder)] bg-[var(--admin-surface-2)]`}>
         <Loader2 className="mt-px h-3.5 w-3.5 shrink-0 animate-spin text-[var(--admin-text-muted)]" />
-        <span className="text-[11.5px] leading-snug text-[var(--admin-text-muted)]">Verificando stock…</span>
+        <span className="text-panel-2xs leading-snug text-[var(--admin-text-muted)]">Verificando stock…</span>
       </div>
     )
   }
@@ -40,10 +40,10 @@ export function StockAlert({ checking, warnings }: StockAlertProps) {
   const unico = warnings.length === 1 ? warnings[0] : null
 
   return (
-    <div className={`${CAJA} border-amber-500 bg-amber-500/10`}>
-      <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0 text-amber-700 dark:text-amber-400" />
+    <div className={`${CAJA} border-aviso bg-aviso/10`}>
+      <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0 text-aviso-texto" />
 
-      <div className="min-w-0 space-y-0.5 text-[11.5px] leading-snug text-amber-800 dark:text-amber-200">
+      <div className="min-w-0 space-y-0.5 text-panel-2xs leading-snug text-aviso-texto">
         {/* Con un solo producto, el titulo y la linea dicen lo mismo. */}
         {unico ? (
           <p>
@@ -64,7 +64,7 @@ export function StockAlert({ checking, warnings }: StockAlertProps) {
 
         {/* La venta no se bloquea, asi que conviene decirlo en vez de dejar la
             duda justo cuando hay alguien esperando. */}
-        <p className="text-amber-700/80 dark:text-amber-300/70">Se puede cobrar igual.</p>
+        <p className="text-aviso-texto/80">Se puede cobrar igual.</p>
       </div>
     </div>
   )

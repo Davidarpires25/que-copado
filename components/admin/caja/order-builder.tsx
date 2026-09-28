@@ -89,7 +89,7 @@ export function OrderBuilder({
       {/* Header */}
       <div className="flex items-center justify-between px-5 shrink-0 h-[52px] border-b border-[var(--admin-border)]">
         <div className="flex items-center gap-2">
-          <h2 className="text-[15px] font-bold text-[var(--admin-text)]">
+          <h2 className="text-panel-lg font-bold text-[var(--admin-text)]">
             {items.length === 0 ? 'Sin pedido' : 'Pedido actual'}
           </h2>
           {totalItems > 0 && (
@@ -101,11 +101,11 @@ export function OrderBuilder({
         {items.length > 0 && (
           <button
             onClick={handleClearCart}
-            className={`text-[14px] flex items-center gap-1.5 h-9 tactil:h-11 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-              confirmClear
-                ? 'bg-red-500/10 text-red-700 dark:text-red-400'
-                : 'text-[var(--admin-text-faint)] hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/10'
-            }`}
+            className={`text-panel-base flex items-center gap-1.5 h-9 tactil:h-11 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+ confirmClear
+ ? 'bg-peligro/10 text-peligro-texto'
+ : 'text-[var(--admin-text-faint)] hover:text-peligro-texto hover:bg-peligro/10'
+ }`}
           >
             <Trash2 className="h-4 w-4" />
             {confirmClear ? 'Confirmar' : 'Limpiar'}
@@ -130,90 +130,88 @@ export function OrderBuilder({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: 16 }}
                 transition={{ duration: 0.12 }}
-                className="flex items-center justify-between py-2.5 border-b border-[var(--admin-border)]"
+                data-renglon-carrito
+                className="py-2.5 border-b border-[var(--admin-border)]"
               >
-                {/* Left: name + price per unit + note */}
-                <div className="flex-1 min-w-0 mr-3">
-                  <p className="text-[14px] font-medium text-[var(--admin-text)] truncate leading-tight">
+                {/* Renglon 1: el nombre con todo el ancho, y quitar a su lado.
+                    Compartia la fila con la cantidad y el monto, y en la netbook
+                    se cortaba en "Combo Clásico (b…": tres combos parecidos ya no
+                    se distinguian. */}
+                <div className="flex items-start gap-2">
+                  <p className="flex-1 min-w-0 text-panel-base font-medium leading-snug text-[var(--admin-text)] line-clamp-2">
                     {item.name}
                   </p>
-                  <p className="text-[13px] font-medium mt-0.5 text-[var(--admin-text-faint)]">
-                    {formatPrice(item.price)} c/u
+                  <button
+                    onClick={() => onRemoveItem(item.id)}
+                    className="-mt-1 grid size-7 shrink-0 place-items-center rounded-md text-[var(--admin-text-faint)] hover:bg-peligro/10 hover:text-peligro-texto transition-colors cursor-pointer tactil:size-11"
+                    aria-label="Eliminar producto"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+                {item.halfPizzaProductId && item.notes && (
+                  <p className="flex items-center gap-1 mt-0.5 text-panel-xs text-[var(--admin-text-muted)]">
+                    <MessageSquare className="h-3 w-3 shrink-0" />
+                    <span className="min-w-0">{item.notes}</span>
                   </p>
-                  {item.halfPizzaProductId ? (
-                    item.notes && (
-                      <p className="flex items-center gap-1 mt-0.5 text-[11px] text-[var(--admin-accent-text)]/80">
-                        <MessageSquare className="h-3 w-3 shrink-0" />
-                        <span className="truncate max-w-[120px]">{item.notes}</span>
-                      </p>
-                    )
-                  ) : (
-                    <>
+                )}
+
+                {/* Renglon 2: precio y nota | cantidad | subtotal. El subtotal
+                    tenia 52px fijos y "$ 29.000" se montaba sobre el tacho. */}
+                <div className="mt-1 flex items-center gap-2">
+                  <div className="flex flex-1 min-w-0 items-center gap-3">
+                    <span className="whitespace-nowrap text-panel-sm tabular-nums text-[var(--admin-text-faint)]">
+                      {formatPrice(item.price)} c/u
+                    </span>
+                    {!item.halfPizzaProductId && (
                       <button
                         onClick={() => toggleItemNote(item.id)}
-                        className="flex items-center gap-1 mt-0.5 tactil:min-h-11 text-[11px] text-[var(--admin-text-faint)] hover:text-[var(--admin-accent-text)] transition-colors cursor-pointer"
+                        className="flex min-w-0 items-center gap-1 tactil:min-h-11 text-panel-sm text-[var(--admin-text-faint)] hover:text-[var(--admin-accent-text)] transition-colors cursor-pointer"
                       >
-                        <MessageSquare className="h-4 w-4" />
-                        <span className=" text-[14px] truncate max-w-[200px]">{item.notes ? item.notes : 'nota'}</span>
+                        <MessageSquare className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{item.notes ? item.notes : 'nota'}</span>
                       </button>
-                      {itemNotesOpen.has(item.id) && (
-                        <input
-                          autoFocus
-                          value={item.notes ?? ''}
-                          onChange={(e) => onSetItemNotes?.(item.id, e.target.value)}
-                          onBlur={() => { if (!item.notes) toggleItemNote(item.id) }}
-                          placeholder="sin queso, sin lechuga..."
-                          className="mt-1 w-full text-[14px] bg-transparent border-b border-[var(--admin-border)] focus:border-[var(--admin-accent)]/50 text-[var(--admin-text)] placeholder:text-[var(--admin-text-faint)] outline-none py-0.5"
-                        />
-                      )}
-                    </>
-                  )}
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <button
+                      onClick={() => onUpdateQuantity(item.id, -1)}
+                      className="flex size-control items-center justify-center rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface-2)] hover:border-[var(--admin-accent)]/40 transition-all active:scale-90 cursor-pointer tactil:size-11"
+                      aria-label="Disminuir"
+                    >
+                      <Minus className="h-3.5 w-3.5 text-[var(--admin-text-muted)]" />
+                    </button>
+                    <motion.span
+                      key={item.quantity}
+                      initial={{ scale: 1.3 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.1 }}
+                      className="w-6 text-center text-panel-base font-semibold tabular-nums text-[var(--admin-text)]"
+                    >
+                      {item.quantity}
+                    </motion.span>
+                    <button
+                      onClick={() => onUpdateQuantity(item.id, 1)}
+                      className="flex size-control items-center justify-center rounded-md bg-[var(--admin-accent)] hover:opacity-90 active:scale-90 transition-all cursor-pointer tactil:size-11"
+                      aria-label="Aumentar"
+                    >
+                      <Plus className="h-3.5 w-3.5 text-black" />
+                    </button>
+                  </div>
+                  <p className="min-w-[76px] whitespace-nowrap text-right text-panel-base font-semibold tabular-nums text-[var(--admin-text)]">
+                    {formatPrice(item.price * item.quantity)}
+                  </p>
                 </div>
-
-                {/* Qty control */}
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    onClick={() => onUpdateQuantity(item.id, -1)}
-                    className="flex items-center justify-center tactil:min-h-11 tactil:min-w-11 rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-accent)]/40 transition-all active:scale-90 cursor-pointer"
-                    style={{ width: 36, height: 36 }}
-                    aria-label="Disminuir"
-                  >
-                    <Minus className="h-3.5 w-3.5 text-[var(--admin-text-muted)]" />
-                  </button>
-                  <motion.span
-                    key={item.quantity}
-                    initial={{ scale: 1.3 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.1 }}
-                    className="text-[13px] font-semibold tabular-nums text-center text-[var(--admin-text)]"
-                    style={{ width: 18 }}
-                  >
-                    {item.quantity}
-                  </motion.span>
-                  <button
-                    onClick={() => onUpdateQuantity(item.id, 1)}
-                    className="flex items-center justify-center tactil:min-h-11 tactil:min-w-11 rounded-md bg-[var(--admin-accent)] hover:opacity-90 active:scale-90 transition-all cursor-pointer"
-                    style={{ width: 36, height: 36 }}
-                    aria-label="Aumentar"
-                  >
-                    <Plus className="h-3.5 w-3.5 text-black" />
-                  </button>
-                </div>
-
-                {/* Line total */}
-                <p className="text-[13px] font-semibold tabular-nums text-right ml-3 shrink-0 text-[var(--admin-text)]"
-                   style={{ width: 52 }}>
-                  {formatPrice(item.price * item.quantity)}
-                </p>
-
-                {/* Remove item */}
-                <button
-                  onClick={() => onRemoveItem(item.id)}
-                  className="ml-2 tactil:ml-0 tactil:grid tactil:size-11 tactil:place-items-center text-[var(--admin-text-faint)] hover:text-red-700 dark:hover:text-red-400 transition-colors cursor-pointer shrink-0"
-                  aria-label="Eliminar producto"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                {!item.halfPizzaProductId && itemNotesOpen.has(item.id) && (
+                  <input
+                    autoFocus
+                    value={item.notes ?? ''}
+                    onChange={(e) => onSetItemNotes?.(item.id, e.target.value)}
+                    onBlur={() => { if (!item.notes) toggleItemNote(item.id) }}
+                    placeholder="sin queso, sin lechuga..."
+                    className="mt-1 w-full text-panel-base bg-transparent border-b border-[var(--admin-border)] focus:border-[var(--admin-accent)]/50 text-[var(--admin-text)] placeholder:text-[var(--admin-text-faint)] outline-none py-0.5"
+                  />
+                )}
               </motion.div>
             ))}
           </AnimatePresence>
@@ -235,7 +233,7 @@ export function OrderBuilder({
           ) : (
             <button
               onClick={() => setShowNotes(true)}
-              className="text-[13px] tactil:min-h-11 cursor-pointer transition-colors text-[var(--admin-text-faint)] hover:text-[var(--admin-text-muted)]"
+              className="text-panel-sm tactil:min-h-11 cursor-pointer transition-colors text-[var(--admin-text-faint)] hover:text-[var(--admin-text-muted)]"
             >
               + Agregar nota
             </button>
@@ -246,9 +244,11 @@ export function OrderBuilder({
       {/* Totals */}
       {items.length > 0 && (
         <div className="px-5 py-4 space-y-2.5 shrink-0 border-t border-[var(--admin-border)]">
-          <div className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-2)] p-3 space-y-2">
+          {/* Apagado es un renglon: casi ninguna venta de mostrador lleva envio,
+              y la tarjeta ocupaba ~90px en todas. Encendido se enmarca con la zona. */}
+          <div className={shippingEnabled ? 'rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-2)] p-3 space-y-2' : 'space-y-2'}>
             <div className="flex items-center justify-between">
-              <span className="text-[12px] text-[var(--admin-text-muted)] font-medium">Agregar envío</span>
+              <span className="text-panel-sm text-[var(--admin-text-muted)]">Envío</span>
               <Switch
                 checked={shippingEnabled}
                 onCheckedChange={(checked) => onShippingEnabledChange?.(checked)}
@@ -271,27 +271,27 @@ export function OrderBuilder({
             )}
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-[14px] text-[var(--admin-text-muted)]">Subtotal</span>
-            <span className="text-[14px] tabular-nums text-[var(--admin-text)]">
+            <span className="text-panel-base text-[var(--admin-text-muted)]">Subtotal</span>
+            <span className="text-panel-base tabular-nums text-[var(--admin-text)]">
               {formatPrice(subtotal)}
             </span>
           </div>
           {shippingEnabled && (
             <div className="flex items-center justify-between">
-              <span className="text-[14px] text-[var(--admin-text-muted)]">Envío</span>
-              <span className="text-[14px] tabular-nums text-[var(--admin-text)]">
+              <span className="text-panel-base text-[var(--admin-text-muted)]">Envío</span>
+              <span className="text-panel-base tabular-nums text-[var(--admin-text)]">
                 {formatPrice(shippingCost)}
               </span>
             </div>
           )}
           <div className="h-px bg-[var(--admin-border)]" />
           <div className="flex items-center justify-between">
-            <span className="text-[18px] font-bold text-[var(--admin-text)]">Total</span>
+            <span className="text-panel-xl font-bold text-[var(--admin-text)]">Total</span>
             <motion.span
               key={finalTotal}
               initial={{ scale: 1.06 }}
               animate={{ scale: 1 }}
-              className="text-[18px] font-bold tabular-nums text-[var(--admin-price)]"
+              className="text-panel-xl font-bold tabular-nums text-[var(--admin-price)]"
             >
               {formatPrice(finalTotal)}
             </motion.span>

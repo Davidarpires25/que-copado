@@ -680,9 +680,11 @@ test.describe('la caja con un pedido en curso', () => {
 
     // La pantalla de cierre: se mide y se vuelve, sin confirmar.
     await tocar(page.getByRole('button', { name: 'Cerrar caja' }))
-    await expect(page.getByRole('button', { name: /Volver al POS/ })).toBeVisible()
+    // En el celular la barra es la del panel; se vuelve con "Cancelar", junto
+    // al boton de cerrar.
+    await expect(page.getByRole('button', { name: 'Confirmar Cierre' })).toBeVisible()
     await revisar(page, 'caja › cierre', fallas)
-    await page.getByRole('button', { name: /Volver al POS/ }).click()
+    await page.getByRole('button', { name: 'Cancelar', exact: true }).click()
 
     // Las pantallas que en la base local estaban vacias, ahora con un pedido.
     for (const ruta of ['/admin/orders', '/admin/cocina', '/admin/dashboard']) {

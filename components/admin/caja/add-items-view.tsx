@@ -165,7 +165,7 @@ export function AddItemsView({
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
-            <h2 className="text-[15px] font-bold text-[var(--admin-text)]">
+            <h2 className="text-panel-lg font-bold text-[var(--admin-text)]">
               {cart.length === 0 ? 'Sin productos' : 'Nuevos items'}
             </h2>
             {cartItemCount > 0 && (
@@ -177,7 +177,7 @@ export function AddItemsView({
           {cart.length > 0 && (
             <button
               onClick={() => setCart([])}
-              className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer text-[var(--admin-text-faint)] hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/10"
+              className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer text-[var(--admin-text-faint)] hover:text-peligro-texto hover:bg-peligro/10"
             >
               <Trash2 className="h-3 w-3" />
               Limpiar
@@ -206,15 +206,15 @@ export function AddItemsView({
                 >
                   {/* Left: name + price + note */}
                   <div className="flex-1 min-w-0 mr-3">
-                    <p className="text-[13px] font-medium text-[var(--admin-text)] truncate leading-tight">
+                    <p className="text-panel-sm font-medium text-[var(--admin-text)] truncate leading-tight">
                       {item.product_name}
                     </p>
-                    <p className="text-[11px] mt-0.5 text-[var(--admin-text-faint)]">
+                    <p className="text-panel-2xs mt-0.5 text-[var(--admin-text-faint)]">
                       {formatPrice(item.product_price)} c/u
                     </p>
                     {item.id !== item.product_id ? (
                       item.notes && (
-                        <p className="flex items-center gap-1 mt-0.5 text-[11px] text-[var(--admin-accent-text)]/80">
+                        <p className="flex items-center gap-1 mt-0.5 text-panel-2xs text-[var(--admin-accent-text)]/80">
                           <MessageSquare className="h-3 w-3 shrink-0" />
                           <span className="truncate max-w-[100px]">{item.notes}</span>
                         </p>
@@ -223,7 +223,7 @@ export function AddItemsView({
                       <>
                         <button
                           onClick={() => toggleNote(item.id)}
-                          className="flex items-center gap-1 mt-0.5 text-[11px] text-[var(--admin-text-faint)] hover:text-[var(--admin-accent-text)] transition-colors cursor-pointer"
+                          className="flex items-center gap-1 mt-0.5 text-panel-2xs text-[var(--admin-text-faint)] hover:text-[var(--admin-accent-text)] transition-colors cursor-pointer"
                         >
                           <MessageSquare className="h-3 w-3" />
                           <span className="truncate max-w-[100px]">{item.notes ? item.notes : 'nota'}</span>
@@ -235,7 +235,7 @@ export function AddItemsView({
                             onChange={(e) => handleSetNotes(item.id, e.target.value)}
                             onBlur={() => { if (!item.notes) toggleNote(item.id) }}
                             placeholder="sin queso, sin lechuga..."
-                            className="mt-1 w-full text-[11px] bg-transparent border-b border-[var(--admin-border)] focus:border-[var(--admin-accent)]/50 text-[var(--admin-text)] placeholder:text-[var(--admin-text-faint)] outline-none py-0.5"
+                            className="mt-1 w-full text-panel-2xs bg-transparent border-b border-[var(--admin-border)] focus:border-[var(--admin-accent)]/50 text-[var(--admin-text)] placeholder:text-[var(--admin-text-faint)] outline-none py-0.5"
                           />
                         )}
                       </>
@@ -246,32 +246,32 @@ export function AddItemsView({
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={() => handleUpdateQty(item.id, item.quantity - 1)}
-                      className="flex items-center justify-center rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-accent)]/40 transition-all active:scale-90 cursor-pointer"
-                      style={{ width: 26, height: 26 }}
+                      className="flex size-control items-center justify-center rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-accent)]/40 transition-all active:scale-90 cursor-pointer tactil:size-11"
+                      aria-label="Disminuir"
                     >
-                      <Minus className="h-3 w-3 text-[var(--admin-text-muted)]" />
+                      <Minus className="h-3.5 w-3.5 text-[var(--admin-text-muted)]" />
                     </button>
                     <motion.span
                       key={item.quantity}
                       initial={{ scale: 1.3 }}
                       animate={{ scale: 1 }}
                       transition={{ duration: 0.1 }}
-                      className="text-[13px] font-semibold tabular-nums text-center text-[var(--admin-text)]"
+                      className="text-panel-sm font-semibold tabular-nums text-center text-[var(--admin-text)]"
                       style={{ width: 18 }}
                     >
                       {item.quantity}
                     </motion.span>
                     <button
                       onClick={() => handleUpdateQty(item.id, item.quantity + 1)}
-                      className="flex items-center justify-center rounded-md bg-[var(--admin-accent)] hover:opacity-90 active:scale-90 transition-all cursor-pointer"
-                      style={{ width: 26, height: 26 }}
+                      className="flex size-control items-center justify-center rounded-md bg-[var(--admin-accent)] hover:opacity-90 active:scale-90 transition-all cursor-pointer tactil:size-11"
+                      aria-label="Aumentar"
                     >
-                      <Plus className="h-3 w-3 text-black" />
+                      <Plus className="h-3.5 w-3.5 text-black" />
                     </button>
                   </div>
 
                   {/* Line total */}
-                  <p className="text-[13px] font-semibold tabular-nums text-right ml-3 shrink-0 text-[var(--admin-text)]"
+                  <p className="text-panel-sm font-semibold tabular-nums text-right ml-3 shrink-0 text-[var(--admin-text)]"
                      style={{ width: 52 }}>
                     {formatPrice(item.product_price * item.quantity)}
                   </p>
@@ -279,7 +279,7 @@ export function AddItemsView({
                   {/* Remove */}
                   <button
                     onClick={() => handleRemove(item.id)}
-                    className="ml-2 text-[var(--admin-text-faint)] hover:text-red-700 dark:hover:text-red-400 transition-colors cursor-pointer shrink-0"
+                    className="ml-2 text-[var(--admin-text-faint)] hover:text-peligro-texto transition-colors cursor-pointer shrink-0"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -293,17 +293,17 @@ export function AddItemsView({
         {cart.length > 0 && (
           <div className="px-5 py-4 space-y-2.5 shrink-0 border-t border-[var(--admin-border)]">
             <div className="flex items-center justify-between">
-              <span className="text-[14px] text-[var(--admin-text-muted)]">Subtotal</span>
-              <span className="text-[14px] tabular-nums text-[var(--admin-text)]">{formatPrice(cartTotal)}</span>
+              <span className="text-panel-base text-[var(--admin-text-muted)]">Subtotal</span>
+              <span className="text-panel-base tabular-nums text-[var(--admin-text)]">{formatPrice(cartTotal)}</span>
             </div>
             <div className="h-px bg-[var(--admin-border)]" />
             <div className="flex items-center justify-between">
-              <span className="text-[18px] font-bold text-[var(--admin-text)]">Total</span>
+              <span className="text-panel-xl font-bold text-[var(--admin-text)]">Total</span>
               <motion.span
                 key={cartTotal}
                 initial={{ scale: 1.06 }}
                 animate={{ scale: 1 }}
-                className="text-[18px] font-bold tabular-nums text-[var(--admin-price)]"
+                className="text-panel-xl font-bold tabular-nums text-[var(--admin-price)]"
               >
                 {formatPrice(cartTotal)}
               </motion.span>

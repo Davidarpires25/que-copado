@@ -50,8 +50,8 @@ export function ShiftBar({
       )}
 
       <div className="flex items-center gap-2 shrink-0">
-        <span className="h-2 w-2 rounded-full shrink-0 bg-emerald-500" />
-        <span className="text-[13px] font-medium whitespace-nowrap text-[var(--admin-text)]">
+        <span className="h-2 w-2 rounded-full shrink-0 bg-exito" />
+        <span className="text-panel-sm font-medium whitespace-nowrap text-[var(--admin-text)]">
           Caja abierta
         </span>
       </div>
@@ -68,7 +68,7 @@ export function ShiftBar({
       <button
         type="button"
         onClick={onMovement}
-        className="shrink-0 inline-flex items-center gap-1.5 h-8 tactil:h-11 px-3 rounded-md text-[12px] font-medium border border-[var(--admin-border)] bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-text-placeholder)] transition-colors cursor-pointer"
+        className="shrink-0 inline-flex items-center gap-1.5 h-8 tactil:h-11 px-3 rounded-md text-panel-xs font-medium border border-[var(--admin-border)] bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-text-placeholder)] transition-colors cursor-pointer"
       >
         <ArrowUpDown className="h-3.5 w-3.5" />
         <span className="hidden sm:inline">Movimiento de Caja</span>
@@ -84,7 +84,7 @@ export function ShiftBar({
         onClick={onCloseSession}
         aria-label="Cerrar caja"
         title={openTablesCount > 0 ? `${openTablesCount} mesa(s) sin cobrar` : undefined}
-        className="shrink-0 inline-flex items-center justify-center gap-1.5 h-8 tactil:h-11 tactil:min-w-11 px-3 rounded-md text-[12px] font-medium border border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-400 hover:bg-rose-500/15 hover:border-rose-500/40 transition-colors cursor-pointer"
+        className="shrink-0 inline-flex items-center justify-center gap-1.5 h-8 tactil:h-11 tactil:min-w-11 px-3 rounded-md text-panel-xs font-medium border border-peligro/25 bg-peligro/10 text-peligro-texto hover:bg-peligro/15 hover:border-peligro/40 transition-colors cursor-pointer"
       >
         <LogOut className="h-3.5 w-3.5" />
         <span className="hidden sm:inline">Cerrar Caja</span>
@@ -109,11 +109,11 @@ function Metric({
 }) {
   return (
     <div className="flex items-baseline gap-1.5 shrink-0" title={hint}>
-      <span className="text-[11px] text-[var(--admin-text-muted)] whitespace-nowrap">{label}</span>
+      <span className="text-panel-2xs text-[var(--admin-text-muted)] whitespace-nowrap">{label}</span>
       <span
         className={cn(
           'tabular-nums whitespace-nowrap font-semibold text-[var(--admin-text)]',
-          strong ? 'text-[15px]' : 'text-[13px]'
+          strong ? 'text-panel-lg' : 'text-panel-sm'
         )}
       >
         {value}

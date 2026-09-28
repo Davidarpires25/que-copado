@@ -71,7 +71,7 @@ export function HalfPizzaSelector({ product, pizzaProducts, onConfirm, onClose }
           className="px-4 py-4 border-t border-[var(--admin-border)] flex items-center justify-between gap-4 bg-[var(--admin-surface)] shrink-0"
         >
           <div>
-            <p className="text-[10px] text-[var(--admin-text-faint)] font-medium leading-none mb-0.5">
+            <p className="text-panel-2xs text-[var(--admin-text-faint)] font-medium leading-none mb-0.5">
               Precio
             </p>
             <p className="text-lg font-black text-[var(--admin-price)] tabular-nums">
@@ -125,6 +125,11 @@ export function HalfPizzaSelector({ product, pizzaProducts, onConfirm, onClose }
                     <p className="text-xs font-semibold text-[var(--admin-text)] truncate leading-tight">
                       {pizza.name}
                     </p>
+                    {/* El precio de cada mitad: sin el, no se podia anticipar
+                        cuanto salia la combinacion. */}
+                    <p className="text-panel-2xs tabular-nums text-[var(--admin-text-muted)]">
+                      {formatPrice(pizza.price)}
+                    </p>
                   </div>
                   {firstHalf?.id === pizza.id && (
                     <Check className="h-3.5 w-3.5 text-[var(--admin-accent-text)] shrink-0" />
@@ -165,6 +170,11 @@ export function HalfPizzaSelector({ product, pizzaProducts, onConfirm, onClose }
                     <p className="text-xs font-semibold text-[var(--admin-text)] truncate leading-tight">
                       {pizza.name}
                     </p>
+                    {/* El precio de cada mitad: sin el, no se podia anticipar
+                        cuanto salia la combinacion. */}
+                    <p className="text-panel-2xs tabular-nums text-[var(--admin-text-muted)]">
+                      {formatPrice(pizza.price)}
+                    </p>
                   </div>
                   {secondHalf?.id === pizza.id && (
                     <Check className="h-3.5 w-3.5 text-[var(--admin-accent-text)] shrink-0" />
@@ -188,7 +198,7 @@ export function HalfPizzaSelector({ product, pizzaProducts, onConfirm, onClose }
         className="flex flex-col p-0 gap-0 tactil:[&_button]:min-h-11 tactil:[&_button]:min-w-11 w-full max-w-xl bg-[var(--admin-surface)] border-[var(--admin-border)] overflow-hidden max-h-[90vh]">
         <div className="flex items-center justify-between px-4 py-3.5 border-b border-[var(--admin-border)] shrink-0">
           <div>
-            <DialogTitle className="text-[15px] font-bold text-[var(--admin-text)]">
+            <DialogTitle className="text-panel-lg font-bold text-[var(--admin-text)]">
               {product.name}
             </DialogTitle>
             <DialogDescription className="text-xs text-[var(--admin-text-muted)]">

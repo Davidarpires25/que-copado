@@ -1,9 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
-import fs from 'fs'
-import os from 'os'
-import path from 'path'
 import { rest, asegurarUsuario } from './local'
 import { entrar, abrir } from './panel'
+import { estacionarTurno, devolverTurno } from './turno'
 
 /**
  * La caja dice lo que paso: lo que no se cobro no figura como cobrado, el
@@ -13,26 +11,15 @@ import { entrar, abrir } from './panel'
  * cobrar, uno cobrado, una mesa abierta, un pedido de WhatsApp— sobre una
  * sesion propia.
  *
- * La base local puede tener datos de alguien que esta probando la caja a mano:
- * su sesion con pedidos, mesas ocupadas. Nada de eso se borra. La sesion
- * abierta se estaciona (se marca cerrada) y las mesas ocupadas se liberan
- * mientras corre el test; al final vuelven con sus valores exactos. Antes de
- * tocar nada se escribe un respaldo en disco: en la auditoria que abrio este
- * cambio, una corrida cortada dejo la base sin la sesion original, asi que si
- * el respaldo existe al arrancar, primero se restaura.
+ * Lo que haya en la base local —la sesion y las mesas de quien este probando
+ * la caja a mano— se estaciona y se devuelve intacto: `e2e/turno.ts`.
  */
 
 test.setTimeout(120_000)
 
-const RESPALDO = path.join(os.tmpdir(), 'que-copado-caja-respaldo.json')
+const TURNO = 'caja-dice-lo-que-paso'
 const MESA = 1
-
-type Respaldo = {
-  sesiones: Record<string, unknown>[]
-  mesas: { id: string; status: string; current_order_id: string | null }[]
-}
 let sesion = ''
-let perfil = ''
 let producto = { id: '', name: '', price: 0 }
 const creados: string[] = []
 
@@ -163,50 +150,9 @@ async function abrirCierre(page: Page) {
 
 const campoContado = (page: Page) => page.locator('input[inputmode="decimal"]').filter({ visible: true }).first()
 
-/** Devuelve la base a como estaba: la sesion estacionada y las mesas. */
-async function restaurar(r: Respaldo) {
-  for (const m of r.mesas) {
-    await rest(`restaurant_tables?id=eq.${m.id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status: m.status, current_order_id: m.current_order_id }),
-    })
-  }
-  for (const s of r.sesiones) {
-    const { id, ...valores } = s
-    await rest(`cash_register_sessions?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(valores) })
-  }
-}
-
 test.beforeAll(async () => {
   await asegurarUsuario()
-  // Un respaldo que quedo es de una corrida cortada: primero se deshace.
-  if (fs.existsSync(RESPALDO)) {
-    await rest('cash_register_sessions?status=eq.open', { method: 'DELETE' }).catch(() => {})
-    await restaurar(JSON.parse(fs.readFileSync(RESPALDO, 'utf8')))
-    fs.rmSync(RESPALDO)
-  }
-
-  const respaldo: Respaldo = {
-    sesiones: await rest('cash_register_sessions?status=eq.open&select=*'),
-    mesas: await rest('restaurant_tables?status=neq.libre&select=id,status,current_order_id'),
-  }
-  fs.writeFileSync(RESPALDO, JSON.stringify(respaldo))
-
-  // Estacionar: la sesion abierta pasa a cerrada, las mesas a libres.
-  await rest('cash_register_sessions?status=eq.open', {
-    method: 'PATCH',
-    body: JSON.stringify({ status: 'closed', closed_at: new Date().toISOString() }),
-  })
-  await rest('restaurant_tables?status=neq.libre', {
-    method: 'PATCH',
-    body: JSON.stringify({ status: 'libre', current_order_id: null }),
-  })
-
-  ;[{ id: perfil }] = await rest('profiles?select=id&role=eq.admin&limit=1')
-  ;[{ id: sesion }] = await rest('cash_register_sessions', {
-    method: 'POST',
-    body: JSON.stringify({ opened_by: perfil, opening_balance: 20_000, status: 'open' }),
-  })
+  sesion = await estacionarTurno(TURNO)
   // Un producto propio: cobrar descuenta stock, y el de la base es de otro.
   const [categoria] = await rest('categories?select=id&limit=1')
   ;[producto] = await rest('products', {
@@ -219,16 +165,12 @@ test.beforeAll(async () => {
 test.afterAll(async () => {
   try {
     await limpiarPedidos()
-    if (sesion) await rest(`cash_register_sessions?id=eq.${sesion}`, { method: 'DELETE' })
     if (producto.id) {
       await rest(`stock_movements?product_id=eq.${producto.id}`, { method: 'DELETE' }).catch(() => {})
       await rest(`products?id=eq.${producto.id}`, { method: 'DELETE' })
     }
   } finally {
-    if (fs.existsSync(RESPALDO)) {
-      await restaurar(JSON.parse(fs.readFileSync(RESPALDO, 'utf8')))
-      fs.rmSync(RESPALDO)
-    }
+    await devolverTurno(TURNO, sesion)
   }
 })
 

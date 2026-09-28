@@ -22,7 +22,7 @@ import { useThemeStore } from '@/lib/store/theme-store'
  * del panel y se desmonta unicamente al salir de el, que es cuando la clase
  * verdaderamente sobra.
  */
-export function AdminRouteShell({ children }: { children: React.ReactNode }) {
+export function AdminRouteShell({ children, fuente = '' }: { children: React.ReactNode; fuente?: string }) {
   const pathname = usePathname()
   const { theme } = useThemeStore()
 
@@ -37,9 +37,12 @@ export function AdminRouteShell({ children }: { children: React.ReactNode }) {
   // por portal a <body>, fuera de este arbol. Y se va al salir, para que la
   // tienda —que comparte los componentes base— no la herede.
   useEffect(() => {
-    document.documentElement.classList.add('admin-panel')
-    return () => { document.documentElement.classList.remove('admin-panel') }
-  }, [])
+    // La variable de la fuente del panel va con ella: los portales cuelgan del
+    // <body> y no la heredaban del div del layout.
+    const clases = ['admin-panel', ...fuente.split(' ').filter(Boolean)]
+    document.documentElement.classList.add(...clases)
+    return () => { document.documentElement.classList.remove(...clases) }
+  }, [fuente])
 
   // Rutas full-screen sin sidebar — cada una gestiona su propio layout.
   //

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { rest, asegurarUsuario, USUARIO } from './local'
+import { estacionarTurno, devolverTurno } from './turno'
 
 /**
  * Una mesa con dos comensales, y un ticket para cada uno.
@@ -11,6 +12,8 @@ import { rest, asegurarUsuario, USUARIO } from './local'
  */
 
 const MESA = 99
+const TURNO = 'mesa-comensales'
+let sesion = ''
 const ANA = 'Ana'
 const BETO = 'Beto'
 
@@ -25,13 +28,16 @@ async function limpiar() {
   await rest(`restaurant_tables?number=eq.${MESA}`, { method: 'PATCH', body: JSON.stringify({ current_order_id: null, status: 'libre' }) }).catch(() => {})
   await rest(`orders?table_number=eq.${MESA}`, { method: 'DELETE' })
   await rest(`restaurant_tables?number=eq.${MESA}`, { method: 'DELETE' })
-  // La caja que abre el test no queda abierta para la proxima corrida.
-  await rest(`cash_register_sessions?status=eq.abierta`, { method: 'DELETE' })
 }
 
 test.beforeAll(async () => {
   await asegurarUsuario()
   await limpiar()
+  // El POS no deja llegar a las mesas sin una caja abierta. Antes la abria
+  // desde la pantalla y la "borraba" al final con `status=eq.abierta`, un
+  // estado que no existe (es `open`): cada corrida sin caja dejaba una abierta.
+  // El turno propio se estaciona y se devuelve como en los otros tests de caja.
+  sesion = await estacionarTurno(TURNO)
 
   await rest('restaurant_tables', {
     method: 'POST',
@@ -65,7 +71,13 @@ test.beforeAll(async () => {
   })
 })
 
-test.afterAll(limpiar)
+test.afterAll(async () => {
+  try {
+    await limpiar()
+  } finally {
+    await devolverTurno(TURNO, sesion)
+  }
+})
 
 /** Un ticket tal como quedo encolado para la impresora. */
 interface TicketEncolado {

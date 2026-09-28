@@ -230,12 +230,12 @@ export function TablePayView({
 
           {/* Pay mode row */}
           <div className="flex items-center gap-3">
-            <span className="text-[13px] text-[var(--admin-text-muted)]">Modo de cobro:</span>
+            <span className="text-panel-sm text-[var(--admin-text-muted)]">Modo de cobro:</span>
             <div className="flex gap-2">
               <button
                 onClick={() => setPayMode('full')}
                 className={cn(
-                  'px-4 rounded-full text-[13px] font-semibold transition-all cursor-pointer border',
+                  'px-4 rounded-full text-panel-sm font-semibold transition-all cursor-pointer border',
                   payMode === 'full'
                     ? 'bg-[var(--admin-accent)] text-black border-[var(--admin-accent)]'
                     : 'bg-[var(--admin-surface)] text-[var(--admin-text-muted)] border-[var(--admin-border)] hover:border-[var(--admin-text-placeholder)]'
@@ -248,7 +248,7 @@ export function TablePayView({
                 onClick={() => hasGuests && setPayMode('per_guest')}
                 disabled={!hasGuests}
                 className={cn(
-                  'px-4 rounded-full text-[13px] font-semibold transition-all cursor-pointer border',
+                  'px-4 rounded-full text-panel-sm font-semibold transition-all cursor-pointer border',
                   payMode === 'per_guest'
                     ? 'bg-[var(--admin-accent)] text-black border-[var(--admin-accent)]'
                     : hasGuests
@@ -268,13 +268,13 @@ export function TablePayView({
               {/* Card header */}
               <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--admin-border)]/60 shrink-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-[14px] font-semibold text-[var(--admin-text)]">
+                  <span className="text-panel-base font-semibold text-[var(--admin-text)]">
                     Cuenta {etiquetaDeMesa(table)}
                   </span>
                 </div>
                 {totalItemCount > 0 && (
-                  <div className="flex items-center gap-1.5 px-2.5 rounded-full bg-green-400/10 border border-green-400/20" style={{ height: 24 }}>
-                    <span className="text-[11px] font-semibold text-green-700 dark:text-green-400">
+                  <div className="flex items-center gap-1.5 px-2.5 rounded-full bg-exito/10 border border-exito/20" style={{ height: 24 }}>
+                    <span className="text-panel-2xs font-semibold text-exito-texto">
                       {totalItemCount} {totalItemCount === 1 ? 'item' : 'items'}
                     </span>
                   </div>
@@ -289,12 +289,12 @@ export function TablePayView({
                     className="flex items-center justify-between px-5 py-2.5"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] text-[var(--admin-text)] truncate">{item.product_name}</p>
-                      <p className="text-[11px] text-[var(--admin-text-muted)]">
+                      <p className="text-panel-sm text-[var(--admin-text)] truncate">{item.product_name}</p>
+                      <p className="text-panel-2xs text-[var(--admin-text-muted)]">
                         {item.quantity} x {formatPrice(item.product_price)}
                       </p>
                     </div>
-                    <span className="text-[13px] font-semibold text-[var(--admin-text)] tabular-nums ml-3">
+                    <span className="text-panel-sm font-semibold text-[var(--admin-text)] tabular-nums ml-3">
                       {formatPrice(item.product_price * item.quantity)}
                     </span>
                   </div>
@@ -305,7 +305,7 @@ export function TablePayView({
               <div className="border-t border-[var(--admin-border)]/60 flex items-center justify-center shrink-0" style={{ height: 40 }}>
                 <button
                   onClick={() => printClientTicketAction(order.id).then((r) => { if (r.error) toast.error(r.error) }).catch(() => toast.error('Error al imprimir'))}
-                  className="flex items-center gap-2 text-[12px] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer"
+                  className="flex items-center gap-2 text-panel-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer"
                 >
                   <Printer className="h-3.5 w-3.5" />
                   Imprimir Ticket Mesa
@@ -331,9 +331,9 @@ export function TablePayView({
                     <div className="flex items-center justify-between px-4 border-b border-[var(--admin-border)]/60" style={{ paddingTop: 14, paddingBottom: 14 }}>
                       <div className="flex items-center gap-2">
                         <div className={cn('w-2 h-2 rounded-full shrink-0', colors.dot)} />
-                        <span className="text-[13px] font-semibold text-[var(--admin-text)]">{label}</span>
+                        <span className="text-panel-sm font-semibold text-[var(--admin-text)]">{label}</span>
                       </div>
-                      <span className="text-[14px] font-bold text-[var(--admin-text)] tabular-nums">
+                      <span className="text-panel-base font-bold text-[var(--admin-text)] tabular-nums">
                         {formatPrice(subtotal)}
                       </span>
                     </div>
@@ -342,11 +342,11 @@ export function TablePayView({
                     <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1">
                       {items.map((item) => (
                         <div key={item.id} className="flex items-center justify-between py-1">
-                          <span className="text-[12px] text-[var(--admin-text)] truncate flex-1 min-w-0">
+                          <span className="text-panel-xs text-[var(--admin-text)] truncate flex-1 min-w-0">
                             {item.product_name}
                             <span className="text-[var(--admin-text-muted)]"> ×{item.quantity}</span>
                           </span>
-                          <span className="text-[12px] text-[var(--admin-text-muted)] ml-2 tabular-nums shrink-0">
+                          <span className="text-panel-xs text-[var(--admin-text-muted)] ml-2 tabular-nums shrink-0">
                             {formatPrice(item.product_price * item.quantity)}
                           </span>
                         </div>
@@ -355,7 +355,7 @@ export function TablePayView({
 
                     {/* Payment methods */}
                     <div className="px-4 border-t border-[var(--admin-border)]/60 space-y-1.5" style={{ paddingTop: 10, paddingBottom: 14 }}>
-                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--admin-text-muted)]">
+                      <p className="mb-2 text-panel-2xs font-semibold uppercase tracking-wider text-[var(--admin-text-muted)]">
                         Métodos de pago
                       </p>
                       <PaymentMethodPicker
@@ -369,7 +369,7 @@ export function TablePayView({
                     <div className="border-t border-[var(--admin-border)]/60 flex items-center justify-center" style={{ height: 36 }}>
                       <button
                         onClick={() => handlePrintGuest(tag)}
-                        className="flex items-center gap-1.5 text-[11px] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer font-medium"
+                        className="flex items-center gap-1.5 text-panel-2xs text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer font-medium"
                       >
                         <Printer className="h-3 w-3" />
                         Imprimir ticket {label}
@@ -386,8 +386,8 @@ export function TablePayView({
         <div className="w-[380px] bg-[var(--admin-surface)] border-l border-[var(--admin-border)] flex flex-col shrink-0">
           {/* Header */}
           <div className="px-5 py-5 border-b border-[var(--admin-border)]">
-            <h2 className="text-[16px] font-bold text-[var(--admin-text)]">Resumen de Cobro</h2>
-            <p className="text-[12px] font-medium text-[var(--admin-text-muted)] mt-0.5">
+            <h2 className="text-panel-lg font-bold text-[var(--admin-text)]">Resumen de Cobro</h2>
+            <p className="text-panel-xs font-medium text-[var(--admin-text-muted)] mt-0.5">
               {etiquetaDeMesa(table)} — {sectionLabel}
             </p>
           </div>
@@ -409,11 +409,11 @@ export function TablePayView({
                       <div key={tag} className="flex items-center justify-between">
                         <div className="flex items-center gap-2 min-w-0">
                           <div className={cn('w-2 h-2 rounded-full shrink-0', colors.dot)} />
-                          <span className="text-[13px] font-medium text-[var(--admin-text-muted)] truncate">
+                          <span className="text-panel-sm font-medium text-[var(--admin-text-muted)] truncate">
                             {label} — {gmOpt?.label ?? gm}
                           </span>
                         </div>
-                        <span className="text-[13px] font-semibold text-[var(--admin-text)] tabular-nums ml-2 shrink-0">
+                        <span className="text-panel-sm font-semibold text-[var(--admin-text)] tabular-nums ml-2 shrink-0">
                           {formatPrice(subtotal)}
                         </span>
                       </div>
@@ -426,7 +426,7 @@ export function TablePayView({
 
                 {/* Desglose por método */}
                 <div className="space-y-3">
-                  <p className="text-[10px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-[0.5px]">
+                  <p className="text-panel-2xs font-semibold text-[var(--admin-text-muted)] uppercase tracking-[0.5px]">
                     Desglose por método
                   </p>
                   {methodBreakdown.map(({ method: m, label, amount }) => {
@@ -435,9 +435,9 @@ export function TablePayView({
                       <div key={m} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className={cn('w-2 h-2 rounded-full shrink-0', opt?.dotClass)} />
-                          <span className="text-[12px] font-medium text-[var(--admin-text-muted)]">{label}</span>
+                          <span className="text-panel-xs font-medium text-[var(--admin-text-muted)]">{label}</span>
                         </div>
-                        <span className="text-[12px] font-semibold text-[var(--admin-text)] tabular-nums">
+                        <span className="text-panel-xs font-semibold text-[var(--admin-text)] tabular-nums">
                           {formatPrice(amount)}
                         </span>
                       </div>
@@ -448,8 +448,8 @@ export function TablePayView({
                 <div className="h-px bg-[var(--admin-border)]" />
 
                 <div className="flex items-center justify-between">
-                  <span className="text-[16px] font-bold text-[var(--admin-price)]">Total</span>
-                  <span className="text-[16px] font-bold tabular-nums text-[var(--admin-price)]">
+                  <span className="text-panel-lg font-bold text-[var(--admin-price)]">Total</span>
+                  <span className="text-panel-lg font-bold tabular-nums text-[var(--admin-price)]">
                     {formatPrice(total)}
                   </span>
                 </div>

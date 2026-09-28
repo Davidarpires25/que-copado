@@ -290,20 +290,12 @@ export function PosInterface({
       const key = notes ? `${product.id}__${notes}` : product.id
       const existing = prev.find((item) => item.id === key)
       if (existing) {
-        toast.success(`${product.name} x${existing.quantity + 1}`, {
-          duration: 1000,
-          position: 'top-center',
-        })
         return prev.map((item) =>
           item.id === key
             ? { ...item, quantity: item.quantity + 1 }
             : item
         )
       }
-       toast.success(`${product.name} agregado`, {
-        duration: 1000,
-        position: 'top-center',
-      })
   return [
         ...prev,
         {
@@ -720,13 +712,13 @@ export function PosInterface({
                   para mostrar un guion. */}
               {(pendingLoading || pendingOrders.length > 0) && (
               <div className="shrink-0 h-[52px] py-2.5 tactil:h-16 border-t border-[var(--admin-border)] flex items-center gap-2.5 px-4 overflow-x-auto scrollbar-hide">
-                <span className="text-[12px] font-medium text-[var(--admin-text-muted)] shrink-0">
+                <span className="text-panel-xs font-medium text-[var(--admin-text-muted)] shrink-0">
                   Pendientes:
                 </span>
                 {pendingLoading ? (
-                  <span className="text-[13px] text-[var(--admin-text-muted)]">...</span>
+                  <span className="text-panel-sm text-[var(--admin-text-muted)]">...</span>
                 ) : pendingOrders.length === 0 ? (
-                  <span className="text-[13px] text-[var(--admin-text-faint)]">—</span>
+                  <span className="text-panel-sm text-[var(--admin-text-faint)]">—</span>
                 ) : (
                   pendingOrders.map((order) => {
                     const isSelected = payingOrder?.id === order.id
@@ -739,10 +731,12 @@ export function PosInterface({
                           setShowMobileCart(true)
                         }}
                         className={cn(
-                          'shrink-0 flex items-center px-4 tactil:min-h-11 text-[13px] font-semibold transition-all cursor-pointer tabular-nums',
+                          'shrink-0 flex items-center px-4 tactil:min-h-11 text-panel-sm font-semibold transition-all cursor-pointer tabular-nums',
+                          // El que se esta cobrando es el mas marcado; era al reves:
+                          // el elegido quedaba palido y los demas en ambar lleno.
                           isSelected
-                            ? 'bg-[var(--admin-accent)]/20 border border-[var(--admin-accent)]/60 text-[var(--admin-accent-text)]'
-                            : 'bg-amber-400 border border-amber-400 text-black hover:bg-amber-300'
+                            ? 'bg-[var(--admin-accent)] border border-[var(--admin-accent)] text-black shadow-sm ring-2 ring-[var(--admin-accent)]/40'
+                            : 'bg-[var(--admin-surface)] border border-[var(--admin-accent)] text-[var(--admin-text)] hover:bg-[var(--admin-accent)]/10'
                         )}
                         style={{ height: 32, borderRadius: 8 }}
                         title={
@@ -764,10 +758,11 @@ export function PosInterface({
                 {payingOrder && (
                   <button
                     onClick={() => setPayingOrder(null)}
-                    className="shrink-0 flex items-center px-4 tactil:min-h-11 text-[13px] font-semibold text-black bg-[var(--admin-accent)] border border-[var(--admin-accent)] hover:bg-amber-300 transition-colors cursor-pointer"
-                    style={{ height: 32, borderRadius: 8 }}
+                    // Una accion, no un pedido: sin ambar y separado por un divisor.
+                    className="shrink-0 ml-1 flex items-center gap-1 border-l border-[var(--admin-border)] pl-3 pr-2 tactil:min-h-11 text-panel-sm font-medium text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer"
+                    style={{ height: 32 }}
                   >
-                    + Nuevo pedido
+                    <span className="text-base leading-none">+</span> Nuevo pedido
                   </button>
                 )}
               </div>
@@ -775,7 +770,7 @@ export function PosInterface({
             </div>
 
             {/* Right panel — order builder or payment view */}
-            <div className="w-[380px] shrink-0 hidden md:flex md:flex-col border-l border-[var(--admin-border)]">
+            <div className="w-[380px] shrink-0 hidden lg:flex lg:flex-col border-l border-[var(--admin-border)]">
               {payingOrder ? (
                 <PendingOrderPayView
                   order={payingOrder}
@@ -858,7 +853,7 @@ export function PosInterface({
 
               {/* Table order panel (right) */}
               {selectedTable && selectedTable.orders && (
-                <div className="shrink-0 hidden md:block">
+                <div className="shrink-0 hidden lg:block">
                   <TableOrderPanel
                     table={selectedTable}
                     session={session}
@@ -888,7 +883,7 @@ export function PosInterface({
 
       {/* Mobile cart button (mostrador only) */}
       {mode === 'mostrador' && (
-        <div className="md:hidden fixed bottom-20 right-4 z-30">
+        <div className="lg:hidden fixed bottom-20 right-4 z-30">
           {items.length > 0 && (
             <button
               onClick={() => setShowMobileCart(true)}

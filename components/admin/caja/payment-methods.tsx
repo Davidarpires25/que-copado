@@ -53,18 +53,18 @@ export function PaymentMethods({
                   if (e.key === 'Escape') onCancel()
                 }}
                 onBlur={() => onCommit(value)}
-                className="h-8 tactil:h-11 w-28 rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 text-right text-[14px] tactil:text-base font-bold tabular-nums text-[var(--admin-price)] outline-none focus:border-[var(--admin-accent)]/60"
+                className="h-8 tactil:h-11 w-28 rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 text-right text-panel-base tactil:text-base font-bold tabular-nums text-[var(--admin-price)] outline-none focus:border-[var(--admin-accent)]/60"
               />
             ) : entry ? (
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onEdit(value) }}
-                className="h-8 tactil:h-11 min-w-[76px] rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 text-[14px] font-bold tabular-nums text-[var(--admin-price)] hover:border-[var(--admin-accent)]/40 transition-colors cursor-pointer"
+                className="h-8 tactil:h-11 min-w-[76px] rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 text-panel-base font-bold tabular-nums text-[var(--admin-price)] hover:border-[var(--admin-accent)]/40 transition-colors cursor-pointer"
               >
                 {formatPrice(entry.amount)}
               </button>
             ) : (
-              <span className="pr-1 text-[13px] text-[var(--admin-text-muted)]">—</span>
+              <span className="pr-1 text-panel-sm text-[var(--admin-text-muted)]">—</span>
             )}
           </Row>
         )
@@ -99,7 +99,7 @@ export function PaymentMethodPicker({
         return (
           <Row key={value} on={on} label={label} onClick={() => onSelect(value)}>
             <span className={cn(
-              'pr-1 text-[13px] font-bold tabular-nums',
+              'pr-1 text-panel-sm font-bold tabular-nums',
               on ? 'text-[var(--admin-price)]' : 'text-[var(--admin-text-muted)]'
             )}>
               {on ? formatPrice(amount) : '—'}
@@ -162,7 +162,7 @@ function Row({
           )}
         </span>
         <span className={cn(
-          'text-[13px] font-semibold',
+          'text-panel-sm font-semibold',
           on ? 'text-[var(--admin-text)]' : 'text-[var(--admin-text-muted)]'
         )}>
           {label}
@@ -177,7 +177,7 @@ function Row({
 export function PaymentMethodsLabel({ count }: { count: number }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--admin-text-muted)]">
+      <span className="text-panel-2xs font-semibold uppercase tracking-wider text-[var(--admin-text-muted)]">
         Métodos de pago
       </span>
       {count > 1 && (

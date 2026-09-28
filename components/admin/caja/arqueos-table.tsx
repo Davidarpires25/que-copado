@@ -56,7 +56,7 @@ function DiffBadge({ diff }: { diff: number | null }) {
 
   if (diff === 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-500/15 text-green-700 dark:text-green-400">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-exito/15 text-exito-texto">
         <Minus className="h-3 w-3" />
         {label}
       </span>
@@ -64,14 +64,14 @@ function DiffBadge({ diff }: { diff: number | null }) {
   }
   if (diff > 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-500/15 text-yellow-700 dark:text-yellow-400">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-aviso/15 text-aviso-texto">
         <TrendingUp className="h-3 w-3" />
         {label}
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-500/15 text-red-700 dark:text-red-400">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-peligro/15 text-peligro-texto">
       <TrendingDown className="h-3 w-3" />
       {label}
     </span>
@@ -112,9 +112,9 @@ function SessionDetail({ session }: SessionDetailProps) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 mt-2">
         {[
           { label: 'Saldo apertura', value: formatPrice(session.opening_balance), icon: Banknote, color: 'text-[var(--admin-text-muted)]' },
-          { label: 'Efectivo esperado', value: formatPrice(expectedCash), icon: Banknote, color: 'text-blue-700 dark:text-blue-400' },
+          { label: 'Efectivo esperado', value: formatPrice(expectedCash), icon: Banknote, color: 'text-info-texto' },
           { label: 'Efectivo contado', value: session.actual_cash !== null ? formatPrice(session.actual_cash) : '—', icon: Banknote, color: 'text-[var(--admin-price)]' },
-          { label: 'Diferencia', value: session.cash_difference !== null ? formatPrice(session.cash_difference) : '—', icon: session.cash_difference === 0 ? Minus : session.cash_difference !== null && session.cash_difference > 0 ? TrendingUp : TrendingDown, color: session.cash_difference === 0 ? 'text-green-700 dark:text-green-400' : session.cash_difference !== null && session.cash_difference < 0 ? 'text-red-700 dark:text-red-400' : 'text-yellow-700 dark:text-yellow-400' },
+          { label: 'Diferencia', value: session.cash_difference !== null ? formatPrice(session.cash_difference) : '—', icon: session.cash_difference === 0 ? Minus : session.cash_difference !== null && session.cash_difference > 0 ? TrendingUp : TrendingDown, color: session.cash_difference === 0 ? 'text-exito-texto' : session.cash_difference !== null && session.cash_difference < 0 ? 'text-peligro-texto' : 'text-aviso-texto' },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-lg p-3">
             <p className="text-[var(--admin-text-muted)] text-xs font-medium mb-1">{label}</p>
@@ -156,15 +156,15 @@ function SessionDetail({ session }: SessionDetailProps) {
               className="flex items-center gap-3 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-lg px-3 py-2"
             >
               {m.type === 'withdrawal' ? (
-                <MinusCircle className="h-4 w-4 text-red-700 dark:text-red-400 shrink-0" />
+                <MinusCircle className="h-4 w-4 text-peligro-texto shrink-0" />
               ) : (
-                <PlusCircle className="h-4 w-4 text-green-700 dark:text-green-400 shrink-0" />
+                <PlusCircle className="h-4 w-4 text-exito-texto shrink-0" />
               )}
               <span className="text-xs text-[var(--admin-text-muted)] flex-1 truncate">{m.reason}</span>
-              <span className={cn('text-xs font-bold shrink-0', m.type === 'withdrawal' ? 'text-red-700 dark:text-red-400' : 'text-green-700 dark:text-green-400')}>
+              <span className={cn('text-xs font-bold shrink-0', m.type === 'withdrawal' ? 'text-peligro-texto' : 'text-exito-texto')}>
                 {m.type === 'withdrawal' ? '-' : '+'}{formatPrice(m.amount)}
               </span>
-              <span className="text-[10px] text-[var(--admin-text-faint)] shrink-0">
+              <span className="text-panel-2xs text-[var(--admin-text-faint)] shrink-0">
                 {formatTimeShort(m.created_at)}
               </span>
             </div>
@@ -207,11 +207,11 @@ export function ArqueosTable({ sessions }: ArqueosTableProps) {
       <StatTileGrid>
         <StatTile label="Sesiones" value={sessions.length} icon={History} />
         <StatTile label="Ventas totales" value={formatPrice(totalSales)} icon={TrendingUp}
-          colorClass="text-green-700 dark:text-green-500" iconBgClass="bg-green-500/10" />
+          colorClass="text-exito-texto" iconBgClass="bg-exito/10" />
         <StatTile label="Órdenes totales" value={totalOrders} icon={Wallet}
-          colorClass="text-blue-700 dark:text-blue-500" iconBgClass="bg-blue-500/10" />
+          colorClass="text-info-texto" iconBgClass="bg-info/10" />
         <StatTile label="Con diferencia" value={totalWithDiff} icon={TrendingDown}
-          colorClass="text-red-700 dark:text-red-500" iconBgClass="bg-red-500/10" />
+          colorClass="text-peligro-texto" iconBgClass="bg-peligro/10" />
       </StatTileGrid>
 
       {/* Search bar */}

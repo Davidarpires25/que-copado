@@ -77,11 +77,11 @@ export function PendingOrderPayView({
 
       <div className="flex h-[52px] shrink-0 items-center justify-between border-b border-[var(--admin-border)] px-5">
         <span className="flex min-w-0 items-center gap-2">
-          <span className="text-[15px] font-bold text-[var(--admin-text)]">
+          <span className="text-panel-lg font-bold text-[var(--admin-text)]">
             Pedido <span className="text-[var(--admin-accent-text)]">{etiqueta}</span>
           </span>
           {esRemoto && (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700 dark:text-sky-400">
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-info/10 px-1.5 py-0.5 text-panel-2xs font-semibold text-info-texto">
               <Globe className="h-2.5 w-2.5" />
               Web
             </span>
@@ -92,7 +92,7 @@ export function PendingOrderPayView({
             onClick={() => printKitchenTicketAction(order.id)
               .then((r) => { if (r.error) toast.error(r.error) })
               .catch(() => toast.error('Error al imprimir'))}
-            className="cursor-pointer p-1 tactil:grid tactil:size-11 tactil:place-items-center text-[var(--admin-text-muted)] transition-colors hover:text-orange-700 dark:hover:text-orange-400"
+            className="cursor-pointer p-1 tactil:grid tactil:size-11 tactil:place-items-center text-[var(--admin-text-muted)] transition-colors hover:text-aviso-texto"
             aria-label="Imprimir comanda cocina"
             title="Comanda cocina"
           >
@@ -126,13 +126,13 @@ export function PendingOrderPayView({
         {orderItems.map((item, idx) => (
           <div key={idx} className="flex items-center justify-between border-b border-[var(--admin-border)] py-2.5">
             <div className="mr-3 min-w-0 flex-1">
-              <p className="truncate text-[13px] font-medium text-[var(--admin-text)]">{item.name}</p>
+              <p className="truncate text-panel-sm font-medium text-[var(--admin-text)]">{item.name}</p>
               <p className="mt-0.5 text-xs text-[var(--admin-text-muted)]">{formatPrice(item.price)} c/u</p>
             </div>
-            <span className="mr-3 shrink-0 text-[12px] font-semibold tabular-nums text-[var(--admin-text-muted)]">
+            <span className="mr-3 shrink-0 text-panel-xs font-semibold tabular-nums text-[var(--admin-text-muted)]">
               ×{item.quantity}
             </span>
-            <p className="w-14 shrink-0 text-right text-[13px] font-semibold tabular-nums text-[var(--admin-text)]">
+            <p className="w-14 shrink-0 text-right text-panel-sm font-semibold tabular-nums text-[var(--admin-text)]">
               {formatPrice(item.price * item.quantity)}
             </p>
           </div>
@@ -185,7 +185,7 @@ export function PendingOrderPayView({
         className={cn(
           'flex h-[52px] shrink-0 cursor-pointer items-center justify-center gap-2 text-base font-bold transition-all',
           'hover:opacity-90 active:brightness-95 disabled:cursor-not-allowed disabled:opacity-40',
-          hasStockWarnings ? 'bg-amber-500 text-black' : 'bg-[var(--admin-accent)] text-black'
+          hasStockWarnings ? 'bg-aviso text-black' : 'bg-[var(--admin-accent)] text-black'
         )}
       >
         {loading ? (
@@ -214,7 +214,7 @@ export function PendingOrderPayView({
           type="button"
           onClick={onCancel}
           disabled={loading}
-          className="flex h-7 tactil:h-11 w-full cursor-pointer items-center justify-center gap-1.5 text-[11px] text-red-700/60 transition-colors hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400/50 dark:hover:text-red-400"
+          className="flex h-7 tactil:h-11 w-full cursor-pointer items-center justify-center gap-1.5 text-panel-2xs text-[var(--admin-text-faint)] transition-colors hover:text-peligro-texto disabled:cursor-not-allowed disabled:opacity-40"
         >
           <AlertTriangle className="h-3 w-3" />
           Cancelar pedido

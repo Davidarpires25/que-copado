@@ -1108,8 +1108,13 @@ sesion abierta pasa a cerrada, las mesas ocupadas a libres, todo respaldado en
 disco antes de tocarlo, y al final vuelve con sus valores exactos (si al
 arrancar hay un respaldo, es de una corrida cortada y se restaura primero). La
 limpieza toca solo lo que el test creo, y no hace nada si no llego a crear su
-sesion. Modelo: `e2e/caja-dice-lo-que-paso.spec.ts`. Para la suite entera, lo
-mismo desde afuera antes y despues de correrla.
+sesion. Modelo: `e2e/turno.ts`, que usan los tests de caja. Para la suite
+entera, lo mismo desde afuera antes y despues de correrla.
+
+Y un filtro de limpieza se prueba contra la base: `mesa-comensales.spec.ts`
+borraba su caja con `status=eq.abierta`, un estado que no existe (es `open`).
+No fallaba nunca —borrar cero filas no es un error— y cada corrida sin caja
+abierta dejaba una.
 
 ## 48. Chromium deja pasar en silencio lo que en Firefox rompe la pantalla
 
