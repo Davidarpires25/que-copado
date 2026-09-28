@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { asegurarUsuario, USUARIO } from './local'
+import { resaltadosDeLaTabla } from './panel'
 
 /**
  * En una tabla del panel, lo unico resaltado es el estado.
@@ -47,52 +48,6 @@ test.beforeEach(async ({ page }) => {
   await page.waitForURL(/\/admin\/(?!login)/)
 })
 
-/**
- * Un dato **encerrado**: con fondo propio y, ademas, borde o esquinas redondas.
- *
- * La primera version buscaba solo pildoras --`border-radius` enorme-- y se le
- * escapo el contador de ingredientes de la tabla de recetas, que iba en una
- * caja cuadrada con borde. Lo encontro David mirando. Lo que molesta es que el
- * dato este *encerrado*, no la forma del encierro.
- *
- * Los controles quedan afuera: un `<select>` o un interruptor se tocan, y su
- * color es parte de como se ve que estan. Encerrar no es lo mismo que pintar
- * algo con lo que se interactua.
- */
-async function resaltadosDeLaTabla(page: import('@playwright/test').Page) {
-  return page.evaluate(() => {
-    const encontrados: string[] = []
-    document.querySelectorAll('tbody tr').forEach((fila) =>
-      fila.querySelectorAll('span, div, p').forEach((el) => {
-        if (el.closest('button, a, select, input, [role="switch"], [role="button"]')) return
-        const cs = getComputedStyle(el)
-        const conFondo =
-          cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent'
-        const encerrado = parseFloat(cs.borderRadius) > 0 || parseFloat(cs.borderTopWidth) > 0
-        const texto = (el.textContent ?? '').trim()
-
-        // Interesa la caja, no el contenedor que la envuelve. La primera
-        // version pedia `children.length === 0`, y eso dejaba afuera cualquier
-        // badge con un icono adentro --el tipo de movimiento del historial de
-        // stock, por ejemplo--. Lo noto David mirando la pantalla. Ahora la
-        // condicion es la correcta: que no contenga otra caja adentro.
-        const contieneOtraCaja = [...el.querySelectorAll('span, div, p')].some((hijo) => {
-          const ch = getComputedStyle(hijo)
-          const hijoConFondo =
-            ch.backgroundColor !== 'rgba(0, 0, 0, 0)' && ch.backgroundColor !== 'transparent'
-          return (
-            hijoConFondo &&
-            (parseFloat(ch.borderRadius) > 0 || parseFloat(ch.borderTopWidth) > 0)
-          )
-        })
-
-        if (conFondo && encerrado && texto && texto.length < 34 && !contieneOtraCaja)
-          encontrados.push(texto)
-      })
-    )
-    return [...new Set(encontrados)]
-  })
-}
 
 /**
  * Las pantallas del panel que tienen tabla y datos con los que probar.

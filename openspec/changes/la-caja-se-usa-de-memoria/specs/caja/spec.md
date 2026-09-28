@@ -163,3 +163,57 @@ confirmación.
 - **GIVEN** $41.500 en 3 pedidos
 - **WHEN** se mira el resumen
 - **THEN** el ticket promedio dice "$ 13.833"
+
+## MODIFIED Requirements
+
+### Requirement: Lo que no se cobró no se muestra como cobrado
+
+La caja SHALL mostrar como cobrado solo un pedido que se cobró. Un pedido
+abierto, recibido o con la cuenta pedida SHALL mostrarse "Sin cobrar", sin
+medio de pago, y NO SHALL sumar en ningún total de ventas ni de medios de
+pago del turno.
+
+Lo vendido en el turno SHALL decirse una sola vez, en la barra de turno
+("Vendido"). El Historial NO SHALL repetir ese total ni desglosarlo por medio
+de pago: el desglose por medio es del cierre, que es donde se cuenta la plata.
+El Historial SHALL filtrar solo por estado (todas, pagadas, sin cobrar,
+anuladas), con el conteo de cada una como texto.
+
+El estado de cada pedido del Historial SHALL mostrarse como texto, sin
+encerrar: durante el servicio "Sin cobrar" y "Pagado" son el flujo normal, no
+la excepción.
+
+Existe porque no se cumplía. El pedido nace con efectivo como medio de
+arranque, y el Historial trataba como pagado todo lo que no estaba cancelado.
+Con cuatro pedidos sin cobrar mostraba "Total sesión $152.900" y la barra
+decía "Vendido $0". Una vez corregido, el total del Historial quedó igual al
+"Vendido": el mismo número dos veces, y David lo marcó como ruido, junto con
+el filtro por medio de pago, la línea "N ventas" (que contaba también lo sin
+cobrar) y las píldoras de estado.
+
+#### Scenario: Un pedido de mostrador pendiente
+
+- **GIVEN** un pedido de mostrador enviado a cocina y todavía no cobrado
+- **WHEN** se mira el Historial
+- **THEN** la fila dice "Sin cobrar", como texto
+- **AND** no muestra ningún medio de pago
+- **AND** su monto no suma en el "Vendido" ni en ningún total por medio
+
+#### Scenario: Una mesa abierta
+
+- **GIVEN** una mesa con pedido cargado y sin cobrar
+- **WHEN** se mira el Historial
+- **THEN** su pedido figura "Sin cobrar" y no suma
+
+#### Scenario: El Historial y la barra dicen lo mismo
+
+- **GIVEN** un turno con un pedido cobrado y dos sin cobrar
+- **WHEN** se mira el Historial
+- **THEN** el "Vendido" de la barra es la suma del cobrado
+- **AND** el Historial no muestra otro total ni un desglose por medio de pago
+
+#### Scenario: Se filtran los que faltan cobrar
+
+- **WHEN** se elige el filtro "Sin cobrar" del Historial
+- **THEN** aparecen solo los pedidos que todavía no se cobraron
+

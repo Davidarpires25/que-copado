@@ -50,23 +50,24 @@ function formatDuration(openedAt: string, closedAt: string) {
   return h > 0 ? `${h}h ${m}m` : `${m}m`
 }
 
+/**
+ * La diferencia del arqueo. Encerrada solo cuando no cuadra: es la excepcion
+ * que alguien tiene que mirar (spec tablas-del-admin). "Cuadra" es lo normal y
+ * estaba en una pildora verde en casi todas las filas, donde el color deja de
+ * señalar. Y dice si sobra o falta con palabras, no solo con el signo.
+ */
 function DiffBadge({ diff }: { diff: number | null }) {
   if (diff === null) return <span className="text-[var(--admin-text-faint)] text-sm">—</span>
-  const abs = Math.abs(diff)
-  const label = diff === 0 ? 'Cuadra' : diff > 0 ? `+${formatPrice(abs)}` : `-${formatPrice(abs)}`
-  if (diff === 0) return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-exito/15 text-exito-texto">
-      <Minus className="h-3 w-3" />{label}
-    </span>
-  )
+  if (diff === 0) return <span className="text-sm text-[var(--admin-text-muted)]">Cuadra</span>
+  const monto = formatPrice(Math.abs(diff))
   if (diff > 0) return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-aviso/15 text-aviso-texto">
-      <TrendingUp className="h-3 w-3" />{label}
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-aviso/15 text-aviso-texto whitespace-nowrap">
+      <TrendingUp className="h-3 w-3" />Sobrante {monto}
     </span>
   )
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-peligro/15 text-peligro-texto">
-      <TrendingDown className="h-3 w-3" />{label}
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-peligro/15 text-peligro-texto whitespace-nowrap">
+      <TrendingDown className="h-3 w-3" />Faltante {monto}
     </span>
   )
 }
@@ -528,13 +529,16 @@ function MovimientosTab({
                       <span className="block text-xs text-[var(--admin-text-faint)]">{formatTimeShort(m.created_at)}</span>
                     </TableCell>
                     <TableCell>
+                      {/* El tipo es un atributo, no un estado: va como texto. El
+                          icono conserva el color, que es lo que se recorre con la
+                          vista (entro o salio), igual que la flecha de Stock. */}
                       {m.type === 'deposit' ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-exito/12 text-exito-texto border border-exito/20">
-                          <PlusCircle className="h-3 w-3" />Ingreso
+                        <span className="inline-flex items-center gap-1.5 text-sm text-[var(--admin-text)]">
+                          <PlusCircle className="h-3.5 w-3.5 text-exito-texto" />Ingreso
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-peligro/12 text-peligro-texto border border-peligro/20">
-                          <MinusCircle className="h-3 w-3" />Retiro
+                        <span className="inline-flex items-center gap-1.5 text-sm text-[var(--admin-text)]">
+                          <MinusCircle className="h-3.5 w-3.5 text-peligro-texto" />Retiro
                         </span>
                       )}
                     </TableCell>

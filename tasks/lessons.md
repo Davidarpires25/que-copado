@@ -983,6 +983,15 @@ medición hecha en el intervalo se descarta y se repite, aunque haya dado bien.
 Para comparar contra `main`, lo más limpio es otro checkout en otra carpeta, no
 el mismo servidor.
 
+**Y no hace falta un `git stash` (2026-09-27).** En una sola tarde pasó cuatro
+veces con ediciones normales: el CSS sin la regla recién escrita, el HTML del
+servidor con la versión vieja de la grilla (error de hidratación que agrandaba
+el indicador de Next y tapaba botones), y por último el CSS entero recompilado
+desde un `globals.css` viejo, sin ningún token. Lo último lo encontró un test
+que esperaba una píldora roja y vio texto negro. La verificación no se hace
+una vez al empezar: se hace antes de cada tanda de mediciones, y si algo
+aparece sin su color o su forma, lo primero es mirar el CSS servido.
+
 ## 40. Un recorrido que solo carga pantallas no ve lo que se abre desde ellas
 
 **Qué pasó (2026-09-25).** El test del celular recorría las 29 rutas del panel
@@ -1147,3 +1156,29 @@ contrastar la propuesta con ellas. Una pantalla que se usa de un vistazo —el
 cierre, la caja— tiene que entrar entera en la netbook (1366×768). Y mover
 algo que se usa todos los dias es una decision de David: se propone con
 captura, y si no lo quiere, se arregla en su lugar.
+
+## 50. La excepción depende de dónde se mira, y dos números iguales son uno de más
+
+**Qué pasó (2026-09-27).** Con la caja nueva andando, David marcó tres cosas en
+el Historial en cinco minutos: el pie "Total sesión" con el desglose por medio
+("información redundante"), el filtro por medio y la línea "N ventas" ("me
+hace ruido al querer contar ventas"), y las píldoras de estado. Dejé "Sin
+cobrar" encerrado por ser "la excepción" según la spec de tablas, y me
+corrigió: *"aún quedó una píldora que dice sin cobrar"*.
+
+Las tres las había producido o dejado yo:
+
+- El cambio anterior hizo que el total del Historial fuera **igual** al
+  "Vendido" de la barra —era el bug—, y no me pregunté si después de igualarlos
+  hacía falta mostrar los dos.
+- "N ventas" contaba pedidos sin cobrar y anulados: una etiqueta que miente
+  justo cuando alguien cuenta.
+- "Sin cobrar" es la excepción en un reporte, pero en la caja, en pleno
+  servicio, es el estado de todas las mesas abiertas: lo normal.
+
+**Regla.** Cuando un arreglo deja dos números iguales, uno sobra: quedarse con
+el que está donde se mira y sacar el otro. Antes de encerrar un estado, contar
+en una caja en servicio —no en la base de prueba— cuántas filas lo tienen. Y
+un desglose va donde se usa (el de medios de pago, en el cierre, donde se
+cuenta la plata), no en cada pantalla que tiene los datos.
+

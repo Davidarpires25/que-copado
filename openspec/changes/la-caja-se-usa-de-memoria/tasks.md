@@ -117,3 +117,29 @@ puntero fuera del menú lateral (lección 42).
 - [ ] 6.3 En el local, un servicio con la caja nueva, y preguntarle a David
       qué costó. Verifica: su respuesta, y una lección en `tasks/lessons.md`
       si hubo algo.
+
+## 7. Lo que David marcó usando la caja nueva (2026-09-27)
+
+- [x] 7.1 Historial: fuera el pie "Total sesión" con el desglose por medio (el
+      total es el "Vendido" de la barra; el desglose, del cierre), la línea
+      "N ventas" (contaba también lo sin cobrar) con su "Limpiar filtros", y
+      el filtro por medio de pago. Quedan las pestañas de estado, con el conteo
+      como texto. Verifica: el test del Historial de
+      `caja-dice-lo-que-paso.spec.ts` (sin "Total sesión", sin filtro por
+      medio).
+- [x] 7.2 Estados como texto en las tablas de la caja: en el Historial,
+      "Pagado", "Sin cobrar" y "Anulado"; en Movimientos, el tipo (el ícono
+      conserva el color); en Arqueos, "Cuadra". Solo un arqueo que no cuadra
+      va encerrado, y dice "Sobrante" o "Faltante". Verifica: el test "en las
+      tablas de la caja solo va encerrado lo que no cuadra", con la función de
+      `tablas-resaltado.spec.ts` movida a `e2e/panel.ts` para compartirla.
+- [x] 7.3 Borrados `arqueos-table.tsx` y `movimientos-table.tsx`: nadie los
+      importaba (anotado como código muerto en `el-admin-se-usa-desde-el-celular`),
+      y ya habían recibido cambios de este cambio por error. Verifica: build.
+- [x] 7.4 Pestañas de la caja: el número de "Historial" cuenta lo que muestra
+      (decía `total_orders`, solo lo cobrado: 3 con 5 pedidos en la lista), y
+      los tres contadores (Mostrador, Mesas, Historial) pasan de píldora a
+      texto. Verifica: el test "las pestañas cuentan lo que muestran, como
+      texto, y el turno abierto tiene su punto", que además vigila que el punto
+      verde de "Caja abierta" tenga color (desapareció mientras el servidor de
+      desarrollo servía el CSS viejo, sin los tokens).

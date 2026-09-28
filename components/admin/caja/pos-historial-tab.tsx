@@ -4,10 +4,8 @@ import { useState, useMemo, Fragment } from 'react'
 import { printClientTicketAction } from '@/app/actions/print'
 import {
   ChevronDown,
-  Banknote,
   Store,
   Table2,
-  X,
   MessageSquare,
   Printer,
   ClipboardList,
@@ -23,9 +21,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { OrderStatusBadge } from '@/components/admin/orders'
 import { formatPrice, cn } from '@/lib/utils'
-import { PAYMENT_METHOD_CONFIG, paymentMethodLabel } from '@/lib/constants/payments'
+import { paymentMethodLabel } from '@/lib/constants/payments'
 import { estaCobrado } from '@/lib/types/database'
 import type { PaymentMethod, Json } from '@/lib/types/database'
 import type { OrderItem } from '@/lib/types/orders'
@@ -33,7 +30,6 @@ import type { OrderWithSplits } from '@/lib/types/cash-register'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type PaymentFilter = 'all' | PaymentMethod
 type StatusFilter = 'all' | 'activa' | 'sin_cobrar' | 'anulada'
 
 interface PosHistorialTabProps {
@@ -173,14 +169,20 @@ function OrderRow({
         </TableCell>
 
         <TableCell>
-          {sinCobrar ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-aviso/40 bg-aviso/10 px-2 py-0.5 text-xs font-medium text-aviso-texto whitespace-nowrap">
-              <span className="h-1.5 w-1.5 rounded-full bg-aviso" />
-              Sin cobrar
-            </span>
-          ) : (
-            <OrderStatusBadge status={isCancelled ? 'cancelado' : 'pagado'} size="sm" />
-          )}
+          {/* El estado, como texto. En la caja nada de esto es la excepcion:
+              durante el servicio las mesas abiertas y los pedidos en cocina
+              estan "Sin cobrar" todo el tiempo, y la pestaña ya los cuenta.
+              En pildora, las tres palabras eran ruido (David, 2026-09-27). */}
+          <span
+            className={cn(
+              'text-sm whitespace-nowrap',
+              sinCobrar ? 'font-medium text-aviso-texto'
+                : isCancelled ? 'text-peligro-texto'
+                : 'text-[var(--admin-text-muted)]'
+            )}
+          >
+            {sinCobrar ? 'Sin cobrar' : isCancelled ? 'Anulado' : 'Pagado'}
+          </span>
         </TableCell>
       </TableRow>
 
@@ -268,31 +270,7 @@ function OrderRow({
 
 // ─── Totalizador por método de pago ───────────────────────────────────────────
 
-function PaymentSummaryRow({
-  method,
-  total,
-  count,
-}: {
-  method: PaymentMethod
-  total: number
-  count: number
-}) {
-  if (count === 0) return null
 
-  const config = PAYMENT_METHOD_CONFIG[method]
-  const Icon = config?.icon ?? Banknote
-
-  return (
-    <div className="flex items-center justify-between text-xs">
-      <div className={cn('flex items-center gap-1.5', config?.textClass ?? 'text-[var(--admin-text-muted)]')}>
-        <Icon className="h-3.5 w-3.5 shrink-0" />
-        <span>{config?.label ?? method}</span>
-        <span className="text-[var(--admin-text-faint)]">({count})</span>
-      </div>
-      <span className="tabular-nums font-semibold text-[var(--admin-text)]">{formatPrice(total)}</span>
-    </div>
-  )
-}
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 
@@ -301,7 +279,6 @@ export function PosHistorialTab({
   loading,
   onCancelOrder,
 }: PosHistorialTabProps) {
-  const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>('all')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
   const filteredOrders = useMemo(() => {
@@ -312,47 +289,10 @@ export function PosHistorialTab({
         (statusFilter === 'anulada' && isCancelled) ||
         (statusFilter === 'sin_cobrar' && !isCancelled && !estaCobrado(order)) ||
         (statusFilter === 'activa' && estaCobrado(order))
-      if (!matchesStatus) return false
-      if (paymentFilter === 'all') return true
-      // Un pedido sin cobrar no aparece bajo ningun medio.
-      if (!estaCobrado(order)) return false
-      if (order.payment_splits && order.payment_splits.length > 1) {
-        return order.payment_splits.some((s) => s.method === paymentFilter)
-      }
-      return order.payment_method === paymentFilter
+      return matchesStatus
     })
-  }, [orders, paymentFilter, statusFilter])
+  }, [orders, statusFilter])
 
-  const paymentTotals = useMemo(() => {
-    // Solo lo cobrado suma: el mismo numero que el "Vendido" de la barra.
-    const active = filteredOrders.filter(estaCobrado)
-    const totals: Record<string, { total: number; count: number }> = {}
-    for (const order of active) {
-      if (order.payment_splits && order.payment_splits.length > 1) {
-        for (const split of order.payment_splits) {
-          if (!totals[split.method]) totals[split.method] = { total: 0, count: 0 }
-          totals[split.method].total += split.amount
-        }
-        const primary = order.payment_method
-        if (!totals[primary]) totals[primary] = { total: 0, count: 0 }
-        totals[primary].count += 1
-      } else {
-        const key = order.payment_method
-        if (!totals[key]) totals[key] = { total: 0, count: 0 }
-        totals[key].total += order.total
-        totals[key].count += 1
-      }
-    }
-    return totals
-  }, [filteredOrders])
-
-  const grandTotal = useMemo(
-    () =>
-      filteredOrders
-        .filter(estaCobrado)
-        .reduce((sum, o) => sum + o.total, 0),
-    [filteredOrders]
-  )
 
   const statusCounts = useMemo(() => ({
     all: orders.length,
@@ -361,34 +301,6 @@ export function PosHistorialTab({
     anulada: orders.filter((o) => o.status === 'cancelado').length,
   }), [orders])
 
-  const paymentCounts = useMemo(() => {
-    const counts: Record<PaymentFilter, number> = {
-      all: orders.length,
-      cash: 0,
-      card: 0,
-      transfer: 0,
-      mercadopago: 0,
-    }
-    for (const order of orders.filter(estaCobrado)) {
-      if (order.payment_splits && order.payment_splits.length > 1) {
-        const methods = new Set(order.payment_splits.map((s) => s.method))
-        methods.forEach((m) => {
-          if (m in counts) counts[m as PaymentFilter]++
-        })
-      } else if (order.payment_method in counts) {
-        counts[order.payment_method as PaymentFilter]++
-      }
-    }
-    return counts
-  }, [orders])
-
-  const hasActiveFilters = paymentFilter !== 'all' || statusFilter !== 'all'
-
-  const clearFilters = () => {
-    setPaymentFilter('all')
-    setStatusFilter('all')
-  }
-
   const statusTabs: { value: StatusFilter; label: string }[] = [
     { value: 'all', label: 'Todos' },
     { value: 'activa', label: 'Pagadas' },
@@ -396,33 +308,14 @@ export function PosHistorialTab({
     { value: 'anulada', label: 'Anuladas' },
   ]
 
-  const paymentTabs: { value: PaymentFilter; label: string }[] = [
-    { value: 'all', label: 'Todos' },
-    { value: 'cash', label: 'Efectivo' },
-    { value: 'card', label: 'Tarjeta' },
-    { value: 'transfer', label: 'Transferencia' },
-    { value: 'mercadopago', label: 'Mercado Pago' },
-  ]
-
   return (
     <div className="flex flex-col h-full bg-[var(--admin-bg)] overflow-hidden">
 
-      {/* Toolbar */}
-      <div className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]">
-        <p className="text-[var(--admin-text-muted)] text-sm">
-          {filteredOrders.length} {filteredOrders.length === 1 ? 'venta' : 'ventas'}
-        </p>
-        {hasActiveFilters && (
-          <button
-            onClick={clearFilters}
-            className="flex items-center gap-1 text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer"
-          >
-            <X className="h-3 w-3" />
-            Limpiar filtros
-          </button>
-        )}
-      </div>
-
+      {/* Solo el estado. Se fueron la linea "N ventas" (contaba tambien lo sin
+          cobrar y lo anulado, y repetia el numero de la pestaña), el filtro
+          por medio de pago y el pie con el total por medio: separar lo cobrado
+          por medio es lo que hace el cierre, que es donde se cuenta la plata.
+          El total ya es el "Vendido" de la barra de turno. */}
       {/* Status tabs — orders-table style */}
       <div className="shrink-0 flex items-center gap-0 border-b border-[var(--admin-border)] bg-[var(--admin-surface)] overflow-x-auto no-scrollbar px-2">
         {statusTabs.map(({ value, label }) => (
@@ -437,46 +330,10 @@ export function PosHistorialTab({
             )}
           >
             {label}
+            {/* Un conteo es texto, no una pildora (spec tablas-del-admin). */}
             {statusCounts[value] > 0 && (
-              <span
-                className={cn(
-                  'ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-medium',
-                  statusFilter === value
-                    ? 'bg-[var(--admin-accent)]/20 text-[var(--admin-accent-text)]'
-                    : 'bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)]'
-                )}
-              >
+              <span className="ml-1.5 text-xs font-medium tabular-nums text-[var(--admin-text-faint)]">
                 {statusCounts[value]}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Payment method tabs */}
-      <div className="shrink-0 flex items-center gap-0 border-b border-[var(--admin-border)] bg-[var(--admin-surface)] overflow-x-auto no-scrollbar px-2">
-        {paymentTabs.map(({ value, label }) => (
-          <button
-            key={value}
-            onClick={() => setPaymentFilter(value)}
-            className={cn(
-              'px-3 py-2 text-xs font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors cursor-pointer',
-              paymentFilter === value
-                ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
-                : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
-            )}
-          >
-            {label}
-            {paymentCounts[value] > 0 && (
-              <span
-                className={cn(
-                  'ml-1 text-panel-2xs px-1 py-0.5 rounded-full font-medium tabular-nums',
-                  paymentFilter === value
-                    ? 'bg-[var(--admin-accent)]/20 text-[var(--admin-accent-text)]'
-                    : 'bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)]'
-                )}
-              >
-                {paymentCounts[value]}
               </span>
             )}
           </button>
@@ -507,21 +364,8 @@ export function PosHistorialTab({
               <>
                 <SearchX className="h-10 w-10 text-[var(--admin-text-placeholder)]" />
                 <div>
-                  <p className="text-sm font-medium text-[var(--admin-text-muted)]">Sin resultados</p>
-                  <p className="text-xs text-[var(--admin-text-faint)] mt-1">
-                    No se encontraron ventas con los filtros aplicados
-                  </p>
+                  <p className="text-sm font-medium text-[var(--admin-text-muted)]">Nada en esta pestaña</p>
                 </div>
-                {hasActiveFilters && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="text-[var(--admin-accent-text)] hover:text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 text-xs h-8"
-                  >
-                    Limpiar filtros
-                  </Button>
-                )}
               </>
             )}
           </div>
@@ -552,29 +396,6 @@ export function PosHistorialTab({
         )}
       </div>
 
-      {/* Footer: resumen totales por método */}
-      {filteredOrders.length > 0 && (
-        <div className="shrink-0 border-t border-[var(--admin-border)] bg-[var(--admin-surface)] px-4 py-3">
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-1.5 min-w-0">
-              {(Object.keys(paymentTotals) as PaymentMethod[]).map((method) => (
-                <PaymentSummaryRow
-                  key={method}
-                  method={method}
-                  total={paymentTotals[method].total}
-                  count={paymentTotals[method].count}
-                />
-              ))}
-            </div>
-            <div className="shrink-0 text-right">
-              <p className="text-xs text-[var(--admin-text-faint)] font-medium mb-0.5">Total sesión</p>
-              <p className="tabular-nums text-xl font-bold text-[var(--admin-price)]">
-                {formatPrice(grandTotal)}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

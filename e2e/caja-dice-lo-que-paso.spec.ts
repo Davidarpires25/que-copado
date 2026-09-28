@@ -196,10 +196,12 @@ test('el Historial no muestra como cobrado lo que no se cobro', async ({ page })
   await expect(cobrado).toContainText('Pagado')
   await expect(cobrado).toContainText('Efectivo')
 
-  // El total de la sesion es solo lo cobrado, y es el "Vendido" de la barra.
-  const total = page.getByText('Total sesión').locator('..')
-  await expect(total).toContainText('$ 42.000')
+  // Lo vendido es solo lo cobrado, y se dice una vez: en la barra de turno.
+  // El Historial tenia su propio "Total sesion" con el desglose por medio, el
+  // mismo numero repetido (y el desglose es del cierre).
   await expect(page.getByText('Vendido').locator('..')).toContainText('$ 42.000')
+  await expect(page.getByText('Total sesión')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /^Mercado Pago/ }), 'sin filtro por medio').toHaveCount(0)
 
   await page.getByRole('button', { name: /^Sin cobrar/ }).click()
   await expect(filas, 'el filtro deja solo los dos que faltan cobrar').toHaveCount(2)

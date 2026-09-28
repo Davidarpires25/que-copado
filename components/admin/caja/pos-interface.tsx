@@ -650,7 +650,7 @@ export function PosInterface({
           <Store className="h-4 w-4" />
           Mostrador
           {pendingOrders.length > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 text-xs font-bold bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)] rounded-full">
+            <span className="ml-1 text-xs font-semibold tabular-nums text-[var(--admin-text-faint)]">
               {pendingOrders.length}
             </span>
           )}
@@ -667,7 +667,7 @@ export function PosInterface({
           <Table2 className="h-4 w-4" />
           Mesas
           {openTablesCount > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 text-xs font-bold bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)] rounded-full">
+            <span className="ml-1 text-xs font-semibold tabular-nums text-[var(--admin-text-faint)]">
               {openTablesCount}
             </span>
           )}
@@ -683,9 +683,12 @@ export function PosInterface({
         >
           <History className="h-4 w-4" />
           Historial
-          {session.total_orders > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 text-xs font-bold bg-[var(--admin-accent)]/15 text-[var(--admin-accent-text)] rounded-full num-tabular">
-              {session.total_orders}
+          {/* Lo mismo que "Todos" adentro: contaba solo lo cobrado (total_orders)
+              y decia 3 con 5 pedidos en la lista. Un conteo es texto, no
+              pildora (spec tablas-del-admin). */}
+          {sessionOrders.length > 0 && (
+            <span className="ml-1 text-xs font-semibold tabular-nums text-[var(--admin-text-faint)]">
+              {sessionOrders.length}
             </span>
           )}
         </button>
