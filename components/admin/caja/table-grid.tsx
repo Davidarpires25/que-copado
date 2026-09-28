@@ -55,10 +55,10 @@ export function TableGrid({
         <div key={sectionKey}>
           {/* Section header */}
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[11px] font-semibold uppercase tracking-widest text-[var(--admin-text-faint)]">
+            <span className="text-panel-2xs font-semibold uppercase tracking-widest text-[var(--admin-text-faint)]">
               {TABLE_SECTION_LABELS[sectionKey] || sectionKey}
             </span>
-            <span className="text-[11px] text-[var(--admin-text-faint)]">
+            <span className="text-panel-2xs text-[var(--admin-text-faint)]">
               · {sectionTables.length} {sectionTables.length === 1 ? 'mesa' : 'mesas'}
             </span>
           </div>

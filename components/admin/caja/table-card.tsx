@@ -49,7 +49,7 @@ export function TableCard({ table, isSelected, onClick }: TableCardProps) {
       )}
     >
       <div className="flex w-full items-center justify-between gap-2">
-        <span className="text-[13px] font-semibold leading-none text-[var(--admin-text)]">
+        <span className="text-panel-sm font-semibold leading-none text-[var(--admin-text)]">
           {etiquetaDeMesa(table)}
         </span>
 
@@ -57,20 +57,20 @@ export function TableCard({ table, isSelected, onClick }: TableCardProps) {
           className={cn('flex h-[18px] shrink-0 items-center gap-1 rounded-full px-1.5', cfg.bgColor)}
         >
           <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', cfg.dotColor)} />
-          <span className={cn('text-[11px] font-semibold leading-none', cfg.color)}>
+          <span className={cn('text-panel-2xs font-semibold leading-none', cfg.color)}>
             {cfg.label}
           </span>
         </span>
       </div>
 
       <div className="flex w-full items-baseline justify-between gap-2">
-        <span className="text-[11px] text-[var(--admin-text-faint)]">
+        <span className="text-panel-2xs text-[var(--admin-text-faint)]">
           {table.capacity} pers.
         </span>
         {/* Sin consumo no se escribe "$ 0": una mesa recien sentada no debe cero
             pesos, todavia no pidio. */}
         {consumo > 0 && (
-          <span className="text-[13px] font-bold leading-none tabular-nums text-[var(--admin-price)]">
+          <span className="text-panel-sm font-bold leading-none tabular-nums text-[var(--admin-price)]">
             {formatPrice(consumo)}
           </span>
         )}

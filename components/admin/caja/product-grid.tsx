@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { Search, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { cn, formatPrice } from '@/lib/utils'
 import type { Category, Product, ProductWithHalfConfig } from '@/lib/types/database'
 import type { PosCartItem } from './order-builder'
 import { HalfPizzaSelector } from './half-pizza-selector'
+import { calcHalfPizzaPrice } from '@/lib/utils/half-pizza'
 
 
 interface PosProductGridProps {
@@ -39,10 +40,63 @@ export function PosProductGrid({
     }
   }
 
+  // Cada producto siempre en el mismo lugar: por categoria, en el orden de las
+  // categorias, y adentro por nombre. Venian ordenados solo por nombre, asi que
+  // "Todos" mezclaba bebidas con combos y cada producto nuevo corria de lugar a
+  // todos los que venian despues: el cajero no podia aprender donde estaba cada
+  // cosa.
+  const ordenDeCategoria = useMemo(() => {
+    const orden: Record<string, number> = {}
+    categories.forEach((c, i) => { orden[c.id] = c.sort_order ?? i })
+    return orden
+  }, [categories])
+
   const availableProducts = useMemo(
-    () => products.filter((p) => p.is_active && !p.is_out_of_stock),
-    [products]
+    () => products
+      .filter((p) => p.is_active && !p.is_out_of_stock)
+      .sort((a, b) =>
+        (ordenDeCategoria[a.category_id ?? ''] ?? Infinity) - (ordenDeCategoria[b.category_id ?? ''] ?? Infinity) ||
+        a.name.localeCompare(b.name, 'es')),
+    [products, ordenDeCategoria]
   )
+
+  // "desde": lo mas barato que puede salir una mitad y mitad, calculado con su
+  // propio metodo de precio sobre todos los pares. Sin esto la tarjeta mostraba
+  // el precio base del producto, que para uno `mitad` suele ser $ 0.
+  const desdeMitad = useMemo(() => {
+    const desde: Record<string, number> = {}
+    for (const p of products) {
+      if (p.product_type !== 'mitad') continue
+      const opciones = getHalfOptions?.(p) ?? []
+      if (opciones.length < 2) continue
+      const config = p.product_half_configs?.[0]
+      let minimo = Infinity
+      for (let i = 0; i < opciones.length; i++) {
+        for (let j = i + 1; j < opciones.length; j++) {
+          minimo = Math.min(minimo, calcHalfPizzaPrice(
+            config?.pricing_method ?? 'max', config?.pricing_markup_pct ?? null, opciones[i], opciones[j], p.price))
+        }
+      }
+      if (Number.isFinite(minimo)) desde[p.id] = minimo
+    }
+    return desde
+  }, [products, getHalfOptions])
+
+  // Si la fila de categorias tiene mas a la derecha de lo que se ve. Desde `lg`
+  // se envuelve y nunca pasa; en el celular desliza, y sin esto nada avisaba
+  // que "Cervezas" seguia despues de "Ce".
+  const filaCategorias = useRef<HTMLDivElement>(null)
+  const [hayMas, setHayMas] = useState(false)
+  const medirFila = useCallback(() => {
+    const fila = filaCategorias.current
+    if (!fila) return
+    setHayMas(fila.scrollWidth - fila.scrollLeft - fila.clientWidth > 1)
+  }, [])
+  useEffect(() => {
+    medirFila()
+    window.addEventListener('resize', medirFila)
+    return () => window.removeEventListener('resize', medirFila)
+  }, [medirFila, categories.length])
 
   const filtered = useMemo(
     () =>
@@ -95,37 +149,53 @@ export function PosProductGrid({
         </div>
       </div>
 
-      {/* Category chips — rounded-full pills (Pencil style) */}
-        
-            <div className=" px-3 flex items-center gap-0 border-b border-[var(--admin-border)] mb-5 overflow-x-auto no-scrollbar">
-              <button
-                onClick={() => setSelectedCategory(null)}
-                className={cn(
-                  'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors',
-                  selectedCategory === null
-                    ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
-                    : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
-                )}
-              >
-                Todos
-               
-              </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={cn(
-                    'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors',
-                    selectedCategory === cat.id
-                      ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)]'
-                      : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
+      {/* Categorias: todas a la vista desde lg (se envuelven); en el celular
+          deslizan y el borde avisa cuando hay mas. */}
+      <div className="relative mb-3">
+        <div
+          ref={filaCategorias}
+          onScroll={medirFila}
+          data-categorias
+          data-hay-mas={hayMas}
+          className="px-3 flex items-center gap-0 border-b border-[var(--admin-border)] overflow-x-auto no-scrollbar lg:flex-wrap lg:gap-1.5 lg:px-4 lg:border-b-0 lg:overflow-visible"
+        >
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={cn(
+                    'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors cursor-pointer',
+                    // Desde lg, chips: las pestañas subrayadas no se leen en dos renglones.
+                    'lg:px-3 lg:py-1.5 lg:rounded-full lg:border',
+                    selectedCategory === null
+                      ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)] lg:bg-[var(--admin-accent)] lg:text-black'
+                      : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] lg:border-[var(--admin-border)] lg:bg-[var(--admin-surface)]'
                   )}
-                >
-                  
-                {cat.name}
-                </button>
-              ))}
-            </div>
+          >
+            Todos
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={cn(
+                    'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 tactil:min-h-11 transition-colors cursor-pointer',
+                    // Desde lg, chips: las pestañas subrayadas no se leen en dos renglones.
+                    'lg:px-3 lg:py-1.5 lg:rounded-full lg:border',
+                    selectedCategory === cat.id
+                      ? 'border-[var(--admin-accent)] text-[var(--admin-accent-text)] lg:bg-[var(--admin-accent)] lg:text-black'
+                      : 'border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] lg:border-[var(--admin-border)] lg:bg-[var(--admin-surface)]'
+                  )}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+        {hayMas && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-[var(--admin-bg)] to-transparent lg:hidden"
+          />
+        )}
+      </div>
 
       {/* Active filters indicator */}
       {hasActiveFilters && (
@@ -138,7 +208,7 @@ export function PosProductGrid({
 
       {/* Products grid — Pencil style: clean cards, big price */}
       <div className="flex-1 overflow-y-auto px-3 pb-4">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5">
+        <div data-grilla-productos className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5">
           {filtered.map((product) => {
             const dotColor = product.category_id
               ? (categoryColorMap[product.category_id] ?? undefined)
@@ -192,11 +262,18 @@ export function PosProductGrid({
                       style={{ backgroundColor: dotColor ?? 'var(--admin-border)' }}
                     />
                     <p className="text-xl font-black text-[var(--admin-price)] tabular-nums leading-none">
-                      {formatPrice(product.price)}
+                      {desdeMitad[product.id] !== undefined ? (
+                        <>
+                          <span className="mr-1 text-xs font-semibold text-[var(--admin-text-muted)]">desde</span>
+                          {formatPrice(desdeMitad[product.id])}
+                        </>
+                      ) : (
+                        formatPrice(product.price)
+                      )}
                     </p>
                   </div>
                   {isLowStock && (
-                    <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/25 text-amber-700 dark:text-amber-400 leading-none shrink-0">
+                    <span className="text-panel-2xs font-bold px-1.5 py-0.5 rounded-full bg-aviso/25 text-aviso-texto leading-none shrink-0">
                       {product.current_stock === 0 ? 'Agotado' : `${product.current_stock} u.`}
                     </span>
                   )}

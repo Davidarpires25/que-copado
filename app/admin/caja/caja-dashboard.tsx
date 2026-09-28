@@ -96,9 +96,9 @@ export function CajaDashboard({
       <main className="h-full flex flex-col admin-contenido admin-contenido--caja">
         {/* Con turno abierto el menu lo pone ShiftBar; si esta banda tambien
             aparecia, el celular mostraba dos barras con dos botones de menu.
-            Queda solo para abrir turno, y es la misma barra que el resto del
-            panel. En escritorio no aparece (MobileTopBar es lg:hidden). */}
-        {screen === 'open' && (
+            Queda para abrir y cerrar turno, y es la misma barra que el resto
+            del panel. En escritorio no aparece (MobileTopBar es lg:hidden). */}
+        {(screen === 'open' || screen === 'close') && (
           <div className="shrink-0">
             <MobileTopBar
               onOpenMenu={() => setMobileMenuOpen(true)}

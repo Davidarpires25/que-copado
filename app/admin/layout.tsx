@@ -13,9 +13,11 @@ import { AdminRouteShell } from './admin-route-shell'
  * herencia sin meter una caja en el layout: `h-screen` y `min-h-screen` de las
  * pantallas de adentro siguen midiendo contra el viewport.
  *
- * Los dialogos salen por portal a <body>, fuera de este arbol, pero eso ya era
- * asi: la regla que aplica la tipografia es `.admin-layout`, que tampoco los
- * alcanza.
+ * Los dialogos salen por portal a <body>, fuera de este arbol, y no heredaban
+ * la variable: salian con la letra de la tienda. Por eso tambien se le pasa a
+ * AdminRouteShell, que la pone en el <html> junto con `admin-panel`; la regla
+ * `html.admin-panel body` de globals.css la aplica a los portales. Este div la
+ * sigue teniendo para el primer pintado, antes de que el efecto corra.
  */
 const inter = Inter({
   variable: '--font-inter',
@@ -26,7 +28,7 @@ const inter = Inter({
 export default function AdminRootLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className={`${inter.variable} contents`}>
-      <AdminRouteShell>{children}</AdminRouteShell>
+      <AdminRouteShell fuente={inter.variable}>{children}</AdminRouteShell>
     </div>
   )
 }

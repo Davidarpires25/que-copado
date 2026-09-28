@@ -174,8 +174,8 @@ function OrderRow({
 
         <TableCell>
           {sinCobrar ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400 whitespace-nowrap">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-aviso/40 bg-aviso/10 px-2 py-0.5 text-xs font-medium text-aviso-texto whitespace-nowrap">
+              <span className="h-1.5 w-1.5 rounded-full bg-aviso" />
               Sin cobrar
             </span>
           ) : (
@@ -251,7 +251,7 @@ function OrderRow({
                         e.stopPropagation()
                         onCancelOrder(order.id)
                       }}
-                      className="h-7 px-3 text-xs text-red-700 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 active:scale-95 transition-all"
+                      className="h-7 px-3 text-xs text-peligro-texto hover:bg-peligro/10 active:scale-95 transition-all"
                     >
                       Anular
                     </Button>
@@ -470,7 +470,7 @@ export function PosHistorialTab({
             {paymentCounts[value] > 0 && (
               <span
                 className={cn(
-                  'ml-1 text-[10px] px-1 py-0.5 rounded-full font-medium tabular-nums',
+                  'ml-1 text-panel-2xs px-1 py-0.5 rounded-full font-medium tabular-nums',
                   paymentFilter === value
                     ? 'bg-[var(--admin-accent)]/20 text-[var(--admin-accent-text)]'
                     : 'bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)]'

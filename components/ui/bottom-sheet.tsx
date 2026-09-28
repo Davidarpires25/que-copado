@@ -51,7 +51,7 @@ export function BottomSheet({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-black/60 md:hidden"
+            className="fixed inset-0 z-40 bg-black/60 lg:hidden"
             onClick={onClose}
           />
 
@@ -76,7 +76,9 @@ export function BottomSheet({
             transition={{ type: 'spring', damping: 32, stiffness: 320 }}
             style={{ maxHeight: `${maxHeightRatio * 100}dvh` }}
             className={cn(
-              'fixed bottom-0 left-0 right-0 z-50 md:hidden',
+              // Hasta lg: por debajo de 1024px la caja no tiene carrito lateral
+              // (en la tablet vertical ocupaba media pantalla) y usa la hoja.
+              'fixed bottom-0 left-0 right-0 z-50 lg:hidden',
               'flex flex-col bg-[var(--admin-surface)] rounded-t-2xl',
               'border-t border-[var(--admin-border)]',
               'shadow-2xl shadow-black/40',

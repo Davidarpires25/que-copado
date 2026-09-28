@@ -60,7 +60,7 @@ export function TableOrderItems({
                 tagColor.bg
               )} style={{ height: 20 }}>
                 <div className={cn('w-1 h-1 rounded-full shrink-0', tagColor.dot)} />
-                <span className={cn('text-[11px] font-semibold leading-none', tagColor.text)}>
+                <span className={cn('text-panel-2xs font-semibold leading-none', tagColor.text)}>
                   {item.sale_tag}
                 </span>
               </div>
@@ -68,7 +68,7 @@ export function TableOrderItems({
 
             {/* Name + price per unit */}
             <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-              <span className="text-[13px] font-medium text-[var(--admin-text)] truncate leading-tight">
+              <span className="text-panel-sm font-medium text-[var(--admin-text)] truncate leading-tight">
                 {item.product_name}
               </span>
               {item.notes && (
@@ -87,30 +87,30 @@ export function TableOrderItems({
                     if (item.quantity > 1) onUpdateQuantity(item.id, item.quantity - 1)
                     else onRemoveItem(item.id)
                   }}
-                  className="flex items-center justify-center rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-accent)]/40 transition-all active:scale-90 cursor-pointer"
-                  style={{ width: 26, height: 26 }}
+                  className="flex size-control items-center justify-center rounded-md bg-[var(--admin-surface-2)] border border-[var(--admin-border)] hover:border-[var(--admin-accent)]/40 transition-all active:scale-90 cursor-pointer tactil:size-11"
+                  aria-label="Disminuir"
                 >
-                  <Minus className="h-3 w-3 text-[var(--admin-text-muted)]" />
+                  <Minus className="h-3.5 w-3.5 text-[var(--admin-text-muted)]" />
                 </button>
-                <span className="text-[13px] font-semibold tabular-nums text-center text-[var(--admin-text)]" style={{ width: 18 }}>
+                <span className="text-panel-sm font-semibold tabular-nums text-center text-[var(--admin-text)]" style={{ width: 18 }}>
                   {item.quantity}
                 </span>
                 <button
                   onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                  className="flex items-center justify-center rounded-md bg-[var(--admin-accent)] hover:opacity-90 active:scale-90 transition-all cursor-pointer"
-                  style={{ width: 26, height: 26 }}
+                  className="flex size-control items-center justify-center rounded-md bg-[var(--admin-accent)] hover:opacity-90 active:scale-90 transition-all cursor-pointer tactil:size-11"
+                  aria-label="Aumentar"
                 >
-                  <Plus className="h-3 w-3 text-black" />
+                  <Plus className="h-3.5 w-3.5 text-black" />
                 </button>
               </div>
             ) : (
-              <span className="text-[12px] text-[var(--admin-text-muted)] shrink-0 tabular-nums">
+              <span className="text-panel-xs text-[var(--admin-text-muted)] shrink-0 tabular-nums">
                 ×{item.quantity}
               </span>
             )}
 
             {/* Line subtotal */}
-            <span className="text-[13px] font-semibold tabular-nums text-[var(--admin-text)] shrink-0" style={{ width: 52, textAlign: 'right' }}>
+            <span className="text-panel-sm font-semibold tabular-nums text-[var(--admin-text)] shrink-0" style={{ width: 52, textAlign: 'right' }}>
               {formatPrice(subtotal)}
             </span>
 
@@ -118,7 +118,7 @@ export function TableOrderItems({
             {canModify && (
               <button
                 onClick={() => onRemoveItem(item.id)}
-                className="text-[var(--admin-text-faint)] hover:text-red-700 dark:hover:text-red-400 transition-colors cursor-pointer shrink-0"
+                className="text-[var(--admin-text-faint)] hover:text-peligro-texto transition-colors cursor-pointer shrink-0"
                 aria-label="Quitar ítem"
               >
                 <Trash2 className="h-4 w-4" />

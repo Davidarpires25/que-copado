@@ -44,6 +44,34 @@
 }
 
 @theme inline {
+  /* Estados del panel (ver los --admin-exito… mas abajo). */
+  --color-exito: var(--admin-exito);
+  --color-exito-texto: var(--admin-exito-texto);
+  --color-peligro: var(--admin-peligro);
+  --color-peligro-texto: var(--admin-peligro-texto);
+  --color-aviso: var(--admin-aviso);
+  --color-aviso-texto: var(--admin-aviso-texto);
+  --color-info: var(--admin-info);
+  --color-info-texto: var(--admin-info-texto);
+  --color-exito-solido: var(--admin-exito-solido);
+  --color-peligro-solido: var(--admin-peligro-solido);
+
+  /* Escala de texto del panel: seis pasos en vez de los doce tamaños sueltos
+     (`text-[13px]`…) que habia en la caja. `text-panel-*` para no pisar la
+     escala de Tailwind, que la tienda sigue usando. */
+  --text-panel-2xs: 11px;
+  --text-panel-xs: 12px;
+  --text-panel-sm: 13px;
+  --text-panel-base: 14px;
+  --text-panel-lg: 16px;
+  --text-panel-xl: 18px;
+
+  /* Tamaños de control con mouse (`h-control`, `size-control`…); con el dedo
+     manda la variante `tactil:` a 44px. El −/+ del carrito de mostrador y el de
+     mesa median 36 y 26: eran el mismo control escrito dos veces. */
+  --spacing-control: 36px;
+  --spacing-control-sm: 28px;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-rubik);
@@ -433,6 +461,11 @@ html.admin-dark {
    - Diseñada para interfaces de alta densidad (dashboards, POS)
    - Estándar de la industria: Linear, Vercel, Figma usan Inter
    ─────────────────────────────────────────────────────────────────────────── */
+/* `html.admin-panel body` ademas de `.admin-layout`: los dialogos, hojas y
+   avisos salen por portal a <body>, fuera de este div, y heredaban la letra de
+   la tienda. Tiene que ser `body` y no `html` porque el <body> tiene su propia
+   fuente. La variable de Inter la pone AdminRouteShell en el <html>. */
+html.admin-panel body,
 .admin-layout {
   /* shadcn usa --accent para el hover de ghost/outline y de los items de Select
      y Dialog. En el resto de la app ese token es verde, que en el admin —ambar—
@@ -445,6 +478,9 @@ html.admin-dark {
 
 /* Números tabulares: todos los valores numéricos en admin se alinean
    correctamente en columnas (precios, cantidades, estadísticas) */
+html.admin-panel body .tabular-nums,
+html.admin-panel body [class*="font-bold"],
+html.admin-panel body [class*="font-semibold"],
 .admin-layout .tabular-nums,
 .admin-layout [class*="font-bold"],
 .admin-layout [class*="font-semibold"] {
@@ -490,6 +526,28 @@ html.admin-dark {
   /* El dinero se lee como dato, no como accion: en claro va en tinta. El ambar
      queda para estados activos y hover, donde el color si significa algo. */
   --admin-price:            #0F172A;
+
+  /* Estados: que salio bien, que hay que mirar, que esta mal, que es un dato.
+     Cada uno en dos tonos: el base para fondos, bordes y puntos (con opacidad:
+     `bg-peligro/10`), y el de texto, que cumple 4,5:1 sobre el fondo de su
+     tema. Son los mismos colores de Tailwind que la caja usaba sueltos
+     (`text-red-700 dark:text-red-400`…), asi que el contraste medido en
+     `el-panel-se-lee-en-los-dos-temas` no cambia: cambia que ahora estan
+     definidos en un solo lugar. */
+  --admin-exito:            oklch(72.3% 0.219 149.579);  /* green-500 */
+  --admin-exito-texto:      oklch(52.7% 0.154 150.069);  /* green-700 */
+  --admin-peligro:          oklch(63.7% 0.237 25.331);   /* red-500 */
+  --admin-peligro-texto:    oklch(50.5% 0.213 27.518);   /* red-700 */
+  --admin-aviso:            oklch(76.9% 0.188 70.08);    /* amber-500 */
+  --admin-aviso-texto:      oklch(55.5% 0.163 48.998);   /* amber-700 */
+  --admin-info:             oklch(62.3% 0.214 259.815);  /* blue-500 */
+  --admin-info-texto:       oklch(48.8% 0.243 264.376);  /* blue-700 */
+  /* Fondo lleno con texto blanco (un boton que confirma o destruye). Iguales
+     en los dos temas: el tono de texto en oscuro es claro y el blanco no se
+     leeria. El verde de "Registrar ingreso" era green-600, 3,3:1 con blanco. */
+  --admin-exito-solido:     oklch(52.7% 0.154 150.069);  /* green-700, 5:1 con blanco */
+  --admin-peligro-solido:   oklch(50.5% 0.213 27.518);   /* red-700, 6,5:1 con blanco */
+
   --shadow-card:    0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-card-md: 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
   --shadow-card-lg: 0 10px 24px rgba(0, 0, 0, 0.10), 0 4px 8px rgba(0, 0, 0, 0.06);
@@ -544,6 +602,11 @@ html.admin-dark {
   --admin-accent-text:      #FEC501;
   /* Sobre fondo oscuro el ambar de marca da 9.87:1 y se ve bien. */
   --admin-price:            #FEC501;
+  /* En oscuro el texto de estado sube a los -400; el base queda igual. */
+  --admin-exito-texto:      oklch(79.2% 0.209 151.711);  /* green-400 */
+  --admin-peligro-texto:    oklch(70.4% 0.191 22.216);   /* red-400 */
+  --admin-aviso-texto:      oklch(82.8% 0.189 84.429);   /* amber-400 */
+  --admin-info-texto:       oklch(70.7% 0.165 254.624);  /* blue-400 */
   --shadow-card:    0 1px 3px rgba(0, 0, 0, 0.30), 0 1px 2px rgba(0, 0, 0, 0.20);
   --shadow-card-md: 0 4px 12px rgba(0, 0, 0, 0.40), 0 2px 4px rgba(0, 0, 0, 0.25);
   --shadow-card-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.35);

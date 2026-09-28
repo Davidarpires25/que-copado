@@ -83,7 +83,7 @@ export function CashMovementDialog({
               className={cn(
                 'py-2.5 tactil:min-h-11 rounded-xl text-sm font-medium transition-all border',
                 type === 'withdrawal'
-                  ? 'bg-red-500/10 border-red-500 text-red-700 dark:text-red-400'
+                  ? 'bg-peligro/10 border-peligro text-peligro-texto'
                   : 'bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:border-[var(--admin-text-placeholder)]'
               )}
             >
@@ -94,7 +94,7 @@ export function CashMovementDialog({
               className={cn(
                 'py-2.5 tactil:min-h-11 rounded-xl text-sm font-medium transition-all border',
                 type === 'deposit'
-                  ? 'bg-green-500/10 border-green-500 text-green-700 dark:text-green-400'
+                  ? 'bg-exito/10 border-exito text-exito-texto'
                   : 'bg-[var(--admin-surface)] border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:border-[var(--admin-text-placeholder)]'
               )}
             >
@@ -134,8 +134,8 @@ export function CashMovementDialog({
             className={cn(
               'w-full h-12 font-bold active:scale-95 transition-transform',
               type === 'withdrawal'
-                ? 'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-600/20'
-                : 'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-600/20'
+                ? 'bg-peligro-solido hover:opacity-90 text-white shadow-lg shadow-peligro/20'
+                : 'bg-exito-solido hover:opacity-90 text-white shadow-lg shadow-exito/20'
             )}
           >
             {loading ? (
