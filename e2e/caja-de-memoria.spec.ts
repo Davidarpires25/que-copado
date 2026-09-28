@@ -1,6 +1,6 @@
 import { test, expect, type Page, type Browser } from '@playwright/test'
 import { rest, asegurarUsuario } from './local'
-import { entrar, abrir } from './panel'
+import { entrar, abrir, resaltadosDeLaTabla } from './panel'
 import { estacionarTurno, devolverTurno } from './turno'
 
 /**
@@ -87,7 +87,11 @@ async function limpiarPedidos() {
     await rest(`order_items?order_id=eq.${id}`, { method: 'DELETE' })
     await rest(`orders?id=eq.${id}`, { method: 'DELETE' })
   }
+  await rest(`cash_movements?session_id=eq.${sesion}`, { method: 'DELETE' })
+  for (const id of arqueosSembrados) await rest(`cash_register_sessions?id=eq.${id}`, { method: 'DELETE' })
+  arqueosSembrados.length = 0
 }
+const arqueosSembrados: string[] = []
 
 test.afterAll(async () => {
   try {
@@ -299,6 +303,90 @@ test('los textos de la escala miden lo que dicen aunque pasen por cn()', async (
   await chip.click()
   const efectivo = page.getByRole('button', { name: /^Efectivo/ }).getByText('Efectivo', { exact: true })
   expect(await efectivo.evaluate((e) => getComputedStyle(e).fontSize), 'el medio de pago').toBe('13px')
+  await ctx.close()
+})
+
+// ─── Tablas ─────────────────────────────────────────────────────────────────
+
+test('en las tablas de la caja solo va encerrado lo que no cuadra', async ({ browser }) => {
+  // tablas-del-admin: se encierra la excepcion, no la regla. En la caja
+  // "Pagado" y "Sin cobrar" son el flujo normal del servicio (David:
+  // "aun quedo una pildora que dice sin cobrar"), y el tipo de un movimiento
+  // es un atributo. Solo un arqueo que no cuadra pide que alguien lo mire.
+  const base = { order_source: 'pos', cash_register_session_id: sesion, payment_method: 'cash', order_type: 'mostrador' }
+  const item = [{ id: pid(4), name: 'Combo Kids', price: 9_800, quantity: 1, notes: null, metadata: null }]
+  await rest('orders', {
+    method: 'POST',
+    body: JSON.stringify(['pagado', 'abierto', 'cancelado'].map((status) => ({ ...base, status, total: 9_800, items: item }))),
+  })
+  await rest('cash_movements', {
+    method: 'POST',
+    body: JSON.stringify([
+      { session_id: sesion, type: 'deposit', amount: 5_000, reason: 'Cambio' },
+      { session_id: sesion, type: 'withdrawal', amount: 3_000, reason: 'Proveedor' },
+    ]),
+  })
+  const [perfil] = await rest('profiles?select=id&role=eq.admin&limit=1')
+  const cerradas = await rest('cash_register_sessions', {
+    method: 'POST',
+    body: JSON.stringify([0, -6_000].map((diferencia) => ({
+      opened_by: perfil.id, opening_balance: 10_000, status: 'closed', closed_at: new Date().toISOString(),
+      expected_cash: 10_000, actual_cash: 10_000 + diferencia, cash_difference: diferencia,
+    }))),
+  })
+  arqueosSembrados.push(...cerradas.map((c: { id: string }) => c.id))
+
+  const { ctx, page } = await pagina(browser, 1366, 768)
+  const encontrados: string[] = []
+  await page.getByRole('button', { name: /^Historial/ }).click()
+  await page.waitForTimeout(1200)
+  encontrados.push(...(await resaltadosDeLaTabla(page)).map((t) => `historial: ${t}`))
+
+  await abrir(page, '/admin/caja/arqueos')
+  await page.waitForTimeout(1200)
+  encontrados.push(...(await resaltadosDeLaTabla(page)).map((t) => `arqueos: ${t}`))
+  await abrir(page, '/admin/caja/arqueos?tab=movimientos')
+  await page.waitForTimeout(1200)
+  encontrados.push(...(await resaltadosDeLaTabla(page)).map((t) => `movimientos: ${t}`))
+
+  const deMas = encontrados.filter((t) => !/^arqueos: (Faltante|Sobrante) /.test(t))
+  expect(deMas, 'datos encerrados que no son una diferencia de arqueo').toEqual([])
+  expect(encontrados.some((t) => t.startsWith('arqueos: Faltante')), 'el faltante si se ve encerrado').toBe(true)
+  await ctx.close()
+})
+
+test('las pestañas cuentan lo que muestran, como texto, y el turno abierto tiene su punto', async ({ browser }) => {
+  const base = { order_source: 'pos', cash_register_session_id: sesion, payment_method: 'cash', order_type: 'mostrador' }
+  const item = [{ id: pid(4), name: 'Combo Kids', price: 9_800, quantity: 1, notes: null, metadata: null }]
+  // Un cobrado y uno sin cobrar. `total_orders` de la sesion queda en 0: el
+  // contador viejo de Historial decia eso aunque la lista tuviera dos.
+  await rest('orders', {
+    method: 'POST',
+    body: JSON.stringify(['pagado', 'abierto'].map((status) => ({ ...base, status, total: 9_800, items: item }))),
+  })
+  const { ctx, page } = await pagina(browser, 1366, 768)
+
+  // Los tests anteriores del archivo tambien dejaron pedidos: se cuenta en la base.
+  const enLaBase = (await rest(`orders?cash_register_session_id=eq.${sesion}&select=id`)).length
+  const historial = page.getByRole('button', { name: /^Historial/ })
+  await expect(historial).toHaveText(new RegExp(`Historial\\s*${enLaBase}$`))
+  await historial.click()
+  await expect(page.getByRole('button', { name: /^Todos/ })).toHaveText(new RegExp(`Todos\\s*${enLaBase}$`))
+
+  // Ningun conteo de pestaña encerrado (tablas-del-admin: un conteo es texto).
+  const encerrados = await page.locator('button').evaluateAll((bs) => bs
+    .filter((b) => /^(Mostrador|Mesas|Historial|Todos|Pagadas|Sin cobrar|Anuladas)/.test((b.textContent ?? '').trim()))
+    .flatMap((b) => [...b.querySelectorAll('span')])
+    .filter((sp) => /^\d+$/.test((sp.textContent ?? '').trim()))
+    .filter((sp) => { const c = getComputedStyle(sp); return c.backgroundColor !== 'rgba(0, 0, 0, 0)' && c.backgroundColor !== 'transparent' })
+    .map((sp) => sp.parentElement?.textContent?.trim()))
+  expect(encerrados).toEqual([])
+
+  // El punto verde de "Caja abierta". Paso de un color suelto a un token, y
+  // con el CSS desactualizado del servidor de desarrollo quedo transparente.
+  const punto = await page.getByText('Caja abierta', { exact: true }).evaluate((e) =>
+    getComputedStyle(e.previousElementSibling!).backgroundColor)
+  expect(punto, 'el punto tiene color').not.toMatch(/rgba\(0, 0, 0, 0\)|transparent/)
   await ctx.close()
 })
 
