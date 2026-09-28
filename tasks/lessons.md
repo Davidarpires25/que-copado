@@ -786,6 +786,13 @@ de cientos de filas lo que se busca es si entró o salió, no cuál de los seis
 nombres es. La regla dice qué se resalta; cuál es el eje por el que se recorre
 una lista lo dice el uso.
 
+**Y otra vez (2026-09-28).** "que no contenga otra caja" dejaba afuera la
+píldora de estado de Pedidos: adentro tiene un punto de color, que es una
+caja sin texto. El test de Pedidos daba verde con cuatro píldoras en pantalla,
+y lo encontró David. Una caja interna cuenta solo si tiene texto. Y antes de
+creerle a un test nuevo, correrlo contra el código viejo: si pasa en los dos,
+está probando otra cosa.
+
 ---
 
 ## 33. Resaltar lo normal es no resaltar nada

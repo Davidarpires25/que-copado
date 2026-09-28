@@ -36,3 +36,30 @@ export function OrderStatusBadge({
     </span>
   )
 }
+
+/**
+ * El estado como texto, para las tablas. En una lista de pedidos el estado
+ * esta en todas las filas: en pildora, el color deja de señalar (spec
+ * tablas-del-admin). El tono separa lo que falta resolver —recibido, abierto,
+ * cuenta pedida— de lo que ya se cobro, y lo cancelado.
+ *
+ * La pildora (`OrderStatusBadge`) queda para donde hay un solo estado: el
+ * detalle del pedido y el dialogo de cambiarlo.
+ */
+export function OrderStatusText({ status, className }: { status: OrderStatus; className?: string }) {
+  const pendiente = status === 'recibido' || status === 'abierto' || status === 'cuenta_pedida'
+  return (
+    <span
+      className={cn(
+        'text-sm whitespace-nowrap',
+        pendiente ? 'font-medium text-aviso-texto'
+          : status === 'cancelado' ? 'text-peligro-texto'
+          : 'text-[var(--admin-text-muted)]',
+        className
+      )}
+    >
+      {ORDER_STATUS_CONFIG[status].label}
+    </span>
+  )
+}
+

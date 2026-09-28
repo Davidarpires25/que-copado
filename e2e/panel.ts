@@ -136,9 +136,13 @@ export async function resaltadosDeLaTabla(page: Page) {
           const ch = getComputedStyle(hijo)
           const hijoConFondo =
             ch.backgroundColor !== 'rgba(0, 0, 0, 0)' && ch.backgroundColor !== 'transparent'
+          // Una caja interna sin texto —el punto de color de una pildora de
+          // estado— no es otra caja con dato: contarla dejaba afuera justo la
+          // pildora que la contiene. Paso con `OrderStatusBadge` en Pedidos.
           return (
             hijoConFondo &&
-            (parseFloat(ch.borderRadius) > 0 || parseFloat(ch.borderTopWidth) > 0)
+            (parseFloat(ch.borderRadius) > 0 || parseFloat(ch.borderTopWidth) > 0) &&
+            (hijo.textContent ?? '').trim() !== ''
           )
         })
 

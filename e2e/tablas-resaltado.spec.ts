@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { asegurarUsuario, USUARIO } from './local'
+import { asegurarUsuario, rest, USUARIO } from './local'
 import { resaltadosDeLaTabla } from './panel'
 
 /**
@@ -95,3 +95,44 @@ for (const [ruta, nombre] of [
     expect(queNoSonEstado).toEqual([])
   })
 }
+
+/**
+ * Pedidos y el Dashboard, con pedidos propios en cada estado. El estado va en
+ * todas las filas: en una lista de pedidos ninguno es la excepcion, y en
+ * pildora el color no señalaba nada (David: "dentro de la seccion de pedidos
+ * aun hay pildoras"). Los pedidos se crean sin turno de caja —como uno que
+ * llega por WhatsApp— y se borran al final.
+ */
+test.describe('pedidos', () => {
+  const CLIENTE = 'ZZ Resaltado'
+  const limpiar = () => rest(`orders?customer_name=eq.${encodeURIComponent(CLIENTE)}`, { method: 'DELETE' })
+
+  test.beforeAll(async () => {
+    await limpiar()
+    await rest('orders', {
+      method: 'POST',
+      body: JSON.stringify(['recibido', 'pagado', 'entregado', 'cancelado'].map((status) => ({
+        customer_name: CLIENTE, order_source: 'whatsapp', status, payment_method: 'cash', total: 5_000, items: [],
+      }))),
+    })
+  })
+  test.afterAll(limpiar)
+
+  for (const [ruta, nombre] of [['/admin/orders', 'pedidos'], ['/admin/dashboard', 'dashboard']]) {
+    test(`en ${nombre} ningun estado va encerrado`, async ({ page }) => {
+      await page.goto(ruta)
+      await page.waitForTimeout(1500)
+      expect(await resaltadosDeLaTabla(page)).toEqual([])
+    })
+  }
+
+  test('un pedido sin cobrar no muestra un medio de pago', async ({ page }) => {
+    // Nace con efectivo porque la columna no admite nulos: no es un pago.
+    await page.goto('/admin/orders')
+    await page.waitForTimeout(1500)
+    const fila = page.locator('tbody tr').filter({ hasText: CLIENTE }).filter({ hasText: 'Recibido' }).first()
+    await expect(fila).toBeVisible()
+    await expect(fila).not.toContainText('Efectivo')
+  })
+})
+
