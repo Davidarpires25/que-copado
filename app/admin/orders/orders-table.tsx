@@ -25,11 +25,12 @@ import {
 } from '@/components/ui/table'
 import { AdminLayout } from '@/components/admin/layout'
 import { useRealtimeChannel } from '@/lib/hooks/use-realtime-channel'
-import { OrderStatusBadge, OrderDetailsDrawer } from '@/components/admin/orders'
+import { OrderStatusText, OrderDetailsDrawer } from '@/components/admin/orders'
 import { formatPrice, cn } from '@/lib/utils'
 import {
   parseOrderItems,
 } from '@/lib/services/order-formatter'
+import { estaCobrado } from '@/lib/types/database'
 import type { OrderWithZone, OrderStatus } from '@/lib/types/database'
 
 interface OrdersTableProps {
@@ -297,12 +298,8 @@ export function OrdersTable({ initialOrders, initialDateFilter }: OrdersTablePro
           >
             {tab.label}
             {statusCounts[tab.key] > 0 && (
-              <span className={cn(
-                'ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-medium',
-                statusFilter === tab.key
-                  ? 'bg-[var(--admin-accent)]/20 text-[var(--admin-accent-text)]'
-                  : 'bg-[var(--admin-surface-2)] text-[var(--admin-text-muted)]'
-              )}>
+              // Un conteo es texto, no pildora (spec tablas-del-admin).
+              <span className="ml-1.5 text-xs font-medium tabular-nums text-[var(--admin-text-faint)]">
                 {statusCounts[tab.key]}
               </span>
             )}
@@ -363,7 +360,9 @@ export function OrdersTable({ initialOrders, initialDateFilter }: OrdersTablePro
                 const orderDate = new Date(order.created_at)
                 const timeStr = orderDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false })
                 const dayStr = formatOrderDay(orderDate)
-                const paymentMethod = order.payment_method
+                // Sin cobrar no hay medio: el que trae el pedido es el valor de
+                // arranque de la columna, no un pago (leccion 46).
+                const paymentMethod = estaCobrado(order) ? order.payment_method : null
 
                 return (
                   <tr
@@ -417,13 +416,13 @@ export function OrdersTable({ initialOrders, initialDateFilter }: OrdersTablePro
 
                           Una vez cobrado deja de mostrarse: ya se verifico. */}
                       {order.transfer_claimed_at && order.status !== 'pagado' && (
-                        <span className="block text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                        <span className="block text-[11px] font-semibold text-aviso-texto">
                           dice que transfirió
                         </span>
                       )}
                     </TableCell>
                     <TableCell className="text-center">
-                      <OrderStatusBadge status={order.status} size="sm" />
+                      <OrderStatusText status={order.status} />
                     </TableCell>
                   </tr>
                 )
