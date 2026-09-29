@@ -1189,3 +1189,17 @@ en una caja en servicio —no en la base de prueba— cuántas filas lo tienen. 
 un desglose va donde se usa (el de medios de pago, en el cierre, donde se
 cuenta la plata), no en cada pantalla que tiene los datos.
 
+
+## 51. Antes de decir que un dato está mal, mirarlo en la base
+
+**Qué pasó (2026-09-28).** Revisando la ficha técnica le dije a David que la
+receta de la Hamburguesa simple pedía 2 kg de orégano por unidad y que era un
+dato suyo para corregir: la hoja decía "20.000 g" para 10 hamburguesas. Era el
+formato. `toFixed(3)` escribe con punto decimal —"20.000" son 20,000—, y en
+castellano eso se lee veinte mil. Lo encontré recién al reescribir la hoja,
+cuando salió "20 g".
+
+**Regla.** Un número raro en pantalla se verifica contra la base antes de
+atribuírselo a quien carga los datos: si la base dice 2 g, el problema es el
+código. Y ningún número del panel se formatea con `toFixed`: va por
+`toLocaleString('es-AR')`, `formatPrice` o `cantidadLegible`.

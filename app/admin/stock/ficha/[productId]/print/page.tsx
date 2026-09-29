@@ -15,5 +15,14 @@ export default async function FichaPrintPage({ params, searchParams }: Props) {
   const { data, error } = await getProductionSheet(productId)
   if (error || !data) notFound()
 
-  return <FichaPrintLayout sheet={data} quantity={quantity} showCosts={true} />
+  // En el servidor y en hora de Argentina, como la planilla: calculada en el
+  // navegador, la hoja podia decir otra fecha que el servidor (leccion 44).
+  const fecha = new Date().toLocaleDateString('es-AR', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
+
+  return <FichaPrintLayout sheet={data} quantity={quantity} fecha={fecha} />
 }

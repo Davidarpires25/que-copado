@@ -14,16 +14,10 @@ import type {
   ProductionSheetIngredient,
   ProductionSheetShoppingItem,
 } from '@/lib/types/stock'
+import { cantidadLegible } from '@/lib/utils/cantidad'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function formatQty(qty: number, unit: string): string {
-  if (qty === 0) return `0 ${unit}`
-  if (unit === 'unidad') return qty % 1 === 0 ? `${qty} u` : `${qty.toFixed(2)} u`
-  if (qty < 0.01) return `${(qty * 1000).toFixed(1)} ${unit === 'kg' ? 'g' : 'ml'}`
-  if (qty < 1) return `${qty.toFixed(3)} ${unit}`
-  return `${qty.toFixed(unit === 'unidad' ? 0 : 3)} ${unit}`
-}
 
 // ─── Ingredient row (recursive) ─────────────────────────────────────────────
 
@@ -94,13 +88,13 @@ function IngredientRow({
 
         {/* Neto */}
         <div className="text-right tabular-nums text-[12px] text-[var(--admin-text-muted)] shrink-0" style={{ width: 110 }}>
-          {formatQty(netQty, ing.unit)}
+          {cantidadLegible(netQty, ing.unit)}
         </div>
 
         {/* Bruto */}
         <div className="text-right tabular-nums text-[12px] font-semibold shrink-0" style={{ width: 130 }}>
           {showGross
-            ? <span className="text-[var(--admin-text)]">{formatQty(grossQty, ing.unit)}</span>
+            ? <span className="text-[var(--admin-text)]">{cantidadLegible(grossQty, ing.unit)}</span>
             : <span className="text-[var(--admin-text-faint)]">—</span>
           }
         </div>
@@ -161,13 +155,13 @@ function ShoppingRow({ item, quantity, isEven }: {
 
       {/* Neto */}
       <div className="text-right tabular-nums text-[12px] text-[var(--admin-text-muted)] shrink-0" style={{ width: 110 }}>
-        {formatQty(netQty, item.unit)}
+        {cantidadLegible(netQty, item.unit)}
       </div>
 
       {/* Bruto */}
       <div className="text-right tabular-nums text-[12px] font-semibold shrink-0" style={{ width: 130 }}>
         {showGross
-          ? <span className="text-[var(--admin-text)]">{formatQty(grossQty, item.unit)}</span>
+          ? <span className="text-[var(--admin-text)]">{cantidadLegible(grossQty, item.unit)}</span>
           : <span className="text-[var(--admin-text-faint)]">—</span>
         }
       </div>
@@ -185,7 +179,7 @@ function ShoppingRow({ item, quantity, isEven }: {
           <>
             <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
             <span className="text-xs font-semibold text-red-700 dark:text-red-500">
-              falta {formatQty(Math.abs(delta!), item.unit)}
+              falta {cantidadLegible(Math.abs(delta!), item.unit)}
             </span>
           </>
         ) : (
