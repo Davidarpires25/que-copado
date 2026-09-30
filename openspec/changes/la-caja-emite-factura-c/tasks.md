@@ -107,8 +107,14 @@ acá. Los datos locales de David se estacionan y devuelven en los tests de caja
       bloquea). Verifica: e2e.
       Hecho: un aviso como el de los pedidos de WhatsApp; test "5.3" en
       `facturas-caja.spec.ts`.
-- [ ] 5.4 El ticket lleva `factura`; `/admin/facturas/[id]/print` con el QR.
+- [x] 5.4 El ticket lleva `factura`; `/admin/facturas/[id]/print` con el QR.
       Verifica: captura; el QR escaneado abre la URL de ARCA con los datos.
+      Hecho: `lib/facturas/ticket.ts` arma el bloque (emisor, "Factura C ·
+      Cód. 011", número, "Consumidor Final", CAE, vencimiento, QR) para el
+      puente y para la página del navegador; `/admin/facturas/[id]/print`
+      lleva al ticket del pedido, que ya lo incluye. El QR de la captura,
+      leído con `zbarimg`, da `https://www.arca.gob.ar/fe/qr/?p=…` con los
+      datos del comprobante. Dos tests "5.4" en `facturas-caja.spec.ts`.
 - [ ] 5.5 `../print-bridge`: bloque fiscal y QR en ESC/POS, y
       `docs/INTEGRACION.md`. Verifica: un ticket con factura en la impresora
       del local (David).

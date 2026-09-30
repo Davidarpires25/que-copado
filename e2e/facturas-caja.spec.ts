@@ -256,3 +256,49 @@ test('5.3 el cierre nombra las facturas sin emitir del turno, sin bloquearlo', a
   await page.getByLabel('Efectivo contado').fill('20000')
   await expect(page.getByRole('button', { name: 'Confirmar Cierre' })).toBeEnabled()
 })
+
+// ─── El papel (tarea 5.4) ───────────────────────────────────────────────────
+
+test('5.4 el ticket de un pedido facturado es la factura: al puente y en el navegador', async ({ page }) => {
+  const { id, numero } = await pedidoPendiente()
+  await cobrar(page, numero, 'Tarjeta')
+  await expect(aviso(page)).toContainText('Factura C 0007-00000001', { timeout: 15_000 })
+
+  // Al puente de impresión: el ticket lleva `factura`, con el QR de ARCA.
+  await abrirHistorial(page)
+  await page.getByText(`1x ${producto.name}`).first().click()
+  await page.getByRole('button', { name: 'Ticket' }).click()
+  await expect.poll(async () => (await rest(`print_jobs?data->>orderId=eq.${id}&select=data`)).length, { timeout: 10_000 }).toBe(1)
+  const [{ data: ticket }] = await rest(`print_jobs?data->>orderId=eq.${id}&select=data`)
+  expect(ticket.factura).toMatchObject({
+    tipo: 'Factura C',
+    codigo: '011',
+    numero: '0007-00000001',
+    receptor: 'Consumidor Final',
+    emisor: { razonSocial: 'ZZ Local', cuit: '20-11111111-2', condicion: 'Responsable Monotributo' },
+  })
+  const json = JSON.parse(Buffer.from(ticket.factura.qr.split('?p=')[1], 'base64').toString('utf8'))
+  expect(json).toMatchObject({ ver: 1, cuit: 20111111112, ptoVta: PV, tipoCmp: 11, nroCmp: 1, importe: TOTAL, tipoCodAut: 'E' })
+
+  // En el navegador: "Ver factura" lleva al ticket con el bloque fiscal y el QR.
+  const [factura] = await rest(`facturas?order_id=eq.${id}&select=id`)
+  await page.addInitScript(() => { window.print = () => {} })
+  await page.goto(`/admin/facturas/${factura.id}/print`)
+  const bloque = page.locator('[data-bloque-fiscal]')
+  await expect(bloque).toContainText('Factura C · Cód. 011', { timeout: 20_000 })
+  await expect(bloque).toContainText('N° 0007-00000001')
+  await expect(page.locator('#ticket-root')).toContainText('Comprobante autorizado por ARCA')
+  await expect(page.locator('#ticket-root svg')).toHaveCount(1)
+  await page.locator('#ticket-root').screenshot({ path: 'test-results/factura-ticket.png' })
+})
+
+test('5.4 el ticket de un pedido sin factura no lleva bloque fiscal', async ({ page }) => {
+  await facturacion({ activa: false })
+  const { id, numero } = await pedidoPendiente()
+  await cobrar(page, numero, 'Tarjeta')
+  await expect(aviso(page)).toHaveText('Pago registrado')
+  await page.addInitScript(() => { window.print = () => {} })
+  await page.goto(`/admin/caja/ticket/${id}/print`)
+  await expect(page.locator('#ticket-root')).toContainText('TOTAL', { timeout: 20_000 })
+  await expect(page.locator('[data-bloque-fiscal]')).toHaveCount(0)
+})

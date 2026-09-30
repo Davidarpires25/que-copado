@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation'
-import { createAdminClient } from '@/lib/supabase/admin'
+import QRCode from 'qrcode'
+import { createAdminClient, createServiceRoleClient } from '@/lib/supabase/admin'
+import { facturaDelPedido } from '@/lib/facturas/ticket'
 import { TicketPrintLayout } from '@/components/admin/caja/ticket-print-layout'
 import type { Order } from '@/lib/types/database'
 interface PageProps {
@@ -75,9 +77,17 @@ export default async function TicketPrintPage({ params, searchParams }: PageProp
     ? await supabase.from('restaurant_tables').select('label').eq('number', order.table_number).maybeSingle()
     : { data: null }
 
+  // El ticket entero de un pedido facturado es la factura. Un ticket por
+  // comensal o de cocina no: la factura es por el pedido completo.
+  const fiscal = !isKitchen && !guestTag ? await facturaDelPedido(createServiceRoleClient(), orderId) : null
+  const factura = fiscal
+    ? { ...fiscal, qrSvg: await QRCode.toString(fiscal.qr, { type: 'svg', margin: 0, errorCorrectionLevel: 'M' }) }
+    : null
+
   return (
     <TicketPrintLayout
       order={order as Order}
+      factura={factura}
       items={items}
       cashReceived={cashReceived}
       isKitchen={isKitchen}

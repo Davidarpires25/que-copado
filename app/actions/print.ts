@@ -1,6 +1,7 @@
 'use server'
 
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClient, createServiceRoleClient } from '@/lib/supabase/admin'
+import { facturaDelPedido } from '@/lib/facturas/ticket'
 import { getAuthUser } from '@/lib/server/auth'
 import { SIN_ASIGNAR, etiquetaComensal } from '@/lib/constants/sale-tags'
 import { devError } from '@/lib/server/logger'
@@ -150,9 +151,18 @@ export async function printClientTicketAction(
         ? null
         : options.cashReceived - total
 
+    // El ticket entero de un pedido facturado es la factura: lleva el bloque
+    // fiscal y el QR. Un corte de ronda o de comensal no (la factura es por el
+    // pedido completo). Un puente que no conoce `factura` la ignora.
+    const factura =
+      !isRoundSnapshot && !isGuestScope && order.status !== 'cancelado'
+        ? await facturaDelPedido(createServiceRoleClient(), orderId)
+        : null
+
     const { error: insertError } = await supabase.from('print_jobs').insert({
       type: 'client_ticket',
       data: {
+        factura,
         orderId,
         orderNumber: order.order_number ?? null,
         orderLabel:

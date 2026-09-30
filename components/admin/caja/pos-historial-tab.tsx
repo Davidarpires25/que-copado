@@ -278,6 +278,19 @@ function OrderRow({
                       {facturaFallida ? 'Reintentar' : 'Facturar'}
                     </Button>
                   )}
+                  {factura?.estado === 'emitida' && factura.tipo === 11 && !isCancelled && (
+                    // Desde el navegador, sin el puente de impresión: sirve
+                    // para reimprimir o mandar el PDF.
+                    <a
+                      href={`/admin/facturas/${factura.id}/print`}
+                      target="_blank"
+                      rel="noopener"
+                      onClick={(e) => e.stopPropagation()}
+                      className="px-3 py-1 rounded-lg text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors"
+                    >
+                      Ver factura
+                    </a>
+                  )}
                   {!isCancelled && (
                     <button
                       onClick={(e) => {

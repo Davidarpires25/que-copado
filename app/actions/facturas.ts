@@ -18,6 +18,7 @@ import { nombreDeComprobante, numeroDeComprobante } from '@/lib/facturas/formato
  */
 
 export type EstadoFacturaPedido = {
+  id: string
   estado: FilaFactura['estado']
   texto: string
   motivo: string | null
@@ -74,7 +75,7 @@ export async function facturasDePedidos(
     orderIds.length
       ? base
           .from('facturas')
-          .select('order_id, tipo, estado, punto_venta, numero, motivo, created_at')
+          .select('id, order_id, tipo, estado, punto_venta, numero, motivo, created_at')
           .in('order_id', orderIds)
           .order('created_at', { ascending: true })
       : Promise.resolve({ data: [] as never[] }),
@@ -83,7 +84,7 @@ export async function facturasDePedidos(
   for (const f of data ?? []) {
     const actual = porPedido[f.order_id]
     if (actual && actual.tipo === TIPO.notaDeCreditoC && f.tipo === TIPO.facturaC) continue
-    porPedido[f.order_id] = { estado: f.estado, texto: nombreDeComprobante(f), motivo: f.motivo, tipo: f.tipo }
+    porPedido[f.order_id] = { id: f.id, estado: f.estado, texto: nombreDeComprobante(f), motivo: f.motivo, tipo: f.tipo }
   }
   return { activa: Boolean(datos?.activa), porPedido }
 }
