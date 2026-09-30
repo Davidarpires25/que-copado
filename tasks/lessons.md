@@ -1219,3 +1219,21 @@ por WhatsApp— resultó ser de otro negocio.
 (`Copado`), no la frase: el JSX la parte en elementos, en mayúsculas o en
 plantillas. Y un dominio o un mail que el sistema le muestra a clientes se
 abre antes de conservarlo.
+
+
+## 53. En un update por PostgREST, el filtro `or` se vuelve a aplicar a la fila actualizada
+
+**Qué pasó (2026-09-30).** Para que dos emisiones de factura no pidieran dos
+números a ARCA, la fila se "tomaba" con
+`update({ procesando_desde: ahora }).or('procesando_desde.is.null,procesando_desde.lt.<hace 2 min>')`.
+La primera emisión de todas devolvía "en curso", como si otra la tuviera. El
+log de Postgres mostró por qué: PostgREST arma
+`WITH pgrst_source AS (UPDATE ... RETURNING ...) SELECT ... FROM pgrst_source WHERE <el mismo or>`,
+y la fila, ya con `procesando_desde = ahora`, no cumple el filtro. Se
+actualizaba y la respuesta salía vacía. Con `.select('id')` era peor: el
+`RETURNING` no traía la columna y fallaba con "column does not exist".
+
+**Regla.** Un update condicional sobre la misma columna que cambia —tomar,
+reservar, marcar— va en una función de Postgres (`rpc`), no con `.or()` desde
+supabase-js. Y cuando una respuesta de PostgREST no tiene sentido, mirar el SQL
+en `docker logs supabase_db_<proyecto>` antes de adivinar.

@@ -67,6 +67,10 @@ create table if not exists public.facturas (
   -- El texto de ARCA si se rechazó, o qué falló si no se pudo hablar con ARCA.
   motivo text,
   intentos integer not null default 0,
+  -- Una emisión en curso toma la fila poniendo la hora; otra que llega en ese
+  -- momento no pide otro número a ARCA. Si quedó tomada más de 2 minutos (la
+  -- función se murió), se puede volver a tomar.
+  procesando_desde timestamptz,
   -- Lo último que se mandó y se recibió, para entender un problema.
   pedido_arca jsonb,
   respuesta_arca jsonb,
@@ -123,3 +127,32 @@ comment on table public.arca_ticket_de_acceso is
 -- RLS encendido y sin políticas: ni anon ni authenticated lo leen. Solo la
 -- clave de servicio, que la saltea.
 alter table public.arca_ticket_de_acceso enable row level security;
+
+-- ─── Tomar una factura para emitirla ────────────────────────────────────────
+
+-- Una emisión toma la fila antes de hablar con ARCA; otra que llega en ese
+-- momento no la consigue y no pide otro número. Una toma de más de 2 minutos
+-- es de una función que se murió: se puede retomar.
+--
+-- Es una función y no un update desde la aplicación porque PostgREST vuelve a
+-- aplicar el filtro `or` a la fila ya actualizada: como la toma cambia
+-- justamente `procesando_desde`, la fila dejaba de cumplirlo y la respuesta
+-- salía vacía aunque se hubiera tomado. Acá además manda el reloj de la base.
+create or replace function public.tomar_factura(p_id uuid)
+returns setof public.facturas
+language sql
+security invoker
+set search_path = public
+as $$
+  update public.facturas
+     set procesando_desde = now(),
+         estado = 'pendiente',
+         intentos = intentos + 1,
+         updated_at = now()
+   where id = p_id
+     and (procesando_desde is null or procesando_desde < now() - interval '2 minutes')
+  returning *;
+$$;
+
+revoke all on function public.tomar_factura(uuid) from public, anon, authenticated;
+grant execute on function public.tomar_factura(uuid) to service_role;

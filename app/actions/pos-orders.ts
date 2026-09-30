@@ -1,6 +1,7 @@
 'use server'
 
 import { after } from 'next/server'
+import { facturarAlCobrar, compensarAlAnular, type AvisoFactura } from '@/lib/facturas/al-cobrar'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { devError } from '@/lib/server/logger'
@@ -106,7 +107,7 @@ export async function createPosOrder(
  */
 export async function cancelPosOrder(
   orderId: string
-): Promise<{ data: Order | null; error: string | null }> {
+): Promise<{ data: Order | null; error: string | null; factura?: AvisoFactura | null }> {
   try {
     const supabase = await createAdminClient()
     const user = await getAuthUser(supabase)
@@ -179,11 +180,16 @@ export async function cancelPosOrder(
       }
     })
 
+    // Un pedido cobrado y facturado se puede anular: la factura se compensa
+    // con su nota de crédito. Si ARCA falla, el pedido queda anulado igual y
+    // la nota pendiente, a la vista.
+    const factura = await compensarAlAnular(orderId)
+
     revalidateCaja()
     revalidateOrders()
     revalidateStock()
 
-    return { data: order as Order, error: null }
+    return { data: order as Order, error: null, factura }
   } catch (error) {
     devError('Error in cancelPosOrder:', error)
     return { data: null, error: 'Error inesperado' }
@@ -253,7 +259,7 @@ export async function completeMostadorPayment(
   paymentMethod: PaymentMethod,
   sessionId: string,
   splits?: PaymentSplit[]
-): Promise<{ data: Order | null; error: string | null }> {
+): Promise<{ data: Order | null; error: string | null; factura?: AvisoFactura | null }> {
   try {
     const supabase = await createAdminClient()
     const user = await getAuthUser(supabase)
@@ -302,11 +308,15 @@ export async function completeMostadorPayment(
       })
     }
 
+    // Con el cobro ya confirmado: la factura no lo puede deshacer ni frenar
+    // más que unos segundos (ver lib/facturas/al-cobrar.ts).
+    const factura = await facturarAlCobrar(orderId, splits?.length ? splits.map((s) => s.method) : [paymentMethod])
+
     revalidateCaja()
     revalidateOrders()
     revalidateStock()
 
-    return { data: resultado.order, error: null }
+    return { data: resultado.order, error: null, factura }
   } catch (error) {
     devError('Error in completeMostadorPayment:', error)
     return { data: null, error: 'Error inesperado' }

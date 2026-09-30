@@ -1,4 +1,7 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { defineConfig } from '@playwright/test'
+import { PUERTO_ARCA_SIMULADO } from './e2e/arca-simulado'
 
 /**
  * Los tests de navegador corren contra el stack local de Supabase, nunca
@@ -23,6 +26,16 @@ const ANON_LOCAL =
 
 const SERVICE_LOCAL =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+
+/**
+ * ARCA en los tests: el simulado de `e2e/arca-simulado.ts`, en un puerto fijo
+ * para que el servidor de Next lo encuentre, y un certificado autofirmado que
+ * solo sirve para él (`e2e/fixtures/arca-prueba.*`: no lo acepta ningún ARCA
+ * de verdad). Con la facturación apagada —como la dejan todos los tests menos
+ * los de facturas— esto no cambia nada.
+ */
+const ARCA_SIMULADO = `http://127.0.0.1:${PUERTO_ARCA_SIMULADO}`
+const certificadoDePrueba = (archivo: string) => readFileSync(join(__dirname, 'e2e', 'fixtures', archivo), 'utf8')
 
 const PORT = 3005
 const BASE_URL = `http://localhost:${PORT}`
@@ -51,6 +64,14 @@ export default defineConfig({
       // El contrato del agente se autentica con este secreto. Es de prueba: el
       // de verdad vive en las variables del despliegue y nunca en el repo.
       AGENT_API_SECRET: 'secreto-de-prueba-para-los-tests',
+      ARCA_AMBIENTE: 'homologacion',
+      ARCA_CUIT: '20000000001',
+      ARCA_CERT: certificadoDePrueba('arca-prueba.crt'),
+      ARCA_KEY: certificadoDePrueba('arca-prueba.key'),
+      ARCA_URL_WSAA: `${ARCA_SIMULADO}/wsaa`,
+      ARCA_URL_WSFE: `${ARCA_SIMULADO}/wsfe`,
+      // Corto, para que "ARCA no contesta" se vea antes de que el cobro deje de esperar.
+      ARCA_TIEMPO_MAXIMO_MS: '2500',
     },
   },
 })

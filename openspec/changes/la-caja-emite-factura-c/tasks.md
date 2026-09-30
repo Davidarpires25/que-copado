@@ -62,23 +62,34 @@ acá. Los datos locales de David se estacionan y devuelven en los tests de caja
 
 ## 4. Emitir (Decisiones 5 y 6)
 
-- [ ] 4.1 `app/actions/facturas.ts`: `emitirFactura`, `reintentarFactura`,
+- [x] 4.1 `app/actions/facturas.ts`: `emitirFactura`, `reintentarFactura`,
       `emitirNotaDeCredito`, `probarConexion`. Verifica: dos emisiones
       simultáneas del mismo pedido dejan una sola factura; un timeout con la
       factura autorizada del lado de ARCA no pide otra.
-- [ ] 4.2 La factura automática después del cobro de mostrador, de mesa y de
+      Hecho: la lógica en `lib/facturas/emitir.ts` y las acciones en
+      `app/actions/facturas.ts` (`facturarPedido`, `probarConexion`,
+      `leerFacturacion`, `guardarFacturacion`, `facturasDePedidos`).
+      `e2e/facturas-emitir.spec.ts`, 10 tests. La fila se toma con la función
+      `tomar_factura`: con `.or()` de supabase-js no andaba (lección 53).
+- [x] 4.2 La factura automática después del cobro de mostrador, de mesa y de
       un pedido web, según los medios tildados. Verifica: con efectivo
       destildado, un cobro en efectivo no factura y uno mitad efectivo y
       mitad tarjeta sí; con ARCA simulado caído, el pedido queda cobrado y la
       factura pendiente, y el cajero ve los dos hechos.
-- [ ] 4.3 Anular un pedido facturado emite la nota de crédito. Verifica: e2e.
+      Hecho: `lib/facturas/al-cobrar.ts`; el cobro espera a ARCA hasta 6 s y
+      después la emisión sigue con `after()`. El aviso dice "Pago registrado ·
+      Factura C 0007-00000001". `e2e/facturas-caja.spec.ts`, con el turno de
+      David estacionado y devuelto.
+- [x] 4.3 Anular un pedido facturado emite la nota de crédito. Verifica: e2e.
 
 ## 5. Pantallas (Decisiones 7 y 8)
 
-- [ ] 5.0 Con la facturación apagada (la fila de `datos_fiscales` sin crear o
+- [x] 5.0 Con la facturación apagada (la fila de `datos_fiscales` sin crear o
       con `activa = false`), nada cambia. Verifica: e2e de un cobro con su
       ticket y el Historial, con ARCA simulado contando pedidos (cero); los
       tests de caja existentes, en verde sin tocarlos.
+      Hecho el primero (`facturas-caja.spec.ts`, "5.0"). Los de caja
+      existentes se corren en 6.2.
 - [ ] 5.1 Ajustes → Facturación, con "Probar conexión". Verifica: e2e con el
       simulado (conectado y sin delegación); axe sin fallas en los dos temas;
       un cajero no la ve.

@@ -108,6 +108,19 @@ test('nadie escribe desde el navegador: ni el admin', async () => {
   expect(fila.activa).toBe(false)
 })
 
+test('tomar una factura para emitirla es solo del servidor', async () => {
+  const jwt = await token(ADMIN)
+  const r = await fetch(`${SUPABASE}/rest/v1/rpc/tomar_factura`, {
+    method: 'POST',
+    headers: { apikey: ANON, Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_id: facturaId }),
+  })
+  // 403: permiso denegado para ejecutar la función. La fila no se tocó.
+  expect(r.status).toBe(403)
+  const [fila] = await rest(`facturas?id=eq.${facturaId}&select=intentos,procesando_desde`)
+  expect(fila).toEqual({ intentos: 0, procesando_desde: null })
+})
+
 test('una factura por pedido: la segunda choca en la base', async () => {
   const [pedido] = await rest('orders?select=id&limit=1')
   const primera = await rest('facturas', {

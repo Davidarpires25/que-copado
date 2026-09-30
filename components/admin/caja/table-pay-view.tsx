@@ -13,6 +13,7 @@ import { PaymentSummary } from './payment-summary'
 import { SIN_ASIGNAR, etiquetaComensal } from '@/lib/constants/sale-tags'
 import { StockAlert } from './stock-alert'
 import { payTableOrder } from '@/app/actions/tables'
+import type { AvisoFactura } from '@/lib/facturas/al-cobrar'
 import { printClientTicketAction } from '@/app/actions/print'
 import { checkStockForItems } from '@/app/actions/stock'
 import type { StockWarning } from '@/app/actions/stock'
@@ -32,7 +33,8 @@ interface TablePayViewProps {
   session: CashRegisterSession
   sectionLabel: string
   onBack: () => void
-  onPaid: () => void
+  /** Con lo que pasó con la factura, si la facturación está encendida. */
+  onPaid: (factura?: AvisoFactura | null) => void
 }
 
 export function TablePayView({
@@ -148,7 +150,7 @@ export function TablePayView({
     if (pago.editing) pago.commit(pago.editing)
     setLoading(true)
 
-    let result: { data: Order | null; error: string | null }
+    let result: { data: Order | null; error: string | null; factura?: AvisoFactura | null }
 
     if (payMode === 'per_guest' && guestTags.length > 0) {
       const splits: PaymentSplit[] = guestTags.map(({ tag, subtotal }) => ({
@@ -167,7 +169,7 @@ export function TablePayView({
 
     setLoading(false)
     if (result.error) { toast.error(result.error); return }
-    onPaid()
+    onPaid(result.factura)
   }
 
   const handlePrintAll = () => {

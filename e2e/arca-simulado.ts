@@ -16,6 +16,9 @@ import { XMLParser } from 'fast-xml-parser'
  * que falta, el rechazo, el número desfasado y la respuesta que se pierde.
  */
 
+/** Puerto fijo del simulado cuando lo tiene que encontrar el servidor de Next de los tests. */
+export const PUERTO_ARCA_SIMULADO = 54399
+
 export type Modo =
   | 'normal'
   /** WSAA contesta coe.alreadyAuthenticated. */
@@ -28,6 +31,8 @@ export type Modo =
   | 'autoriza-y-no-contesta'
   /** No contesta y no autoriza nada. */
   | 'no-contesta'
+  /** Una sola vez: otra emisión toma el número justo antes (rechazo 10016). */
+  | 'otro-se-adelanta'
 
 interface Emitido {
   cae: string
@@ -83,7 +88,8 @@ function resultado(op: string, adentro: string) {
 
 const hoyArca = () => new Date().toISOString().slice(0, 10).replace(/-/g, '')
 
-export async function levantarArcaSimulado(): Promise<ArcaSimulado> {
+/** `puerto` 0 elige uno libre; los tests de la caja usan el fijo de playwright.config.ts. */
+export async function levantarArcaSimulado(puerto = 0): Promise<ArcaSimulado> {
   const estado: ArcaSimulado = {
     url: '',
     urlWsaa: '',
@@ -182,6 +188,10 @@ export async function levantarArcaSimulado(): Promise<ArcaSimulado> {
             `<CbteDesde>${numero}</CbteDesde><CbteHasta>${numero}</CbteHasta><CbteFch>${det.CbteFch}</CbteFch><Resultado>R</Resultado><CAE></CAE><CAEFchVto></CAEFchVto>` +
             `<Observaciones><Obs><Code>${code}</Code><Msg>${escapar(msg)}</Msg></Obs></Observaciones></FECAEDetResponse></FeDetResp>`
         )
+      if (estado.modo === 'otro-se-adelanta') {
+        estado.ultimos.set(clave, (estado.ultimos.get(clave) ?? 0) + 1)
+        estado.modo = 'normal'
+      }
       if (numero !== (estado.ultimos.get(clave) ?? 0) + 1) {
         return rechazo('10016', `comp. ${numero} no coincide con el próximo a autorizar`)
       }
@@ -231,7 +241,7 @@ export async function levantarArcaSimulado(): Promise<ArcaSimulado> {
     })
   })
 
-  await new Promise<void>((ok) => servidor.listen(0, '127.0.0.1', ok))
+  await new Promise<void>((ok) => servidor.listen(puerto, '127.0.0.1', ok))
   const { port } = servidor.address() as AddressInfo
   estado.url = `http://127.0.0.1:${port}`
   estado.urlWsaa = `${estado.url}/wsaa`
