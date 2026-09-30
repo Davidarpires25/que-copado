@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useCallback, useState } from 'react'
-import { CATAMARCA_COORDS } from '@/lib/utils'
+import { NEGOCIO } from '@/lib/negocio'
 import type { DeliveryZone, GeoJSONPolygon, DrawnZoneGeometry, ZoneCenter } from '@/lib/types/database'
 
 interface ZoneMapEditorProps {
@@ -62,8 +62,8 @@ export function ZoneMapEditor({
       })
 
       const map = L.map(mapContainerRef.current!, {
-        center: [CATAMARCA_COORDS.lat, CATAMARCA_COORDS.lng],
-        zoom: CATAMARCA_COORDS.zoom,
+        center: [NEGOCIO.centroDelMapa.lat, NEGOCIO.centroDelMapa.lng],
+        zoom: NEGOCIO.centroDelMapa.zoom,
       })
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

@@ -412,7 +412,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
                   id="transferAlias"
                   value={transferAlias}
                   onChange={(e) => setTransferAlias(e.target.value)}
-                  placeholder="que.copado.mp"
+                  placeholder="mi.local.mp"
                   className={cn(FIELD, 'max-w-md')}
                 />
               </div>

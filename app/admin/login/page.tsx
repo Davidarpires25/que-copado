@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { signIn } from '@/app/actions/auth'
 import { toast } from 'sonner'
+import { NEGOCIO } from '@/lib/negocio'
+import { NombreDelLocal } from '@/components/nombre-del-local'
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
@@ -38,13 +40,13 @@ export default function LoginPage() {
           <CardHeader className="text-center pb-6 space-y-4">
             {/* eslint-disable-next-line @next/next/no-img-element -- Logo SVG vectorial: next/image no lo optimiza sin dangerouslyAllowSVG. */}
             <img
-              src="/logo.svg"
-              alt="Que Copado"
+              src={NEGOCIO.logo}
+              alt={NEGOCIO.nombre}
               className="mx-auto w-20 h-20 object-contain drop-shadow-lg"
             />
             <div>
               <CardTitle className="text-3xl font-bold text-[#f0f2f5] mb-2">
-                Que <span className="text-[#FEC501]">Copado</span>
+                <NombreDelLocal resaltado="text-[#FEC501]" />
               </CardTitle>
               <p className="text-[#a8b5c9]">Panel de Administracion</p>
             </div>

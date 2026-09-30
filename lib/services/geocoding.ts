@@ -4,6 +4,7 @@
  */
 
 import type { Viewbox } from '@/lib/types/database'
+import { NEGOCIO } from '@/lib/negocio'
 
 interface NominatimResult {
   place_id: number
@@ -45,7 +46,9 @@ interface ReverseGeocodingResult {
 }
 
 const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org'
-const USER_AGENT = 'QueCopado Hamburguesas (delivery@quecopado.com)'
+// Nominatim pide que la aplicacion se identifique, con una forma de contacto.
+// Decia "delivery@quecopado.com", un mail del dominio de otro negocio.
+const USER_AGENT = NEGOCIO.sitio ? `${NEGOCIO.nombre} (${NEGOCIO.sitio.origin})` : NEGOCIO.nombre
 
 /**
  * Nominatim es un servicio publico y gratuito: puede tardar o no contestar

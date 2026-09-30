@@ -1203,3 +1203,19 @@ cuando salió "20 g".
 atribuírselo a quien carga los datos: si la base dice 2 g, el problema es el
 código. Y ningún número del panel se formatea con `toFixed`: va por
 `toLocaleString('es-AR')`, `formatPrice` o `cantidadLegible`.
+
+
+## 52. Buscar un texto también partido, y abrir el dominio antes de repetirlo
+
+**Qué pasó (2026-09-29).** Relevando dónde el código decía "Que Copado" para
+llevarlo a `lib/negocio.ts`, busqué `que ?copado` y le presenté a David la
+propuesta con seis archivos. Faltaban cinco: el nombre en dos colores se
+escribe `Que <span>Copado</span>`, y esa búsqueda no lo encuentra. Aparecieron
+recién al leer el JSX del logo, por la pregunta de David. En la misma pasada,
+`quecopado.com` —el dominio de "Enviado desde queCopado.com" en cada pedido
+por WhatsApp— resultó ser de otro negocio.
+
+**Regla.** Para relevar un texto visible, buscar su palabra más rara sola
+(`Copado`), no la frase: el JSX la parte en elementos, en mayúsculas o en
+plantillas. Y un dominio o un mail que el sistema le muestra a clientes se
+abre antes de conservarlo.

@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, Home, UtensilsCrossed } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CartDrawer } from './cart-drawer'
+import { NEGOCIO } from '@/lib/negocio'
+import { NombreDelLocal } from '@/components/nombre-del-local'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -41,13 +43,13 @@ export function Header() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element -- Logo SVG vectorial: next/image no lo optimiza sin dangerouslyAllowSVG. */}
             <img
-              src="/logo.svg"
-              alt="Que Copado"
+              src={NEGOCIO.logo}
+              alt={NEGOCIO.nombre}
               className="w-10 h-10 md:w-12 md:h-12 shrink-0 object-contain drop-shadow-lg"
             />
             <div className="flex flex-col">
               <span className="text-lg md:text-xl font-black text-[#2D1A0E] leading-tight">
-                Que <span className="text-[#FEC501]">Copado</span>
+                <NombreDelLocal resaltado="text-[#FEC501]" />
               </span>
               <span className="hidden sm:block text-[10px] md:text-xs text-[#78706A] font-medium -mt-0.5">
                 Las mejores burgers

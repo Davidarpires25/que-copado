@@ -1,17 +1,22 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from '@sentry/nextjs'
 
-const SUPABASE_HOST = 'yyphmsxxzgjdvblfrfpv.supabase.co'
-
 /**
  * El Supabase al que habla el navegador, tomado de la misma variable que usa el
  * cliente. Estaba escrito a mano con el host de produccion, y contra el stack
  * local (`http://127.0.0.1:54321`) la CSP bloqueaba el WebSocket de realtime:
  * Firefox lanza al construirlo y la caja entera caia en "WebSocket not
- * available". En produccion la variable es ese mismo host, asi que la cabecera
- * no cambia.
+ * available".
+ *
+ * Sin respaldo (spec datos-del-local): el host de produccion ya no esta en el
+ * codigo, para que otro local se instale con su propio Supabase. Sin la
+ * variable el build falla aca, con el nombre de lo que falta; la aplicacion
+ * tampoco andaria.
  */
-const supabase = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || `https://${SUPABASE_HOST}`)
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  throw new Error('Falta NEXT_PUBLIC_SUPABASE_URL: la configuracion de Next la necesita para la CSP y las imagenes.')
+}
+const supabase = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL)
 const SUPABASE_HTTP = supabase.origin
 const SUPABASE_WS = SUPABASE_HTTP.replace(/^http/, 'ws')
 
@@ -148,8 +153,9 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
-        hostname: 'yyphmsxxzgjdvblfrfpv.supabase.co',
+        protocol: supabase.protocol === 'http:' ? 'http' : 'https',
+        hostname: supabase.hostname,
+        ...(supabase.port && { port: supabase.port }),
         pathname: '/**',
       },
     ],

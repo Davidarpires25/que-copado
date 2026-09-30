@@ -3,6 +3,7 @@ import { orderLabel } from '@/lib/utils/order-number'
 import type { Json, PaymentMethod } from '@/lib/types/database'
 import type { OrderItem } from '@/lib/types/orders'
 import { PAYMENT_METHOD_CONFIG } from '@/lib/types/orders'
+import { NEGOCIO } from '@/lib/negocio'
 
 /**
  * Formatea los items de una orden para WhatsApp
@@ -152,7 +153,7 @@ export function generateWhatsAppMessage(options: WhatsAppMessageOptions): string
     paymentInfo += `\n*Paga con:* $${cashAmount}`
   }
 
-  let message = `🍔 *NUEVO PEDIDO - QUE COPADO*\n\n`
+  let message = `🍔 *NUEVO PEDIDO - ${NEGOCIO.nombre.toUpperCase()}*\n\n`
   message += `*Pedido ${orderLabel({ order_number: orderNumber, id: orderId })}*\n\n`
   message += `*Cliente:* ${customerName}\n`
   message += `*Teléfono:* ${customerPhone}\n`
@@ -170,8 +171,11 @@ export function generateWhatsAppMessage(options: WhatsAppMessageOptions): string
   message += `*Subtotal:* ${formatPrice(subtotal)}\n`
   message += `${shippingLine}\n`
   message += `*TOTAL: ${formatPrice(total)}*\n\n`
-  message += `${paymentInfo}\n\n`
-  message += `_Enviado desde queCopado.com_`
+  message += paymentInfo
+  // Solo con un sitio cargado: decia "queCopado.com", que es de otro negocio.
+  if (NEGOCIO.sitio) {
+    message += `\n\n_Enviado desde ${NEGOCIO.sitio.host}_`
+  }
 
   return message
 }
