@@ -118,13 +118,28 @@ acá. Los datos locales de David se estacionan y devuelven en los tests de caja
 - [ ] 5.5 `../print-bridge`: bloque fiscal y QR en ESC/POS, y
       `docs/INTEGRACION.md`. Verifica: un ticket con factura en la impresora
       del local (David).
+      Pendiente: en esta máquina no hay .NET para compilarlo ni probarlo. El
+      dato ya viaja: `print_jobs.data.factura` con la forma de
+      `FacturaDelTicket` (`lib/facturas/ticket.ts`); el puente actual lo
+      ignora y sigue imprimiendo el ticket (visto en su código: despacha por `type`,
+      que no cambió). Falta en `Impresora.cs`: si `factura` viene, el
+      bloque del emisor bajo el nombre, y abajo el QR (`GS ( k`, modelo 2,
+      con `factura.qr`), CAE, vencimiento y "Comprobante autorizado por
+      ARCA", como la página del navegador.
 
 ## 6. Cierre
 
 - [ ] 6.1 Homologación real con el certificado de prueba de David: factura,
       nota de crédito, rechazo por un dato mal cargado. Verifica: los CAE de
       homologación anotados acá.
-- [ ] 6.2 `npm run lint`, `npm run build`, los tests de caja y los nuevos.
+- [x] 6.2 `npm run lint`, `npm run build`, los tests de caja y los nuevos.
       Verifica: la salida.
+      Hecho (2026-09-30): lint sin errores (el aviso de siempre en
+      `orders.ts`), build en verde. Tests: 62 (facturación y caja) + 25
+      (movimientos, mesas, pedidos, tablas, hojas, datos del local) pasan.
+      Accesibilidad, celular e hidratación: 9 fallas, las mismas que en
+      `main` con el mismo código de `main` (Analytics, Arqueos, Cocina,
+      edición de producto, ficha; desbordes; hidratación por zona horaria):
+      no son de este cambio. Los datos locales de David, iguales.
 - [ ] 6.3 Producción, cuando un local haga sus dos trámites: la primera
       factura real, revisada con su contador. Verifica: la respuesta de David.
