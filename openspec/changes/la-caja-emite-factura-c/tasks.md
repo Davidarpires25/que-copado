@@ -43,14 +43,22 @@ acá. Los datos locales de David se estacionan y devuelven en los tests de caja
 
 ## 3. ARCA (Decisiones 1 a 4)
 
-- [ ] 3.1 ARCA simulado para los tests (WSAA y WSFEv1: éxito, rechazo, número
+- [x] 3.1 ARCA simulado para los tests (WSAA y WSFEv1: éxito, rechazo, número
       no correlativo, sin respuesta).
-- [ ] 3.2 `lib/arca/wsaa.ts` con el ticket guardado en la base. Verifica:
+      Hecho: `e2e/arca-simulado.ts`. Verifica el CMS firmado, el token y la
+      CUIT representada; como el de verdad, no da un segundo ticket mientras
+      el primero valga; modos para la delegación que falta, el rechazo y la
+      respuesta que se pierde con el comprobante autorizado.
+- [x] 3.2 `lib/arca/wsaa.ts` con el ticket guardado en la base. Verifica:
       contra el simulado, un segundo pedido reutiliza el ticket; dos a la vez
       terminan con uno solo.
-- [ ] 3.3 `lib/arca/wsfe.ts`. Verifica: contra el simulado, los cuatro casos.
-- [ ] 3.4 `lib/arca/qr.ts`. Verifica: la cadena decodificada es el JSON de la
+      Hecho: el test de la carrera falla si se quita la espera al ticket del
+      otro pedido (verificado). Se firma con SHA-256; si homologación lo
+      rechaza (`cms.sign.invalid`), es ese valor (tarea 6.1).
+- [x] 3.3 `lib/arca/wsfe.ts`. Verifica: contra el simulado, los cuatro casos.
+- [x] 3.4 `lib/arca/qr.ts`. Verifica: la cadena decodificada es el JSON de la
       RG 4892 con los datos del comprobante.
+      Hecho (3.2 a 3.4): `e2e/arca.spec.ts`, 8 tests contra el simulado.
 
 ## 4. Emitir (Decisiones 5 y 6)
 
