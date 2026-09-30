@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 import { rest, asegurarUsuario } from './local'
-import { entrar, abrir } from './panel'
+import { entrar, abrir, resaltadosDeLaTabla } from './panel'
 import { estacionarTurno, devolverTurno } from './turno'
 import { levantarArcaSimulado, PUERTO_ARCA_SIMULADO, type ArcaSimulado } from './arca-simulado'
 
@@ -188,4 +188,71 @@ test('4.3 anular un pedido facturado emite su nota de crédito', async ({ page }
   expect(nota).toMatchObject({ tipo: 13, estado: 'emitida', total: TOTAL })
   expect(nota.asociada_a).toBeTruthy()
   expect(factura.estado).toBe('emitida')
+})
+
+// ─── Historial (tarea 5.2) ──────────────────────────────────────────────────
+
+async function abrirHistorial(page: Page) {
+  await page.getByRole('button', { name: /^Historial/ }).click()
+  await expect(page.getByText(`1x ${producto.name}`).first()).toBeVisible()
+}
+
+test('5.2 una factura pendiente se ve en el Historial, con su motivo, y se reintenta', async ({ page }) => {
+  const { id, numero } = await pedidoPendiente()
+  arca.modo = 'no-contesta'
+  await cobrar(page, numero, 'Tarjeta')
+  await expect(aviso(page)).toContainText('La factura quedó pendiente', { timeout: 15_000 })
+  arca.modo = 'normal'
+
+  await abrirHistorial(page)
+  const fila = page.locator('tbody tr').filter({ hasText: `1x ${producto.name}` }).first()
+  await expect(fila).toContainText('Factura pendiente')
+  // Sin encerrar: el estado es texto (spec tablas-del-admin).
+  expect(await resaltadosDeLaTabla(page)).toEqual([])
+
+  await fila.click()
+  await expect(page.locator('tbody').getByText('ARCA no respondió a tiempo.')).toBeVisible()
+  await page.getByRole('button', { name: 'Reintentar' }).click()
+  await expect(page.getByText('Factura C 0007-00000001').first()).toBeVisible({ timeout: 15_000 })
+  const [f] = await facturasDe(id)
+  expect(f.estado).toBe('emitida')
+})
+
+test('5.2 un cobro en efectivo, que no se factura solo, se factura desde el Historial', async ({ page }) => {
+  const { id, numero } = await pedidoPendiente()
+  await cobrar(page, numero, 'Efectivo')
+  await expect(aviso(page)).toHaveText('Pago registrado')
+
+  await abrirHistorial(page)
+  await page.getByText(`1x ${producto.name}`).first().click()
+  await page.getByRole('button', { name: 'Facturar' }).click()
+  await expect(page.locator('tbody tr').first()).toContainText('Factura C 0007-00000001', { timeout: 15_000 })
+  expect((await facturasDe(id))[0]).toMatchObject({ estado: 'emitida', numero: 1 })
+})
+
+test('5.2 con la facturación apagada, el Historial no ofrece facturar', async ({ page }) => {
+  await facturacion({ activa: false })
+  const { numero } = await pedidoPendiente()
+  await cobrar(page, numero, 'Efectivo')
+  await expect(aviso(page)).toHaveText('Pago registrado')
+  await abrirHistorial(page)
+  await page.getByText(`1x ${producto.name}`).first().click()
+  await expect(page.getByRole('button', { name: 'Anular' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Facturar' })).toHaveCount(0)
+})
+
+// ─── Cierre (tarea 5.3) ─────────────────────────────────────────────────────
+
+test('5.3 el cierre nombra las facturas sin emitir del turno, sin bloquearlo', async ({ page }) => {
+  const { numero } = await pedidoPendiente()
+  arca.modo = 'no-contesta'
+  await cobrar(page, numero, 'Tarjeta')
+  await expect(aviso(page)).toContainText('La factura quedó pendiente', { timeout: 15_000 })
+
+  await page.getByRole('button', { name: 'Cerrar caja' }).click()
+  await expect(page.getByText('Efectivo esperado')).toBeVisible()
+  await expect(page.getByText('Hay 1 factura de este turno sin emitir. No impide cerrar: reintentala desde el Historial.')).toBeVisible()
+  // Avisa, no impide: con el efectivo contado —que el cierre pide siempre—, se puede cerrar.
+  await page.getByLabel('Efectivo contado').fill('20000')
+  await expect(page.getByRole('button', { name: 'Confirmar Cierre' })).toBeEnabled()
 })

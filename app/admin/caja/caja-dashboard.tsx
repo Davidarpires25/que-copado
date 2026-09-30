@@ -42,7 +42,7 @@ export function CajaDashboard({
   const [screen, setScreen] = useState<Screen>(initialSession ? 'pos' : 'open')
   const [session, setSession] = useState<CashRegisterSession | null>(initialSession)
   const [closeSummary, setCloseSummary] = useState<SessionSummary | null>(null)
-  const [quedaAbierto, setQuedaAbierto] = useState<LoQueQuedaAbierto>({ mesas: [], remotosSinCobrar: 0 })
+  const [quedaAbierto, setQuedaAbierto] = useState<LoQueQuedaAbierto>({ mesas: [], remotosSinCobrar: 0, facturasSinEmitir: 0 })
   // Sin estado local: PosInterface llama a router.refresh() tras cada cambio de
   // mesa, asi que la prop del server ya trae el dato fresco.
   const tables = initialTables

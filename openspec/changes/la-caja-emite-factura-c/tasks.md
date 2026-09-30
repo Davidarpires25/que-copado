@@ -97,11 +97,16 @@ acá. Los datos locales de David se estacionan y devuelven en los tests de caja
       después de Cobros. `e2e/facturas-ajustes.spec.ts`, 5 tests (conexión,
       sin delegación, CUIT inválida, encender pide los datos, axe en los dos
       temas, cajero).
-- [ ] 5.2 Historial: el número de la factura como texto; pendiente y
+- [x] 5.2 Historial: el número de la factura como texto; pendiente y
       rechazada en aviso, con motivo y "Reintentar"; "Facturar" en un pedido
       cobrado sin factura. Verifica: e2e; sin píldoras (`resaltadosDeLaTabla`).
-- [ ] 5.3 El cierre de caja muestra las facturas pendientes del turno (no
+      Hecho: en la columna Estado, debajo de "Pagado", el comprobante en gris
+      o "Factura pendiente/rechazada" en aviso; al abrir la fila, el motivo y
+      "Reintentar" o "Facturar". Tres tests en `facturas-caja.spec.ts`.
+- [x] 5.3 El cierre de caja muestra las facturas pendientes del turno (no
       bloquea). Verifica: e2e.
+      Hecho: un aviso como el de los pedidos de WhatsApp; test "5.3" en
+      `facturas-caja.spec.ts`.
 - [ ] 5.4 El ticket lleva `factura`; `/admin/facturas/[id]/print` con el QR.
       Verifica: captura; el QR escaneado abre la URL de ARCA con los datos.
 - [ ] 5.5 `../print-bridge`: bloque fiscal y QR en ESC/POS, y

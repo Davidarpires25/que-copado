@@ -56,24 +56,51 @@ export async function facturarPedido(orderId: string): Promise<{ texto?: string;
 
 /**
  * Las facturas de un grupo de pedidos, para el Historial: la última de cada
- * tipo por pedido. Lee con la sesión del usuario (RLS: `caja.view`).
+ * pedido (la nota de crédito, si la hay, es lo último que le pasó). Y si la
+ * facturación está encendida, para ofrecer "Facturar" en lo cobrado sin
+ * factura.
+ *
+ * Con la clave de servicio después de comprobar `caja.view`: el cajero no lee
+ * los datos fiscales, pero tiene que saber si se factura.
  */
-export async function facturasDePedidos(orderIds: string[]): Promise<Record<string, EstadoFacturaPedido>> {
-  if (orderIds.length === 0) return {}
-  const supabase = await createAdminClient()
-  const { data } = await supabase
-    .from('facturas')
-    .select('order_id, tipo, estado, punto_venta, numero, motivo, created_at')
-    .in('order_id', orderIds)
-    .order('created_at', { ascending: true })
+export async function facturasDePedidos(
+  orderIds: string[]
+): Promise<{ activa: boolean; porPedido: Record<string, EstadoFacturaPedido> }> {
+  const denegado = await requirePermission('caja.view')
+  if (denegado) return { activa: false, porPedido: {} }
+  const base = createServiceRoleClient()
+  const [{ data: datos }, { data }] = await Promise.all([
+    base.from('datos_fiscales').select('activa').maybeSingle(),
+    orderIds.length
+      ? base
+          .from('facturas')
+          .select('order_id, tipo, estado, punto_venta, numero, motivo, created_at')
+          .in('order_id', orderIds)
+          .order('created_at', { ascending: true })
+      : Promise.resolve({ data: [] as never[] }),
+  ])
   const porPedido: Record<string, EstadoFacturaPedido> = {}
-  // La nota de crédito, si la hay, es lo último que pasó con ese pedido.
   for (const f of data ?? []) {
     const actual = porPedido[f.order_id]
     if (actual && actual.tipo === TIPO.notaDeCreditoC && f.tipo === TIPO.facturaC) continue
     porPedido[f.order_id] = { estado: f.estado, texto: nombreDeComprobante(f), motivo: f.motivo, tipo: f.tipo }
   }
-  return porPedido
+  return { activa: Boolean(datos?.activa), porPedido }
+}
+
+/**
+ * Cuántas facturas o notas de crédito del turno no se emitieron: el cierre
+ * las nombra (no lo impiden: se reintentan desde el Historial).
+ */
+export async function facturasSinEmitirDelTurno(sessionId: string): Promise<number> {
+  const denegado = await requirePermission('caja.view')
+  if (denegado) return 0
+  const { count } = await createServiceRoleClient()
+    .from('facturas')
+    .select('id, orders!inner(cash_register_session_id)', { count: 'exact', head: true })
+    .eq('orders.cash_register_session_id', sessionId)
+    .neq('estado', 'emitida')
+  return count ?? 0
 }
 
 // ─── Ajustes ────────────────────────────────────────────────────────────────

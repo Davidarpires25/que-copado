@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { printClientTicketAction, printKitchenTicketAction } from '@/app/actions/print'
 import { avisarCobro } from './aviso-de-cobro'
+import { facturasSinEmitirDelTurno } from '@/app/actions/facturas'
 import { Store, Table2, History, Globe } from 'lucide-react'
 import { PosProductGrid } from './product-grid'
 import { OrderBuilder, type PosCartItem } from './order-builder'
@@ -443,11 +444,15 @@ export function PosInterface({
   }
 
   const handleCloseSessionClick = async () => {
-    const { data: summary } = await getSessionSummary(session.id)
+    const [{ data: summary }, facturasSinEmitir] = await Promise.all([
+      getSessionSummary(session.id),
+      facturasSinEmitirDelTurno(session.id),
+    ])
     if (summary) {
       // Lo que la pantalla de cierre tiene que nombrar. Los pedidos de
       // mostrador sin cobrar ya vienen en `summary.orders`.
       onCloseSession(summary, {
+        facturasSinEmitir,
         mesas: tables
           .filter((t) => t.status !== 'libre')
           .map((t) => ({ nombre: etiquetaDeMesa(t), total: t.orders?.total ?? 0 })),
