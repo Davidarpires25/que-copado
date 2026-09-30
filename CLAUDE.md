@@ -152,6 +152,19 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<supabase-anon-key>
 NEXT_PUBLIC_WHATSAPP_NUMBER=<whatsapp-business-number>
 ```
 
+Los datos del local (`lib/negocio.ts`) son opcionales; sin ellos valen los de
+Que Copado. No escribas el nombre, el rubro ni la ciudad en otro archivo: los
+tests de `e2e/datos-del-local.spec.ts` lo detectan.
+```
+NEXT_PUBLIC_NEGOCIO_NOMBRE=Que Copado
+NEXT_PUBLIC_NEGOCIO_RUBRO=Hamburguesería
+NEXT_PUBLIC_NEGOCIO_LEMA=Las mejores hamburguesas
+NEXT_PUBLIC_NEGOCIO_DESCRIPCION=<meta description>
+NEXT_PUBLIC_NEGOCIO_LOGO=/logo.svg          # o la dirección del Storage del local
+NEXT_PUBLIC_NEGOCIO_CENTRO=-28.4696,-65.7795 # donde abre el mapa de zonas
+NEXT_PUBLIC_APP_URL=<https://sitio-publico>  # sin él, el WhatsApp no nombra dominio
+```
+
 ## Business Logic
 
 ### Shipping System (Dynamic Zones)

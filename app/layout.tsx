@@ -3,6 +3,7 @@ import { Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { FloatingCartButton } from "@/components/floating-cart-button";
 import "./globals.css";
+import { NEGOCIO } from "@/lib/negocio";
 
 // Sin preload: se usa a cuentagotas y no justifica una descarga anticipada en
 // cada pagina. Se carga igual cuando algo la pide.
@@ -13,19 +14,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
-  title: "Que Copado - Las mejores hamburguesas",
-  description: "Las mejores hamburguesas de la zona. Pedí ahora por WhatsApp!",
+  metadataBase: NEGOCIO.sitio ?? new URL('http://localhost:3000'),
+  title: `${NEGOCIO.nombre} - ${NEGOCIO.lema}`,
+  description: NEGOCIO.descripcion,
   keywords: ["hamburguesas", "delivery", "comida", "fast food"],
   icons: {
-    icon: "/logo.svg",
-    apple: "/logo.svg",
+    icon: NEGOCIO.logo,
+    apple: NEGOCIO.logo,
   },
   openGraph: {
-    title: "Que Copado - Las mejores hamburguesas",
-    description: "Las mejores hamburguesas de la zona. Pedí ahora por WhatsApp!",
+    title: `${NEGOCIO.nombre} - ${NEGOCIO.lema}`,
+    description: NEGOCIO.descripcion,
     type: "website",
-    images: ["/logo.svg"],
+    images: [NEGOCIO.logo],
   },
 };
 

@@ -30,6 +30,8 @@ import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import { signOut } from '@/app/actions/auth'
 import type { PermissionKey } from '@/lib/constants/permissions'
+import { NEGOCIO } from '@/lib/negocio'
+import { NombreDelLocal } from '@/components/nombre-del-local'
 
 interface NavItem {
   href: string
@@ -351,8 +353,8 @@ export function AdminSidebar({ stockAlertCount = 0, userName = 'Admin', userRole
         <Link href="/admin/dashboard" className="flex items-center gap-3 flex-1 min-w-0">
           {/* eslint-disable-next-line @next/next/no-img-element -- Logo SVG vectorial: next/image no lo optimiza sin dangerouslyAllowSVG. */}
           <img
-            src="/logo.svg"
-            alt="Que Copado"
+            src={NEGOCIO.logo}
+            alt={NEGOCIO.nombre}
             className={cn(
               'shrink-0 rounded-xl object-contain transition-all duration-300',
               collapsed ? 'w-11 h-11' : 'w-14 h-14'
@@ -366,7 +368,7 @@ export function AdminSidebar({ stockAlertCount = 0, userName = 'Admin', userRole
               className="min-w-0"
             >
               <span className="text-lg font-bold text-[var(--admin-text)]">
-                Que <span className="text-[var(--admin-accent-text)]">Copado</span>
+                <NombreDelLocal resaltado="text-[var(--admin-accent-text)]" />
               </span>
               <span className="block text-xs text-[var(--admin-text-muted)] font-medium">Panel Admin</span>
             </motion.div>
@@ -521,13 +523,13 @@ export function MobileSidebar({ open, onClose, stockAlertCount = 0, permissions 
           <Link href="/admin/dashboard" className="flex items-center gap-3" onClick={onClose}>
             {/* eslint-disable-next-line @next/next/no-img-element -- Logo SVG vectorial: next/image no lo optimiza sin dangerouslyAllowSVG. */}
             <img
-                src="/logo.svg"
-                alt="Que Copado"
+                src={NEGOCIO.logo}
+                alt={NEGOCIO.nombre}
                 className="w-14 h-14 shrink-0 rounded-xl object-contain"
               />
             <div>
               <span className="text-lg font-bold text-[var(--admin-text)]">
-                Que <span className="text-[var(--admin-accent-text)]">Copado</span>
+                <NombreDelLocal resaltado="text-[var(--admin-accent-text)]" />
               </span>
               <span className="block text-xs text-[var(--admin-text-muted)] font-medium">Panel Admin</span>
             </div>

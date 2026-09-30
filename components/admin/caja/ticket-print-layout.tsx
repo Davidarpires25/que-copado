@@ -5,6 +5,7 @@ import { etiquetaDeMesa } from '@/lib/utils/table-label'
 import { formatPrice } from '@/lib/utils'
 import type { Order } from '@/lib/types/database'
 import { orderLabel as numeroDePedido } from '@/lib/utils/order-number'
+import { NEGOCIO } from '@/lib/negocio'
 
 interface TicketItem {
   name: string
@@ -118,7 +119,7 @@ export function TicketPrintLayout({ order, items, cashReceived, isKitchen = fals
       <div id="ticket-root" className="w-[76mm] font-mono text-sm leading-snug p-1">
         {/* Header */}
         <div className="text-center border-b border-dashed border-black pb-2 mb-2">
-          <p className="font-bold text-base">QUE COPADO</p>
+          <p className="font-bold text-base">{NEGOCIO.nombre.toUpperCase()}</p>
           <p className="text-xs">──────────────────────</p>
           <p className="text-sm">{orderLabel}{guestName ? ` · ${guestName}` : ''}</p>
           <p className="text-xs">{dateStr} · {timeStr}</p>

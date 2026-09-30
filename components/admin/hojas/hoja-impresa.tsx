@@ -2,6 +2,7 @@
 
 import { useEffect, type ReactNode } from 'react'
 import { Printer } from 'lucide-react'
+import { NEGOCIO } from '@/lib/negocio'
 
 /**
  * El armazón de las hojas A4 del panel: la planilla de conteo, el reporte de
@@ -122,8 +123,8 @@ export function HojaImpresa({ barra, titulo, meta, estilos = '', imprimirAlAbrir
       <div className="a4-page">
         <div className="hdr">
           <div>
-            <div className="hdr-brand">Que Copado</div>
-            <div className="hdr-sub">Hamburguesería</div>
+            <div className="hdr-brand">{NEGOCIO.nombre}</div>
+            <div className="hdr-sub">{NEGOCIO.rubro}</div>
           </div>
           <div>
             <div className="doc-title">{titulo}</div>

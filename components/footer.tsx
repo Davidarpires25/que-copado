@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { Phone, MapPin, Clock, Instagram, Facebook } from 'lucide-react'
 import { WhatsAppIcon } from './icons'
+import { NEGOCIO } from '@/lib/negocio'
+import { NombreDelLocal } from '@/components/nombre-del-local'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -26,7 +28,7 @@ export function Footer() {
                 <span className="text-xl">🍔</span>
               </div>
               <span className="text-xl font-black text-white">
-                Que <span className="text-[#FEC501]">Copado</span>
+                <NombreDelLocal resaltado="text-[#FEC501]" />
               </span>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed mb-4">
@@ -109,7 +111,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-gray-800 mt-8 pt-6 items-center text-center">
           <p className="text-gray-500 text-xs text-center">
-            © {currentYear} Que Copado. Todos los derechos reservados.
+            © {currentYear} {NEGOCIO.nombre}. Todos los derechos reservados.
            
           </p>
           <p className="text-orange-200/40 text-xs">
