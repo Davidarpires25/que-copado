@@ -83,6 +83,8 @@ export interface EstadoFacturacion {
   /** Si esta instalación tiene el certificado de ARCA cargado. */
   conCertificado: boolean
   ambiente: 'homologacion' | 'produccion'
+  /** La CUIT en la que el local delega el servicio (la del proveedor del sistema). */
+  cuitProveedor: string | null
 }
 
 export async function leerFacturacion(): Promise<EstadoFacturacion | { error: string }> {
@@ -91,7 +93,12 @@ export async function leerFacturacion(): Promise<EstadoFacturacion | { error: st
   const supabase = await createAdminClient()
   const { data } = await supabase.from('datos_fiscales').select('*').maybeSingle()
   const config = configArca()
-  return { datos: (data as DatosFiscales | null) ?? null, conCertificado: Boolean(config), ambiente: config?.ambiente ?? 'homologacion' }
+  return {
+    datos: (data as DatosFiscales | null) ?? null,
+    conCertificado: Boolean(config),
+    ambiente: config?.ambiente ?? 'homologacion',
+    cuitProveedor: config?.cuitProveedor ?? null,
+  }
 }
 
 /** El dígito verificador de la CUIT (módulo 11). */

@@ -13,9 +13,12 @@ import { toast } from 'sonner'
 import { DangerZone } from '@/components/admin/settings/danger-zone'
 import { cn } from '@/lib/utils'
 import type { BusinessSettings } from '@/lib/types/database'
+import type { EstadoFacturacion } from '@/app/actions/facturas'
+import { FacturacionSection } from '@/components/admin/settings/facturacion-section'
 
 interface BusinessSettingsFormProps {
   initialSettings: BusinessSettings
+  facturacion: EstadoFacturacion | null
 }
 
 const DAYS_OF_WEEK = [
@@ -32,6 +35,7 @@ const TABS = [
   { key: 'horarios', label: 'Horarios' },
   { key: 'pausa', label: 'Pausa' },
   { key: 'cobros', label: 'Cobros' },
+  { key: 'facturacion', label: 'Facturación' },
   { key: 'stock', label: 'Stock' },
   { key: 'apariencia', label: 'Apariencia' },
   { key: 'datos', label: 'Datos' },
@@ -53,7 +57,7 @@ const TIME_W = 'w-[180px]'
 
 const LABEL = 'block text-[15px] font-semibold text-[var(--admin-text)] mb-2.5'
 
-export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormProps) {
+export function BusinessSettingsForm({ initialSettings, facturacion }: BusinessSettingsFormProps) {
   const [settings, setSettings] = useState(initialSettings)
   const [isSaving, setIsSaving] = useState(false)
   const [isTogglingPause, setIsTogglingPause] = useState(false)
@@ -160,7 +164,7 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
       {/* Tabs + estado. El chip va acá y no adentro del panel para que el
           abierto/cerrado se vea desde cualquier tab sin ocupar una seccion. */}
       <div className="flex items-center gap-6 mb-6 overflow-x-auto no-scrollbar">
-        {TABS.map(({ key, label }) => (
+        {TABS.filter(({ key }) => key !== 'facturacion' || facturacion).map(({ key, label }) => (
           <button
             key={key}
             type="button"
@@ -433,6 +437,10 @@ export function BusinessSettingsForm({ initialSettings }: BusinessSettingsFormPr
                 </p>
               </div>
             </div>
+          )}
+
+          {tab === 'facturacion' && facturacion && (
+            <FacturacionSection inicial={facturacion} field={FIELD} label={LABEL} />
           )}
 
           {tab === 'datos' && (

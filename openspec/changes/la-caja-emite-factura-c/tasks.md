@@ -90,9 +90,13 @@ acá. Los datos locales de David se estacionan y devuelven en los tests de caja
       tests de caja existentes, en verde sin tocarlos.
       Hecho el primero (`facturas-caja.spec.ts`, "5.0"). Los de caja
       existentes se corren en 6.2.
-- [ ] 5.1 Ajustes → Facturación, con "Probar conexión". Verifica: e2e con el
+- [x] 5.1 Ajustes → Facturación, con "Probar conexión". Verifica: e2e con el
       simulado (conectado y sin delegación); axe sin fallas en los dos temas;
       un cajero no la ve.
+      Hecho: `components/admin/settings/facturacion-section.tsx`, pestaña
+      después de Cobros. `e2e/facturas-ajustes.spec.ts`, 5 tests (conexión,
+      sin delegación, CUIT inválida, encender pide los datos, axe en los dos
+      temas, cajero).
 - [ ] 5.2 Historial: el número de la factura como texto; pendiente y
       rechazada en aviso, con motivo y "Reintentar"; "Facturar" en un pedido
       cobrado sin factura. Verifica: e2e; sin píldoras (`resaltadosDeLaTabla`).
