@@ -10,6 +10,12 @@
       Hecho (1.1 a 1.3): `e2e/pedidos-seguros.spec.ts`, 4 tests; con las
       reglas de hoy fallan los tres "sin sesión" (verificado). Con la
       migración en local pasan; agente, caja, mesas, pedidos y facturas 51/51.
-- [ ] 1.4 Producción: desplegar el código, aplicar la migración, y comprobar
+- [x] 1.4 Producción: desplegar el código, aplicar la migración, y comprobar
       con una llamada sin sesión que la base la rechaza (403) y que la tienda
       sigue creando pedidos.
+      Hecho (2026-10-02): código desplegado (`cfde892`), migración aplicada
+      después (Supabase la registró como `20261002202536`; el archivo se
+      renombró). Sin sesión, contra producción: insertar en `orders` → 401
+      "violates row-level security policy"; `crear_pedido_remoto` → 401
+      "permission denied". Ningún pedido de prueba quedó. Falta ver un pedido
+      real de la tienda o del agente entrar después del cambio (David).
