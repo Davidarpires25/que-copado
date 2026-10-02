@@ -8,12 +8,15 @@
       verificado: los dos quedan en `ok` y dejan de avisar. De 14 alertas
       quedan **12, todas legítimas** —stock en cero o debajo de un mínimo
       sensato—.
-- [ ] 1.2 Resolver `Pan de papa` y `Pan de paty sin semilla`. **Revisado contra
+- [x] 1.2 Resolver `Pan de papa` y `Pan de paty sin semilla`. **Revisado contra
       producción el 2026-09-20: `Pan de paty sin semilla` ya está en una receta**
       —se resolvió solo cuando David cargó recetas— así que queda la mitad:
       `Pan de papa` sigue en cero recetas, con seguimiento activo y una compra
       de 6 unidades. Ligarlo a la receta que corresponda, o apagarle el
       seguimiento.
+      **Resuelto (David, verificado en producción el 2026-10-02):** `Pan de
+      papa` está en dos recetas (Burger Clasica, Burger pickles) y `Pan de paty
+      sin semilla` en una (Combo copado), los dos con seguimiento activo.
 
 ## 2. Que no vuelva a pasar
 
