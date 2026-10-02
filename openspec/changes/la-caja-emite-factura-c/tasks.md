@@ -35,7 +35,7 @@ acá. Los datos locales de David se estacionan y devuelven en los tests de caja
       la Decisión 5) y `arca_ticket_de_acceso` (solo `service_role`), con RLS.
       Verifica: `supabase migration up` (no `db reset`: borraría los datos
       locales de David) y una prueba de RLS con anon y con un cajero.
-      Hecho: `20260930120000_la_caja_emite_factura_c.sql`;
+      Hecho: `20261002125841_la_caja_emite_factura_c.sql`;
       `e2e/facturacion-base.spec.ts`, 5 tests: sin sesión nada; el cajero ve
       facturas y no datos fiscales; nadie lee el ticket de ARCA; nadie
       escribe desde el navegador; la segunda factura del mismo pedido choca en
@@ -156,5 +156,10 @@ acá. Los datos locales de David se estacionan y devuelven en los tests de caja
       `main` con el mismo código de `main` (Analytics, Arqueos, Cocina,
       edición de producto, ficha; desbordes; hidratación por zona horaria):
       no son de este cambio. Los datos locales de David, iguales.
+- Migración aplicada en producción (2026-10-02, por David vía Claude): las
+  tres tablas con RLS y `tomar_factura` solo para `service_role`, verificado
+  con una consulta. Supabase la registró como `20261002125841`: el archivo se
+  renombró para coincidir, y la base local también. Facturación apagada (sin
+  fila de datos fiscales).
 - [ ] 6.3 Producción, cuando un local haga sus dos trámites: la primera
       factura real, revisada con su contador. Verifica: la respuesta de David.
