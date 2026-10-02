@@ -13,6 +13,7 @@ import { getMaxQuantities } from '@/lib/server/elaborado-stock'
 import { checkRateLimit } from '@/lib/server/rate-limit'
 import type { Order, OrderSource, OrderStatus, OrderWithZone } from '@/lib/types/database'
 import type { CreateOrderData, OrderFilters } from '@/lib/types/orders'
+import { diaDelLocal, inicioDelDia } from '@/lib/utils/calendario-del-local'
 
 // ─── Stock validation types (exported for client use) ───────────────────────
 
@@ -513,8 +514,8 @@ export async function getTodayOrders(): Promise<{
       return { data: null, error: 'No autenticado' }
     }
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    // Las 0:00 de hoy en Argentina, no del servidor (UTC: eran las 21:00 de ayer).
+    const today = inicioDelDia(diaDelLocal())
 
     const { data, error } = await supabase
       .from('orders')
