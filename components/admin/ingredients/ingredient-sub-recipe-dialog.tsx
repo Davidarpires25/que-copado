@@ -347,7 +347,7 @@ export function IngredientSubRecipeDialog({
                       type="button"
                       size="icon"
                       variant="ghost"
-                      className="h-7 w-7 shrink-0 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                      className="h-7 w-7 shrink-0 text-peligro-texto hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
                       onClick={() => handleRemoveLine(line.id)}
                     >
                       <X className="h-3.5 w-3.5" />

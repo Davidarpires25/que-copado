@@ -398,7 +398,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
 
               {mode === 'edit' && (
                 <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-2.5">
-                  <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-500 shrink-0 mt-0.5" />
+                  <AlertTriangle className="h-4 w-4 text-aviso-texto shrink-0 mt-0.5" />
                   <p className="text-xs text-amber-700 dark:text-amber-400">
                     Al modificar la receta se recalcularán los costos de todos los productos que la usen.
                   </p>
@@ -512,7 +512,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                               </p>
                               <Button
                                 type="button" size="icon" variant="ghost"
-                                className="h-8 w-8 justify-self-end text-red-700 dark:text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                                className="h-8 w-8 justify-self-end text-peligro-texto hover:text-red-600 hover:bg-red-500/10"
                                 onClick={() => handleRemoveIngredient(item.ingredient_id)}
                                 aria-label={`Quitar ${ing.name}`}
                               >
@@ -525,7 +525,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <div className="flex items-center gap-1.5 mt-1.5 cursor-default">
-                                      <AlertTriangle className="h-3 w-3 text-amber-700 dark:text-amber-500 shrink-0" />
+                                      <AlertTriangle className="h-3 w-3 text-aviso-texto shrink-0" />
                                       <span className="text-xs text-amber-600 dark:text-amber-400">
                                         Unidad incompatible con la base ({baseUnitAbbr})
                                       </span>
@@ -538,7 +538,7 @@ export function RecipeFormPage({ mode, recipe, ingredients }: RecipeFormPageProp
 
                             {compatibility === 'compatible' && (
                               <div className="flex items-center gap-1.5 mt-1.5">
-                                <RefreshCw className="h-3 w-3 text-green-700 dark:text-green-500 shrink-0" />
+                                <RefreshCw className="h-3 w-3 text-exito-texto shrink-0" />
                                 <span className="text-xs text-green-600 dark:text-green-400">
                                   Se convertirá desde {selectedUnitAbbr} a {baseUnitAbbr}
                                 </span>

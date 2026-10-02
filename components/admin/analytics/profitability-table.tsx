@@ -11,15 +11,15 @@ interface ProfitabilityTableProps {
 
 function getMarginColor(pct: number, hasCost: boolean) {
   if (!hasCost) return 'text-[var(--admin-text-muted)]'
-  if (pct >= 65) return 'text-green-700 dark:text-green-500'
-  if (pct >= 50) return 'text-yellow-700 dark:text-yellow-500'
-  return 'text-red-700 dark:text-red-500'
+  if (pct >= 65) return 'text-exito-texto'
+  if (pct >= 50) return 'text-aviso-texto'
+  return 'text-peligro-texto'
 }
 
 function getFoodCostColor(pct: number) {
-  if (pct <= 30) return 'text-green-700 dark:text-green-500'
-  if (pct <= 40) return 'text-yellow-700 dark:text-yellow-500'
-  return 'text-red-700 dark:text-red-500'
+  if (pct <= 30) return 'text-exito-texto'
+  if (pct <= 40) return 'text-aviso-texto'
+  return 'text-peligro-texto'
 }
 
 export function ProfitabilityTable({ data }: ProfitabilityTableProps) {
@@ -113,15 +113,21 @@ export function ProfitabilityTable({ data }: ProfitabilityTableProps) {
       {/* Warning if products missing cost */}
       {data.productsWithoutCost > 0 && (
         <div className="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-3 py-2">
-          <AlertCircle className="h-4 w-4 text-yellow-700 dark:text-yellow-500 shrink-0" />
-          <p className="text-sm text-yellow-700 dark:text-yellow-500">
+          <AlertCircle className="h-4 w-4 text-aviso-texto shrink-0" />
+          <p className="text-sm text-aviso-texto">
             {data.productsWithoutCost} producto{data.productsWithoutCost > 1 ? 's' : ''} sin costo cargado. Los margenes son parciales.
           </p>
         </div>
       )}
 
-      {/* Product table */}
-      <div className="overflow-x-auto">
+      {/* Product table. En el celular se desplaza a lo ancho: tiene que poder
+          enfocarse para recorrerla con el teclado (axe scrollable-region-focusable). */}
+      <div
+        className="overflow-x-auto rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)]"
+        tabIndex={0}
+        role="region"
+        aria-label="Rentabilidad por producto"
+      >
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--admin-border)]">
@@ -147,7 +153,7 @@ export function ProfitabilityTable({ data }: ProfitabilityTableProps) {
                         {product.name}
                       </span>
                       {!hasCost && (
-                        <span className="text-xs bg-yellow-500/10 text-yellow-700 dark:text-yellow-500 px-1.5 py-0.5 rounded shrink-0">
+                        <span className="text-xs bg-yellow-500/10 text-aviso-texto px-1.5 py-0.5 rounded shrink-0">
                           Sin costo
                         </span>
                       )}

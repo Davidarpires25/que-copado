@@ -24,7 +24,9 @@ export function ChartContainer({
   children,
 }: ChartContainerProps) {
   return (
-    <div className={cn('bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-[var(--admin-accent)]/30 transition-all duration-200', className)}>
+    // min-w-0: la tarjeta va dentro de un flex, y sin esto su contenido la
+    // estiraba más que la pantalla en el celular (32px a 360px).
+    <div className={cn('min-w-0 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 sm:p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-md)] hover:border-[var(--admin-accent)]/30 transition-all duration-200', className)}>
       {/* En el celular el selector de periodo baja debajo del titulo: al lado le
           dejaba tan poco ancho que "Rentabilidad por Producto" iba una palabra
           por renglon. */}

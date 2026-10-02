@@ -23,6 +23,10 @@ import { formatPrice, cn } from '@/lib/utils'
 import type { CashRegisterSession, CashMovementWithSession } from '@/lib/types/cash-register'
 import { StatTile, StatTileGrid } from '@/components/admin/stat-tile'
 
+// Hora del local, no del servidor ni del navegador: sin zona, el servidor (UTC)
+// y el navegador escribían horas distintas y la pantalla fallaba al hidratar.
+const ZONA_AR = 'America/Argentina/Buenos_Aires'
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface CajaHistorialProps {
@@ -36,11 +40,11 @@ type FilterType = 'all' | 'withdrawal' | 'deposit'
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDateShort(iso: string) {
-  return new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+  return new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit', timeZone: ZONA_AR })
 }
 
 function formatTimeShort(iso: string) {
-  return new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false })
+  return new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: ZONA_AR })
 }
 
 function formatDuration(openedAt: string, closedAt: string) {
@@ -322,7 +326,9 @@ function ArqueosTab({
                     <span className="flex items-center gap-1"><Wallet className="h-3 w-3" />Transfer.</span>
                   </TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold">Diferencia</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold w-12" />
+                  <TableHead className="text-xs uppercase tracking-wide text-[var(--admin-text-faint)] font-semibold w-12">
+                    <span className="sr-only">Movimientos</span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -368,7 +374,8 @@ function ArqueosTab({
                         <button
                           onClick={(e) => { e.stopPropagation(); onViewMovements(session.id) }}
                           title="Ver movimientos de este turno"
-                          className="flex items-center justify-center w-7 h-7 rounded-lg text-[var(--admin-text-faint)] hover:text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 transition-colors cursor-pointer"
+                          aria-label="Ver movimientos de este turno"
+                          className="flex items-center justify-center w-7 h-7 tactil:w-11 tactil:h-11 rounded-lg text-[var(--admin-text-faint)] hover:text-[var(--admin-accent-text)] hover:bg-[var(--admin-accent)]/10 transition-colors cursor-pointer"
                         >
                           <ArrowLeftRight className="h-4 w-4" />
                         </button>

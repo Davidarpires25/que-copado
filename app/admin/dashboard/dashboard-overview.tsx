@@ -37,6 +37,10 @@ import type { OrderWithZone } from '@/lib/types/database'
 import type { ComparativeStats } from '@/app/actions/analytics'
 import type { StockAlert } from '@/lib/types/stock'
 
+// Hora del local, no del servidor ni del navegador: sin zona, el servidor (UTC)
+// y el navegador escribían horas distintas y la pantalla fallaba al hidratar.
+const ZONA_AR = 'America/Argentina/Buenos_Aires'
+
 interface OperationalStatus {
   openTables: number
   activeOrders: number
@@ -65,7 +69,7 @@ export function DashboardOverview({
   const formattedOrders = useMemo(() => recentOrders.map((order) => ({
     ...order,
     items: parseOrderItems(order.items),
-    timeStr: new Date(order.created_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }),
+    timeStr: new Date(order.created_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: ZONA_AR }),
   })), [recentOrders])
 
   return (
@@ -115,7 +119,7 @@ export function DashboardOverview({
                 }`}>
                   <AlertTriangle className={`h-[18px] w-[18px] ${
                     operationalStatus.stockAlerts.length > 3 ? 'text-peligro-texto'
-                    : operationalStatus.stockAlerts.length > 0 ? 'text-amber-700 dark:text-amber-500'
+                    : operationalStatus.stockAlerts.length > 0 ? 'text-aviso-texto'
                     : 'text-[var(--admin-text-placeholder)]'
                   }`} />
                 </div>
@@ -123,7 +127,7 @@ export function DashboardOverview({
                   <p className="text-xs text-[var(--admin-text-muted)] leading-none mb-1">Alertas de stock</p>
                   <p className={`text-xl font-bold leading-none num-tabular ${
                     operationalStatus.stockAlerts.length > 3 ? 'text-peligro-texto'
-                    : operationalStatus.stockAlerts.length > 0 ? 'text-amber-700 dark:text-amber-500'
+                    : operationalStatus.stockAlerts.length > 0 ? 'text-aviso-texto'
                     : 'text-[var(--admin-text-muted)]'
                   }`}>
                     {operationalStatus.stockAlerts.length}

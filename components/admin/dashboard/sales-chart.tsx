@@ -28,9 +28,13 @@ export function SalesChart({ data }: SalesChartProps) {
       const date = new Date(item.date)
       return {
         ...item,
+        // `item.date` es un día suelto ("2026-10-02"), que JS lee como la
+        // medianoche UTC: se formatea en UTC para que el servidor y el
+        // navegador digan el mismo día (sin zona, hidrataba distinto).
         dateLabel: date.toLocaleDateString('es-AR', {
           weekday: 'short',
           day: 'numeric',
+          timeZone: 'UTC',
         }),
       }
     })

@@ -55,7 +55,7 @@ export function KitchenDisplay({ initialComandas }: KitchenDisplayProps) {
   return (
     <div className="min-h-screen bg-[var(--admin-bg)] flex flex-col">
       {/* Header */}
-      <div className="bg-[var(--admin-surface)] border-b border-[var(--admin-border)] px-6 py-4 flex items-center justify-between shrink-0">
+      <div className="bg-[var(--admin-surface)] border-b border-[var(--admin-border)] px-6 py-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 shrink-0">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-bold text-[var(--admin-text)] flex items-center gap-2">
             <ChefHat className="h-5 w-5 text-[var(--admin-accent-text)]" />
@@ -63,12 +63,14 @@ export function KitchenDisplay({ initialComandas }: KitchenDisplayProps) {
           </h1>
           <div className="flex items-center gap-2">
             {pendingCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-700 dark:text-amber-400">
+              // Un conteo es texto, no una píldora (spec tablas-del-admin). Lo
+              // pendiente es lo que hay que empezar: va en color de aviso.
+              <span className="text-sm font-medium text-aviso-texto">
                 {pendingCount} pendiente{pendingCount > 1 ? 's' : ''}
               </span>
             )}
             {inPrepCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-700 dark:text-blue-400">
+              <span className="text-sm text-[var(--admin-text-muted)]">
                 {inPrepCount} en prep
               </span>
             )}

@@ -102,7 +102,7 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange, ayuda }: Re
                   <p className="text-sm text-[var(--admin-text)] font-medium truncate">{recipe.name}</p>
                   <p className="text-xs text-[var(--admin-text-muted)]">
                     {formatCost(recipeCost)} / unidad
-                    <span className="ml-1 text-[var(--admin-text-faint)]">
+                    <span className="ml-1">
                       ({recipe.recipe_ingredients.length} ing.)
                     </span>
                   </p>
@@ -129,7 +129,7 @@ export function RecipeSelector({ recipes, selectedRecipes, onChange, ayuda }: Re
                   type="button"
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 shrink-0"
+                  className="h-7 w-7 text-peligro-texto hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 shrink-0"
                   onClick={() => handleRemove(item.recipe_id)}
                   aria-label={`Quitar ${recipe.name}`}
                 >
