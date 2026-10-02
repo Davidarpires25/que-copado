@@ -1269,3 +1269,16 @@ privados) se muestran solo los **nombres** de las variables
 (`grep -oE '^[A-Z_]+'`) o un hash, nunca líneas, ni recortadas ni enmascaradas.
 Un secreto que tiene que ir a otro lado viaja del archivo al destino por
 stdin (`vercel env add NOMBRE production < archivo`), sin pasar por la salida.
+
+
+## 56. Un merge automático tiene que frenar ante un check en rojo
+
+**Qué pasó (2026-10-02).** El script que esperaba los checks del PR #19 y
+después mergeaba imprimía los checks fallidos y mergeaba igual: no tenía una
+condición de corte. Falló el preview de Netlify `quecopado`. Resultó no ser
+del PR (ese sitio no publica desde el 18/09, por la cuenta, no por el
+código), pero el merge salió sin que nadie lo mirara.
+
+**Regla.** Si un check falla, no se mergea: se investiga primero y se le
+cuenta a David. En los scripts, `gh pr checks` con `--required` o un `exit`
+explícito cuando aparece `fail`, antes de `gh pr merge`.
