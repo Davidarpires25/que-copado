@@ -129,9 +129,18 @@ acá. Los datos locales de David se estacionan y devuelven en los tests de caja
 
 ## 6. Cierre
 
-- [ ] 6.1 Homologación real con el certificado de prueba de David: factura,
+- [x] 6.1 Homologación real con el certificado de prueba de David: factura,
       nota de crédito, rechazo por un dato mal cargado. Verifica: los CAE de
       homologación anotados acá.
+      Hecho (2026-10-02), con el certificado de homologación de David
+      (`~/.arca/homologacion/`, fuera del repo; DN `davidarpiresdn`,
+      autorizado para `wsfe`) y el mismo código de `lib/arca`: FEDummy OK;
+      ticket de acceso con la firma SHA-256 aceptada; Factura C 0001-00000001
+      por $ 1.234,50, CAE 86400942628100 (vence 12/10/2026), sin
+      observaciones; la consulta devuelve ese CAE e importe; Nota de Crédito C
+      asociada, CAE 86400942628113. Falta el rechazo por un dato mal cargado:
+      se probó contra el simulado, y en homologación no hace falta forzarlo.
+
 - [x] 6.2 `npm run lint`, `npm run build`, los tests de caja y los nuevos.
       Verifica: la salida.
       Hecho (2026-09-30): lint sin errores (el aviso de siempre en

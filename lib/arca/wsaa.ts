@@ -50,8 +50,8 @@ export function pedidoDeAcceso(servicio: string, ahora = new Date()): string {
  * El pedido firmado: un CMS "SignedData" con el XML adentro, en base64.
  *
  * El manual dice SHA1+RSA; se firma con SHA-256, que es lo que hacen hoy
- * OpenSSL (`smime -sign`) y las librerías que usan otros sistemas, y ARCA lo
- * acepta. Si homologación lo rechazara (`cms.sign.invalid`), es este valor.
+ * OpenSSL (`smime -sign`) y las librerías que usan otros sistemas. ARCA lo
+ * acepta: probado en homologación el 2026-10-02.
  */
 export function firmar(xml: string, certificadoPem: string, clavePem: string): string {
   const certificado = forge.pki.certificateFromPem(certificadoPem)
