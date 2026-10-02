@@ -1237,3 +1237,19 @@ actualizaba y la respuesta salía vacía. Con `.select('id')` era peor: el
 reservar, marcar— va en una función de Postgres (`rpc`), no con `.or()` desde
 supabase-js. Y cuando una respuesta de PostgREST no tiene sentido, mirar el SQL
 en `docker logs supabase_db_<proyecto>` antes de adivinar.
+
+
+## 54. Homologación no prueba la conexión de producción
+
+**Qué pasó (2026-10-02).** La factura C anduvo contra la homologación de ARCA
+con CAE y todo. Al probar producción con el certificado nuevo, ni se pudo
+conectar: `servicios1.afip.gov.ar` (factura electrónica, producción) prefiere
+un cifrado DHE con una clave Diffie-Hellman corta, y el OpenSSL de Node la
+rechaza (`ERR_SSL_DH_KEY_TOO_SMALL`). El de homologación y el de autenticación
+no tienen ese problema. En Vercel habría fallado la primera factura real.
+
+**Regla.** Con un servicio externo, "anda en el ambiente de prueba" no dice
+nada de la red de producción: antes de darlo por listo, una llamada de solo
+lectura contra producción (acá, FEDummy y el último autorizado). Y un problema
+de TLS se arregla ofreciendo solo cifrados fuertes que el servidor acepte
+(`openssl s_client -cipher`), no bajando el nivel de seguridad.
