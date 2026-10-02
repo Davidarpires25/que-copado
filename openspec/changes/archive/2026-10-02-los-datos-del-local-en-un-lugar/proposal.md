@@ -76,9 +76,10 @@ repartidos en trece archivos:
 - **Cargar los datos desde el panel** (tabla `business_settings`): hace falta
   cuando un local quiera cambiarlos sin pedírmelo. Hoy no.
 - **Varios locales en una misma base** (multi-tenant): no.
-- **El puente de impresión** (`print-bridge/`): es otro programa, instalado en
-  la PC del local, y dice "Que Copado" en la bandeja. Se trata cuando haya
-  otro local, con su propia configuración.
+- **El ticket en papel**: lo imprime el puente en C# (`../print-bridge`), que
+  ya toma el encabezado de su configuración (`NombreNegocio` en `Config.cs`).
+  Otro local lo configura ahí. La carpeta `print-bridge/` de este repo es la
+  versión anterior, en Node, y todavía dice "Que Copado"; no se toca.
 - **La clave del carrito** (`que-copado-cart`, en el navegador): no se ve, y
   cambiarla vaciaría los carritos que la gente tiene armados.
 - **Los comentarios** que nombran Catamarca o una hamburguesería cuentan por
