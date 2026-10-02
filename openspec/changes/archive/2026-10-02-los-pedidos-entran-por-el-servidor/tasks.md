@@ -17,5 +17,6 @@
       después (Supabase la registró como `20261002202536`; el archivo se
       renombró). Sin sesión, contra producción: insertar en `orders` → 401
       "violates row-level security policy"; `crear_pedido_remoto` → 401
-      "permission denied". Ningún pedido de prueba quedó. Falta ver un pedido
-      real de la tienda o del agente entrar después del cambio (David).
+      "permission denied". Ningún pedido de prueba quedó. No se esperó un
+      pedido real de la tienda o del agente: David lo dio por cerrado con los
+      tests locales y la clave de servicio ya en uso en producción (2026-10-02).
