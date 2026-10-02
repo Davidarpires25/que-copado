@@ -2,8 +2,10 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { test, expect } from '@playwright/test'
 import {
-  diaDelLocal, horaDelLocal, sumarDias, diaDeLaSemana, lunesDe, primeroDelMes, inicioDelDia, etiquetaDelDia,
+  diaDelLocal, horaDelLocal, minutosDelLocal, sumarDias, diaDeLaSemana, lunesDe, primeroDelMes, inicioDelDia, etiquetaDelDia,
 } from '@/lib/utils/calendario-del-local'
+import { checkBusinessStatus } from '@/lib/services/business-hours'
+import type { BusinessSettings } from '@/lib/types/database'
 
 /**
  * Los reportes cuentan el día del local (spec reportes-en-hora-argentina).
@@ -36,10 +38,27 @@ test('los cortes de día, semana y mes empiezan a las 0:00 de Argentina', () => 
   expect(etiquetaDelDia('2026-10-01', { day: 'numeric', month: 'short' })).toMatch(/^1\b/)
 })
 
-test('Analytics y el Dashboard no usan la zona del servidor', () => {
-  const PROHIBIDO = /getHours\(|getDay\(|setHours\(|toISOString\(\)\.split|\.split\(['"]T['"]\)/
+test('el horario de atención se mide en hora argentina, aunque el servidor esté en UTC', () => {
+  // El horario de producción: de 9 a 2, todos los días.
+  const local = {
+    operating_days: [0, 1, 2, 3, 4, 5, 6], opening_time: '09:00', closing_time: '02:00', is_paused: false, pause_message: null,
+  } as unknown as BusinessSettings
+  const en = (fechaYHora: string) => checkBusinessStatus(local, new Date(`${fechaYHora}:00-03:00`)).isOpen
+  // Con el reloj del servidor, de 23:00 a 2:00 decía "cerrado" (rechazaba pedidos
+  // web y el agente decía que no se atendía) y a las 7:00 decía "abierto".
+  expect(en('2026-10-01T20:00')).toBe(true)
+  expect(en('2026-10-01T23:30')).toBe(true)
+  expect(en('2026-10-02T00:30')).toBe(true)
+  expect(en('2026-10-02T01:30')).toBe(true)
+  expect(en('2026-10-02T02:30')).toBe(false)
+  expect(en('2026-10-02T07:00')).toBe(false)
+  expect(minutosDelLocal('2026-10-02T02:30:00Z')).toBe(23 * 60 + 30)
+})
+
+test('Analytics, el Dashboard, el horario y los pedidos de hoy no usan la zona del servidor', () => {
+  const PROHIBIDO = /getHours\(|getMinutes\(|getDay\(|setHours\(|toISOString\(\)\.split|\.split\(['"]T['"]\)/
   const encontrados: string[] = []
-  for (const archivo of ['app/actions/analytics.ts', 'app/actions/dashboard.ts']) {
+  for (const archivo of ['app/actions/analytics.ts', 'app/actions/dashboard.ts', 'lib/services/business-hours.ts', 'app/actions/orders.ts']) {
     readFileSync(join(__dirname, '..', archivo), 'utf8').split('\n').forEach((linea, i) => {
       if (PROHIBIDO.test(linea) && !linea.trim().startsWith('//') && !linea.trim().startsWith('*')) {
         encontrados.push(`${archivo}:${i + 1} ${linea.trim()}`)

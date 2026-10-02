@@ -31,6 +31,18 @@ export function horaDelLocal(momento: Date | string): number {
   return Number(hora)
 }
 
+/** Los minutos desde la medianoche (0–1439) de ese momento en Argentina. */
+export function minutosDelLocal(momento: Date | string): number {
+  const partes = new Intl.DateTimeFormat('en-US', {
+    timeZone: ZONA,
+    hour: 'numeric',
+    minute: 'numeric',
+    hourCycle: 'h23',
+  }).formatToParts(new Date(momento))
+  const valor = (tipo: string) => Number(partes.find((p) => p.type === tipo)?.value ?? 0)
+  return valor('hour') * 60 + valor('minute')
+}
+
 /** Un día suelto como fecha UTC, para hacer cuentas sin que la zona se meta. */
 function comoUtc(dia: string): Date {
   const [a, m, d] = dia.split('-').map(Number)

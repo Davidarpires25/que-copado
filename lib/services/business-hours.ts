@@ -1,4 +1,5 @@
 import type { BusinessSettings } from '@/lib/types/database'
+import { diaDelLocal, diaDeLaSemana, minutosDelLocal } from '@/lib/utils/calendario-del-local'
 
 export interface BusinessStatus {
   isOpen: boolean
@@ -45,8 +46,12 @@ export function checkBusinessStatus(
     }
   }
 
-  const currentDay = now.getDay() // 0 = Domingo, 1 = Lunes, etc.
-  const currentMinutes = now.getHours() * 60 + now.getMinutes()
+  // El día y la hora del local, no del servidor. Esto corre en el servidor al
+  // crear un pedido web y cuando el agente pregunta si se atiende: con el reloj
+  // de Vercel (UTC, 3 horas adelante) el local "cerraba" a las 23:00 con un
+  // horario de 9 a 2, justo en la hora pico. Ver calendario-del-local.ts.
+  const currentDay = diaDeLaSemana(diaDelLocal(now)) // 0 = Domingo, 1 = Lunes, etc.
+  const currentMinutes = minutosDelLocal(now)
 
   const openingMinutes = parseTimeToMinutes(settings.opening_time)
   const closingMinutes = parseTimeToMinutes(settings.closing_time)
@@ -106,8 +111,8 @@ function getNextOpenTime(
   settings: BusinessSettings,
   now: Date
 ): { time: string; message: string } {
-  const currentDay = now.getDay()
-  const currentMinutes = now.getHours() * 60 + now.getMinutes()
+  const currentDay = diaDeLaSemana(diaDelLocal(now))
+  const currentMinutes = minutosDelLocal(now)
   const openingMinutes = parseTimeToMinutes(settings.opening_time)
 
   // Verificar si abre más tarde hoy
