@@ -9,5 +9,7 @@
       Hecho: `e2e/calendario-del-local.spec.ts` (3 tests, con el proceso en
       UTC); el de los archivos falla con el código viejo. Hidratación y
       tablas con el servidor en `TZ=UTC`: 10/10. Lint, tipos y build en verde.
-- [ ] 1.3 Después del despliegue, el gráfico de horas de producción muestra la
+- [x] 1.3 Después del despliegue, el gráfico de horas de producción muestra la
       noche en las 21–23 (y no en 0–2). Verifica: la pantalla.
+      Hecho: desplegado en `393bfd4`; David lo revisó en producción
+      (2026-10-02, "todo bien con el dashboard").
