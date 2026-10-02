@@ -1,6 +1,7 @@
 'use server'
 
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClient, createServiceRoleClient } from '@/lib/supabase/admin'
+import { facturaDelPedido, facturacionEncendida } from '@/lib/facturas/ticket'
 import { getAuthUser } from '@/lib/server/auth'
 import { SIN_ASIGNAR, etiquetaComensal } from '@/lib/constants/sale-tags'
 import { devError } from '@/lib/server/logger'
@@ -150,9 +151,22 @@ export async function printClientTicketAction(
         ? null
         : options.cashReceived - total
 
+    // El ticket entero de un pedido facturado es la factura: lleva el bloque
+    // fiscal y el QR. Un corte de ronda o de comensal no (la factura es por el
+    // pedido completo). Un puente que no conoce `factura` la ignora.
+    const servicio = createServiceRoleClient()
+    const factura =
+      !isRoundSnapshot && !isGuestScope && order.status !== 'cancelado'
+        ? await facturaDelPedido(servicio, orderId)
+        : null
+    // Con la facturación encendida, el ticket que no es la factura lo dice.
+    const noValidoComoFactura = !factura && (await facturacionEncendida(servicio))
+
     const { error: insertError } = await supabase.from('print_jobs').insert({
       type: 'client_ticket',
       data: {
+        factura,
+        noValidoComoFactura,
         orderId,
         orderNumber: order.order_number ?? null,
         orderLabel:

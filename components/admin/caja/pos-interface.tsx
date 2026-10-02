@@ -3,6 +3,8 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { printClientTicketAction, printKitchenTicketAction } from '@/app/actions/print'
+import { avisarCobro } from './aviso-de-cobro'
+import { facturasSinEmitirDelTurno } from '@/app/actions/facturas'
 import { Store, Table2, History, Globe } from 'lucide-react'
 import { PosProductGrid } from './product-grid'
 import { OrderBuilder, type PosCartItem } from './order-builder'
@@ -419,14 +421,14 @@ export function PosInterface({
 
   const handleCancelOrder = async (orderId: string, isMostrador = false) => {
     setCancelOrderId(null)
-    const { error } = isMostrador
-      ? await cancelMostadorOrder(orderId)
+    const { error, factura } = isMostrador
+      ? { ...(await cancelMostadorOrder(orderId)), factura: null }
       : await cancelPosOrder(orderId)
     if (error) {
       toast.error(error)
       return
     }
-    toast.success('Pedido cancelado')
+    avisarCobro('Pedido cancelado', factura)
     if (isMostrador) {
       // Si estabamos mirando ese pedido, la pantalla ya no tiene que que mostrar.
       setPayingOrder((prev) => (prev?.id === orderId ? null : prev))
@@ -442,11 +444,15 @@ export function PosInterface({
   }
 
   const handleCloseSessionClick = async () => {
-    const { data: summary } = await getSessionSummary(session.id)
+    const [{ data: summary }, facturasSinEmitir] = await Promise.all([
+      getSessionSummary(session.id),
+      facturasSinEmitirDelTurno(session.id),
+    ])
     if (summary) {
       // Lo que la pantalla de cierre tiene que nombrar. Los pedidos de
       // mostrador sin cobrar ya vienen en `summary.orders`.
       onCloseSession(summary, {
+        facturasSinEmitir,
         mesas: tables
           .filter((t) => t.status !== 'libre')
           .map((t) => ({ nombre: etiquetaDeMesa(t), total: t.orders?.total ?? 0 })),
@@ -467,7 +473,7 @@ export function PosInterface({
     if (!payingOrder) return
     setPayingOrderLoading(true)
 
-    const { data, error } = await completeMostadorPayment(
+    const { data, error, factura } = await completeMostadorPayment(
       payingOrder.id,
       method,
       session.id,
@@ -482,7 +488,7 @@ export function PosInterface({
     }
 
     if (data) {
-      toast.success('Pago registrado')
+      avisarCobro('Pago registrado', factura)
       setPayingOrder(null)
       // Cobrado deja de estar pendiente: se saca en el acto y la relectura va
       // silenciosa, sin bloquear la vuelta a la pantalla de venta.
@@ -821,11 +827,11 @@ export function PosInterface({
               session={session}
               sectionLabel={TABLE_SECTION_LABELS[payingTable.section] || payingTable.section}
               onBack={() => setPayingTable(null)}
-              onPaid={() => {
+              onPaid={(factura) => {
                 const nombreDeMesa = etiquetaDeMesa(payingTable)
                 setPayingTable(null)
                 setSelectedTable(null)
-                toast.success(`${nombreDeMesa} cobrada`)
+                avisarCobro(`${nombreDeMesa} cobrada`, factura)
                 void handleTablePaid()
               }}
             />

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import {
-  Loader2, ArrowLeft, CheckCircle, Globe, Lock, TrendingUp, TrendingDown,
+  Loader2, ArrowLeft, CheckCircle, FileWarning, Globe, Lock, TrendingUp, TrendingDown,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { closeSession } from '@/app/actions/cash-register'
@@ -20,6 +20,8 @@ export interface LoQueQuedaAbierto {
   mesas: { nombre: string; total: number }[]
   /** Pedidos web o de WhatsApp recibidos y sin cobrar: avisan, no bloquean. */
   remotosSinCobrar: number
+  /** Facturas o notas de crédito del turno que no se emitieron: avisan, no bloquean. */
+  facturasSinEmitir: number
 }
 
 interface SessionCloseScreenProps {
@@ -230,6 +232,15 @@ export function SessionCloseScreen({
                 {quedaAbierto.remotosSinCobrar === 1
                   ? 'Hay 1 pedido de WhatsApp o web sin cobrar. No es de este turno: no impide cerrar, se cobra en el próximo.'
                   : `Hay ${quedaAbierto.remotosSinCobrar} pedidos de WhatsApp o web sin cobrar. No son de este turno: no impiden cerrar, se cobran en el próximo.`}
+              </p>
+            )}
+
+            {quedaAbierto.facturasSinEmitir > 0 && (
+              <p className="flex items-start gap-2 rounded-xl border border-aviso/30 bg-aviso/5 px-3 py-2 text-panel-sm text-aviso-texto">
+                <FileWarning className="mt-px h-4 w-4 shrink-0" />
+                {quedaAbierto.facturasSinEmitir === 1
+                  ? 'Hay 1 factura de este turno sin emitir. No impide cerrar: reintentala desde el Historial.'
+                  : `Hay ${quedaAbierto.facturasSinEmitir} facturas de este turno sin emitir. No impiden cerrar: reintentalas desde el Historial.`}
               </p>
             )}
 

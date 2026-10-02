@@ -1,6 +1,7 @@
 'use server'
 
 import { after } from 'next/server'
+import { facturarAlCobrar, type AvisoFactura } from '@/lib/facturas/al-cobrar'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthUser } from '@/lib/server/auth'
 import { devError } from '@/lib/server/logger'
@@ -511,7 +512,7 @@ export async function payTableOrder(
   paymentMethod: PaymentMethod,
   sessionId: string,
   splits?: PaymentSplit[]
-): Promise<{ data: Order | null; error: string | null }> {
+): Promise<{ data: Order | null; error: string | null; factura?: AvisoFactura | null }> {
   try {
     const supabase = await createAdminClient()
     const user = await getAuthUser(supabase)
@@ -571,11 +572,14 @@ export async function payTableOrder(
       })
     }
 
+    // Con el cobro ya confirmado (ver lib/facturas/al-cobrar.ts).
+    const factura = await facturarAlCobrar(orderId, splits?.length ? splits.map((s) => s.method) : [paymentMethod])
+
     revalidateCaja()
     revalidateOrders()
     revalidateStock()
 
-    return { data: resultado.order, error: null }
+    return { data: resultado.order, error: null, factura }
   } catch (error) {
     devError('Error in payTableOrder:', error)
     return { data: null, error: 'Error inesperado' }

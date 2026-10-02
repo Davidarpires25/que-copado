@@ -6,6 +6,8 @@ import { formatPrice } from '@/lib/utils'
 import type { Order } from '@/lib/types/database'
 import { orderLabel as numeroDePedido } from '@/lib/utils/order-number'
 import { NEGOCIO } from '@/lib/negocio'
+import type { FacturaDelTicket } from '@/lib/facturas/ticket'
+import { LEYENDA_NO_FACTURA } from '@/lib/facturas/formato'
 
 interface TicketItem {
   name: string
@@ -22,6 +24,13 @@ interface TicketPrintLayoutProps {
   guestName?: string
   /** Nombre de la mesa, si tiene. Sin esto se cae al numero. */
   tableLabel?: string | null
+  /**
+   * Si el pedido tiene factura emitida, el ticket *es* la factura: lleva el
+   * emisor, el comprobante, el CAE y el QR (ya dibujado, en SVG).
+   */
+  factura?: (FacturaDelTicket & { qrSvg: string }) | null
+  /** Con la facturación encendida, un ticket que no es la factura lo dice (RG 1415). */
+  noValidoComoFactura?: boolean
 }
 
 const PAYMENT_LABELS: Record<string, string> = {
@@ -46,7 +55,7 @@ const PRINT_STYLES = `
   #ticket-root { font-family: 'Courier New', monospace; }
 `
 
-export function TicketPrintLayout({ order, items, cashReceived, isKitchen = false, guestName, tableLabel}: TicketPrintLayoutProps) {
+export function TicketPrintLayout({ order, items, cashReceived, isKitchen = false, guestName, tableLabel, factura, noValidoComoFactura = false }: TicketPrintLayoutProps) {
   useEffect(() => {
     if (window.self !== window.top) return
     const timer = setTimeout(() => window.print(), 400)
@@ -120,6 +129,18 @@ export function TicketPrintLayout({ order, items, cashReceived, isKitchen = fals
         {/* Header */}
         <div className="text-center border-b border-dashed border-black pb-2 mb-2">
           <p className="font-bold text-base">{NEGOCIO.nombre.toUpperCase()}</p>
+          {factura && (
+            <div className="text-xs leading-tight mt-1" data-bloque-fiscal>
+              <p>{factura.emisor.razonSocial}</p>
+              <p>{factura.emisor.domicilio}</p>
+              <p>CUIT {factura.emisor.cuit} · IIBB {factura.emisor.ingresosBrutos}</p>
+              <p>Inicio de actividades {factura.emisor.inicioActividades}</p>
+              <p>{factura.emisor.condicion}</p>
+              <p className="font-bold text-sm mt-1">{factura.tipo} · Cód. {factura.codigo}</p>
+              <p>N° {factura.numero} · {factura.fecha}</p>
+              <p>{factura.receptor}</p>
+            </div>
+          )}
           <p className="text-xs">──────────────────────</p>
           <p className="text-sm">{orderLabel}{guestName ? ` · ${guestName}` : ''}</p>
           <p className="text-xs">{dateStr} · {timeStr}</p>
@@ -174,6 +195,21 @@ export function TicketPrintLayout({ order, items, cashReceived, isKitchen = fals
               </div>
             )}
           </div>
+        )}
+
+        {factura && (
+          <div className="text-center text-xs mt-3 pt-2 border-t border-dashed border-black">
+            <div className="mx-auto w-[34mm]" dangerouslySetInnerHTML={{ __html: factura.qrSvg }} />
+            <p className="mt-1">CAE {factura.cae}</p>
+            <p>Vto. CAE {factura.caeVence}</p>
+            <p className="font-bold">Comprobante autorizado por ARCA</p>
+          </div>
+        )}
+
+        {noValidoComoFactura && (
+          <p className="text-center text-xs font-bold uppercase mt-3 pt-2 border-t border-dashed border-black" data-no-factura>
+            {LEYENDA_NO_FACTURA}
+          </p>
         )}
 
         {/* Footer */}

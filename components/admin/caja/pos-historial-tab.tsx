@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo, Fragment } from 'react'
+import { useState, useMemo, useEffect, useCallback, Fragment } from 'react'
 import { printClientTicketAction } from '@/app/actions/print'
+import { facturarPedido, facturasDePedidos, type EstadoFacturaPedido } from '@/app/actions/facturas'
 import {
   ChevronDown,
   Store,
@@ -62,11 +63,28 @@ const TABLE_HEAD_CLASS =
 function OrderRow({
   order,
   onCancelOrder,
+  factura,
+  facturable,
+  onFacturar,
 }: {
   order: OrderWithSplits
   onCancelOrder: (id: string) => void
+  /** La última factura o nota de crédito del pedido, si tiene. */
+  factura?: EstadoFacturaPedido
+  /** Cobrado, sin factura, con la facturación encendida: se ofrece "Facturar". */
+  facturable: boolean
+  onFacturar: (id: string) => Promise<void>
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [facturando, setFacturando] = useState(false)
+  // Lo que no salió es la excepción: una venta sin facturar (spec
+  // facturacion-electronica). Lo emitido va como dato, en gris.
+  const facturaFallida = factura && factura.estado !== 'emitida'
+  const facturar = async () => {
+    setFacturando(true)
+    await onFacturar(order.id)
+    setFacturando(false)
+  }
   const isCancelled = order.status === 'cancelado'
   const sinCobrar = !isCancelled && !estaCobrado(order)
   const items = parseItems(order.items)
@@ -183,6 +201,18 @@ function OrderRow({
           >
             {sinCobrar ? 'Sin cobrar' : isCancelled ? 'Anulado' : 'Pagado'}
           </span>
+          {factura && (
+            <span
+              className={cn(
+                'block text-xs whitespace-nowrap mt-0.5',
+                facturaFallida ? 'font-medium text-aviso-texto' : 'text-[var(--admin-text-muted)]'
+              )}
+            >
+              {factura.estado === 'emitida'
+                ? factura.texto
+                : `${factura.tipo === 13 ? 'Nota de crédito' : 'Factura'} ${factura.estado === 'pendiente' ? 'pendiente' : 'rechazada'}`}
+            </span>
+          )}
         </TableCell>
       </TableRow>
 
@@ -215,6 +245,9 @@ function OrderRow({
 
               <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-[var(--admin-border)]/40 pl-6">
                 <div className="space-y-0.5">
+                  {facturaFallida && factura.motivo && (
+                    <p className="text-xs text-aviso-texto">{factura.motivo}</p>
+                  )}
                   {order.payment_splits && order.payment_splits.length > 1 && (
                     <div className="flex items-center gap-2 flex-wrap">
                       {order.payment_splits.map((s, i) => (
@@ -231,6 +264,33 @@ function OrderRow({
                   )}
                 </div>
                 <div className="flex items-center gap-2">
+                  {(facturaFallida || facturable) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={facturando}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        void facturar()
+                      }}
+                      className="h-7 px-3 text-xs"
+                    >
+                      {facturaFallida ? 'Reintentar' : 'Facturar'}
+                    </Button>
+                  )}
+                  {factura?.estado === 'emitida' && factura.tipo === 11 && !isCancelled && (
+                    // Desde el navegador, sin el puente de impresión: sirve
+                    // para reimprimir o mandar el PDF.
+                    <a
+                      href={`/admin/facturas/${factura.id}/print`}
+                      target="_blank"
+                      rel="noopener"
+                      onClick={(e) => e.stopPropagation()}
+                      className="px-3 py-1 rounded-lg text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface-2)] transition-colors"
+                    >
+                      Ver factura
+                    </a>
+                  )}
                   {!isCancelled && (
                     <button
                       onClick={(e) => {
@@ -280,6 +340,33 @@ export function PosHistorialTab({
   onCancelOrder,
 }: PosHistorialTabProps) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [facturas, setFacturas] = useState<{ activa: boolean; porPedido: Record<string, EstadoFacturaPedido> }>({
+    activa: false,
+    porPedido: {},
+  })
+
+  // Las facturas de los pedidos a la vista. Se piden aparte: la mayoría de los
+  // locales no factura desde acá, y el Historial no tiene por qué esperarlas.
+  const ids = useMemo(() => orders.map((o) => o.id).join(','), [orders])
+  const pedirFacturas = useCallback(() => facturasDePedidos(ids ? ids.split(',') : []), [ids])
+  useEffect(() => {
+    // Si los pedidos cambian antes de que llegue la respuesta, esa se descarta.
+    let vigente = true
+    pedirFacturas().then((r) => {
+      if (vigente) setFacturas(r)
+    })
+    return () => {
+      vigente = false
+    }
+  }, [pedirFacturas])
+  const cargarFacturas = async () => setFacturas(await pedirFacturas())
+
+  const handleFacturar = async (orderId: string) => {
+    const r = await facturarPedido(orderId)
+    if (r.error) toast.warning(r.error, { duration: 10_000 })
+    else if (r.texto) toast.success(r.texto)
+    await cargarFacturas()
+  }
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
@@ -388,6 +475,9 @@ export function PosHistorialTab({
                     key={order.id}
                     order={order}
                     onCancelOrder={onCancelOrder}
+                    factura={facturas.porPedido[order.id]}
+                    facturable={facturas.activa && estaCobrado(order) && !facturas.porPedido[order.id]}
+                    onFacturar={handleFacturar}
                   />
                 ))}
               </TableBody>
