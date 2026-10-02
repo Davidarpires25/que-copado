@@ -1253,3 +1253,19 @@ nada de la red de producción: antes de darlo por listo, una llamada de solo
 lectura contra producción (acá, FEDummy y el último autorizado). Y un problema
 de TLS se arregla ofreciendo solo cifrados fuertes que el servidor acepte
 (`openssl s_client -cipher`), no bajando el nivel de seguridad.
+
+
+## 55. Un archivo con secretos no se muestra, ni "tapado"
+
+**Qué pasó (2026-10-02).** `vercel link` le agregó una línea a `.env.local`.
+Para revisar qué había cambiado mostré el final del archivo con
+`sed 's/=.*/=…/'`, que tapa lo que sigue al `=`. Pero un valor largo seguía en
+la línea siguiente, sin `=`, y se imprimió entero: la firma de la
+`SUPABASE_SERVICE_ROLE_KEY` de producción quedó en la conversación. Hubo que
+recomendarle a David rotarla.
+
+**Regla.** De un archivo con secretos (`.env*`, claves, certificados
+privados) se muestran solo los **nombres** de las variables
+(`grep -oE '^[A-Z_]+'`) o un hash, nunca líneas, ni recortadas ni enmascaradas.
+Un secreto que tiene que ir a otro lado viaja del archivo al destino por
+stdin (`vercel env add NOMBRE production < archivo`), sin pasar por la salida.
