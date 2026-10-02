@@ -30,8 +30,9 @@
       el sin costo sale marcado, el margen coincide con la cuenta hecha a mano,
       el insumo en gramos muestra su equivalente por kilo, y elegir un solo
       grupo trae solo ese grupo.
-- [ ] 4.2 Captura de la hoja a tamaño A4 para que David la mire antes de
-      archivar. **Enviada; falta su veredicto.**
+- [x] 4.2 Captura de la hoja a tamaño A4 para que David la mire antes de
+      archivar. **Enviada; falta su veredicto.** Aprobada (David, 2026-10-02:
+      "me parece bien").
 - [x] 4.3 `npm run lint`, `npm run build` y la suite en verde.
 
 ## 5. Lo que se aprendió haciéndolo
