@@ -18,14 +18,6 @@ const eslintConfig = defineConfig([
       }],
     },
   },
-  // print-bridge/ es un proceso Node independiente del bundle de Next: corre en
-  // CommonJS sobre el equipo del local, no pasa por el compilador de TypeScript.
-  {
-    files: ["print-bridge/**/*.js"],
-    rules: {
-      "@typescript-eslint/no-require-imports": "off",
-    },
-  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

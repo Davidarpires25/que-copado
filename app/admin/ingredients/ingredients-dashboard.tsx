@@ -362,7 +362,7 @@ export function IngredientsDashboard({ initialIngredients, categories: initialCa
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="h-9 w-9 lg:h-10 lg:w-10 text-red-700 dark:text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all"
+                                className="h-9 w-9 lg:h-10 lg:w-10 text-peligro-texto hover:text-red-600 hover:bg-red-500/10 transition-all"
                                 aria-label={`Eliminar ${ingredient.name}`}
                                 onClick={() => setDeleteTarget(ingredient.id)}
                               >

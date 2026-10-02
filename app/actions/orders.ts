@@ -11,7 +11,6 @@ import { revalidateOrders } from '@/lib/server/revalidate'
 import { esTelefonoValido } from '@/lib/utils/phone'
 import { getMaxQuantities } from '@/lib/server/elaborado-stock'
 import { checkRateLimit } from '@/lib/server/rate-limit'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Order, OrderSource, OrderStatus, OrderWithZone } from '@/lib/types/database'
 import type { CreateOrderData, OrderFilters } from '@/lib/types/orders'
 

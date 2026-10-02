@@ -206,7 +206,7 @@ export function CategoryManagerDialog({
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-7 w-7 text-red-700 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                          className="h-7 w-7 text-peligro-texto hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
                           onClick={() => setDeleteTarget(category.id)}
                           aria-label={`Eliminar ${category.name}`}
                         >
