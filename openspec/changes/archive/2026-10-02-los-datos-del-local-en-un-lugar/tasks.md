@@ -73,5 +73,11 @@ tanda de capturas se verifica que el servidor sirva el código actual (lección
       hidratación en arqueos y dashboard): no son de este cambio. Los datos
       locales de David, iguales antes y después.
 
-- [ ] 4.3 Después del despliegue, la tienda y un ticket de producción siguen
+- [x] 4.3 Después del despliegue, la tienda y un ticket de producción siguen
       diciendo "Que Copado". Verifica: la página publicada.
+      Hecho (2026-09-30): producción en `ce1868c`; la tienda dice "Que Copado
+      - Las mejores hamburguesas" sin ninguna variable `NEXT_PUBLIC_NEGOCIO_*`
+      en Vercel, y `og:image` pasó a `https://que-copado.vercel.app/logo.svg`
+      con la `NEXT_PUBLIC_APP_URL` que cargó David. El ticket en papel no
+      depende de este cambio: lo imprime el puente en C#, con el nombre de su
+      propia configuración (David, 2026-09-30).
