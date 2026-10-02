@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import QRCode from 'qrcode'
 import { createAdminClient, createServiceRoleClient } from '@/lib/supabase/admin'
-import { facturaDelPedido } from '@/lib/facturas/ticket'
+import { facturaDelPedido, facturacionEncendida } from '@/lib/facturas/ticket'
 import { TicketPrintLayout } from '@/components/admin/caja/ticket-print-layout'
 import type { Order } from '@/lib/types/database'
 interface PageProps {
@@ -79,7 +79,10 @@ export default async function TicketPrintPage({ params, searchParams }: PageProp
 
   // El ticket entero de un pedido facturado es la factura. Un ticket por
   // comensal o de cocina no: la factura es por el pedido completo.
-  const fiscal = !isKitchen && !guestTag ? await facturaDelPedido(createServiceRoleClient(), orderId) : null
+  const servicio = createServiceRoleClient()
+  const fiscal = !isKitchen && !guestTag ? await facturaDelPedido(servicio, orderId) : null
+  // La comanda es interna: no la recibe el cliente, no lleva leyenda.
+  const noValidoComoFactura = !isKitchen && !fiscal && (await facturacionEncendida(servicio))
   const factura = fiscal
     ? { ...fiscal, qrSvg: await QRCode.toString(fiscal.qr, { type: 'svg', margin: 0, errorCorrectionLevel: 'M' }) }
     : null
@@ -88,6 +91,7 @@ export default async function TicketPrintPage({ params, searchParams }: PageProp
     <TicketPrintLayout
       order={order as Order}
       factura={factura}
+      noValidoComoFactura={noValidoComoFactura}
       items={items}
       cashReceived={cashReceived}
       isKitchen={isKitchen}

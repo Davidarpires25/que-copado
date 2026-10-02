@@ -13,3 +13,6 @@ export function nombreDeComprobante(f: { tipo: number; punto_venta: number | nul
   const tipo = NOMBRE_TIPO[f.tipo] ?? `Comprobante ${f.tipo}`
   return f.punto_venta && f.numero ? `${tipo} ${numeroDeComprobante(f.punto_venta, f.numero)}` : tipo
 }
+
+/** Lo que dice un ticket que no es la factura, con la facturación encendida (RG 1415). */
+export const LEYENDA_NO_FACTURA = 'Documento no válido como factura'

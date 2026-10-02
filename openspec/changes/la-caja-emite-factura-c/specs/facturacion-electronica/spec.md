@@ -117,6 +117,17 @@ tipo y número del comprobante, el CAE con su vencimiento, los datos del
 emisor y el código QR de ARCA. Un puente de impresión que no conoce la factura
 SHALL seguir imprimiendo el ticket de siempre.
 
+Con la facturación encendida, un ticket del cliente que no es la factura —la
+cuenta antes de cobrar, un cobro que no se facturó, el de un comensal— SHALL
+decir "Documento no válido como factura" (RG 1415). Con la facturación
+apagada, el ticket NO SHALL cambiar.
+
+#### Scenario: La cuenta antes de cobrar, con la facturación encendida
+
+- **GIVEN** la facturación encendida y un pedido sin factura
+- **WHEN** se imprime su ticket
+- **THEN** dice "Documento no válido como factura"
+
 #### Scenario: Ticket de un pedido facturado
 
 - **GIVEN** un pedido con Factura C emitida

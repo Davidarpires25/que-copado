@@ -289,6 +289,9 @@ test('5.4 el ticket de un pedido facturado es la factura: al puente y en el nave
   await expect(bloque).toContainText('N° 0007-00000001')
   await expect(page.locator('#ticket-root')).toContainText('Comprobante autorizado por ARCA')
   await expect(page.locator('#ticket-root svg')).toHaveCount(1)
+  // La factura no lleva la leyenda: es la factura.
+  await expect(page.locator('[data-no-factura]')).toHaveCount(0)
+  expect(ticket.noValidoComoFactura).toBe(false)
   await page.locator('#ticket-root').screenshot({ path: 'test-results/factura-ticket.png' })
 })
 
@@ -300,5 +303,26 @@ test('5.4 el ticket de un pedido sin factura no lleva bloque fiscal', async ({ p
   await page.addInitScript(() => { window.print = () => {} })
   await page.goto(`/admin/caja/ticket/${id}/print`)
   await expect(page.locator('#ticket-root')).toContainText('TOTAL', { timeout: 20_000 })
+  await expect(page.locator('[data-bloque-fiscal]')).toHaveCount(0)
+  // Apagada, el ticket es el de siempre: tampoco la leyenda.
+  await expect(page.locator('[data-no-factura]')).toHaveCount(0)
+})
+
+test('5.4 con la facturación encendida, un ticket que no es la factura lo dice', async ({ page }) => {
+  const { id, numero } = await pedidoPendiente()
+  // Efectivo no está tildado: se cobra sin factura.
+  await cobrar(page, numero, 'Efectivo')
+  await expect(aviso(page)).toHaveText('Pago registrado')
+
+  await abrirHistorial(page)
+  await page.getByText(`1x ${producto.name}`).first().click()
+  await page.getByRole('button', { name: 'Ticket' }).click()
+  await expect.poll(async () => (await rest(`print_jobs?data->>orderId=eq.${id}&select=data`)).length, { timeout: 10_000 }).toBe(1)
+  const [{ data: ticket }] = await rest(`print_jobs?data->>orderId=eq.${id}&select=data`)
+  expect(ticket).toMatchObject({ factura: null, noValidoComoFactura: true })
+
+  await page.addInitScript(() => { window.print = () => {} })
+  await page.goto(`/admin/caja/ticket/${id}/print`)
+  await expect(page.locator('[data-no-factura]')).toHaveText('Documento no válido como factura', { timeout: 20_000 })
   await expect(page.locator('[data-bloque-fiscal]')).toHaveCount(0)
 })

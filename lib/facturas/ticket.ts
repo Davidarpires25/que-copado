@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { textoDelQr } from '@/lib/arca/qr'
 import { TIPO } from '@/lib/arca/wsfe'
 import { NOMBRE_TIPO, numeroDeComprobante } from './formato'
+export { LEYENDA_NO_FACTURA } from './formato'
 import type { DatosFiscales, FilaFactura } from './emitir'
 
 /**
@@ -102,4 +103,16 @@ export async function facturaPorId(
   if (!fila || !datos) return null
   const factura = armarFacturaDelTicket(fila as FilaFactura, datos as DatosFiscales)
   return factura ? { factura, orderId: (fila as FilaFactura).order_id } : null
+}
+
+/**
+ * Si el local factura desde el sistema. Con la facturación encendida, un
+ * ticket que no es la factura —la cuenta antes de cobrar, un cobro que no se
+ * facturó, el de un comensal— lleva "Documento no válido como factura" (RG
+ * 1415), para que no se confunda con la factura de verdad. Apagada, el ticket
+ * queda como siempre.
+ */
+export async function facturacionEncendida(base: SupabaseClient): Promise<boolean> {
+  const { data } = await base.from('datos_fiscales').select('activa').maybeSingle()
+  return Boolean(data?.activa)
 }

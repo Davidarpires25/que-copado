@@ -7,6 +7,7 @@ import type { Order } from '@/lib/types/database'
 import { orderLabel as numeroDePedido } from '@/lib/utils/order-number'
 import { NEGOCIO } from '@/lib/negocio'
 import type { FacturaDelTicket } from '@/lib/facturas/ticket'
+import { LEYENDA_NO_FACTURA } from '@/lib/facturas/formato'
 
 interface TicketItem {
   name: string
@@ -28,6 +29,8 @@ interface TicketPrintLayoutProps {
    * emisor, el comprobante, el CAE y el QR (ya dibujado, en SVG).
    */
   factura?: (FacturaDelTicket & { qrSvg: string }) | null
+  /** Con la facturación encendida, un ticket que no es la factura lo dice (RG 1415). */
+  noValidoComoFactura?: boolean
 }
 
 const PAYMENT_LABELS: Record<string, string> = {
@@ -52,7 +55,7 @@ const PRINT_STYLES = `
   #ticket-root { font-family: 'Courier New', monospace; }
 `
 
-export function TicketPrintLayout({ order, items, cashReceived, isKitchen = false, guestName, tableLabel, factura }: TicketPrintLayoutProps) {
+export function TicketPrintLayout({ order, items, cashReceived, isKitchen = false, guestName, tableLabel, factura, noValidoComoFactura = false }: TicketPrintLayoutProps) {
   useEffect(() => {
     if (window.self !== window.top) return
     const timer = setTimeout(() => window.print(), 400)
@@ -201,6 +204,12 @@ export function TicketPrintLayout({ order, items, cashReceived, isKitchen = fals
             <p>Vto. CAE {factura.caeVence}</p>
             <p className="font-bold">Comprobante autorizado por ARCA</p>
           </div>
+        )}
+
+        {noValidoComoFactura && (
+          <p className="text-center text-xs font-bold uppercase mt-3 pt-2 border-t border-dashed border-black" data-no-factura>
+            {LEYENDA_NO_FACTURA}
+          </p>
         )}
 
         {/* Footer */}

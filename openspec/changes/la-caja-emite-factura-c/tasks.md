@@ -115,6 +115,9 @@ acá. Los datos locales de David se estacionan y devuelven en los tests de caja
       lleva al ticket del pedido, que ya lo incluye. El QR de la captura,
       leído con `zbarimg`, da `https://www.arca.gob.ar/fe/qr/?p=…` con los
       datos del comprobante. Dos tests "5.4" en `facturas-caja.spec.ts`.
+      Sumado (David, 2026-10-02): con la facturación encendida, el ticket que
+      no es la factura dice "Documento no válido como factura" (RG 1415);
+      viaja como `print_jobs.data.noValidoComoFactura`. Tercer test "5.4".
 - [ ] 5.5 `../print-bridge`: bloque fiscal y QR en ESC/POS, y
       `docs/INTEGRACION.md`. Verifica: un ticket con factura en la impresora
       del local (David).
