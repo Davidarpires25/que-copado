@@ -94,6 +94,9 @@ export function explicarError(e: unknown): string {
     if (e.codigo === '600' && /relaciones/i.test(e.message)) {
       return 'ARCA no reconoce la delegación de esta CUIT: falta el paso 2 de la guía de alta.'
     }
+    if (e.codigo === '11002') {
+      return 'ARCA no habilita ese punto de venta para el sistema: tiene que ser uno creado como «Factura electrónica – Monotributo – Web Services» (paso 1 de la guía).'
+    }
     if (e.codigo === 'coe.notAuthorized') {
       return 'ARCA no autoriza el certificado de esta instalación para facturar.'
     }
