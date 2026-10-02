@@ -2,7 +2,7 @@
 
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClient, createServiceRoleClient } from '@/lib/supabase/admin'
 import { getBusinessSettings } from '@/app/actions/business-settings'
 import { checkBusinessStatus } from '@/lib/services/business-hours'
 import { getAuthUser } from '@/lib/server/auth'
@@ -275,7 +275,13 @@ export async function createOrder(
     //
     // `crear_pedido_remoto` (migracion 039) inserta y devuelve el numero en el
     // mismo viaje, que ademas es un viaje menos que antes.
-    const { data: creado, error } = await supabase.rpc('crear_pedido_remoto', {
+    //
+    // Con la clave de servicio, y solo acá, después de validar precios, envío,
+    // horario y stock: la función ya no acepta llamadas sin sesión. Antes
+    // cualquiera con la clave pública podía llamarla directo —o insertar en
+    // `orders`— con el total y el estado que quisiera (spec pedidos-seguros).
+    const servicio = createServiceRoleClient()
+    const { data: creado, error } = await servicio.rpc('crear_pedido_remoto', {
       p_customer_name: data.customer_name,
       p_customer_phone: data.customer_phone,
       p_customer_address: data.customer_address,
@@ -314,8 +320,9 @@ export async function createOrder(
       created_at: nuevo.created_at,
     } as unknown as Order
 
-    // Log initial status in history (non-blocking)
-    supabase
+    // Log initial status in history (non-blocking). Con la clave de servicio:
+    // el historial tampoco acepta escrituras sin sesión.
+    servicio
       .from('order_status_history')
       .insert({
         order_id: order.id,
