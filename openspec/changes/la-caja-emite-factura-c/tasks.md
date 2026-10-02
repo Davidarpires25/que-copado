@@ -128,8 +128,10 @@ acá. Los datos locales de David se estacionan y devuelven en los tests de caja
       `noValidoComoFactura` imprime la leyenda; opción de bandeja para una
       factura de ejemplo; `docs/INTEGRACION.md` actualizado. Revisado desde
       acá: los nombres de los campos coinciden con `FacturaDelTicket`.
-      Falta lo que dice "Verifica": imprimirla en la impresora del local y
-      leer el QR con el celular (David).
+      Compila (David, 2026-10-02). Falta lo que dice "Verifica": imprimirla
+      en la impresora del local y leer el QR con el celular; David no tiene la
+      impresora a mano. Hasta entonces la factura se imprime desde el
+      navegador ("Ver factura").
 
 ## 6. Cierre
 
