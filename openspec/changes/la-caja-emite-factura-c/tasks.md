@@ -121,14 +121,15 @@ acá. Los datos locales de David se estacionan y devuelven en los tests de caja
 - [ ] 5.5 `../print-bridge`: bloque fiscal y QR en ESC/POS, y
       `docs/INTEGRACION.md`. Verifica: un ticket con factura en la impresora
       del local (David).
-      Pendiente: en esta máquina no hay .NET para compilarlo ni probarlo. El
-      dato ya viaja: `print_jobs.data.factura` con la forma de
-      `FacturaDelTicket` (`lib/facturas/ticket.ts`); el puente actual lo
-      ignora y sigue imprimiendo el ticket (visto en su código: despacha por `type`,
-      que no cambió). Falta en `Impresora.cs`: si `factura` viene, el
-      bloque del emisor bajo el nombre, y abajo el QR (`GS ( k`, modelo 2,
-      con `factura.qr`), CAE, vencimiento y "Comprobante autorizado por
-      ARCA", como la página del navegador.
+      Hecho en el puente (commit `aad98a5` de `print-bridge`, en la PC con
+      Windows, 2026-10-02): `data.factura` arriba (emisor, "Factura C · Cód.
+      011", número, receptor) y abajo el QR (`EscPos.Qr`, `GS ( k` modelo 2,
+      ASCII), CAE, vencimiento y "Comprobante autorizado por ARCA";
+      `noValidoComoFactura` imprime la leyenda; opción de bandeja para una
+      factura de ejemplo; `docs/INTEGRACION.md` actualizado. Revisado desde
+      acá: los nombres de los campos coinciden con `FacturaDelTicket`.
+      Falta lo que dice "Verifica": imprimirla en la impresora del local y
+      leer el QR con el celular (David).
 
 ## 6. Cierre
 
