@@ -41,8 +41,9 @@ numeración de las facturas se mezclaría.
 2. Tocá **"Nueva Relación"**.
 3. En "Servicio", tocá **"Buscar"** y elegí **ARCA → WebServices →
    Facturación Electrónica**.
-4. En el campo del representante (**"CUIT/CUIL/CDI Usuario"**), escribí la
-   CUIT que te pasamos, **sin guiones**, y tocá **"Buscar"**.
+4. En el campo del representante (**"CUIT/CUIL/CDI Usuario"**), escribí
+   **23430590049** (la CUIT del proveedor del sistema, sin guiones) y tocá
+   **"Buscar"**. Tiene que aparecer **ARPIRES DAVID NAHUEL DE JESUS**.
 5. Tocá **"Confirmar"**.
 
 Con esto el sistema puede emitir facturas **a nombre de tu CUIT** y solo

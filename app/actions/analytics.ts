@@ -8,6 +8,7 @@ import { devError } from '@/lib/server/logger'
 import { parseOrderItems } from '@/lib/services/order-formatter'
 import type { Json } from '@/lib/types/database'
 import { requirePermission } from '@/lib/server/profile'
+import { diaDelLocal, horaDelLocal, sumarDias, diaDeLaSemana, lunesDe, primeroDelMes, inicioDelDia, etiquetaDelDia } from '@/lib/utils/calendario-del-local'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -149,12 +150,10 @@ interface DeliveryZoneRow {
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Las 0:00 (hora de Argentina) de hace N días. Ver lib/utils/calendario-del-local.ts. */
 function getPeriodStartDate(period: AnalyticsPeriod): Date {
   const days = { '7d': 7, '30d': 30, '90d': 90 }
-  const start = new Date()
-  start.setDate(start.getDate() - days[period])
-  start.setHours(0, 0, 0, 0)
-  return start
+  return inicioDelDia(sumarDias(diaDelLocal(), -days[period]))
 }
 
 function calculateTrend(current: number, previous: number): TrendData | null {
@@ -182,26 +181,18 @@ export async function getComparativeStats(): Promise<{
     const denied = await requirePermission('analytics.view')
     if (denied) return { data: null, ...denied }
 
-    const now = new Date()
+    // Los cortes en hora de Argentina, no del servidor (que en Vercel es UTC).
+    const hoy = diaDelLocal()
+    const todayStart = inicioDelDia(hoy)
+    const yesterdayStart = inicioDelDia(sumarDias(hoy, -1))
 
-    // Today boundaries
-    const todayStart = new Date(now)
-    todayStart.setHours(0, 0, 0, 0)
-    const yesterdayStart = new Date(todayStart)
-    yesterdayStart.setDate(yesterdayStart.getDate() - 1)
+    // Semana desde el lunes
+    const lunes = lunesDe(hoy)
+    const weekStart = inicioDelDia(lunes)
+    const prevWeekStart = inicioDelDia(sumarDias(lunes, -7))
 
-    // Week boundaries (Monday-based)
-    const weekStart = new Date(now)
-    const dayOfWeek = weekStart.getDay()
-    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
-    weekStart.setDate(weekStart.getDate() - daysToMonday)
-    weekStart.setHours(0, 0, 0, 0)
-    const prevWeekStart = new Date(weekStart)
-    prevWeekStart.setDate(prevWeekStart.getDate() - 7)
-
-    // Month boundaries
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-    const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const monthStart = inicioDelDia(primeroDelMes(hoy))
+    const prevMonthStart = inicioDelDia(primeroDelMes(hoy, 1))
 
     // Fetch all orders from the start of prev month (covers all needed periods)
     const { data: orders, error } = await supabase
@@ -310,7 +301,7 @@ export async function getHourlySales(
     }
 
     for (const order of orders) {
-      const hour = new Date(order.created_at).getHours()
+      const hour = horaDelLocal(order.created_at)
       hourlyMap[hour].orders++
       hourlyMap[hour].revenue += Number(order.total)
     }
@@ -368,7 +359,7 @@ export async function getWeekdaySales(
     }
 
     for (const order of orders) {
-      const day = new Date(order.created_at).getDay()
+      const day = diaDeLaSemana(diaDelLocal(order.created_at))
       dayMap[day].totalOrders++
       dayMap[day].totalRevenue += Number(order.total)
     }
@@ -408,8 +399,7 @@ export async function getCancellationRate(
 
     const days = { '7d': 7, '30d': 30, '90d': 90 }
     const startDate = getPeriodStartDate(period)
-    const prevStart = new Date(startDate)
-    prevStart.setDate(prevStart.getDate() - days[period])
+    const prevStart = inicioDelDia(sumarDias(diaDelLocal(startDate), -days[period]))
 
     const { data: orders, error } = await supabase
       .from('orders')
@@ -612,15 +602,13 @@ export async function getConfigurableSalesChart(
     if (numDays <= 30) {
       // Daily granularity
       const dailyMap: Record<string, { revenue: number; orders: number }> = {}
+      const hoy = diaDelLocal()
       for (let i = 0; i < numDays; i++) {
-        const date = new Date()
-        date.setDate(date.getDate() - (numDays - 1 - i))
-        const dateKey = date.toISOString().split('T')[0]
-        dailyMap[dateKey] = { revenue: 0, orders: 0 }
+        dailyMap[sumarDias(hoy, -(numDays - 1 - i))] = { revenue: 0, orders: 0 }
       }
 
       for (const order of orders) {
-        const dateKey = order.created_at.split('T')[0]
+        const dateKey = diaDelLocal(order.created_at)
         if (dailyMap[dateKey]) {
           dailyMap[dateKey].revenue += Number(order.total)
           dailyMap[dateKey].orders++
@@ -630,13 +618,9 @@ export async function getConfigurableSalesChart(
       const result: ConfigurableSalesData[] = Object.entries(dailyMap)
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([date, stats]) => {
-          const d = new Date(date)
           return {
             date,
-            label: d.toLocaleDateString('es-AR', {
-              day: 'numeric',
-              month: 'short',
-            }),
+            label: etiquetaDelDia(date, { day: 'numeric', month: 'short' }),
             revenue: stats.revenue,
             orders: stats.orders,
           }
@@ -647,12 +631,10 @@ export async function getConfigurableSalesChart(
       // Weekly granularity for 90d
       const weeklyMap: Record<string, { revenue: number; orders: number; start: Date }> = {}
 
+      const hoy = diaDelLocal()
       for (let i = 0; i < Math.ceil(numDays / 7); i++) {
-        const weekStart = new Date()
-        weekStart.setDate(weekStart.getDate() - numDays + i * 7)
-        weekStart.setHours(0, 0, 0, 0)
-        const weekKey = weekStart.toISOString().split('T')[0]
-        weeklyMap[weekKey] = { revenue: 0, orders: 0, start: weekStart }
+        const weekKey = sumarDias(hoy, -numDays + i * 7)
+        weeklyMap[weekKey] = { revenue: 0, orders: 0, start: inicioDelDia(weekKey) }
       }
 
       const weekKeys = Object.keys(weeklyMap).sort()
@@ -671,10 +653,9 @@ export async function getConfigurableSalesChart(
       }
 
       const result: ConfigurableSalesData[] = weekKeys.map((wk) => {
-        const d = weeklyMap[wk].start
         return {
           date: wk,
-          label: `Sem ${d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}`,
+          label: `Sem ${etiquetaDelDia(wk, { day: 'numeric', month: 'short' })}`,
           revenue: weeklyMap[wk].revenue,
           orders: weeklyMap[wk].orders,
         }

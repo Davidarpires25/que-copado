@@ -5,6 +5,7 @@ import { getAuthUser } from '@/lib/server/auth'
 import { devError } from '@/lib/server/logger'
 import type { DashboardStats, TopProduct, SalesChartData } from '@/lib/types/orders'
 import { requirePermission } from '@/lib/server/profile'
+import { diaDelLocal, sumarDias, lunesDe, primeroDelMes, inicioDelDia } from '@/lib/utils/calendario-del-local'
 
 interface OrderChartRow {
   total: number
@@ -30,18 +31,12 @@ export async function getDashboardStats(): Promise<{
     const denied = await requirePermission('dashboard.view')
     if (denied) return { data: null, ...denied }
 
-    const now = new Date()
-
-    const todayStart = new Date(now)
-    todayStart.setHours(0, 0, 0, 0)
-
-    const weekStart = new Date(now)
-    const dayOfWeek = weekStart.getDay()
-    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
-    weekStart.setDate(weekStart.getDate() - daysToMonday)
-    weekStart.setHours(0, 0, 0, 0)
-
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+    // Hoy, la semana y el mes en hora de Argentina, no del servidor (UTC en
+    // Vercel): ver lib/utils/calendario-del-local.ts.
+    const hoy = diaDelLocal()
+    const todayStart = inicioDelDia(hoy)
+    const weekStart = inicioDelDia(lunesDe(hoy))
+    const monthStart = inicioDelDia(primeroDelMes(hoy))
 
     const [todayResult, weekResult, monthResult] = await Promise.all([
       supabase
@@ -112,9 +107,7 @@ export async function getTopProducts(
     const denied = await requirePermission('dashboard.view')
     if (denied) return { data: null, ...denied }
 
-    const monthStart = new Date()
-    monthStart.setDate(1)
-    monthStart.setHours(0, 0, 0, 0)
+    const monthStart = inicioDelDia(primeroDelMes(diaDelLocal()))
 
     const { data: orderIds, error: ordersError } = await supabase
       .from('orders')
@@ -198,9 +191,8 @@ export async function getSalesChartData(
     const denied = await requirePermission('dashboard.view')
     if (denied) return { data: null, ...denied }
 
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() - days + 1)
-    startDate.setHours(0, 0, 0, 0)
+    const hoy = diaDelLocal()
+    const startDate = inicioDelDia(sumarDias(hoy, -days + 1))
 
     const { data: orders, error } = await supabase
       .from('orders')
@@ -216,14 +208,11 @@ export async function getSalesChartData(
     const chartData: Record<string, { revenue: number; orders: number }> = {}
 
     for (let i = 0; i < days; i++) {
-      const date = new Date()
-      date.setDate(date.getDate() - i)
-      const dateKey = date.toISOString().split('T')[0]
-      chartData[dateKey] = { revenue: 0, orders: 0 }
+      chartData[sumarDias(hoy, -i)] = { revenue: 0, orders: 0 }
     }
 
     orders.forEach((order) => {
-      const dateKey = order.created_at.split('T')[0]
+      const dateKey = diaDelLocal(order.created_at)
       if (chartData[dateKey]) {
         chartData[dateKey].revenue += order.total
         chartData[dateKey].orders++
