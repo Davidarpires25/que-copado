@@ -73,12 +73,8 @@ const securityHeaders = [
  * Next.js development behavior"-- y hay que hacerle caso.
  */
 const cacheHeaders = [
-  {
-    // Lo que genera Next: el nombre lleva un hash, asi que nunca cambia sin
-    // cambiar de nombre. Next ya las pone; quedan explicitas para que se lea.
-    source: '/_next/static/:path*',
-    headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
-  },
+  // /_next/static no va: Next ya le pone `public, max-age=31536000, immutable`,
+  // y desde 16.3 avisa que pisarlo puede romper el modo desarrollo.
   {
     // Los tiles de Leaflet, que son los que mas pesan y nunca cambian.
     source: '/leaflet/:path*',
